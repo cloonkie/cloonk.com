@@ -190,12 +190,10 @@ body.index-body footer {
 
 /* ── Hint ── */
 .sc-hint {
-  margin-top: clamp(12px, 1.8vh, 24px);
-  display: flex;
-  flex-direction: column;
+  margin-top: auto;
+  position: relative;
+  z-index: 30;
   align-items: center;
-  gap: 6px;
-  pointer-events: none;
 }
 
 .sc-hint span {
