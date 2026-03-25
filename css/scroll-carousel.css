@@ -101,6 +101,7 @@ body.index-body footer {
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
 }
 
 #scroll-carousel-ring {
@@ -136,7 +137,7 @@ body.index-body footer {
   width: 100%;
   height: 100%;
   min-height: clamp(120px, 13vh, 200px);
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   pointer-events: none;
   background: var(--border);
