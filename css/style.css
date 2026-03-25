@@ -1,0 +1,365 @@
+/* ============================================================
+   cloonk.com — style.css
+   Framework: etienne.studio layout language
+   Identity: Kevin Zhang / dark #0a0a0a / cream #f5f2ec
+   ============================================================ */
+
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@100,200,300,400,500,600,700,800,900&f[]=satoshi@300,400,500,700&display=swap');
+
+/* ─── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+img, video { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; }
+button { background: none; border: none; cursor: pointer; font: inherit; }
+
+/* ─── Variables — Dark (default) ────────────────────────── */
+:root {
+  --bg:        #0a0a0a;
+  --fg:        #f5f2ec;
+  --accent:    #39ff14;
+  --muted:     #888882;
+  --border:    #2a2a26;
+
+  --font-display: 'Cabinet Grotesk', sans-serif;
+  --font-body:    'Satoshi', sans-serif;
+
+  --nav-h: 48px;
+  --page-pad: clamp(20px, 4vw, 60px);
+}
+
+/* ─── Light mode ─────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg:     #f5f2ec;
+  --fg:     #0a0a0a;
+  --accent: #1b09bc;
+  --muted:  #5a5a54;
+  --border: #d0ccc4;
+}
+
+/* ─── Smooth theme transitions ───────────────────────────── */
+body,
+nav,
+.nav__mobile-menu,
+footer {
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ─── Base ───────────────────────────────────────────────── */
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: clamp(14px, 1.3vw, 16px);
+  font-weight: 500;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── NAV ────────────────────────────────────────────────── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--page-pad);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  /* subtle backdrop blur for depth */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.nav__logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--fg);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Bear uses system emoji font */
+.nav__logo .bear {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: 15px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+/* "cloonk" alias text */
+.nav__logo .alias {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--fg);
+  line-height: 1;
+}
+
+.nav__links {
+  display: flex;
+  gap: clamp(20px, 3vw, 48px);
+  align-items: center;
+}
+
+.nav__links a {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.nav__links a:hover,
+.nav__links a.active {
+  color: var(--fg);
+}
+
+.nav__right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav__clock {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 80px;
+  text-align: right;
+}
+
+/* Mobile hamburger */
+.nav__hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  padding: 4px;
+}
+.nav__hamburger span {
+  display: block;
+  width: 22px;
+  height: 1px;
+  background: var(--fg);
+  transition: transform 0.3s, opacity 0.3s;
+}
+.nav__hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.nav__hamburger.open span:nth-child(2) { opacity: 0; }
+.nav__hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* Mobile menu overlay */
+.nav__mobile-menu {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: var(--bg);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  padding-top: var(--nav-h);
+}
+.nav__mobile-menu.open { display: flex; }
+.nav__mobile-menu a {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 8vw, 52px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+.nav__mobile-menu a:hover { color: var(--accent); }
+
+/* ─── Page Shell ─────────────────────────────────────────── */
+main {
+  padding-top: var(--nav-h);
+  min-height: 100vh;
+}
+
+.page {
+  padding: clamp(40px, 6vw, 80px) var(--page-pad);
+}
+
+/* ─── Footer — slim, nav-height, all pages ───────────────── */
+footer {
+  border-top: 1px solid var(--border);
+  height: var(--nav-h);
+  padding: 0 var(--page-pad);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: nowrap;
+}
+
+.footer__left,
+.footer__right {
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.footer__left a,
+.footer__right a {
+  transition: color 0.2s;
+}
+.footer__left a:hover,
+.footer__right a:hover {
+  color: var(--fg);
+}
+
+.footer__socials {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+/* ─── Section Divider ────────────────────────────────────── */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: clamp(32px, 5vw, 64px) 0;
+}
+
+/* ─── Label / Eyebrow ────────────────────────────────────── */
+.label {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.label--gold {
+  color: var(--accent);
+}
+
+/* ─── Page-load fade ─────────────────────────────────────── */
+.fade-in {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: fadeUp 0.6s ease forwards;
+}
+.fade-in:nth-child(2) { animation-delay: 0.08s; }
+.fade-in:nth-child(3) { animation-delay: 0.16s; }
+.fade-in:nth-child(4) { animation-delay: 0.24s; }
+.fade-in:nth-child(5) { animation-delay: 0.32s; }
+
+@keyframes fadeUp {
+  to { opacity: 1; transform: none; }
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .nav__links { display: none; }
+  .nav__clock { display: none; }
+  .nav__hamburger { display: flex; }
+  footer { flex-direction: column; }
+}
+
+/* ─── Theme Toggle ───────────────────────────────────────── */
+.nav__theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 20px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.nav__theme-toggle:hover {
+  color: var(--fg);
+}
+
+/* Sun / moon icons */
+.nav__theme-toggle .icon-sun,
+.nav__theme-toggle .icon-moon {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: opacity 0.2s, transform 0.3s;
+}
+
+/* Dark mode: show moon, hide sun */
+.icon-sun  { opacity: 1; }
+.icon-moon { opacity: 0; position: absolute; }
+
+[data-theme="light"] .icon-sun  { opacity: 0; }
+[data-theme="light"] .icon-moon { opacity: 1; }
+
+/* ─── Custom Cursor ──────────────────────────────────────── */
+
+/* Hide native cursor everywhere */
+*, *::before, *::after {
+  cursor: none !important;
+}
+
+/* Dot cursor */
+.cursor-dot {
+  position: fixed;
+  top: 0; left: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.15s, height 0.15s, background 0.2s, border-radius 0.15s, opacity 0.2s;
+  will-change: transform;
+}
+
+/* Pill label cursor — hidden by default */
+.cursor-label {
+  position: fixed;
+  top: 0; left: 0;
+  padding: 4px 14px;
+  background: var(--accent);
+  color: var(--bg);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 100px;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity 0.15s, background 0.2s;
+  will-change: transform;
+}
+
+/* When hovering a link/button: hide dot, show label */
+body.cursor-hover .cursor-dot {
+  opacity: 0;
+}
+body.cursor-hover .cursor-label {
+  opacity: 1;
+}
+
+/* Keep cursor visible on mobile (no hover) */
+@media (hover: none) {
+  *, *::before, *::after { cursor: auto !important; }
+  .cursor-dot, .cursor-label { display: none; }
+}

@@ -1,0 +1,273 @@
+/* projects.css — work grid page */
+
+/* ─── Page ───────────────────────────────────────────────── */
+.work-page { padding-bottom: 100px; }
+
+/* ─── Header ─────────────────────────────────────────────── */
+.work-header {
+  margin-bottom: clamp(28px, 3.5vw, 48px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.work-header__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.work-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(32px, 5vw, 64px);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  margin-top: 8px;
+}
+
+.work-count {
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  align-self: flex-end;
+  padding-bottom: 4px;
+}
+
+/* ─── Filter rows ────────────────────────────────────────── */
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-row__label {
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  width: 56px;
+  flex-shrink: 0;
+}
+
+.filter-group {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.filter-btn:hover {
+  color: var(--fg);
+  border-color: var(--muted);
+}
+
+.filter-btn.active {
+  color: var(--bg);
+  background: var(--fg);
+  border-color: var(--fg);
+}
+
+/* ─── Grid ───────────────────────────────────────────────── */
+.work-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(20px, 2.5vw, 36px);
+  margin-bottom: clamp(40px, 5vw, 64px);
+}
+
+/* ─── Card ───────────────────────────────────────────────── */
+.wk-card {
+  background: var(--bg);
+  transition: opacity 0.25s;
+}
+
+.wk-card--hidden { display: none; }
+
+.wk-card__link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.wk-card__img {
+  position: relative;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  background: var(--border);
+  margin-bottom: 14px;
+}
+
+.wk-card__img img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s cubic-bezier(0.25, 0, 0, 1);
+}
+
+.wk-card__img-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  z-index: -1;
+}
+
+.wk-card__link:hover .wk-card__img img {
+  transform: scale(1.04);
+}
+
+.wk-card__type {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #f5f2ec;
+  background: rgba(5, 5, 5, 0.82);
+  padding: 3px 8px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+[data-theme="light"] .wk-card__type {
+  color: #f5f2ec;
+  background: rgba(5, 5, 5, 0.85);
+}
+
+.wk-card__body {
+  padding: 0 2px 4px;
+}
+
+.wk-card__meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+
+.wk-card__topic {
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.wk-card__year {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.wk-card__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(17px, 1.8vw, 22px);
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  line-height: 1.1;
+  margin-bottom: 6px;
+  transition: color 0.2s;
+}
+
+.wk-card__link:hover .wk-card__title { color: var(--accent); }
+
+.wk-card__short {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* ─── Pagination ─────────────────────────────────────────── */
+.work-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  padding-top: 28px;
+  gap: 16px;
+}
+
+.work-pagination__info {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.work-pagination__controls {
+  display: flex;
+  gap: 4px;
+}
+
+.page-btn {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.page-btn:hover:not(:disabled) {
+  color: var(--fg);
+  border-color: var(--muted);
+}
+
+.page-btn.active {
+  color: var(--bg);
+  background: var(--fg);
+  border-color: var(--fg);
+}
+
+.page-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+/* ─── Empty state ────────────────────────────────────────── */
+.work-empty {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 64px 0;
+  text-align: center;
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .work-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: clamp(16px, 2vw, 28px);
+  }
+}
+
+@media (max-width: 540px) {
+  .work-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}

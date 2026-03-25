@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact &mdash; Kevin Zhang</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/contact.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark');</script>
+</head>
+<body class="contact-body">
+
+  <nav>
+    <a class="nav__logo" id="nav-logo" href="index.html">cloonk ʕ·ᴥ·ʔ</a>
+    <div class="nav__links">
+      <a href="projects.html">Work</a>
+      <a href="resume.html">Resume</a>
+      <a href="info.html">Info</a>
+      <a href="contact.html" class="active">Contact</a>
+    </div>
+    <div class="nav__right">
+      <span class="nav__clock" id="nav-clock"></span>
+      <button class="nav__theme-toggle" id="nav-theme-toggle" aria-label="Toggle light/dark mode">
+        <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <button class="nav__hamburger" id="nav-hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="nav__mobile-menu" id="nav-mobile-menu">
+    <a href="projects.html">Work</a>
+    <a href="resume.html">Resume</a>
+    <a href="info.html">Info</a>
+    <a href="contact.html">Contact</a>
+  </div>
+
+  <div class="contact-page-wrap">
+
+    <div class="contact-top">
+      <p class="label label--gold">Contact</p>
+      <h1 class="contact-title">
+        Let&rsquo;s<br />
+        <em class="accent">connect.</em>
+      </h1>
+    </div>
+
+    <div class="contact-canvas" id="contact-canvas">
+        <div class="contact-sticker" data-href="https://linkedin.com/in/kevinzhang" style="left:12%;top:28%;" role="link" aria-label="LinkedIn" tabindex="0">
+          <img class="contact-sticker__img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzBhMGEwYSIvPjx0ZXh0IHg9IjEwMCIgeT0iMTMyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI4OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzM5ZmYxNCI+aW48L3RleHQ+PC9zdmc+" alt="LinkedIn" />
+          <span class="contact-sticker__label">LinkedIn</span>
+        </div>
+        <div class="contact-sticker" data-href="https://instagram.com/cloonk" style="left:42%;top:18%;" role="link" aria-label="Instagram" tabindex="0">
+          <img class="contact-sticker__img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzM5ZmYxNCIvPjx0ZXh0IHg9IjEwMCIgeT0iMTMyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI4OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzBhMGEwYSI+aWc8L3RleHQ+PC9zdmc+" alt="Instagram" />
+          <span class="contact-sticker__label">Instagram</span>
+        </div>
+        <div class="contact-sticker" data-href="https://open.spotify.com/user/cloonk" style="left:65%;top:38%;" role="link" aria-label="Spotify" tabindex="0">
+          <img class="contact-sticker__img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzBhMGEwYSIvPjx0ZXh0IHg9IjEwMCIgeT0iMTMyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI4OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2Y1ZjJlYyI+c3A8L3RleHQ+PC9zdmc+" alt="Spotify" />
+          <span class="contact-sticker__label">Spotify</span>
+        </div>
+        <div class="contact-sticker" data-href="mailto:kevin@cloonk.com" style="left:28%;top:52%;" role="link" aria-label="Email" tabindex="0">
+          <img class="contact-sticker__img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjJlYyIvPjx0ZXh0IHg9IjEwMCIgeT0iMTMyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI4OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzBhMGEwYSI+QDwvdGV4dD48L3N2Zz4=" alt="Email" />
+          <span class="contact-sticker__label">Email</span>
+        </div>
+
+      <div class="contact-footnote">
+        <p>Brooklyn, NY &mdash; open to freelance and collaborations.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="index-footer">
+    <div class="footer__left">
+      <div class="footer__socials">
+        <a href="https://instagram.com/cloonk" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://linkedin.com/in/kevinzhang" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://open.spotify.com/user/cloonk" target="_blank" rel="noopener">Spotify</a>
+      </div>
+      <div>&copy; 2025 Kevin Zhang</div>
+    </div>
+    <div class="footer__right">
+      <a href="#" id="footer-email">kevin&#64;cloonk.com</a>
+      <a href="https://cloonk.com">cloonk.com</a>
+    </div>
+  </footer>
+
+  <script>var fe=document.getElementById("footer-email");if(fe){fe.href="mai"+"lto:kevin@cloo"+"nk.com";}</script>
+  <script src="js/nav.js"></script>
+  <script src="js/logo.js"></script>
+  <script src="js/contact-drag.js"></script>
+  <script src="js/cursor.js"></script>
+</body>
+</html>

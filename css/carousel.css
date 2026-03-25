@@ -1,0 +1,287 @@
+/* carousel.css — 3D drag carousel */
+
+/* ─── Scene wrapper ──────────────────────────────────────── */
+.carousel-section {
+  padding: clamp(40px, 6vw, 80px) 0;
+  overflow: hidden;
+}
+
+#carousel-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#carousel-wrap.dragging {
+  cursor: grabbing;
+}
+
+/* ─── 3D Scene ───────────────────────────────────────────── */
+#carousel-scene {
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+  width: 300px;
+  height: 400px;
+  position: relative;
+  transform-style: flat;
+}
+
+#carousel-ring {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* ─── Cards ──────────────────────────────────────────────── */
+.c3d-card {
+  position: absolute;
+  width: 300px;
+  height: 390px;
+  left: 0;
+  top: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 4px;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.c3d-card__link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.c3d-card__img {
+  position: relative;
+  width: 100%;
+  height: 62%;
+  overflow: hidden;
+  background: var(--border);
+}
+
+.c3d-card__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.c3d-card__tag {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg);
+  background: rgba(10,10,10,0.65);
+  padding: 4px 8px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.c3d-card__num {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  font-family: var(--font-body);
+  color: rgba(245,242,236,0.3);
+}
+
+.c3d-card__body {
+  height: 38%;
+  background: #0d0d0b;
+  padding: 16px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+[data-theme="light"] .c3d-card__body {
+  background: #eae7e1;
+}
+
+.c3d-card__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  line-height: 1.15;
+}
+
+.c3d-card__sub {
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--font-body);
+}
+
+/* ─── Dots ───────────────────────────────────────────────── */
+#carousel-dots {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.c3d-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--border);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.3s, transform 0.3s;
+}
+
+.c3d-dot.active {
+  background: var(--accent);
+  transform: scale(1.5);
+}
+
+/* ─── Label + Hint ───────────────────────────────────────── */
+#carousel-label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(28px, 5vw, 48px);
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  text-align: center;
+  max-width: 600px;
+  min-height: 1.2em;
+  transition: opacity 0.2s;
+  padding: 0 var(--page-pad);
+}
+
+#carousel-hint {
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  transition: opacity 0.5s;
+}
+
+/* ─── Filter bar (above carousel) ───────────────────────── */
+.carousel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 0 var(--page-pad);
+  margin-bottom: clamp(32px, 4vw, 52px);
+}
+
+.carousel-header .filter-bar {
+  display: flex;
+  gap: 4px;
+}
+
+/* ─── Index page — full viewport carousel ───────────────── */
+body.index-body {
+  overflow: hidden;
+  height: 100vh;
+}
+
+.index-main {
+  position: fixed;
+  top: var(--nav-h);
+  left: 0;
+  right: 0;
+  bottom: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Footer sits fixed at bottom on index */
+.index-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  pointer-events: none;
+}
+
+.index-footer a,
+.index-footer div,
+.index-footer span {
+  pointer-events: all;
+}
+
+.index-footer .footer__socials {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+/* Override generic footer flex-direction for index */
+footer.index-footer {
+  flex-wrap: nowrap;
+  gap: 0;
+  padding: 0 var(--page-pad);
+}
+
+.index-footer a,
+.index-footer div,
+.index-footer span {
+  pointer-events: all;
+}
+
+body.index-body #carousel-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+body.index-body #carousel-label {
+  font-size: clamp(14px, 2vw, 24px);
+}
+
+/* 15% smaller than base: base is 300×390, so 255×330 */
+body.index-body #carousel-scene {
+  width: clamp(220px, 25vw, 306px);
+  height: clamp(290px, 34vh, 391px);
+  perspective-origin: 50% 50%;
+}
+
+body.index-body .c3d-card {
+  width: clamp(220px, 25vw, 306px);
+  height: clamp(280px, 33vh, 382px);
+  margin-left: calc(clamp(220px, 25vw, 306px) / -2);
+  margin-top: calc(clamp(280px, 33vh, 382px) / -2);
+}
+
+/* ─── Responsive — tighten scene on small screens ─────── */
+@media (max-width: 480px) {
+  #carousel-scene {
+    width: 240px;
+    height: 340px;
+  }
+  .c3d-card {
+    width: 240px;
+    height: 330px;
+  }
+}

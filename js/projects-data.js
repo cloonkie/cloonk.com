@@ -1,0 +1,278 @@
+/* projects-data.js — single source of truth for all project data
+ *
+ * Each project can have a `media` array for the detail page showcase.
+ * Each media item: { type: 'image' | 'pdf', src: 'filename or URL', caption: '...' }
+ *
+ * For Wix images:   src is just the slug, e.g. 'd8d224_abc~mv2.jpg'
+ *                   (the CDN prefix is added automatically)
+ * For local files:  src is a relative path, e.g. 'assets/projects/tiffany-store-plan.pdf'
+ * For external:     src is a full URL
+ *
+ * Images show as full-width posters.
+ * PDFs embed inline with a download button fallback.
+ */
+
+window.PROJECTS = [
+  {
+    id: 'peleton-ad-campaign',
+    num: '01',
+    title: 'Peleton Ad Campaign',
+    short: 'Peleton Ad Campaign',
+    topic: 'marketing',
+    type: 'Copy Writing',
+    year: '2023',
+    img: 'd8d224_a709b5ff95df43fcb52bb577cdd4ecb9~mv2.png',
+    desc: 'A concept ad campaign for Peleton exploring the emotional language of movement, motivation, and identity. The work focused on copywriting and visual direction for a series of print and digital ads.',
+    media: [
+      { type: 'image', src: 'd8d224_a709b5ff95df43fcb52bb577cdd4ecb9~mv2.png', caption: 'Campaign cover' },
+    ],
+  },
+  {
+    id: 'kenzo-product-elements',
+    num: '02',
+    title: 'Kenzo Product Elements',
+    short: 'In-Store Product Element Analysis',
+    topic: 'fashion',
+    type: 'Analysis',
+    year: '2022',
+    img: 'd8d224_156355c38f1f4ba6a05d7a48269cad3b~mv2.png',
+    desc: 'An in-depth analysis of Kenzo\'s in-store product elements, examining how physical merchandising communicates brand identity. Covered visual merchandising strategy, product placement, and sensory brand cues.',
+    media: [
+      { type: 'image', src: 'd8d224_156355c38f1f4ba6a05d7a48269cad3b~mv2.png', caption: 'Product element analysis' },
+    ],
+  },
+  {
+    id: 'fashion-freedom',
+    num: '03',
+    title: 'Fashion=Freedom',
+    short: 'Expression-themed Macro-trend Forecast',
+    topic: 'trend',
+    type: 'Forecast',
+    year: '2021',
+    img: 'd8d224_75bb282c899c41159e337c6533d5e3dd~mv2.png',
+    desc: 'A macro-trend forecast centered on self-expression as a cultural force shaping fashion. Traced the movement from streetwear and subculture to runway, forecasting how personal identity and individuality would define the season.',
+    media: [
+      { type: 'image', src: 'd8d224_75bb282c899c41159e337c6533d5e3dd~mv2.png', caption: 'Trend forecast cover' },
+    ],
+  },
+  {
+    id: 'tiffany-store-plan',
+    num: '04',
+    title: "Tiffany and Co's Store Plan",
+    short: 'Tiffany and Co Merchandising Store Plan',
+    topic: 'fashion',
+    type: 'Merchandising',
+    year: '2022',
+    img: 'd8d224_736e460068b542e2b44cdf22f412a487~mv2.png',
+    desc: 'A full merchandising store plan for Tiffany & Co., developed as a term project. Included floor layout, fixture placement, product adjacencies, lighting considerations, and a seasonal assortment strategy aligned with brand positioning.',
+    media: [
+      { type: 'image', src: 'd8d224_8a4b2aff6f9f4cd8b5c0d90488bd6487~mv2.jpg', caption: 'Store plan — slide 1' },
+      { type: 'image', src: 'd8d224_93742ae478b54b9ab3833763e41613ca~mv2.jpg', caption: 'Floor layout' },
+      { type: 'image', src: 'd8d224_05b899a4bd344df3a1ae82c0a393480c~mv2.jpg', caption: 'Fixture plan' },
+      { type: 'image', src: 'd8d224_fa6ab1e1ce254b20a468a18b8d8169fc~mv2.jpg', caption: 'Product adjacency map' },
+      { type: 'image', src: 'd8d224_181aeb0e01764e54bc69b69294fd130c~mv2.jpg', caption: 'Seasonal assortment' },
+      /* When you have the PDF: */
+      /* { type: 'pdf', src: 'assets/projects/tiffany-store-plan.pdf', caption: 'Full PDF presentation' }, */
+    ],
+  },
+  {
+    id: 'tiffany-ar',
+    num: '05',
+    title: "Tiffany and Co's AR",
+    short: "Tiffany's Digital Campaign Media Analysis",
+    topic: 'marketing',
+    type: 'Analysis',
+    year: '2022',
+    img: 'd8d224_14a347dab54840fa9dc310971c782632~mv2.png',
+    desc: 'An analysis of Tiffany & Co.\'s augmented reality digital campaign, examining how the brand leveraged AR technology to extend retail experience beyond physical stores. Assessed engagement strategy, platform selection, and brand consistency.',
+    media: [
+      { type: 'image', src: 'd8d224_14a347dab54840fa9dc310971c782632~mv2.png', caption: 'AR campaign overview' },
+    ],
+  },
+  {
+    id: 'tiffany-lock-campaign',
+    num: '06',
+    title: "Tiffany's Lock Campaign",
+    short: 'Tiffany and Co Lock Campaign Analysis',
+    topic: 'marketing',
+    type: 'Analysis',
+    year: '2023',
+    img: 'd8d224_d2459f98e2ce45e79e887c0161db3947~mv2.png',
+    desc: 'A deep-dive analysis of Tiffany\'s Lock collection campaign — one of the brand\'s most high-profile recent launches. Examined brand storytelling, influencer strategy, media channel mix, and the cultural resonance of the lock motif.',
+    media: [
+      { type: 'image', src: 'd8d224_d2459f98e2ce45e79e887c0161db3947~mv2.png', caption: 'Lock campaign analysis' },
+    ],
+  },
+  {
+    id: 'uniqlo-assortment-refresh',
+    num: '07',
+    title: 'UNIQLO Assortment Refresh',
+    short: 'Uniqlo Assortment Refresh Proposals',
+    topic: 'fashion',
+    type: 'Merchandising',
+    year: '2022',
+    img: 'd8d224_4a2341b3da9449cc9c528e8d93f57546~mv2.png',
+    desc: 'A merchandising proposal to refresh UNIQLO\'s assortment strategy for a target demographic shift. Included competitive analysis, product gap identification, capsule proposals, and a revised assortment architecture.',
+    media: [
+      { type: 'image', src: 'd8d224_4a2341b3da9449cc9c528e8d93f57546~mv2.png', caption: 'Assortment refresh overview' },
+    ],
+  },
+  {
+    id: 'smiski-campaign',
+    num: '08',
+    title: 'SMISKI Campaign',
+    short: 'SMISKI Ad Campaign',
+    topic: 'marketing',
+    type: 'Copy Writing',
+    year: '2023',
+    img: 'd8d224_173663d6c04e44b2866239fc8a2c2927~mv2.png',
+    desc: 'An ad campaign concept for SMISKI, the Japanese collectible toy brand. Developed copy and creative direction for a series of ads leaning into the brand\'s mysterious, glow-in-the-dark aesthetic and its devoted collector community.',
+    media: [
+      { type: 'image', src: 'd8d224_be8813b4aae549d3b26ad6ec9b8c5361~mv2.jpg', caption: 'Ad 1' },
+      { type: 'image', src: 'd8d224_e16a26d44bb240cc879efa909dd596bc~mv2.jpg', caption: 'Ad 2' },
+    ],
+  },
+  {
+    id: 'sos-save-our-society',
+    num: '09',
+    title: 'SOS — Save Our Society',
+    short: 'Sustainability Macro-trend Forecast',
+    topic: 'trend',
+    type: 'Forecast',
+    year: '2021',
+    img: 'd8d224_053fecf62c96440d9cf999857c982855~mv2.png',
+    desc: 'A sustainability-focused macro-trend forecast examining how environmental consciousness was reshaping fashion from supply chain to consumer behavior. Traced emerging material innovation, slow fashion movements, and brand transparency demands.',
+    media: [
+      { type: 'image', src: 'd8d224_053fecf62c96440d9cf999857c982855~mv2.png', caption: 'Sustainability forecast cover' },
+    ],
+  },
+  {
+    id: 'race-to-space',
+    num: '10',
+    title: 'Race To Space',
+    short: 'Color-focused Micro-trend Forecast',
+    topic: 'trend',
+    type: 'Forecast',
+    year: '2021',
+    img: 'd8d224_a018aa724b5c42c596bec974f9efb555~mv2.png',
+    desc: 'A color-focused micro-trend forecast inspired by the cultural fascination with space exploration. Traced how galactic palettes — deep navy, metallic silver, electric violet — were filtering from NASA aesthetics into fashion and interiors.',
+    media: [
+      { type: 'image', src: 'd8d224_a018aa724b5c42c596bec974f9efb555~mv2.png', caption: 'Color forecast cover' },
+    ],
+  },
+  {
+    id: 'pvh-corporation',
+    num: '11',
+    title: 'PVH Corporation',
+    short: 'Fashion Corporation Analysis',
+    topic: 'fashion',
+    type: 'Analysis',
+    year: '2021',
+    img: 'd8d224_a1b431caeea04199bd9930e7f2aac1d6~mv2.png',
+    desc: 'A comprehensive analysis of PVH Corp — the parent company of Calvin Klein and Tommy Hilfiger. Covered financial performance, brand portfolio strategy, global retail footprint, and sustainability commitments.',
+    media: [
+      { type: 'image', src: 'd8d224_a1b431caeea04199bd9930e7f2aac1d6~mv2.png', caption: 'PVH analysis cover' },
+    ],
+  },
+  {
+    id: 'cl-kpop-eye-candy',
+    num: '12',
+    title: "CL — Kpop's Eye Candy",
+    short: 'Influencer Analysis on Korean Celebrity CL',
+    topic: 'fashion',
+    type: 'Analysis',
+    year: '2021',
+    img: 'd8d224_3a26e6c619214cb1a9c63eb30e098541~mv2.png',
+    desc: 'An influencer and fashion analysis of CL, the Korean pop star. Examined how her personal style, brand partnerships, and cultural positioning made her a defining figure at the intersection of K-pop and global streetwear.',
+    media: [
+      { type: 'image', src: 'd8d224_3a26e6c619214cb1a9c63eb30e098541~mv2.png', caption: 'CL analysis cover' },
+    ],
+  },
+  {
+    id: 'textile-dyes',
+    num: '13',
+    title: 'Textile Dyes',
+    short: 'Environmental Impact on Textile Dyes',
+    topic: 'fashion',
+    type: 'Research',
+    year: '2021',
+    img: 'd8d224_af0b3e171edc42629405911af4fe6b5c~mv2.png',
+    desc: 'A research paper investigating the environmental impact of synthetic textile dyes — one of the fashion industry\'s most polluting processes. Covered wastewater contamination, regulatory frameworks, and emerging bio-dye alternatives.',
+    media: [
+      { type: 'image', src: 'd8d224_af0b3e171edc42629405911af4fe6b5c~mv2.png', caption: 'Research cover' },
+    ],
+  },
+  {
+    id: 'knit-wear',
+    num: '14',
+    title: 'Knit&Wear',
+    short: 'Knit-Focused Fashion Forecast',
+    topic: 'trend',
+    type: 'Forecast',
+    year: '2021',
+    img: 'd8d224_dec90d769a4647ec932de2601c47ebc3~mv2.png',
+    desc: 'A fashion forecast focused on knitwear as a macro cultural signal — tracing the rise of artisanal knit, chunky textures, and crochet across runway and street. Included color direction, silhouette forecasting, and retail opportunity mapping.',
+    media: [
+      { type: 'image', src: 'd8d224_dec90d769a4647ec932de2601c47ebc3~mv2.png', caption: 'Knitwear forecast cover' },
+    ],
+  },
+  {
+    id: 'kensie-merchandising',
+    num: '15',
+    title: 'Kensie Merchandising',
+    short: 'Kensie Store Assortment Renewal Proposal',
+    topic: 'fashion',
+    type: 'Merchandising',
+    year: '2022',
+    img: 'd8d224_1332514481f547d2a1924070620e0cca~mv2.png',
+    desc: 'An assortment renewal proposal for Kensie, identifying opportunities to modernize the brand\'s product mix and in-store presentation. Included customer persona analysis, competitive landscape review, and a phased assortment rebuilding strategy.',
+    media: [
+      { type: 'image', src: 'd8d224_1332514481f547d2a1924070620e0cca~mv2.png', caption: 'Kensie proposal cover' },
+    ],
+  },
+  {
+    id: 'mccormick-mixology',
+    num: '16',
+    title: 'McCormick Mixology',
+    short: 'McCormick Mixology Diffusion Line Concept',
+    topic: 'marketing',
+    type: 'Proposal',
+    year: '2023',
+    img: 'd8d224_5853048f59724fee872d333d1001f963~mv2.png',
+    desc: 'A brand extension proposal for McCormick — pitching a cocktail mixology diffusion line targeting the home bartender market. Developed the concept, brand identity, product range, packaging direction, and go-to-market strategy.',
+    media: [
+      { type: 'image', src: 'd8d224_bbb00f9ad9504275a5b4b9ecbb6a8953~mv2.jpg', caption: 'Proposal — page 1' },
+      { type: 'image', src: 'd8d224_30918106361c4488b62bcb012f119f2c~mv2.jpg', caption: 'Brand concept' },
+      { type: 'image', src: 'd8d224_b64bf2aad5e64f6495d24f17b06bf223~mv2.jpg', caption: 'Product range' },
+      { type: 'image', src: 'd8d224_d593e020f12c4b7eba3f94877103205c~mv2.jpg', caption: 'Packaging direction' },
+    ],
+  },
+  {
+    id: 'work-pod-proposal',
+    num: '17',
+    title: 'Work Pod Proposal',
+    short: 'Work Pod 3-D Spatial Design',
+    topic: 'design',
+    type: 'Proposal',
+    year: '2023',
+    img: 'd8d224_4ed2de895673404da72ee25801aa738e~mv2.png',
+    desc: 'A spatial design concept for a modular, freestanding work pod — addressing the need for focused individual work within open-plan offices. Developed through 3D modeling with attention to acoustic properties, ergonomics, and material palette.',
+    media: [
+      { type: 'image', src: 'd8d224_4ed2de895673404da72ee25801aa738e~mv2.png', caption: 'Work pod render' },
+    ],
+  },
+  {
+    id: 'heinz-brand-loyalty',
+    num: '18',
+    title: 'Heinz Brand Loyalty',
+    short: 'Heinz Brand Loyalty Assessment',
+    topic: 'marketing',
+    type: 'Proposal',
+    year: '2023',
+    img: 'd8d224_e858f08eed994b09aab99718c9eed435~mv2.png',
+    desc: 'A brand loyalty assessment for Heinz examining the psychological and cultural drivers behind one of the world\'s most loyal consumer followings. Included loyalty framework analysis, NPS benchmarking, and strategic recommendations for maintaining brand devotion in a shifting market.',
+    media: [
+      { type: 'image', src: 'd8d224_e858f08eed994b09aab99718c9eed435~mv2.png', caption: 'Brand loyalty report cover' },
+    ],
+  },
+];

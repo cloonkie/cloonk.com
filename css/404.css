@@ -1,0 +1,48 @@
+/* 404.css */
+
+.not-found-page {
+  min-height: calc(100vh - var(--nav-h) - 120px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+}
+
+.not-found-bear {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: clamp(40px, 8vw, 72px);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.not-found-title {
+  font-family: var(--font-display);
+  font-size: clamp(80px, 18vw, 200px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 0.9;
+  color: var(--fg);
+}
+
+.not-found-sub {
+  font-size: clamp(14px, 1.5vw, 18px);
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.not-found-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-top: 16px;
+  border-bottom: 1px solid var(--accent);
+  padding-bottom: 2px;
+  transition: opacity 0.2s;
+}
+
+.not-found-link:hover { opacity: 0.7; }

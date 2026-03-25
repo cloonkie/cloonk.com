@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resume &mdash; Kevin Zhang</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/resume.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark');</script>
+</head>
+<body>
+
+  <nav>
+    <a class="nav__logo" id="nav-logo" href="index.html">cloonk ʕ·ᴥ·ʔ</a>
+    <div class="nav__links">
+      <a href="projects.html">Work</a>
+      <a href="resume.html" class="active">Resume</a>
+      <a href="info.html">Info</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="nav__right">
+      <span class="nav__clock" id="nav-clock"></span>
+      <button class="nav__theme-toggle" id="nav-theme-toggle" aria-label="Toggle light/dark mode">
+        <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <button class="nav__hamburger" id="nav-hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="nav__mobile-menu" id="nav-mobile-menu">
+    <a href="projects.html">Work</a>
+    <a href="resume.html">Resume</a>
+    <a href="info.html">Info</a>
+    <a href="contact.html">Contact</a>
+  </div>
+
+  <main>
+    <div class="page resume-page">
+
+      <div class="resume-header fade-in">
+        <div>
+          <p class="label label--gold">Resume</p>
+          <h1 class="resume-title">Kevin Zhang</h1>
+          <p class="resume-sub">Brooklyn, NY &nbsp;&middot;&nbsp; Data Analytics &amp; Visualization &nbsp;&middot;&nbsp; Fashion &amp; Marketing</p>
+        </div>
+        <a class="resume-download" href="assets/kevin-zhang-resume.pdf" target="_blank" rel="noopener">
+          Download PDF &nbsp;&uarr;
+        </a>
+      </div>
+
+      <hr class="divider fade-in" />
+
+      <!-- ── Tab bar ── -->
+      <div class="tab-bar fade-in" role="tablist">
+        <button class="tab-btn active" data-tab="experience" role="tab">Experience</button>
+        <button class="tab-btn" data-tab="education" role="tab">Education</button>
+        <button class="tab-btn" data-tab="extracurricular" role="tab">Extracurricular</button>
+      </div>
+
+      <!-- ════════════════════════════════════════
+           EXPERIENCE
+      ════════════════════════════════════════ -->
+      <section class="tab-panel active" id="tab-experience">
+
+        <!-- EssilorLuxottica -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Jun 2023 &ndash; Dec 2023</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">Account Management &amp; Merchandising Intern</p>
+            <p class="resume-entry__org">
+              <a href="https://www.essilorluxottica.com" target="_blank" rel="noopener">EssilorLuxottica</a>
+              <span class="resume-entry__location">1 W 37th St, New York, NY 10018</span>
+            </p>
+            <ul class="resume-entry__bullets">
+              <li>Recovered 25% of potentially-lost sale revenue during Nordstrom&rsquo;s Anniversary Sale.</li>
+              <li>Created an image-uploading system that optimises and automates manual labour at 4&times; the initial speed.</li>
+              <li>Generated ad-hoc reports to review and maintain inventory levels for in-store and drop-ship units.</li>
+              <li>Consolidated data for weekly sales across 20+ EssilorLuxottica brands supporting 6 luxury accounts.</li>
+              <li>Constructed and evaluated reports on physical store feedback, product releases, and account performance.</li>
+              <li>Facilitated pre-procurements for production in the upcoming N2 &rsquo;23 and N1 &rsquo;24 seasons.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tiffany & Co. -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Oct 2022 &ndash; Jan 2023</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">Merchandising &amp; Operations Professional</p>
+            <p class="resume-entry__org">
+              <a href="https://www.tiffany.com" target="_blank" rel="noopener">Tiffany and Co. Flagship</a>
+              <span class="resume-entry__location">727 5th Ave, New York, NY 10022</span>
+            </p>
+            <ul class="resume-entry__bullets">
+              <li>Managed inventory reconciliation and e-commerce orders across 15+ collections.</li>
+              <li>Upheld stock levels and proper pricing for 9 case lines and managed SKU movement between floors.</li>
+              <li>Designed and arranged a &ldquo;Style Edit&rdquo; case line featuring items ranging up to $32,000.</li>
+              <li>Trained new hires on the COMPASS P.O.S. Terminal and technical skills (polishing, graveling, etc.).</li>
+              <li>Independently managed and supervised the Holiday Booth.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- TD Bank -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Sept 2021 &ndash; Oct 2022</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">Bank Teller II</p>
+            <p class="resume-entry__org">
+              <a href="https://www.td.com" target="_blank" rel="noopener">TD Bank</a>
+              <span class="resume-entry__location">469 7th Ave, New York, NY 10018</span>
+            </p>
+            <ul class="resume-entry__bullets">
+              <li>Achieved top 7% in New York City Region&rsquo;s Sales Performance Pacer across all employees.</li>
+              <li>Independently performed KYC on clients for transactions over $10,000 and completed CTRs.</li>
+              <li>Ensured the bank&rsquo;s inventory met audit and reconciliation standards.</li>
+              <li>Verified and audited checks, cash, coins, and foreign currency up to $1,000,000 daily.</li>
+              <li>Merchandised TD Bank products to customers by opening accounts, cross-selling, and providing financial referrals.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Immigration Social Services -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Summer 2021</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">Teacher / Class Supervisor</p>
+            <p class="resume-entry__org">
+              Immigration Social Services, LLC
+              <span class="resume-entry__location">PS42 &ndash; The Benjamin Altman School</span>
+            </p>
+            <ul class="resume-entry__bullets">
+              <li>Prepared class materials and lesson plans for children of various ages covering English, math, and enrichment subjects (cooking, dancing, gym).</li>
+              <li>Independently supervised 15 students during arrival, mealtime, and dismissal.</li>
+              <li>Received certification from the &ldquo;Early Childhood Education and Training Program&rdquo; by the Office of Children and Family Services.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Dragon Tea -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Jun 2019 &ndash; Jun 2021</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">Store Manager</p>
+            <p class="resume-entry__org">
+              Dragon Tea
+              <span class="resume-entry__location">106 Greenwich St, New York, NY 10006</span>
+            </p>
+            <ul class="resume-entry__bullets">
+              <li>Held a key leadership role in the restaurant&rsquo;s first American start-up &mdash; including menu development, pricing, operational procedures, inventory planning, and workflow design.</li>
+              <li>Exceeded sales goals by 250%+ semi-annually; drove social media engagement and customer loyalty growth.</li>
+              <li>Ensured full compliance with health and safety standards.</li>
+              <li>Trained and supervised 5+ staff members on customer service and food handling processes.</li>
+              <li>Earned the restaurant&rsquo;s &ldquo;People Love Us on Yelp&rdquo; award and its 5-star rating.</li>
+            </ul>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ════════════════════════════════════════
+           EDUCATION
+      ════════════════════════════════════════ -->
+      <section class="tab-panel" id="tab-education">
+
+        <!-- Pratt -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Current</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">MS, Data Analytics and Visualization</p>
+            <p class="resume-entry__org">
+              <a href="https://www.pratt.edu" target="_blank" rel="noopener">Pratt Institute</a>
+              <span class="resume-entry__location">144 West 14th Street, New York, NY 10011</span>
+            </p>
+            <p class="resume-entry__desc">Graduate programme exploring the intersection of design and data science. Focus on visual storytelling, information design, and applied analytics.</p>
+          </div>
+        </div>
+
+        <!-- FIT -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Graduated</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">BS, Advertisement &amp; Marketing Communication</p>
+            <p class="resume-entry__org">
+              <a href="https://www.fitnyc.edu" target="_blank" rel="noopener">Fashion Institute of Technology</a>
+              <span class="resume-entry__location">227 W 27th St, New York, NY 10001</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- FIT AAS -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Graduated</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">AAS, Fashion Business Management (Merchandising)</p>
+            <p class="resume-entry__org">
+              <a href="https://www.fitnyc.edu" target="_blank" rel="noopener">Fashion Institute of Technology</a>
+              <span class="resume-entry__location">227 W 27th St, New York, NY 10001</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- High School -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Graduated</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">High School Diploma</p>
+            <p class="resume-entry__org">
+              Dual Language High School
+              <span class="resume-entry__location">350 Grand St, New York, NY</span>
+            </p>
+            <ul class="resume-entry__bullets">
+              <li>Honor Roll</li>
+              <li>AP Scholar Award</li>
+              <li>Debate Team</li>
+              <li>Men&rsquo;s Badminton Team</li>
+              <li>Taekwondo Club</li>
+              <li>Ping-Pong Club</li>
+              <li>Dual Enrollment &mdash; BMCC &amp; Hunter College</li>
+            </ul>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ════════════════════════════════════════
+           EXTRACURRICULAR
+      ════════════════════════════════════════ -->
+      <section class="tab-panel" id="tab-extracurricular">
+
+        <!-- Studio Jeweler -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Ongoing</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">Studio Jeweler</p>
+            <p class="resume-entry__org">3D Jewelry Design and Rendering</p>
+            <p class="resume-entry__desc">Practising jewellery design and 3D rendering as a creative discipline alongside professional work.</p>
+          </div>
+        </div>
+
+        <!-- Cooper Hewitt -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Member</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">Design Scholar</p>
+            <p class="resume-entry__org">
+              <a href="https://www.cooperhewitt.org" target="_blank" rel="noopener">Cooper Hewitt, Smithsonian Design Museum</a>
+            </p>
+            <p class="resume-entry__desc">Inducted into the Design Scholar Programme &mdash; a selective cohort of emerging designers recognised by the Smithsonian.</p>
+          </div>
+        </div>
+
+        <!-- Phi Theta Kappa -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Member</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">Inducted Member</p>
+            <p class="resume-entry__org">
+              <a href="https://www.ptk.org" target="_blank" rel="noopener">Phi Theta Kappa Honor Society International</a>
+            </p>
+          </div>
+        </div>
+
+        <!-- NYU -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Participant</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">Art+Education Visionary Studio</p>
+            <p class="resume-entry__org">
+              <a href="https://steinhardt.nyu.edu" target="_blank" rel="noopener">NYU Steinhardt &amp; Smithsonian Design Museum</a>
+            </p>
+          </div>
+        </div>
+
+        <!-- cloonk.com -->
+        <div class="resume-entry">
+          <div class="resume-entry__meta">
+            <span class="resume-entry__date">Ongoing</span>
+          </div>
+          <div class="resume-entry__body">
+            <p class="resume-entry__title">Personal Portfolio</p>
+            <p class="resume-entry__org">
+              <a href="https://cloonk.com" target="_blank" rel="noopener">cloonk.com</a>
+            </p>
+            <p class="resume-entry__desc">Designing and building this portfolio site from scratch &mdash; pure HTML, CSS, and vanilla JS. Exploring type, layout, and interaction without frameworks.</p>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="index-footer">
+    <div class="footer__left">
+      <div class="footer__socials">
+        <a href="https://instagram.com/cloonk" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://linkedin.com/in/kevinzhang" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://open.spotify.com/user/cloonk" target="_blank" rel="noopener">Spotify</a>
+      </div>
+      <div>&copy; 2025 Kevin Zhang</div>
+    </div>
+    <div class="footer__right">
+      <a href="#" id="footer-email">kevin&#64;cloonk.com</a>
+      <a href="https://cloonk.com">cloonk.com</a>
+    </div>
+  </footer>
+
+  <script>var fe=document.getElementById("footer-email");if(fe){fe.href="mai"+"lto:kevin@cloo"+"nk.com";}</script>
+  <script src="js/nav.js"></script>
+  <script src="js/logo.js"></script>
+  <script src="js/resume.js"></script>
+  <script src="js/cursor.js"></script>
+</body>
+</html>

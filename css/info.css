@@ -1,0 +1,90 @@
+/* info.css — single frame, bio upper-left / draggable polaroid right */
+
+body.info-body {
+  overflow: hidden;
+  height: 100vh;
+}
+
+body.info-body footer {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 50;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.info-main {
+  position: fixed;
+  top: var(--nav-h);
+  left: 0; right: 0;
+  bottom: var(--nav-h);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* ── Left: bio anchored to top-left ── */
+.info-bio-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: clamp(32px, 4vw, 56px) clamp(28px, 4vw, 60px);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.info-bio__text {
+  font-size: clamp(13px, 1.15vw, 16px);
+  line-height: 1.75;
+  color: var(--fg);
+  margin-bottom: 18px;
+  max-width: 52ch;
+}
+
+.info-bio__text a {
+  border-bottom: 1px solid var(--accent);
+  color: var(--accent);
+  transition: opacity 0.2s;
+}
+.info-bio__text a:hover { opacity: 0.7; }
+
+.accent {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* ── Right: drag canvas ── */
+.info-photo-col {
+  position: relative;
+  overflow: hidden;
+}
+
+/* The image is draggable — JS sets left/top */
+.info-hero {
+  position: absolute;
+  display: block;
+  /* Start centred via JS; size is ~55% of column height */
+  width: auto;
+  height: clamp(200px, 52vh, 480px);
+  max-width: 44vw;
+  object-fit: contain;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  will-change: transform;
+}
+
+.info-hero.dragging {
+  cursor: grabbing;
+}
+
+/* ── Mobile ── */
+@media (max-width: 700px) {
+  body.info-body { overflow: auto; height: auto; }
+  body.info-body footer { position: static; }
+  .info-main { position: static; grid-template-columns: 1fr; height: auto; }
+  .info-bio-col { border-right: none; border-bottom: 1px solid var(--border); }
+  .info-photo-col { height: 80vw; }
+  .info-hero { position: static; height: 100%; width: auto; max-width: 100%; cursor: default; }
+}

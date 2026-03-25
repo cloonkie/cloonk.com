@@ -1,0 +1,187 @@
+/* scroll-carousel.css — single-frame viewport carousel */
+
+/* ── Lock index to one viewport ── */
+body.index-body {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ── Main between nav and footer ── */
+body.index-body main {
+  position: fixed;
+  top: var(--nav-h);
+  left: 0;
+  right: 0;
+  bottom: var(--nav-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Footer fixed at bottom ── */
+body.index-body footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+/* ── Section ── */
+#scroll-carousel-section {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+/* ── Label ── */
+#scroll-carousel-label {
+  font-family: var(--font-display);
+  font-size: clamp(13px, 1.6vw, 20px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  text-align: center;
+  min-height: 1.2em;
+  margin-bottom: clamp(12px, 1.8vh, 24px);
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* ── 3D scene ── */
+#scroll-carousel-wrap {
+  width: 100%;
+  height: clamp(240px, 52vh, 420px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#scroll-carousel-scene {
+  width: 100%;
+  height: 100%;
+  perspective: 1400px;
+  perspective-origin: 50% 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#scroll-carousel-ring {
+  position: relative;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* ── Cards — flexible dimensions for any image aspect ratio ── */
+.sc-card {
+  position: absolute;
+  width: clamp(200px, 22vw, 340px);
+  /* Height auto so tall/portrait images expand naturally */
+  margin-left: calc(clamp(200px, 22vw, 340px) / -2);
+  margin-top: calc(clamp(140px, 15vh, 220px) / -2);
+  border-radius: 3px;
+  overflow: hidden;
+  will-change: transform;
+  /* backface-visibility set per-card inline */
+}
+
+.sc-card__link {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Image fills width, height adapts to source aspect ratio */
+.sc-card__img {
+  width: 100%;
+  height: clamp(130px, 14vh, 210px);
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  background: var(--border);
+}
+
+.sc-card__body {
+  background: var(--bg);
+  padding: 8px 12px 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+[data-theme="light"] .sc-card__body { background: var(--fg); }
+
+.sc-card__title {
+  font-family: var(--font-display);
+  font-size: clamp(12px, 1.2vw, 16px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+[data-theme="light"] .sc-card__title { color: var(--bg); }
+
+.sc-card__sub {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Hint ── */
+.sc-hint {
+  margin-top: clamp(12px, 1.8vh, 24px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.sc-hint span {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sc-hint__line {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  overflow: hidden;
+  position: relative;
+}
+
+.sc-hint__line::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+  animation: scHint 1.8s ease-in-out infinite;
+}
+
+@keyframes scHint {
+  from { top: -100%; }
+  to   { top: 100%; }
+}
