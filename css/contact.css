@@ -102,7 +102,7 @@ body.contact-body footer {
 }
 
 .contact-sticker:hover:not(.is-dragging) .contact-sticker__img {
-  transform: scale(1.04);
+  transform: scale(1.08);
 }
 
 .contact-sticker:hover:not(.is-dragging) .contact-sticker__label {
