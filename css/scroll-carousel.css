@@ -190,7 +190,9 @@ body.index-body footer {
 
 /* ── Hint ── */
 .sc-hint {
-  margin-top: auto;
+  margin-top: clamp(12px, 1.8vh, 24px);
+  display: flex;
+  flex-direction: column;
   position: relative;
   z-index: 30;
   align-items: center;
