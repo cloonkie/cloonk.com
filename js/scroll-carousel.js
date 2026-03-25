@@ -74,8 +74,8 @@
     el.dataset.index = i;
 
     /* backface-visibility: mirror cards must stay visible */
-    el.style.backfaceVisibility       = isBack ? 'visible' : 'hidden';
-    el.style.webkitBackfaceVisibility = isBack ? 'visible' : 'hidden';
+    el.style.backfaceVisibility       = isBack ? 'hidden' : 'visible';
+    el.style.webkitBackfaceVisibility = isBack ? 'hidden' : 'visible';
     el.style.transform = `rotateY(${rotY}deg) translateZ(${RADIUS}px)`;
 
     /* Mirror: flip the entire card face */
