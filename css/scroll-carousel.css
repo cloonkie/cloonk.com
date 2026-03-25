@@ -24,7 +24,7 @@
 
 /* Ã¢ÂÂÃ¢ÂÂ Lock index to one viewport Ã¢ÂÂÃ¢ÂÂ */
 body.index-body {
-  overflow: hidden;
+  overflow: visible;
   height: 100vh;
 }
 
