@@ -1,4 +1,4 @@
-/* contact.css — single-frame fixed viewport */
+/* contact.css */
 
 body.contact-body {
   overflow: hidden;
@@ -7,9 +7,7 @@ body.contact-body {
 
 body.contact-body footer {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 0; left: 0; right: 0;
   z-index: 50;
   background: var(--bg);
   border-top: 1px solid var(--border);
@@ -19,15 +17,14 @@ body.contact-body footer {
 .contact-page-wrap {
   position: fixed;
   top: var(--nav-h);
-  left: 0;
-  right: 0;
+  left: 0; right: 0;
   bottom: var(--nav-h);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-/* ── Header — fixed height at top ── */
+/* ── Header ── */
 .contact-top {
   padding: clamp(20px, 3vw, 36px) var(--page-pad) 0;
   flex-shrink: 0;
@@ -50,7 +47,7 @@ body.contact-body footer {
   color: var(--accent);
 }
 
-/* ── Canvas fills remaining space ── */
+/* ── Canvas ── */
 .contact-canvas {
   position: relative;
   flex: 1;
@@ -59,37 +56,35 @@ body.contact-body footer {
   z-index: 1;
 }
 
-/* ── Sticker base ── */
+/* ── Stickers — bigger, image contained ── */
 .contact-sticker {
   position: absolute;
-  width: clamp(110px, 13vw, 175px);
+  width: clamp(150px, 17vw, 240px);
   user-select: none;
   -webkit-user-select: none;
   cursor: none;
   will-change: transform;
   transition: box-shadow 0.2s, filter 0.2s;
-  border-radius: 4px;
-  overflow: hidden;
   z-index: 10;
 }
 
 .contact-sticker.is-dragging {
   z-index: 100;
   box-shadow: 0 20px 48px rgba(0,0,0,0.55);
-  filter: brightness(1.08);
+  filter: brightness(1.06);
 }
 
 [data-theme="light"] .contact-sticker.is-dragging {
-  box-shadow: 0 16px 36px rgba(0,0,0,0.16);
+  box-shadow: 0 16px 36px rgba(0,0,0,0.14);
 }
 
 .contact-sticker__img {
   display: block;
   width: 100%;
+  /* contain so no clipping regardless of image dimensions */
   aspect-ratio: 1;
-  object-fit: cover;
+  object-fit: contain;
   pointer-events: none;
-  border-radius: 4px;
   transition: transform 0.3s cubic-bezier(0.25, 0, 0, 1);
 }
 
@@ -101,7 +96,7 @@ body.contact-body footer {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
-  padding: 7px 0 2px;
+  padding: 6px 0 2px;
   pointer-events: none;
   transition: color 0.2s;
 }
@@ -126,7 +121,7 @@ body.contact-body footer {
 }
 .contact-sticker:hover:not(.is-dragging)::after { opacity: 1; }
 
-/* ── Footnote fixed at bottom-left of canvas ── */
+/* ── Footnote ── */
 .contact-footnote {
   position: absolute;
   bottom: clamp(14px, 2vw, 28px);
@@ -140,7 +135,7 @@ body.contact-body footer {
   color: var(--muted);
 }
 
-/* ── Mobile: simple grid ── */
+/* ── Mobile ── */
 @media (hover: none), (max-width: 540px) {
   body.contact-body { overflow: auto; height: auto; }
   body.contact-body footer { position: static; }
@@ -150,7 +145,7 @@ body.contact-body footer {
     position: relative;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 24px;
     padding: 24px var(--page-pad);
     flex: none;
     min-height: auto;
