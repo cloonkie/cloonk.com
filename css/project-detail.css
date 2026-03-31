@@ -361,18 +361,3 @@
   }
 }
 
-nav {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  height: 64px;
-  padding: 0 40px;
-}
-
-.nav__right {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 16px;
-  height: 100%;
-}
