@@ -112,8 +112,7 @@
 
 .detail-pdf-wrap {
   width: 100%;
-  aspect-ratio: 3/4;
-  max-height: 90vh;
+  height: 85vh;
   border: 1px solid var(--border);
   background: var(--border);
   overflow: hidden;
@@ -359,61 +358,4 @@
     aspect-ratio: unset;
     height: 80vh;
   }
-}
-
-.project-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 80px 40px;
-}
-
-.project-hero {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 60px;
-  align-items: start;
-}
-
-.project-title {
-  font-size: 64px;
-  line-height: 1.1;
-  margin-bottom: 16px;
-}
-
-.project-subtitle {
-  font-size: 18px;
-  color: var(--text-muted);
-  margin-bottom: 40px;
-}
-
-.project-meta {
-  font-size: 14px;
-  line-height: 1.8;
-}
-
-.project-section {
-  margin-top: 80px;
-  max-width: 800px;
-}
-
-.project-section h2 {
-  font-size: 24px;
-  margin-bottom: 16px;
-}
-
-.project-section p {
-  line-height: 1.7;
-  color: var(--text-muted);
-}
-
-.pdf-container {
-  margin-top: 60px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.pdf-container iframe {
-  width: 100%;
-  height: 800px;
 }

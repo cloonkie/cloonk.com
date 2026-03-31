@@ -47,19 +47,28 @@
   </div>
 
 <main>
-    <div class="page detail-page" id="detail-root">
-      <div class="detail-loading">
-        <span class="label label--gold">Loading...</span>
-      </div>
-    </div>
-  </main>
+  <div class="page detail-page" id="detail-root">
 
-  <div class="pdf-container">
-  <iframe 
-    src="assets/peloton.pdf" 
-    frameborder="0">
-  </iframe>
-</div>
+    <!-- existing content -->
+
+    <section class="detail-section">
+      <div class="detail-section__header">
+        <h2>Full Campaign</h2>
+        <a href="assets/peloton.pdf" class="detail-pdf-download" download>
+          Download PDF
+        </a>
+      </div>
+
+      <div class="detail-pdf-wrap">
+        <iframe 
+          src="assets/peloton.pdf" 
+          class="detail-pdf-frame">
+        </iframe>
+      </div>
+    </section>
+
+  </div>
+</main>
 
   <footer class="index-footer">
     <div class="footer__left">
