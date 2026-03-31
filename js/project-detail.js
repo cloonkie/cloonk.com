@@ -207,3 +207,17 @@
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 })();
+
+
+const nav = document.querySelector('.detail-nav');
+
+const observer = new IntersectionObserver(
+  ([entry]) => {
+    if (entry.isIntersecting) {
+      nav.classList.add('is-visible');
+    }
+  },
+  { threshold: 0.2 }
+);
+
+if (nav) observer.observe(nav);
