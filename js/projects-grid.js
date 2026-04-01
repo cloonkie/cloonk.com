@@ -219,7 +219,7 @@
 
   /* ── Active chips ── */
   const CHIP_LABEL     = { topic: 'Topic', year: 'Year', affiliation: 'Source', type: 'Type' };
-  const AFFIL_DISPLAY  = { lim: 'FIT', pratt: 'Pratt', professional: 'Professional', other: 'Other' };
+  const AFFIL_DISPLAY  = { FIT: 'FIT', pratt: 'Pratt', professional: 'Professional', other: 'Other' };
 
   function displayVal(key, val) {
     if (key === 'affiliation') return AFFIL_DISPLAY[val] || cap(val);

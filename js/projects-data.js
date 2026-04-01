@@ -14,7 +14,7 @@ window.PROJECTS = [
     "topic": "marketing",
     "type": "Copy Writing",
     "year": "2023",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/peleton-ad-campaign-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/peleton-ad-campaign-1.jpg"
@@ -65,7 +65,7 @@ window.PROJECTS = [
     "topic": "fashion",
     "type": "Analysis",
     "year": "2022",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/kenzo-product-elements-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/kenzo-product-elements-1.jpg"
@@ -116,7 +116,7 @@ window.PROJECTS = [
     "topic": "trend",
     "type": "Forecast",
     "year": "2021",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/fashion-freedom-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/fashion-freedom-1.jpg"
@@ -166,7 +166,7 @@ window.PROJECTS = [
     "topic": "fashion",
     "type": "Merchandising",
     "year": "2022",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-1.jpg",
@@ -216,7 +216,7 @@ window.PROJECTS = [
     "topic": "marketing",
     "type": "Analysis",
     "year": "2022",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-ar-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-ar-1.jpg"
@@ -270,7 +270,7 @@ window.PROJECTS = [
     "topic": "marketing",
     "type": "Analysis",
     "year": "2023",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-lock-campaign-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-lock-campaign-1.jpg"
@@ -322,7 +322,7 @@ window.PROJECTS = [
     "topic": "fashion",
     "type": "Merchandising",
     "year": "2022",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/uniqlo-assortment-refresh-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/uniqlo-assortment-refresh-1.jpg"
@@ -352,7 +352,7 @@ window.PROJECTS = [
     "topic": "marketing",
     "type": "Copy Writing",
     "year": "2023",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/smiski-campaign-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/smiski-campaign-1.jpg",
@@ -387,7 +387,7 @@ window.PROJECTS = [
     "topic": "trend",
     "type": "Forecast",
     "year": "2021",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/sos-save-our-society-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/sos-save-our-society-1.jpg"
@@ -417,7 +417,7 @@ window.PROJECTS = [
     "topic": "trend",
     "type": "Forecast",
     "year": "2021",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/race-to-space-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/race-to-space-1.jpg"
@@ -447,7 +447,7 @@ window.PROJECTS = [
     "topic": "fashion",
     "type": "Analysis",
     "year": "2021",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/pvh-corporation-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/pvh-corporation-1.jpg"
@@ -477,7 +477,7 @@ window.PROJECTS = [
     "topic": "fashion",
     "type": "Analysis",
     "year": "2022",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/cl-kpop-eye-candy-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/cl-kpop-eye-candy-1.jpg"
@@ -527,7 +527,7 @@ window.PROJECTS = [
     "topic": "marketing",
     "type": "Strategy",
     "year": "2023",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/coca-cola-zero-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/coca-cola-zero-1.jpg"
@@ -577,7 +577,7 @@ window.PROJECTS = [
     "topic": "marketing",
     "type": "Strategy",
     "year": "2024",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/premier-protein-muffin-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/premier-protein-muffin-1.jpg"
@@ -634,7 +634,7 @@ window.PROJECTS = [
     "topic": "fashion",
     "type": "Merchandising",
     "year": "2022",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/kensie-merchandising-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/kensie-merchandising-1.jpg"
@@ -664,7 +664,7 @@ window.PROJECTS = [
     "topic": "marketing",
     "type": "Proposal",
     "year": "2023",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/mccormick-mixology-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/mccormick-mixology-1.jpg",
@@ -731,7 +731,7 @@ window.PROJECTS = [
     "topic": "design",
     "type": "Proposal",
     "year": "2023",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/work-pod-proposal-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/work-pod-proposal-1.jpg"
@@ -761,7 +761,7 @@ window.PROJECTS = [
     "topic": "marketing",
     "type": "Proposal",
     "year": "2023",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/heinz-brand-loyalty-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/heinz-brand-loyalty-1.jpg"
@@ -1303,7 +1303,7 @@ window.PROJECTS = [
     "topic": "fashion",
     "type": "Research",
     "year": "2022",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/textile-dyes-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/textile-dyes-1.jpg"
@@ -1353,7 +1353,7 @@ window.PROJECTS = [
     "topic": "trend",
     "type": "Forecast",
     "year": "2022",
-    "affiliation": "lim",
+    "affiliation": "FIT",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/knit-wear-1.jpg",
     "gallery": [
       "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/knit-wear-1.jpg"
