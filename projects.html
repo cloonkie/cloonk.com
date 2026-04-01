@@ -10,200 +10,281 @@
   <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark');</script>
 
   <style>
-    /* ── Toolbar ── */
+    /* ─────────────────────────────────────────
+       WORK PAGE LAYOUT — two-column: grid | panel
+    ───────────────────────────────────────── */
+    .work-page {
+      position: relative;
+    }
+
+    .work-layout {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 0;
+      align-items: start;
+    }
+
+    /* Left column: header + grid + pagination */
+    .work-main {
+      min-width: 0;
+      padding-right: 2.5rem;
+      border-right: 1px solid var(--border);
+    }
+
+    /* ─────────────────────────────────────────
+       RIGHT PANEL — vertical filter sidebar
+    ───────────────────────────────────────── */
+    .work-panel {
+      position: sticky;
+      top: 72px; /* below nav */
+      max-height: calc(100vh - 88px);
+      overflow-y: auto;
+      padding-left: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      scrollbar-width: none;
+    }
+    .work-panel::-webkit-scrollbar { display: none; }
+
+    /* Panel header */
+    .work-panel__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+    }
+    .work-panel__title {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .work-panel__clear {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      padding: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, color 0.2s;
+    }
+    .work-panel__clear.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .work-panel__clear:hover { color: var(--text); }
+
+    /* ─────────────────────────────────────────
+       PANEL SECTION — accordion (like detail-section-block)
+    ───────────────────────────────────────── */
+    .panel-section {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-section__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .panel-section__header:hover .panel-section__label { color: var(--text); }
+
+    .panel-section__label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: color 0.18s;
+    }
+    .panel-section.is-open .panel-section__label {
+      color: var(--text);
+    }
+
+    /* +/× toggle — matches detail-section toggle style */
+    .panel-section__toggle {
+      position: relative;
+      width: 10px;
+      height: 10px;
+      flex-shrink: 0;
+    }
+    .panel-toggle-bar {
+      position: absolute;
+      background: var(--muted);
+      border-radius: 1px;
+      transition: transform 0.22s ease, opacity 0.22s ease, background 0.18s;
+    }
+    .panel-toggle-bar--h {
+      width: 10px; height: 1px;
+      top: 50%; left: 0;
+      transform: translateY(-50%);
+    }
+    .panel-toggle-bar--v {
+      width: 1px; height: 10px;
+      left: 50%; top: 0;
+      transform: translateX(-50%);
+      transition: transform 0.22s ease, opacity 0.22s ease;
+    }
+    .panel-section.is-open .panel-toggle-bar--v {
+      transform: translateX(-50%) scaleY(0);
+      opacity: 0;
+    }
+    .panel-section.is-open .panel-toggle-bar { background: var(--text); }
+
+    /* Body collapse */
+    .panel-section__body {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.32s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease;
+      opacity: 0;
+    }
+    .panel-section.is-open .panel-section__body {
+      max-height: 300px;
+      opacity: 1;
+    }
+
+    .panel-section__inner {
+      padding-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    /* ─────────────────────────────────────────
+       FILTER PILLS — vertical list style
+    ───────────────────────────────────────── */
+    .filter-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 5px 0;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      text-align: left;
+      transition: color 0.15s;
+      border-bottom: 1px solid transparent;
+      gap: 0.5rem;
+    }
+    .filter-pill:hover:not(.is-disabled) { color: var(--text); }
+    .filter-pill.active {
+      color: var(--text);
+      font-weight: 500;
+    }
+    .filter-pill.active::before {
+      content: '→';
+      font-size: 10px;
+      margin-right: 0.25rem;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    /* Zero-result: greyed out, not clickable */
+    .filter-pill.is-disabled {
+      color: var(--border);
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .filter-pill.is-disabled .pill-count {
+      opacity: 0.4;
+    }
+
+    /* Count bubble */
+    .pill-count {
+      font-size: 9px;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      flex-shrink: 0;
+      margin-left: auto;
+      font-variant-numeric: tabular-nums;
+    }
+    .filter-pill.active .pill-count { color: var(--accent); }
+
+    /* Sort pills inside panel */
+    .sort-pill {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding: 5px 0;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      text-align: left;
+      transition: color 0.15s;
+    }
+    .sort-pill:hover { color: var(--text); }
+    .sort-pill.active {
+      color: var(--accent);
+    }
+    .sort-pill.active::before {
+      content: '→';
+      font-size: 10px;
+      margin-right: 0.25rem;
+      color: var(--accent);
+    }
+
+    /* ─────────────────────────────────────────
+       ACTIVE CHIPS (compact, below header)
+    ───────────────────────────────────────── */
+    .active-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      padding: 0.6rem 0 0.75rem;
+      min-height: 0;
+    }
+    .active-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 2px 7px 2px 8px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 9px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+    .active-chip__remove {
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.15s;
+      font-size: 11px;
+      line-height: 1;
+      background: none;
+      border: none;
+      color: inherit;
+      padding: 0;
+    }
+    .active-chip__remove:hover { opacity: 1; }
+
+    /* ─────────────────────────────────────────
+       TOOLBAR ROW above main grid
+    ───────────────────────────────────────── */
     .work-toolbar {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
       margin-bottom: 0;
     }
-    .work-toolbar__left { flex: 1; }
-
-    /* Sort + Filter trigger buttons */
-    .work-toolbar__right {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
-    .toolbar-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-      padding: 8px 14px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text);
-      font-family: inherit;
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s, color 0.2s;
-    }
-    .toolbar-btn:hover { border-color: var(--accent); }
-    .toolbar-btn.is-open {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-    }
-    .toolbar-btn .tb-icon {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    .toolbar-btn .tb-icon span {
-      display: block;
-      height: 1px;
-      background: currentColor;
-      transition: width 0.2s;
-    }
-    .toolbar-btn .tb-icon span:nth-child(1) { width: 14px; }
-    .toolbar-btn .tb-icon span:nth-child(2) { width: 10px; }
-    .toolbar-btn .tb-icon span:nth-child(3) { width: 6px; }
-    .toolbar-btn.is-open .tb-icon span:nth-child(1) { width: 6px; }
-    .toolbar-btn.is-open .tb-icon span:nth-child(3) { width: 14px; }
-
-    /* Active filter badge */
-    .toolbar-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--text);
-      color: var(--bg);
-      font-size: 9px;
-      font-weight: 700;
-      opacity: 0;
-      transform: scale(0.6);
-      transition: opacity 0.2s, transform 0.2s;
-    }
-    .toolbar-badge.visible {
-      opacity: 1;
-      transform: scale(1);
-    }
-    .toolbar-btn.is-open .toolbar-badge {
-      background: rgba(255,255,255,0.85);
-      color: var(--accent);
-    }
-
-    /* ── Filter drawer ── */
-    .filter-drawer {
-      overflow: hidden;
-      max-height: 0;
-      opacity: 0;
-      transition: max-height 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
-      border-bottom: 1px solid transparent;
-    }
-    .filter-drawer.is-open {
-      max-height: 420px;
-      opacity: 1;
-      border-bottom-color: var(--border);
-    }
-    .filter-drawer__inner {
-      padding: 1.25rem 0 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.1rem;
-    }
-
-    /* ── Refine panel (sort) ── */
-    .refine-drawer {
-      overflow: hidden;
-      max-height: 0;
-      opacity: 0;
-      transition: max-height 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
-      border-bottom: 1px solid transparent;
-    }
-    .refine-drawer.is-open {
-      max-height: 120px;
-      opacity: 1;
-      border-bottom-color: var(--border);
-    }
-    .refine-drawer__inner {
-      padding: 1.25rem 0 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-    }
-    .refine-label {
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    /* ── Filter rows inside drawer ── */
-    .filter-row-new {
-      display: flex;
-      align-items: baseline;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-    .filter-row-new__label {
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-      min-width: 56px;
-      flex-shrink: 0;
-    }
-    .filter-group-new {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-    }
-
-    /* ── Pills ── */
-    .filter-pill {
-      padding: 5px 13px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text);
-      font-family: inherit;
-      font-size: 11px;
-      letter-spacing: 0.06em;
-      cursor: pointer;
-      transition: border-color 0.18s, background 0.18s, color 0.18s;
-    }
-    .filter-pill:hover { border-color: var(--accent); }
-    .filter-pill.active {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-    }
-
-    /* Sort pill (radio style) */
-    .sort-pill {
-      padding: 5px 13px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text);
-      font-family: inherit;
-      font-size: 11px;
-      letter-spacing: 0.06em;
-      cursor: pointer;
-      transition: border-color 0.18s, background 0.18s, color 0.18s;
-    }
-    .sort-pill:hover { border-color: var(--accent); }
-    .sort-pill.active {
-      background: transparent;
-      color: var(--accent);
-      border-color: var(--accent);
-    }
-
-    /* ── Sticky filter wrap — pure CSS, no JS, matches detail section nav ── */
-    .work-sticky {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      background: var(--bg);
-    }
-
-    /* ── Toolbar row (count + buttons) ── */
     .work-toolbar-row {
       display: flex;
       align-items: center;
@@ -211,9 +292,7 @@
       padding: 1.1rem 0;
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
-    }
-    .work-toolbar-row.drawer-open {
-      border-bottom-color: transparent;
+      margin-bottom: 2rem;
     }
     .work-toolbar-count {
       font-size: 11px;
@@ -222,55 +301,68 @@
       color: var(--muted);
     }
 
-    /* Space below the sticky block so grid doesn't start flush */
-    .work-sticky-spacer {
-      margin-bottom: 2rem;
-    }
-
-    /* Active filter chips */
-    .active-filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
+    /* Mobile toggle for panel */
+    .work-panel-toggle {
+      display: none;
       align-items: center;
-    }
-    .active-chip {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      padding: 3px 10px 3px 10px;
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      font-size: 10px;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-    }
-    .active-chip__remove {
-      cursor: pointer;
-      opacity: 0.7;
-      transition: opacity 0.15s;
-      font-size: 12px;
-      line-height: 1;
-      background: none;
-      border: none;
-      color: inherit;
-      padding: 0;
-    }
-    .active-chip__remove:hover { opacity: 1; }
-    .clear-all-btn {
-      background: none;
-      border: none;
+      gap: 0.45rem;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
       font-family: inherit;
-      font-size: 10px;
+      font-size: 11px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--muted);
       cursor: pointer;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-      padding: 0;
     }
-    .clear-all-btn:hover { color: var(--text); }
+    .work-panel-toggle .filter-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 8px;
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .work-panel-toggle .filter-badge.visible { opacity: 1; }
+
+    /* ─────────────────────────────────────────
+       RESPONSIVE
+    ───────────────────────────────────────── */
+    @media (max-width: 860px) {
+      .work-layout {
+        grid-template-columns: 1fr;
+      }
+      .work-main {
+        padding-right: 0;
+        border-right: none;
+      }
+      .work-panel {
+        position: fixed;
+        top: 0; right: 0; bottom: 0;
+        width: 260px;
+        background: var(--bg);
+        border-left: 1px solid var(--border);
+        padding: 1.5rem 1.5rem 2rem;
+        z-index: 100;
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+        max-height: 100vh;
+        overflow-y: auto;
+      }
+      .work-panel.is-mobile-open {
+        transform: translateX(0);
+      }
+      .work-panel-toggle {
+        display: flex;
+      }
+    }
   </style>
 </head>
 <body>
@@ -313,109 +405,152 @@
         </div>
       </div>
 
-      <!-- ── Sticky toolbar + drawers ── -->
-      <div class="work-sticky fade-in" id="work-sticky">
+      <!-- Two-column layout -->
+      <div class="work-layout fade-in">
 
-        <!-- Toolbar row: count + filter/refine triggers -->
-        <div class="work-toolbar-row" id="work-toolbar-row">
-          <span class="work-toolbar-count" id="work-count">— projects</span>
-          <div style="display:flex;gap:0.5rem;align-items:center;">
-            <button class="toolbar-btn" id="btn-refine" aria-expanded="false" aria-controls="refine-drawer">
-              Sort
-            </button>
-            <button class="toolbar-btn" id="btn-filter" aria-expanded="false" aria-controls="filter-drawer">
-              <span class="tb-icon">
-                <span></span><span></span><span></span>
-              </span>
-              Filter
-              <span class="toolbar-badge" id="filter-badge">0</span>
+        <!-- ── LEFT: grid + pagination ── -->
+        <div class="work-main">
+
+          <!-- Toolbar row -->
+          <div class="work-toolbar-row">
+            <span class="work-toolbar-count" id="work-count">— projects</span>
+            <!-- Mobile: open panel button -->
+            <button class="work-panel-toggle" id="btn-panel-toggle" aria-label="Open filters">
+              Refine
+              <span class="filter-badge" id="filter-badge-mobile">0</span>
             </button>
           </div>
-        </div>
 
-        <!-- Refine (sort) drawer -->
-        <div class="refine-drawer" id="refine-drawer" role="region">
-        <div class="refine-drawer__inner">
-          <span class="refine-label">Sort by</span>
-          <div style="display:flex;gap:0.4rem;flex-wrap:wrap;" id="sort-group">
-            <button class="sort-pill active" data-sort="default">Default</button>
-            <button class="sort-pill" data-sort="year-desc">Newest first</button>
-            <button class="sort-pill" data-sort="year-asc">Oldest first</button>
+          <!-- Active chips -->
+          <div class="active-filters" id="active-filters"></div>
+
+          <!-- Grid -->
+          <div class="work-grid" id="work-grid"></div>
+
+          <p class="work-empty" id="work-empty" style="display:none;">
+            No projects match this filter.
+          </p>
+
+          <div class="work-pagination" id="work-pagination">
+            <span class="work-pagination__info" id="pagination-info"></span>
+            <div class="work-pagination__controls" id="pagination-controls"></div>
           </div>
-        </div>
-      </div>
 
-      <!-- Filter drawer -->
-      <div class="filter-drawer" id="filter-drawer" role="region">
-        <div class="filter-drawer__inner">
+        </div><!-- /.work-main -->
 
-          <div class="filter-row-new">
-            <span class="filter-row-new__label">Topic</span>
-            <div class="filter-group-new" id="filter-topic">
-              <button class="filter-pill active" data-topic="all">All</button>
-              <button class="filter-pill" data-topic="fashion">Fashion</button>
-              <button class="filter-pill" data-topic="marketing">Marketing</button>
-              <button class="filter-pill" data-topic="trend">Trend</button>
-              <button class="filter-pill" data-topic="design">Design</button>
-              <button class="filter-pill" data-topic="ux research">UX Research</button>
-              <button class="filter-pill" data-topic="analytics">Analytics</button>
-              <button class="filter-pill" data-topic="data analysis">Data Analysis</button>
-              <button class="filter-pill" data-topic="seo">SEO</button>
-              <button class="filter-pill" data-topic="research">Research</button>
+        <!-- ── RIGHT PANEL ── -->
+        <aside class="work-panel" id="work-panel" role="complementary" aria-label="Filter and sort">
+
+          <div class="work-panel__header">
+            <span class="work-panel__title">Refine</span>
+            <button class="work-panel__clear" id="panel-clear-all">Clear all</button>
+          </div>
+
+          <!-- Active chips (panel top) — hidden on mobile since they appear in main -->
+          <div class="active-filters" id="active-filters-panel" style="display:none;"></div>
+
+          <!-- Sort section -->
+          <div class="panel-section is-open" id="psec-sort">
+            <div class="panel-section__header" role="button" tabindex="0" aria-expanded="true">
+              <span class="panel-section__label">Sort</span>
+              <div class="panel-section__toggle">
+                <div class="panel-toggle-bar panel-toggle-bar--h"></div>
+                <div class="panel-toggle-bar panel-toggle-bar--v"></div>
+              </div>
+            </div>
+            <div class="panel-section__body">
+              <div class="panel-section__inner" id="sort-group">
+                <button class="sort-pill active" data-sort="default">Default</button>
+                <button class="sort-pill" data-sort="year-desc">Newest first</button>
+                <button class="sort-pill" data-sort="year-asc">Oldest first</button>
+              </div>
             </div>
           </div>
 
-          <div class="filter-row-new">
-            <span class="filter-row-new__label">Year</span>
-            <div class="filter-group-new" id="filter-year">
-              <button class="filter-pill active" data-year="all">All</button>
-              <button class="filter-pill" data-year="2021">2021</button>
-              <button class="filter-pill" data-year="2022">2022</button>
-              <button class="filter-pill" data-year="2023">2023</button>
-              <button class="filter-pill" data-year="2024">2024</button>
-              <button class="filter-pill" data-year="2025">2025</button>
+          <!-- Topic filter section -->
+          <div class="panel-section is-open" id="psec-topic">
+            <div class="panel-section__header" role="button" tabindex="0" aria-expanded="true">
+              <span class="panel-section__label">Topic</span>
+              <div class="panel-section__toggle">
+                <div class="panel-toggle-bar panel-toggle-bar--h"></div>
+                <div class="panel-toggle-bar panel-toggle-bar--v"></div>
+              </div>
+            </div>
+            <div class="panel-section__body">
+              <div class="panel-section__inner" id="filter-topic">
+                <button class="filter-pill active" data-topic="all">All <span class="pill-count"></span></button>
+                <button class="filter-pill" data-topic="fashion">Fashion <span class="pill-count"></span></button>
+                <button class="filter-pill" data-topic="marketing">Marketing <span class="pill-count"></span></button>
+                <button class="filter-pill" data-topic="trend">Trend <span class="pill-count"></span></button>
+                <button class="filter-pill" data-topic="design">Design <span class="pill-count"></span></button>
+                <button class="filter-pill" data-topic="ux research">UX Research <span class="pill-count"></span></button>
+                <button class="filter-pill" data-topic="analytics">Analytics <span class="pill-count"></span></button>
+                <button class="filter-pill" data-topic="data analysis">Data Analysis <span class="pill-count"></span></button>
+                <button class="filter-pill" data-topic="seo">SEO <span class="pill-count"></span></button>
+                <button class="filter-pill" data-topic="research">Research <span class="pill-count"></span></button>
+              </div>
             </div>
           </div>
 
-          <div class="filter-row-new">
-            <span class="filter-row-new__label">Source</span>
-            <div class="filter-group-new" id="filter-affiliation">
-              <button class="filter-pill active" data-affiliation="all">All</button>
-              <button class="filter-pill" data-affiliation="lim">FIT</button>
-              <button class="filter-pill" data-affiliation="pratt">Pratt</button>
-              <button class="filter-pill" data-affiliation="professional">Professional</button>
+          <!-- Year filter section -->
+          <div class="panel-section is-open" id="psec-year">
+            <div class="panel-section__header" role="button" tabindex="0" aria-expanded="true">
+              <span class="panel-section__label">Year</span>
+              <div class="panel-section__toggle">
+                <div class="panel-toggle-bar panel-toggle-bar--h"></div>
+                <div class="panel-toggle-bar panel-toggle-bar--v"></div>
+              </div>
+            </div>
+            <div class="panel-section__body">
+              <div class="panel-section__inner" id="filter-year">
+                <button class="filter-pill active" data-year="all">All <span class="pill-count"></span></button>
+                <button class="filter-pill" data-year="2021">2021 <span class="pill-count"></span></button>
+                <button class="filter-pill" data-year="2022">2022 <span class="pill-count"></span></button>
+                <button class="filter-pill" data-year="2023">2023 <span class="pill-count"></span></button>
+                <button class="filter-pill" data-year="2024">2024 <span class="pill-count"></span></button>
+                <button class="filter-pill" data-year="2025">2025 <span class="pill-count"></span></button>
+              </div>
             </div>
           </div>
 
-          <div class="filter-row-new">
-            <span class="filter-row-new__label">Type</span>
-            <!-- Pills injected dynamically by projects-grid.js from PROJECTS data -->
-            <div class="filter-group-new" id="filter-type"></div>
+          <!-- Source filter section -->
+          <div class="panel-section is-open" id="psec-affiliation">
+            <div class="panel-section__header" role="button" tabindex="0" aria-expanded="true">
+              <span class="panel-section__label">Source</span>
+              <div class="panel-section__toggle">
+                <div class="panel-toggle-bar panel-toggle-bar--h"></div>
+                <div class="panel-toggle-bar panel-toggle-bar--v"></div>
+              </div>
+            </div>
+            <div class="panel-section__body">
+              <div class="panel-section__inner" id="filter-affiliation">
+                <button class="filter-pill active" data-affiliation="all">All <span class="pill-count"></span></button>
+                <button class="filter-pill" data-affiliation="lim">FIT <span class="pill-count"></span></button>
+                <button class="filter-pill" data-affiliation="pratt">Pratt <span class="pill-count"></span></button>
+                <button class="filter-pill" data-affiliation="professional">Professional <span class="pill-count"></span></button>
+              </div>
+            </div>
           </div>
 
-        </div>
-      </div>
+          <!-- Type filter section — pills injected by JS -->
+          <div class="panel-section is-open" id="psec-type">
+            <div class="panel-section__header" role="button" tabindex="0" aria-expanded="true">
+              <span class="panel-section__label">Type</span>
+              <div class="panel-section__toggle">
+                <div class="panel-toggle-bar panel-toggle-bar--h"></div>
+                <div class="panel-toggle-bar panel-toggle-bar--v"></div>
+              </div>
+            </div>
+            <div class="panel-section__body">
+              <div class="panel-section__inner" id="filter-type"></div>
+            </div>
+          </div>
 
-      <!-- Active filter chips (inside sticky so they stay visible) -->
-      <div class="active-filters" id="active-filters" style="padding-bottom:0.75rem;min-height:0;"></div>
+        </aside><!-- /.work-panel -->
 
-      </div><!-- /.work-sticky -->
+      </div><!-- /.work-layout -->
 
-      <!-- Spacer so grid doesn't start flush under the sticky bar -->
-      <div class="work-sticky-spacer"></div>
-
-      <div class="work-grid" id="work-grid"></div>
-
-      <p class="work-empty" id="work-empty" style="display:none;">
-        No projects match this filter.
-      </p>
-
-      <div class="work-pagination" id="work-pagination">
-        <span class="work-pagination__info" id="pagination-info"></span>
-        <div class="work-pagination__controls" id="pagination-controls"></div>
-      </div>
-
-    </div>
+    </div><!-- /.work-page -->
   </main>
 
   <footer class="index-footer">
@@ -439,19 +574,34 @@
   <script src="js/projects-grid.js"></script>
   <script src="js/cursor.js"></script>
   <script>
-    /* Sync drawer-open class for toolbar border treatment */
-    (function () {
-      var toolbarRow = document.getElementById('work-toolbar-row');
-      var btnFilter  = document.getElementById('btn-filter');
-      var btnRefine  = document.getElementById('btn-refine');
-      if (!toolbarRow || !btnFilter || !btnRefine) return;
-      function sync() {
-        var open = btnFilter.classList.contains('is-open') || btnRefine.classList.contains('is-open');
-        toolbarRow.classList.toggle('drawer-open', open);
-      }
-      btnFilter.addEventListener('click', function () { setTimeout(sync, 10); });
-      btnRefine.addEventListener('click', function () { setTimeout(sync, 10); });
-    })();
+    /* Panel section accordion */
+    document.querySelectorAll('.panel-section .panel-section__header').forEach(function(hdr) {
+      hdr.addEventListener('click', function() {
+        var sec = hdr.closest('.panel-section');
+        var open = sec.classList.toggle('is-open');
+        hdr.setAttribute('aria-expanded', String(open));
+      });
+      hdr.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hdr.click(); }
+      });
+    });
+
+    /* Mobile panel toggle */
+    var panelEl = document.getElementById('work-panel');
+    var toggleBtn = document.getElementById('btn-panel-toggle');
+    if (toggleBtn && panelEl) {
+      toggleBtn.addEventListener('click', function() {
+        panelEl.classList.toggle('is-mobile-open');
+      });
+      /* Close on outside click */
+      document.addEventListener('click', function(e) {
+        if (panelEl.classList.contains('is-mobile-open')
+            && !panelEl.contains(e.target)
+            && e.target !== toggleBtn) {
+          panelEl.classList.remove('is-mobile-open');
+        }
+      });
+    }
   </script>
 </body>
 </html>

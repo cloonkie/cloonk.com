@@ -1,4 +1,4 @@
-/* projects-grid.js — multi-select filters + sort drawers */
+/* projects-grid.js — vertical right panel + zero-result pill greying */
 (function () {
 
   const grid            = document.getElementById('work-grid');
@@ -7,12 +7,14 @@
   const pagInfo         = document.getElementById('pagination-info');
   const pagControls     = document.getElementById('pagination-controls');
   const activeFiltersEl = document.getElementById('active-filters');
+  const clearAllBtn     = document.getElementById('panel-clear-all');
+  const filterBadge     = document.getElementById('filter-badge-mobile');
 
   if (!grid || !window.PROJECTS) return;
 
   const PER_PAGE = 6;
 
-  /* ── State: Sets for multi-select, string for sort ── */
+  /* ── State ── */
   const sel = {
     topic:       new Set(),
     year:        new Set(),
@@ -60,34 +62,21 @@
   const typeValues = [...new Set(window.PROJECTS.map(p => p.type).filter(Boolean))].sort();
   const typeGroup  = document.getElementById('filter-type');
   if (typeGroup) {
+    /* All pill */
+    const allBtn = document.createElement('button');
+    allBtn.className   = 'filter-pill active';
+    allBtn.dataset.type = 'all';
+    allBtn.innerHTML   = 'All <span class="pill-count"></span>';
+    typeGroup.appendChild(allBtn);
+
     typeValues.forEach(t => {
       const b = document.createElement('button');
-      b.className      = 'filter-pill';
-      b.dataset.type   = t.toLowerCase();
-      b.textContent    = t;
+      b.className     = 'filter-pill';
+      b.dataset.type  = t.toLowerCase();
+      b.innerHTML     = cap(t) + ' <span class="pill-count"></span>';
       typeGroup.appendChild(b);
     });
   }
-
-  /* ── Drawer toggles ── */
-  const btnFilter    = document.getElementById('btn-filter');
-  const btnRefine    = document.getElementById('btn-refine');
-  const filterDrawer = document.getElementById('filter-drawer');
-  const refineDrawer = document.getElementById('refine-drawer');
-  const filterBadge  = document.getElementById('filter-badge');
-
-  function toggleDrawer(drawerEl, triggerBtn, otherDrawer, otherBtn) {
-    const opening = !drawerEl.classList.contains('is-open');
-    otherDrawer.classList.remove('is-open');
-    otherBtn.classList.remove('is-open');
-    otherBtn.setAttribute('aria-expanded', 'false');
-    drawerEl.classList.toggle('is-open', opening);
-    triggerBtn.classList.toggle('is-open', opening);
-    triggerBtn.setAttribute('aria-expanded', String(opening));
-  }
-
-  btnFilter.addEventListener('click', () => toggleDrawer(filterDrawer, btnFilter, refineDrawer, btnRefine));
-  btnRefine.addEventListener('click', () => toggleDrawer(refineDrawer, btnRefine, filterDrawer, btnFilter));
 
   /* ── Sort wiring ── */
   document.getElementById('sort-group').querySelectorAll('.sort-pill').forEach(b => {
@@ -100,22 +89,16 @@
     });
   });
 
-  /* ── Multi-select pill wiring ──
-     - Empty Set means "all" (no filter).
-     - Clicking "All" clears the Set.
-     - Clicking any other pill toggles it in/out of the Set. */
+  /* ─────────────────────────────────────────
+     MULTI-SELECT PILL WIRING
+  ───────────────────────────────────────── */
   function wireMultiFilter(groupId, key) {
     const group = document.getElementById(groupId);
     if (!group) return;
 
-    /* Init: "All" pill starts active */
-    const allPill = group.querySelector('.filter-pill[data-' + key + '="all"]')
-                 || group.querySelector('.filter-pill');
-    if (allPill) allPill.classList.add('active');
-
     group.addEventListener('click', e => {
       const pill = e.target.closest('.filter-pill');
-      if (!pill) return;
+      if (!pill || pill.classList.contains('is-disabled')) return;
 
       const val = pill.dataset[key];
 
@@ -144,16 +127,99 @@
   wireMultiFilter('filter-affiliation', 'affiliation');
   wireMultiFilter('filter-type',        'type');
 
+  /* ─────────────────────────────────────────
+     ZERO-RESULT GREYING
+     For each pill, count how many cards would
+     match if that value were toggled in.
+  ───────────────────────────────────────── */
+  function countIfAdded(key, val, baseCards) {
+    /* Simulate adding this value to sel[key] */
+    const testSet = new Set(sel[key]);
+    if (val === 'all') {
+      /* "All" selected = clear the set */
+      const simSel = Object.assign({}, sel);
+      const tempSet = new Set();
+      return baseCards.filter(card => {
+        return (key === 'topic'       ? true : (sel.topic.size       === 0 || sel.topic.has(card.dataset.topic)))
+            && (key === 'year'        ? true : (sel.year.size        === 0 || sel.year.has(card.dataset.year)))
+            && (key === 'affiliation' ? true : (sel.affiliation.size === 0 || sel.affiliation.has(card.dataset.affiliation)))
+            && (key === 'type'        ? true : (sel.type.size        === 0 || sel.type.has(card.dataset.type)));
+      }).length;
+    }
+    testSet.add(val);
+    return baseCards.filter(card => {
+      const testTopic       = key === 'topic'       ? testSet : sel.topic;
+      const testYear        = key === 'year'        ? testSet : sel.year;
+      const testAffiliation = key === 'affiliation' ? testSet : sel.affiliation;
+      const testType        = key === 'type'        ? testSet : sel.type;
+      return (testTopic.size       === 0 || testTopic.has(card.dataset.topic))
+          && (testYear.size        === 0 || testYear.has(card.dataset.year))
+          && (testAffiliation.size === 0 || testAffiliation.has(card.dataset.affiliation))
+          && (testType.size        === 0 || testType.has(card.dataset.type));
+    }).length;
+  }
+
+  function updatePillCounts() {
+    const keys = ['topic', 'year', 'affiliation', 'type'];
+
+    keys.forEach(key => {
+      const group = document.getElementById('filter-' + key);
+      if (!group) return;
+
+      group.querySelectorAll('.filter-pill').forEach(pill => {
+        const val = pill.dataset[key];
+        const countEl = pill.querySelector('.pill-count');
+        const n = countIfAdded(key, val, allCards);
+
+        /* Grey out if adding this filter yields 0 results
+           (and it's not already active/selected) */
+        const isActive = (!val || val === 'all')
+          ? sel[key].size === 0
+          : sel[key].has(val);
+
+        if (!isActive && n === 0) {
+          pill.classList.add('is-disabled');
+        } else {
+          pill.classList.remove('is-disabled');
+        }
+
+        /* Update count label — hide for "All" pill */
+        if (countEl) {
+          if (!val || val === 'all') {
+            countEl.textContent = '';
+          } else {
+            countEl.textContent = n;
+          }
+        }
+      });
+    });
+  }
+
+  /* ── Clear all ── */
+  clearAllBtn && clearAllBtn.addEventListener('click', () => {
+    ['topic','year','affiliation','type'].forEach(key => {
+      sel[key].clear();
+      const group = document.getElementById('filter-' + key);
+      if (group) syncPills(group, key);
+    });
+    applyFilters();
+  });
+
   /* ── Badge count ── */
   function updateBadge() {
     const count = ['topic','year','affiliation','type'].filter(k => sel[k].size > 0).length;
-    filterBadge.textContent = count;
-    filterBadge.classList.toggle('visible', count > 0);
+    if (filterBadge) {
+      filterBadge.textContent = count;
+      filterBadge.classList.toggle('visible', count > 0);
+    }
+    if (clearAllBtn) {
+      clearAllBtn.classList.toggle('visible', count > 0);
+    }
   }
 
   /* ── Active chips ── */
-  const CHIP_LABEL = { topic: 'Topic', year: 'Year', affiliation: 'Source', type: 'Type' };
-  const AFFIL_DISPLAY = { lim: 'FIT', pratt: 'Pratt', professional: 'Professional', other: 'Other' };
+  const CHIP_LABEL     = { topic: 'Topic', year: 'Year', affiliation: 'Source', type: 'Type' };
+  const AFFIL_DISPLAY  = { lim: 'FIT', pratt: 'Pratt', professional: 'Professional', other: 'Other' };
 
   function displayVal(key, val) {
     if (key === 'affiliation') return AFFIL_DISPLAY[val] || cap(val);
@@ -161,9 +227,10 @@
   }
 
   function renderChips() {
+    if (!activeFiltersEl) return;
     activeFiltersEl.innerHTML = '';
-    let total = 0;
 
+    let total = 0;
     ['topic', 'year', 'affiliation', 'type'].forEach(key => {
       sel[key].forEach(val => {
         total++;
@@ -180,21 +247,6 @@
         activeFiltersEl.appendChild(chip);
       });
     });
-
-    if (total > 1) {
-      const clearBtn = document.createElement('button');
-      clearBtn.className   = 'clear-all-btn';
-      clearBtn.textContent = 'Clear all';
-      clearBtn.addEventListener('click', () => {
-        ['topic','year','affiliation','type'].forEach(key => {
-          sel[key].clear();
-          const group = document.getElementById('filter-' + key);
-          if (group) syncPills(group, key);
-        });
-        applyFilters();
-      });
-      activeFiltersEl.appendChild(clearBtn);
-    }
   }
 
   /* ── Apply filters ── */
@@ -220,6 +272,7 @@
     currentPage = 1;
     updateBadge();
     renderChips();
+    updatePillCounts();
     renderPage();
   }
 
