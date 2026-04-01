@@ -117,15 +117,23 @@
 .detail-takeaway-item__text p{font-size:13px;color:var(--muted);line-height:1.65}
 
 /* Project nav */
-.detail-nav{display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:center;padding-top:52px;border-top:1px solid var(--border);opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.detail-nav{display:flex;align-items:stretch;border-top:1px solid var(--border);margin-top:80px;opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
 .detail-nav.is-visible{opacity:1;transform:translateY(0)}
-.detail-nav__link{display:flex;flex-direction:column;gap:5px;color:inherit}
+.detail-nav__prev,.detail-nav__next{flex:1;padding:32px 0}
+.detail-nav__next{text-align:right}
+.detail-nav__all-wrap{display:flex;align-items:center;justify-content:center;padding:0 40px;border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.detail-nav__link{display:flex;flex-direction:column;gap:6px;color:inherit}
+.detail-nav__link--right{align-items:flex-end}
 .detail-nav__link:hover .detail-nav__name{color:var(--accent)}
-.detail-nav__link--right{align-items:flex-end;text-align:right}
-.detail-nav__dir{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.detail-nav__name{font-family:var(--font-display);font-size:clamp(15px,1.8vw,20px);font-weight:700;letter-spacing:-.01em;color:var(--fg);transition:color .2s}
-.detail-nav__all{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:center;transition:color .2s;white-space:nowrap}
-.detail-nav__all:hover{color:var(--fg)}
+.detail-nav__dir{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.detail-nav__name{font-family:var(--font-display);font-size:clamp(14px,1.6vw,18px);font-weight:700;letter-spacing:-.01em;color:var(--fg);transition:color .2s}
+.detail-nav__all{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);transition:color .2s;white-space:nowrap;writing-mode:vertical-lr;transform:rotate(180deg)}
+.detail-nav__all:hover{color:var(--accent)}
+@media(max-width:640px){
+  .detail-nav{flex-direction:column}
+  .detail-nav__all-wrap{border:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:16px 0}
+  .detail-nav__all{writing-mode:horizontal-tb;transform:none}
+}
 
 /* Not found */
 .detail-not-found{display:flex;flex-direction:column;gap:16px;padding-top:20vh}

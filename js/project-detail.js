@@ -200,10 +200,22 @@
     </div>
 
     <nav class="detail-nav fade-in" aria-label="Project navigation">
-      <div>${prev ? `<a href="project.html?id=${prev.id}" class="detail-nav__link"><span class="detail-nav__dir">← Previous</span><span class="detail-nav__name">${prev.title}</span></a>` : '<span></span>'}</div>
-      <a href="projects.html" class="detail-nav__all">All Work</a>
-      <div>${next ? `<a href="project.html?id=${next.id}" class="detail-nav__link detail-nav__link--right"><span class="detail-nav__dir">Next →</span><span class="detail-nav__name">${next.title}</span></a>` : '<span></span>'}</div>
-    </nav>
+  <div class="detail-nav__prev">
+    ${prev ? `<a href="project.html?id=${prev.id}" class="detail-nav__link">
+      <span class="detail-nav__dir">← Previous</span>
+      <span class="detail-nav__name">${prev.title}</span>
+    </a>` : ''}
+  </div>
+  <div class="detail-nav__all-wrap">
+    <a href="projects.html" class="detail-nav__all">All Work</a>
+  </div>
+  <div class="detail-nav__next">
+    ${next ? `<a href="project.html?id=${next.id}" class="detail-nav__link detail-nav__link--right">
+      <span class="detail-nav__dir">Next →</span>
+      <span class="detail-nav__name">${next.title}</span>
+    </a>` : ''}
+  </div>
+</nav>
 
     <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
       <button class="lightbox__close" id="lightbox-close" aria-label="Close">✕</button>
