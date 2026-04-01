@@ -4,13 +4,16 @@
  * Each media item: { type: 'image' | 'pdf', src: 'filename or URL', caption: '...' }
  *
  * For Wix images:   src is just the slug, e.g. 'd8d224_abc~mv2.jpg'
- *                   (the CDN prefix is added automatically)
+ *                   (the CDN prefix is added automatically in projects-grid.js)
+ * For R2 files:     src is a full URL (starts with https://)
+ *                   (used as-is, no prefix applied)
  * For local files:  src is a relative path, e.g. 'assets/projects/tiffany-store-plan.pdf'
- * For external:     src is a full URL
  *
  * Images show as full-width posters.
  * PDFs embed inline with a download button fallback.
  */
+
+const R2 = 'https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/';
 
 window.PROJECTS = [
   {
@@ -71,8 +74,6 @@ window.PROJECTS = [
       { type: 'image', src: 'd8d224_05b899a4bd344df3a1ae82c0a393480c~mv2.jpg', caption: 'Fixture plan' },
       { type: 'image', src: 'd8d224_fa6ab1e1ce254b20a468a18b8d8169fc~mv2.jpg', caption: 'Product adjacency map' },
       { type: 'image', src: 'd8d224_181aeb0e01764e54bc69b69294fd130c~mv2.jpg', caption: 'Seasonal assortment' },
-      /* When you have the PDF: */
-      /* { type: 'pdf', src: 'assets/projects/tiffany-store-plan.pdf', caption: 'Full PDF presentation' }, */
     ],
   },
   {
@@ -273,6 +274,162 @@ window.PROJECTS = [
     desc: 'A brand loyalty assessment for Heinz examining the psychological and cultural drivers behind one of the world\'s most loyal consumer followings. Included loyalty framework analysis, NPS benchmarking, and strategic recommendations for maintaining brand devotion in a shifting market.',
     media: [
       { type: 'image', src: 'd8d224_e858f08eed994b09aab99718c9eed435~mv2.png', caption: 'Brand loyalty report cover' },
+    ],
+  },
+
+  /* ── Pratt / Professional Projects (2024–2025) ── */
+
+  {
+    id: 'poseidon-user-testing',
+    num: '19',
+    title: 'Poseidon Project',
+    short: 'User Testing & UX Evaluation',
+    topic: 'ux research',
+    type: 'User Research',
+    year: '2024',
+    img: R2 + 'poseidon.png',
+    desc: 'A usability evaluation of the Poseidon Project platform, focused on improving accessibility, navigation clarity, and content discoverability.',
+    context: {
+      problem: 'A newly launched environmental research platform struggled with usability, limiting its ability to effectively communicate complex content to both experts and general audiences.'
+    },
+    approach: { summary: 'Conducted moderated usability testing with task-based scenarios, analyzing navigation flow, accessibility, and content comprehension across user groups.' },
+    results: { before: ['Unclear navigation labeling', 'Low content discoverability', 'Accessibility barriers for general audiences'], after: ['Prioritized friction-point fixes delivered', 'Clearer labeling recommendations documented', 'Accessibility improvements scoped and ranked'] },
+    takeaways: [{ title: 'Usability is a growth lever', body: 'Early clarity and accessibility investments directly impact adoption and trust.' }],
+    pdf: R2 + 'poseidon.pdf',
+    media: [
+      { type: 'pdf', src: R2 + 'poseidon.pdf', caption: 'User Testing Report' },
+    ],
+  },
+
+  {
+    id: 'nyc-tourism-midterm',
+    num: '20',
+    title: 'NYC Tourism IA Study',
+    short: 'Business Owner Research',
+    topic: 'ux research',
+    type: 'UX Research',
+    year: '2024',
+    img: R2 + 'nyc-midterm.png',
+    desc: 'A research-driven information architecture study analyzing how NYC business owners interact with NYCTourism.com.',
+    context: {
+      problem: 'Business participation pathways were unclear, limiting engagement on a platform serving both tourists and local businesses.'
+    },
+    approach: { summary: 'Conducted interviews, card sorting, and tree testing to evaluate user mental models and navigation expectations.' },
+    results: { before: ['Structural inconsistencies across navigation', 'Business pathways buried or mislabeled', 'Mental model misalignment with site structure'], after: ['Revised IA aligned with user expectations', 'Improved discoverability of business participation', 'Documented findings for redesign phase'] },
+    takeaways: [{ title: 'IA must reflect user mental models', body: 'Not internal assumptions — structure should be derived from how users actually think.' }],
+    pdf: R2 + 'nyc-midterm.pdf',
+    media: [
+      { type: 'pdf', src: R2 + 'nyc-midterm.pdf', caption: 'Midterm Presentation' },
+    ],
+  },
+
+  {
+    id: 'nyc-tourism-final',
+    num: '21',
+    title: 'NYC Tourism Redesign',
+    short: 'IA & UX Solution',
+    topic: 'ux research',
+    type: 'UX Design',
+    year: '2024',
+    img: R2 + 'nyc-final.png',
+    desc: 'A refined IA solution translating user research into high-fidelity design improvements for NYCTourism.com.',
+    context: {
+      problem: 'The platform required a scalable structure to support both tourists and business owners without compromising usability.'
+    },
+    approach: { summary: 'Developed low- and high-fidelity wireframes, validated through usability testing and iterative refinement.' },
+    results: { before: ['Fragmented user flows for business owners', 'Overlapping tourist and business content', 'No clear engagement pathway'], after: ['Improved navigation and content hierarchy', 'Clearer user flows for both audiences', 'Stronger engagement pathways for business users'] },
+    takeaways: [{ title: 'Insights only create value when executed', body: 'Research findings must translate into tangible, testable design solutions.' }],
+    pdf: R2 + 'nyc-final.pdf',
+    media: [
+      { type: 'pdf', src: R2 + 'nyc-final.pdf', caption: 'Final Presentation' },
+    ],
+  },
+
+  {
+    id: 'amon-carter-analytics',
+    num: '22',
+    title: 'Amon Carter Museum',
+    short: 'Digital Analytics Strategy',
+    topic: 'analytics',
+    type: 'Data Strategy',
+    year: '2025',
+    img: R2 + 'amon.png',
+    desc: 'A full-scale digital analytics and SEO strategy to improve visibility and audience growth for the Amon Carter Museum of American Art.',
+    context: {
+      problem: 'Low organic visibility and limited engagement with younger and non-local audiences.'
+    },
+    approach: { summary: 'Performed SEO, web performance, and social media audits using GA4 and external tools.' },
+    results: { before: ['Low search rankings for core content', 'Limited reach beyond local audience', 'Underutilized analytics infrastructure'], after: ['Prioritized roadmap for search improvement', 'Expanded reach strategy documented', 'Engagement optimization recommendations delivered'] },
+    takeaways: [{ title: 'Analytics must drive decisions', body: 'Data only matters when it translates into clear, actionable next steps.' }],
+    pdf: R2 + 'amon.pdf',
+    media: [
+      { type: 'pdf', src: R2 + 'amon.pdf', caption: 'Digital Strategy Deck' },
+    ],
+  },
+
+  {
+    id: 'eyewear-sales-analysis',
+    num: '23',
+    title: 'Eyewear Sales Analysis',
+    short: 'Retail Data Insights',
+    topic: 'data analysis',
+    type: 'Analytics',
+    year: '2025',
+    img: R2 + 'eyewear.png',
+    desc: 'A large-scale analysis identifying key drivers of eyewear sales performance across price tiers, promotions, and product attributes.',
+    context: {
+      problem: 'Retail decisions lacked clarity on the impact of pricing, promotions, and product attributes on sales performance.'
+    },
+    approach: { summary: 'Cleaned and analyzed 100K+ rows of sales data, applying statistical modeling to identify predictive factors.' },
+    results: { before: ['Merchandising decisions made without data support', 'Unclear relationship between pricing and performance', 'Promotions applied without ROI measurement'], after: ['Pricing and promotion impact quantified', 'Predictive factors identified for key SKUs', 'Data-driven merchandising decisions enabled'] },
+    takeaways: [{ title: 'Data quality is foundational', body: 'Meaningful insights require clean, trustworthy data as the starting point.' }],
+    pdf: R2 + 'eyewear.pdf',
+    media: [
+      { type: 'pdf', src: R2 + 'eyewear.pdf', caption: 'Analysis Presentation' },
+    ],
+  },
+
+  {
+    id: 'data-viz-literacy',
+    num: '24',
+    title: 'Data Visualization Literacy',
+    short: 'Research Paper',
+    topic: 'research',
+    type: 'Academic',
+    year: '2024',
+    img: R2 + 'dvl.png',
+    desc: 'A research study on the importance of data visualization literacy in a data-driven world.',
+    context: {
+      problem: 'Users lack the critical skills to interpret and evaluate visual data effectively, creating risks of misinterpretation and misinformation.'
+    },
+    approach: { summary: 'Analyzed frameworks, tools, and educational gaps in data and visualization literacy across academic and industry contexts.' },
+    results: { before: ['Widespread visualization misinterpretation documented', 'Educational gap in data literacy curricula', 'Limited frameworks for evaluating visual claims'], after: ['Literacy challenges mapped and categorized', 'Strategies proposed to reduce misinterpretation risk', 'Framework for improving visualization education outlined'] },
+    takeaways: [{ title: 'Visualization without literacy misleads', body: 'Charts communicate — but only accurately when the reader has the tools to evaluate them.' }],
+    pdf: R2 + 'dvl.pdf',
+    media: [
+      { type: 'pdf', src: R2 + 'dvl.pdf', caption: 'Research Paper' },
+    ],
+  },
+
+  {
+    id: 'jif-site-audit',
+    num: '25',
+    title: 'JIF.com Audit',
+    short: 'SEO & Site Analysis',
+    topic: 'seo',
+    type: 'Audit',
+    year: '2025',
+    img: R2 + 'jif.png',
+    desc: 'An SEO and site architecture audit identifying performance gaps and optimization opportunities for JIF.com.',
+    context: {
+      problem: 'Technical SEO issues and inefficient site structure limited organic growth despite strong brand presence.'
+    },
+    approach: { summary: 'Evaluated crawlability, backlinks, site structure, and keyword performance using industry tools.' },
+    results: { before: ['Critical crawlability issues unaddressed', 'Weak backlink profile relative to brand authority', 'Keyword targeting misaligned with search intent'], after: ['Critical SEO issues identified and prioritized', 'Backlink and authority opportunities scoped', 'Actionable recommendations to improve traffic delivered'] },
+    takeaways: [{ title: 'Technical infrastructure drives SEO', body: 'Brand strength alone cannot compensate for underlying technical SEO deficiencies.' }],
+    pdf: R2 + 'jif.pdf',
+    media: [
+      { type: 'pdf', src: R2 + 'jif.pdf', caption: 'Site Audit Report' },
     ],
   },
 ];

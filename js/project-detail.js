@@ -1,7 +1,7 @@
 /* project-detail.js */
 (function () {
-  const CDN  = 'https://static.wixstatic.com/media/';
-  const root = document.getElementById('detail-root');
+  const WIX_CDN = 'https://static.wixstatic.com/media/';
+  const root    = document.getElementById('detail-root');
   if (!root || !window.PROJECTS) return;
 
   const params = new URLSearchParams(window.location.search);
@@ -21,6 +21,11 @@
 
   const idx  = window.PROJECTS.indexOf(p);
   const next = window.PROJECTS[idx + 1] || null;
+
+  /* Resolve image src: full URLs pass through; slugs get Wix CDN prefix */
+  function imgSrc(raw) {
+    return (raw && raw.startsWith('http')) ? raw : WIX_CDN + raw;
+  }
 
   function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
@@ -46,7 +51,7 @@
         + '</div>' : '');
 
   var approachHTML = '<span class="detail-label-tag">Methodology</span>'
-    + '<div class="detail-prose"><p>' + ((p.approach && p.approach.summary) ? p.approach.summary : 'Detailed approach coming soon.') + '</p></div>'
+    + '<div class="detail-prose"><p>' + ((p.approach && p.approach.summary) ? p.approach.summary : (typeof p.approach === 'string' ? p.approach : 'Detailed approach coming soon.')) + '</p></div>'
     + ((p.approach && (p.approach.data || p.approach.steps)) ?
         '<div class="detail-two-col">'
         + (p.approach.data ? '<div><h4>Data &amp; tools</h4><ul>' + p.approach.data.map(function(x){return '<li>'+x+'</li>';}).join('') + '</ul></div>' : '')
@@ -62,20 +67,29 @@
         '<div class="detail-before-after">'
         + '<div class="detail-ba-col detail-ba-col--before"><div class="detail-ba-col__head">Before</div><ul>' + p.results.before.map(function(x){return '<li>'+x+'</li>';}).join('') + '</ul></div>'
         + '<div class="detail-ba-col detail-ba-col--after"><div class="detail-ba-col__head">After</div><ul>' + p.results.after.map(function(x){return '<li>'+x+'</li>';}).join('') + '</ul></div>'
-        + '</div>' : '');
+        + '</div>' : '')
+    + ((!p.results || (!p.results.metrics && !p.results.before)) ?
+        '<p class="detail-prose" style="color:var(--muted)">Results coming soon.</p>' : '');
 
-  var hasPDF = p.pdf && p.pdf.length > 0;
-  var artifactHTML = hasPDF
-    ? '<div class="detail-pdf-section-header"><span class="detail-label-tag" style="margin-bottom:0">Full deck</span><a href="' + p.pdf + '" target="_blank" rel="noopener" class="detail-pdf-download">Download PDF ↗</a></div>'
-      + '<div class="detail-pdf-wrap"><iframe src="' + p.pdf + '" class="detail-pdf-frame" title="' + p.title + ' PDF" loading="lazy"></iframe></div>'
+  /* ── Artifact section: prefer p.pdf, else look for pdf in media ── */
+  var pdfSrc = p.pdf || null;
+  if (!pdfSrc && p.media) {
+    var pdfMedia = p.media.find(function(m){ return m.type === 'pdf'; });
+    if (pdfMedia) pdfSrc = pdfMedia.src.startsWith('http') ? pdfMedia.src : WIX_CDN + pdfMedia.src;
+  }
+
+  var artifactHTML = pdfSrc
+    ? '<div class="detail-pdf-section-header"><span class="detail-label-tag" style="margin-bottom:0">Full deck</span><a href="' + pdfSrc + '" target="_blank" rel="noopener" class="detail-pdf-download">Download PDF ↗</a></div>'
+      + '<div class="detail-pdf-wrap"><iframe src="' + pdfSrc + '" class="detail-pdf-frame" title="' + p.title + ' PDF" loading="lazy"></iframe></div>'
     : '<span class="detail-label-tag">Full deck</span><div class="detail-pdf-fallback" style="height:200px;border:1px solid var(--border)"><p style="color:var(--muted);font-size:13px">No document attached.</p></div>';
 
+  /* ── Gallery: images only, resolve URLs ── */
   var hasGallery = p.gallery && p.gallery.length > 0;
   var hasMedia   = p.media && p.media.length > 0;
   var galleryItems = hasGallery
-    ? p.gallery.map(function(img, i){ return { src: CDN + img, i: i }; })
+    ? p.gallery.map(function(img, i){ return { src: imgSrc(img), i: i }; })
     : hasMedia
-      ? p.media.filter(function(m){ return m.type === 'image'; }).map(function(m, i){ return { src: m.src.startsWith('http') ? m.src : CDN + m.src, i: i }; })
+      ? p.media.filter(function(m){ return m.type === 'image'; }).map(function(m, i){ return { src: imgSrc(m.src), i: i }; })
       : [];
 
   var galleryHTML = galleryItems.length
@@ -88,7 +102,12 @@
   var takeawaysHTML = (p.takeaways && p.takeaways.length)
     ? '<span class="detail-label-tag">Key insights</span>'
       + '<div class="detail-takeaway-list">'
-      + p.takeaways.map(function(t, i){ return '<div class="detail-takeaway-item"><div class="detail-takeaway-item__num">0'+(i+1)+'</div><div class="detail-takeaway-item__text"><h4>'+t.title+'</h4><p>'+t.body+'</p></div></div>'; }).join('')
+      + p.takeaways.map(function(t, i){
+          /* Support both {title, body} objects and plain strings */
+          var title = (typeof t === 'object') ? t.title : ('0' + (i+1));
+          var body  = (typeof t === 'object') ? t.body  : t;
+          return '<div class="detail-takeaway-item"><div class="detail-takeaway-item__num">0'+(i+1)+'</div><div class="detail-takeaway-item__text"><h4>'+title+'</h4><p>'+body+'</p></div></div>';
+        }).join('')
       + '</div>'
     : '<span class="detail-label-tag">Key insights</span><p class="detail-prose" style="color:var(--muted)">Takeaways coming soon.</p>';
 
