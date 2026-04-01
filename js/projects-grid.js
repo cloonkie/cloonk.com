@@ -258,14 +258,12 @@
           && (sel.type.size        === 0 || sel.type.has(card.dataset.type));
     });
 
-    if (activeSort === 'year-desc') {
-      filtered.sort((a, b) => Number(b.dataset.year) - Number(a.dataset.year));
-    } else if (activeSort === 'year-asc') {
-      filtered.sort((a, b) => Number(a.dataset.year) - Number(b.dataset.year));
-    } else {
-      const order = window.PROJECTS.map(p => p.id);
-      filtered.sort((a, b) => order.indexOf(a.dataset.id) - order.indexOf(b.dataset.id));
-    }
+    if (activeSort === 'year-asc') {
+  filtered.sort((a, b) => Number(a.dataset.year) - Number(b.dataset.year));
+} else {
+  // Default = newest (year-desc)
+  filtered.sort((a, b) => Number(b.dataset.year) - Number(a.dataset.year));
+}
 
     filtered.forEach(card => grid.appendChild(card));
 
