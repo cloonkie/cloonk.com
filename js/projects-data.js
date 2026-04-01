@@ -1,163 +1,1394 @@
-const R2 = 'https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/portfolio/assests/pdf/';
+/* projects-data.js — auto-generated from Portfolio.csv + Cloudflare R2 */
+/* CDN base: https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev */
 
 window.PROJECTS = [
   {
-    id: 'peleton-ad-campaign',
-    num: '01',
-    affiliation: 'FIT',
-    title: 'Peleton Ad Campaign',
-    short: 'Peleton Ad Campaign',
-    topic: 'marketing',
-    type: 'Copy Writing',
-    year: '2023',
-    img: 'd8d224_a709b5ff95df43fcb52bb577cdd4ecb9~mv2.png',
-    desc: 'A concept-driven campaign exploring how movement is positioned as identity rather than activity. Focused on tightening brand voice, aligning messaging with audience psychology, and creating a cohesive narrative across print and digital placements.',
-    media: [
-      { type: 'image', src: 'd8d224_a709b5ff95df43fcb52bb577cdd4ecb9~mv2.png', caption: 'Campaign cover' },
+    "num": "01",
+    "id": "peleton-ad-campaign",
+    "title": "Peleton Ad Campaign",
+    "short": "Peleton Ad Campaign",
+    "desc": "A campaign concept positioning Peloton as more than a fitness product, but as a system embedded into everyday routines. The work explores how at-home fitness shifts from transactional exercise to identity-driven behavior, where consistency, accessibility, and environment replace traditional gym barriers. The campaign focuses on visual storytelling and copy that reinforces movement as part of daily life rather than a scheduled activity.",
+    "topic": "marketing",
+    "type": "Copy Writing",
+    "year": "2023",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/peleton-ad-campaign/peleton-ad-campaign-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/peleton-ad-campaign/peleton-ad-campaign-1.jpg"
     ],
-  },
-
-  {
-    id: 'kenzo-product-elements',
-    num: '02',
-    affiliation: 'FIT',
-    title: 'Kenzo Product Elements',
-    short: 'In-Store Product Element Analysis',
-    topic: 'fashion',
-    type: 'Analysis',
-    year: '2022',
-    img: 'd8d224_156355c38f1f4ba6a05d7a48269cad3b~mv2.png',
-    desc: 'A breakdown of how physical retail communicates brand identity through product placement, materiality, and spatial hierarchy. Evaluates how each in-store element contributes to perception, conversion, and brand consistency.',
-    media: [
-      { type: 'image', src: 'd8d224_156355c38f1f4ba6a05d7a48269cad3b~mv2.png', caption: 'Product element analysis' },
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/peleton-ad-campaign/peleton-ad-campaign-1.jpg"
+      }
     ],
-  },
-
-  {
-    id: 'fashion-freedom',
-    num: '03',
-    affiliation: 'FIT',
-    title: 'Fashion=Freedom',
-    short: 'Expression-themed Macro-trend Forecast',
-    topic: 'trend',
-    type: 'Forecast',
-    year: '2021',
-    img: 'd8d224_75bb282c899c41159e337c6533d5e3dd~mv2.png',
-    desc: 'A macro-trend analysis identifying self-expression as a dominant cultural driver. Tracks how identity-driven consumption reshapes product design, brand positioning, and market segmentation.',
-    media: [
-      { type: 'image', src: 'd8d224_75bb282c899c41159e337c6533d5e3dd~mv2.png', caption: 'Trend forecast cover' },
-    ],
-  },
-
-  {
-    id: 'tiffany-store-plan',
-    num: '04',
-    affiliation: 'FIT',
-    title: "Tiffany and Co's Store Plan",
-    short: 'Tiffany and Co Merchandising Store Plan',
-    topic: 'fashion',
-    type: 'Merchandising',
-    year: '2022',
-    img: 'd8d224_736e460068b542e2b44cdf22f412a487~mv2.png',
-    desc: 'A full retail strategy translating brand positioning into physical space. Covers layout optimization, product adjacency logic, and fixture planning to drive both traffic flow and conversion efficiency.',
-    media: [
-      { type: 'image', src: 'd8d224_8a4b2aff6f9f4cd8b5c0d90488bd6487~mv2.jpg', caption: 'Store plan — slide 1' },
-    ],
-  },
-
-  {
-    id: 'tiffany-ar',
-    num: '05',
-    affiliation: 'FIT',
-    title: "Tiffany and Co's AR",
-    short: "Tiffany's Digital Campaign Media Analysis",
-    topic: 'marketing',
-    type: 'Analysis',
-    year: '2022',
-    img: 'd8d224_14a347dab54840fa9dc310971c782632~mv2.png',
-    desc: 'An evaluation of AR as a retail extension channel. Assesses how digital interaction layers reinforce brand storytelling while increasing engagement beyond physical touchpoints.',
-    media: [
-      { type: 'image', src: 'd8d224_14a347dab54840fa9dc310971c782632~mv2.png', caption: 'AR campaign overview' },
-    ],
-  },
-
-  {
-    id: 'tiffany-lock-campaign',
-    num: '06',
-    affiliation: 'FIT',
-    title: "Tiffany's Lock Campaign",
-    short: 'Tiffany and Co Lock Campaign Analysis',
-    topic: 'marketing',
-    type: 'Analysis',
-    year: '2023',
-    img: 'd8d224_d2459f98e2ce45e79e887c0161db3947~mv2.png',
-    desc: 'A campaign-level analysis of how symbolic product storytelling scales across media. Focuses on influencer alignment, cultural positioning, and narrative consistency.',
-    media: [
-      { type: 'image', src: 'd8d224_d2459f98e2ce45e79e887c0161db3947~mv2.png', caption: 'Lock campaign analysis' },
-    ],
-  },
-
-  // ─────────────────────────────
-  // PRATT PROJECTS (UPDATED TONE)
-  // ─────────────────────────────
-
-  {
-    id: 'poseidon-user-testing',
-    num: '19',
-    affiliation: 'Pratt Institute',
-    title: 'Poseidon Project',
-    short: 'User Testing & UX Evaluation',
-    topic: 'ux research',
-    type: 'User Research',
-    year: '2024',
-    img: R2 + 'poseidon.png',
-    desc: 'A usability evaluation identifying where a research platform breaks down in real use. Focused on navigation clarity, accessibility gaps, and how effectively users can locate and interpret critical content.',
-    context: {
-      problem: 'Users could not reliably navigate or extract information from a content-heavy research platform, limiting its impact.'
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/peleton-ad-campaign/peleton-ad-campaign.pdf",
+    "context": {
+      "problem": "A campaign concept positioning Peloton as more than a fitness product, but as a system embedded into everyday routines. The work explores how at-home fitness shifts from transactional exercise to identity-driven behavior, where consistency, accessibility, and environment replace traditional gym barriers. The campaign focuses on visual storytelling and copy that reinforces movement as part of daily life rather than a scheduled activity."
     },
-    approach: {
-      summary: 'Ran moderated usability tests with defined tasks, tracking breakdown points across navigation, labeling, and comprehension.'
+    "approach": {
+      "summary": "A campaign concept positioning Peloton as more than a fitness product, but as a system embedded into everyday routines. The work explores how at-home fitness shifts from transactional exercise to identity-driven behavior, where consistency, accessibility, and environment replace traditional gym barriers. The campaign focuses on visual storytelling and copy that reinforces movement as part of daily life rather than a scheduled activity.",
+      "data": [
+        "Copywriting",
+        "Brand Positioning",
+        "Creative Strategy"
+      ]
     },
-    results: {
-      before: ['Users struggled to locate key content', 'Navigation labeling unclear', 'Accessibility gaps present'],
-      after: ['Clear friction points identified', 'Navigation improvements defined', 'Accessibility issues prioritized']
+    "results": {
+      "before": [
+        "Fitness framed as effort-driven and time-restricted",
+        "Home fitness lacked emotional positioning",
+        "Brand messaging overly product-centric"
+      ],
+      "after": [
+        "Reframed Peloton as lifestyle integration rather than equipment",
+        "Aligned messaging with routine-based behavior",
+        "Strengthened emotional positioning through narrative visuals"
+      ]
     },
-    takeaways: [{
-      title: 'Clarity drives usability',
-      body: 'If users hesitate, the system is already failing.'
-    }],
-    media: [
-      { type: 'pdf', src: R2 + 'poseidon.pdf', caption: 'User Testing Report' },
-    ],
+    "takeaways": [
+      {
+        "title": "Products win when they become habits",
+        "body": "The strongest positioning shifts a product from something people use to something they live with."
+      }
+    ]
   },
-
   {
-    id: 'eyewear-sales-analysis',
-    num: '23',
-    affiliation: 'Pratt Institute',
-    title: 'Eyewear Sales Analysis',
-    short: 'Retail Data Insights',
-    topic: 'data analysis',
-    type: 'Analytics',
-    year: '2025',
-    img: R2 + 'eyewear.png',
-    desc: 'A structured analysis transforming raw retail data into decision-ready insights. Focused on isolating how pricing, promotions, and product attributes impact sell-through and revenue performance.',
-    context: {
-      problem: 'Sales performance drivers were unclear due to fragmented, unstructured data.'
-    },
-    approach: {
-      summary: 'Standardized and analyzed 100K+ rows of sales data, enabling consistent comparisons across accounts, brands, and price tiers.'
-    },
-    results: {
-      before: ['Inconsistent reporting structures', 'No clear performance drivers', 'Manual analysis required'],
-      after: ['Clean, structured dataset', 'Key drivers identified', 'Repeatable analysis framework created']
-    },
-    takeaways: [{
-      title: 'Structure enables insight',
-      body: 'Without clean data, analysis is guesswork.'
-    }],
-    media: [
-      { type: 'pdf', src: R2 + 'eyewear.pdf', caption: 'Analysis Presentation' },
+    "num": "02",
+    "id": "kenzo-product-elements",
+    "title": "Kenzo Product Elements",
+    "short": "In-Store Product Element Analysis",
+    "desc": "A detailed breakdown of Kenzo garments analyzing how construction, fabric, and design elements communicate brand identity. The project evaluates material composition, fit, pattern integration, and finishing details to understand how individual product decisions reinforce a cohesive brand language across collections.",
+    "topic": "fashion",
+    "type": "Analysis",
+    "year": "2022",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kenzo-product-elements/kenzo-product-elements-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kenzo-product-elements/kenzo-product-elements-1.jpg"
     ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kenzo-product-elements/kenzo-product-elements-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kenzo-product-elements/kenzo-product-elements.pdf",
+    "context": {
+      "problem": "A detailed breakdown of Kenzo garments analyzing how construction, fabric, and design elements communicate brand identity. The project evaluates material composition, fit, pattern integration, and finishing details to understand how individual product decisions reinforce a cohesive brand language across collections."
+    },
+    "approach": {
+      "summary": "A detailed breakdown of Kenzo garments analyzing how construction, fabric, and design elements communicate brand identity. The project evaluates material composition, fit, pattern integration, and finishing details to understand how individual product decisions reinforce a cohesive brand language across collections.",
+      "data": [
+        "Product Analysis",
+        "Material Study",
+        "Design Evaluation"
+      ]
+    },
+    "results": {
+      "before": [
+        "Product elements treated as isolated features",
+        "Limited understanding of how design communicates brand",
+        "Surface-level evaluation of garments"
+      ],
+      "after": [
+        "Linked construction and material decisions to brand identity",
+        "Identified consistency across patterns, silhouettes, and finishes",
+        "Translated product details into strategic brand signals"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Details are the brand",
+        "body": "Brand identity is not messaging—it’s embedded in the product itself."
+      }
+    ]
+  },
+  {
+    "num": "03",
+    "id": "fashion-freedom",
+    "title": "Fashion=Freedom",
+    "short": "Macro Trend Forecast",
+    "desc": "A macro-trend analysis examining how Gen Z’s relationship with identity, privacy, and digital environments is reshaping fashion. The work explores how technology and the metaverse drive a shift toward self-expression and individuality, positioning fashion as a medium for control and personal narrative rather than conformity.",
+    "topic": "trend",
+    "type": "Forecast",
+    "year": "2021",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/fashion-freedom/fashion-freedom-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/fashion-freedom/fashion-freedom-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/fashion-freedom/fashion-freedom-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/fashion-freedom/fashion-freedom.pdf",
+    "context": {
+      "problem": "A macro-trend analysis examining how Gen Z’s relationship with identity, privacy, and digital environments is reshaping fashion. The work explores how technology and the metaverse drive a shift toward self-expression and individuality, positioning fashion as a medium for control and personal narrative rather than conformity."
+    },
+    "approach": {
+      "summary": "A macro-trend analysis examining how Gen Z’s relationship with identity, privacy, and digital environments is reshaping fashion. The work explores how technology and the metaverse drive a shift toward self-expression and individuality, positioning fashion as a medium for control and personal narrative rather than conformity.",
+      "data": [
+        "Trend Analysis",
+        "Cultural Research"
+      ]
+    },
+    "results": {
+      "before": [
+        "Trend forecasting focused on aesthetics rather than behavior",
+        "Limited connection between technology and fashion identity",
+        "Weak narrative linking macro shifts to product direction"
+      ],
+      "after": [
+        "Connected digital culture to fashion behavior shifts",
+        "Positioned individuality as core driver of consumption",
+        "Framed fashion as response to control, privacy, and identity shifts"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Trends start with behavior, not visuals",
+        "body": "What people wear is a reflection of how they see themselves in the world."
+      }
+    ]
+  },
+  {
+    "num": "04",
+    "id": "tiffany-store-plan",
+    "title": "Tiffany and Co's Store Plan",
+    "short": "Tiffany and Co Merchandising Store Plan",
+    "desc": "A full retail strategy translating brand positioning into physical space. Covers layout optimization, product adjacency logic, and fixture planning to drive both traffic flow and conversion efficiency.",
+    "topic": "fashion",
+    "type": "Merchandising",
+    "year": "2022",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-1.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-2.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-3.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-4.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-5.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-1.jpg"
+      },
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-2.jpg"
+      },
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-3.jpg"
+      },
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-4.jpg"
+      },
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-5.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan.pdf",
+    "context": {
+      "problem": "A full retail strategy translating brand positioning into physical space. Covers layout optimization, product adjacency logic, and fixture planning to drive both traffic flow and conversion efficiency."
+    },
+    "approach": {
+      "summary": "A full retail strategy translating brand positioning into physical space. Covers layout optimization, product adjacency logic, and fixture planning to drive both traffic flow and conversion efficiency."
+    },
+    "results": {},
+    "takeaways": []
+  },
+  {
+    "num": "05",
+    "id": "tiffany-ar",
+    "title": "Tiffany and Co's AR",
+    "short": "Tiffany's Digital Campaign Media Analysis",
+    "desc": "An analysis of Tiffany’s transition into augmented reality as a strategy to expand beyond its traditional luxury retail base. The project evaluates how Tiffany leveraged AR technology, including NFT-backed digital jewelry and Snapchat-based filters, to reposition itself toward a younger, tech-native audience. By integrating digital ownership, social media distribution, and immersive experiences, the campaign reframes luxury from physical exclusivity to digital accessibility while maintaining brand prestige.",
+    "topic": "marketing",
+    "type": "Analysis",
+    "year": "2022",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-ar/tiffany-ar-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-ar/tiffany-ar-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-ar/tiffany-ar-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-ar/tiffany-ar.pdf",
+    "context": {
+      "problem": "An analysis of Tiffany’s transition into augmented reality as a strategy to expand beyond its traditional luxury retail base. The project evaluates how Tiffany leveraged AR technology, including NFT-backed digital jewelry and Snapchat-based filters, to reposition itself toward a younger, tech-native audience. By integrating digital ownership, social media distribution, and immersive experiences, the campaign reframes luxury from physical exclusivity to digital accessibility while maintaining brand prestige."
+    },
+    "approach": {
+      "summary": "An analysis of Tiffany’s transition into augmented reality as a strategy to expand beyond its traditional luxury retail base. The project evaluates how Tiffany leveraged AR technology, including NFT-backed digital jewelry and Snapchat-based filters, to reposition itself toward a younger, tech-native audience. By integrating digital ownership, social media distribution, and immersive experiences, the campaign reframes luxury from physical exclusivity to digital accessibility while maintaining brand prestige.",
+      "data": [
+        "Snapchat AR",
+        "Blockchain/NFT",
+        "Social Media Strategy",
+        "Market Analysis"
+      ]
+    },
+    "results": {
+      "before": [
+        "Limited relevance among Gen Z consumers",
+        "Heavy reliance on traditional retail experience",
+        "Low engagement in digital-native environments",
+        "Minimal integration of emerging technologies"
+      ],
+      "after": [
+        "Expanded into AR-based product experiences tied to blockchain authenticity",
+        "Increased relevance among younger, tech-savvy consumers",
+        "Leveraged social platforms for distribution and engagement",
+        "Repositioned brand as both heritage and innovative"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Luxury must evolve with its audience",
+        "body": "Brands rooted in tradition must adapt their delivery, not abandon their identity. Digital layers can extend-not replace-core brand value."
+      }
+    ]
+  },
+  {
+    "num": "06",
+    "id": "tiffany-lock-campaign",
+    "title": "Tiffany's Lock Campaign",
+    "short": "Tiffany and Co Lock Campaign Analysis",
+    "desc": "A campaign-level evaluation of Tiffany’s Lock collection, focusing on how symbolic storytelling is scaled across modern media channels. The project analyzes influencer alignment, media distribution, and cultural positioning, showing how a simple product motif-the lock-was transformed into a narrative of permanence, connection, and identity. The campaign demonstrates how legacy brands translate emotional storytelling into measurable engagement across platforms.",
+    "topic": "marketing",
+    "type": "Analysis",
+    "year": "2023",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-lock-campaign/tiffany-lock-campaign-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-lock-campaign/tiffany-lock-campaign-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-lock-campaign/tiffany-lock-campaign-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-lock-campaign/tiffany-lock-campaign.pdf",
+    "context": {
+      "problem": "A campaign-level evaluation of Tiffany’s Lock collection, focusing on how symbolic storytelling is scaled across modern media channels. The project analyzes influencer alignment, media distribution, and cultural positioning, showing how a simple product motif-the lock-was transformed into a narrative of permanence, connection, and identity. The campaign demonstrates how legacy brands translate emotional storytelling into measurable engagement across platforms."
+    },
+    "approach": {
+      "summary": "A campaign-level evaluation of Tiffany’s Lock collection, focusing on how symbolic storytelling is scaled across modern media channels. The project analyzes influencer alignment, media distribution, and cultural positioning, showing how a simple product motif-the lock-was transformed into a narrative of permanence, connection, and identity. The campaign demonstrates how legacy brands translate emotional storytelling into measurable engagement across platforms.",
+      "data": [
+        "Influencer Strategy",
+        "Campaign Analysis",
+        "Media Planning"
+      ]
+    },
+    "results": {
+      "before": [
+        "Traditional luxury messaging lacked cultural relevance",
+        "Limited connection with younger audiences",
+        "Fragmented storytelling across channels"
+      ],
+      "after": [
+        "Unified campaign narrative centered around symbolism and identity",
+        "Strong influencer alignment amplified reach and credibility",
+        "Consistent storytelling across media channels increased engagement",
+        "Positioned product as both emotional and status-driven asset"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Products sell better when they mean something",
+        "body": "The strongest campaigns don’t just show products-they attach meaning that consumers adopt as part of their identity."
+      }
+    ]
+  },
+  {
+    "num": "07",
+    "id": "uniqlo-assortment-refresh",
+    "title": "UNIQLO Assortment Refresh",
+    "short": "Uniqlo Assortment Refresh Proposals",
+    "desc": "A merchandising proposal identifying gaps in assortment strategy and aligning product mix with target consumer shifts through structured analysis and repositioning.",
+    "topic": "fashion",
+    "type": "Merchandising",
+    "year": "2022",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/uniqlo-assortment-refresh/uniqlo-assortment-refresh-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/uniqlo-assortment-refresh/uniqlo-assortment-refresh-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/uniqlo-assortment-refresh/uniqlo-assortment-refresh-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/uniqlo-assortment-refresh/uniqlo-assortment-refresh.pdf",
+    "context": {
+      "problem": "A merchandising proposal identifying gaps in assortment strategy and aligning product mix with target consumer shifts through structured analysis and repositioning."
+    },
+    "approach": {
+      "summary": "A merchandising proposal identifying gaps in assortment strategy and aligning product mix with target consumer shifts through structured analysis and repositioning."
+    },
+    "results": {},
+    "takeaways": []
+  },
+  {
+    "num": "08",
+    "id": "smiski-campaign",
+    "title": "SMISKI Campaign",
+    "short": "SMISKI Ad Campaign",
+    "desc": "A concept campaign leveraging brand mystique and collector behavior. Focused on reinforcing product identity through tone, visual consistency, and niche audience alignment.",
+    "topic": "marketing",
+    "type": "Copy Writing",
+    "year": "2023",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/smiski-campaign/smiski-campaign-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/smiski-campaign/smiski-campaign-1.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/smiski-campaign/smiski-campaign-2.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/smiski-campaign/smiski-campaign-1.jpg"
+      },
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/smiski-campaign/smiski-campaign-2.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/smiski-campaign/smiski-campaign.pdf",
+    "context": {
+      "problem": "A concept campaign leveraging brand mystique and collector behavior. Focused on reinforcing product identity through tone, visual consistency, and niche audience alignment."
+    },
+    "approach": {
+      "summary": "A concept campaign leveraging brand mystique and collector behavior. Focused on reinforcing product identity through tone, visual consistency, and niche audience alignment."
+    },
+    "results": {},
+    "takeaways": []
+  },
+  {
+    "num": "09",
+    "id": "sos-save-our-society",
+    "title": "SOS - Save Our Society",
+    "short": "Sustainability Macro-trend Forecast",
+    "desc": "A macro-trend study examining sustainability as a systemic shift in fashion, from sourcing and production to consumer expectations and brand accountability.",
+    "topic": "trend",
+    "type": "Forecast",
+    "year": "2021",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/sos-save-our-society/sos-save-our-society-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/sos-save-our-society/sos-save-our-society-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/sos-save-our-society/sos-save-our-society-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/sos-save-our-society/sos-save-our-society.pdf",
+    "context": {
+      "problem": "A macro-trend study examining sustainability as a systemic shift in fashion, from sourcing and production to consumer expectations and brand accountability."
+    },
+    "approach": {
+      "summary": "A macro-trend study examining sustainability as a systemic shift in fashion, from sourcing and production to consumer expectations and brand accountability."
+    },
+    "results": {},
+    "takeaways": []
+  },
+  {
+    "num": "10",
+    "id": "race-to-space",
+    "title": "Race To Space",
+    "short": "Color-focused Micro-trend Forecast",
+    "desc": "A micro-trend forecast analyzing how space-driven aesthetics influence color palettes and material direction across fashion and design.",
+    "topic": "trend",
+    "type": "Forecast",
+    "year": "2021",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/race-to-space/race-to-space-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/race-to-space/race-to-space-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/race-to-space/race-to-space-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/race-to-space/race-to-space.pdf",
+    "context": {
+      "problem": "A micro-trend forecast analyzing how space-driven aesthetics influence color palettes and material direction across fashion and design."
+    },
+    "approach": {
+      "summary": "A micro-trend forecast analyzing how space-driven aesthetics influence color palettes and material direction across fashion and design."
+    },
+    "results": {},
+    "takeaways": []
+  },
+  {
+    "num": "11",
+    "id": "pvh-corporation",
+    "title": "PVH Corporation",
+    "short": "Fashion Corporation Analysis",
+    "desc": "A corporate-level analysis of PVH examining brand portfolio strategy, financial performance, and positioning within the global apparel market.",
+    "topic": "fashion",
+    "type": "Analysis",
+    "year": "2021",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/pvh-corporation/pvh-corporation-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/pvh-corporation/pvh-corporation-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/pvh-corporation/pvh-corporation-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/pvh-corporation/pvh-corporation.pdf",
+    "context": {
+      "problem": "A corporate-level analysis of PVH examining brand portfolio strategy, financial performance, and positioning within the global apparel market."
+    },
+    "approach": {
+      "summary": "A corporate-level analysis of PVH examining brand portfolio strategy, financial performance, and positioning within the global apparel market."
+    },
+    "results": {},
+    "takeaways": []
+  },
+  {
+    "num": "12",
+    "id": "cl-kpop-eye-candy",
+    "title": "CL Influencer Analysis",
+    "short": "K-Pop Influencer Strategy",
+    "desc": "An influencer analysis of CL examining how individuality, cultural identity, and styling choices position her as a global fashion figure. The project evaluates how her ability to shift between bold and vulnerable aesthetics, combined with brand partnerships and cultural influence, creates a distinct and difficult-to-replicate identity.",
+    "topic": "fashion",
+    "type": "Analysis",
+    "year": "2022",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/cl-kpop-eye-candy/cl-kpop-eye-candy-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/cl-kpop-eye-candy/cl-kpop-eye-candy-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/cl-kpop-eye-candy/cl-kpop-eye-candy-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/cl-kpop-eye-candy/cl-kpop-eye-candy.pdf",
+    "context": {
+      "problem": "An influencer analysis of CL examining how individuality, cultural identity, and styling choices position her as a global fashion figure. The project evaluates how her ability to shift between bold and vulnerable aesthetics, combined with brand partnerships and cultural influence, creates a distinct and difficult-to-replicate identity."
+    },
+    "approach": {
+      "summary": "An influencer analysis of CL examining how individuality, cultural identity, and styling choices position her as a global fashion figure. The project evaluates how her ability to shift between bold and vulnerable aesthetics, combined with brand partnerships and cultural influence, creates a distinct and difficult-to-replicate identity.",
+      "data": [
+        "Influencer Analysis",
+        "Brand Alignment"
+      ]
+    },
+    "results": {
+      "before": [
+        "Influencer analysis focused on visibility over identity",
+        "Limited understanding of stylistic consistency",
+        "Surface-level evaluation of endorsements"
+      ],
+      "after": [
+        "Linked fashion choices to identity construction",
+        "Positioned individuality as core influence driver",
+        "Explained cross-cultural brand appeal"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Influence comes from identity, not reach",
+        "body": "Followers engage with authenticity more than aesthetics alone."
+      }
+    ]
+  },
+  {
+    "num": "13",
+    "id": "coca-cola-zero",
+    "title": "Coca-Cola Zero",
+    "short": "Campaign Media Strategy",
+    "desc": "A media planning strategy for Coca-Cola Zero Sugar focusing on global brand scale and targeted audience engagement. The project evaluates Coca-Cola’s extensive product ecosystem and identifies opportunities to refine media allocation across digital, sponsorship, and entertainment channels to maintain relevance among health-conscious consumers.",
+    "topic": "marketing",
+    "type": "Strategy",
+    "year": "2023",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/coca-cola-zero/coca-cola-zero-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/coca-cola-zero/coca-cola-zero-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/coca-cola-zero/coca-cola-zero-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/coca-cola-zero/coca-cola-zero.pdf",
+    "context": {
+      "problem": "A media planning strategy for Coca-Cola Zero Sugar focusing on global brand scale and targeted audience engagement. The project evaluates Coca-Cola’s extensive product ecosystem and identifies opportunities to refine media allocation across digital, sponsorship, and entertainment channels to maintain relevance among health-conscious consumers."
+    },
+    "approach": {
+      "summary": "A media planning strategy for Coca-Cola Zero Sugar focusing on global brand scale and targeted audience engagement. The project evaluates Coca-Cola’s extensive product ecosystem and identifies opportunities to refine media allocation across digital, sponsorship, and entertainment channels to maintain relevance among health-conscious consumers.",
+      "data": [
+        "Media Planning",
+        "Campaign Strategy"
+      ]
+    },
+    "results": {
+      "before": [
+        "Broad media spend without targeted optimization",
+        "Over-reliance on legacy channels",
+        "Fragmented audience engagement strategy"
+      ],
+      "after": [
+        "Defined targeted media allocation strategy",
+        "Aligned messaging with health-conscious positioning",
+        "Improved channel integration across platforms"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Scale requires precision",
+        "body": "Large brands lose efficiency without targeted media strategy."
+      }
+    ]
+  },
+  {
+    "num": "14",
+    "id": "premier-protein-muffin",
+    "title": "Premier Protein Muffin",
+    "short": "Premier Protein IMC Strategy",
+    "desc": "A full integrated marketing strategy for a ready-to-eat protein muffin positioned as a convenient, nutritionally complete meal alternative. The project defines a high-intent target audience driven by time constraints, specifically working mothers in the U.S. and young working women in urban China. By combining demographic, psychographic, and behavioral analysis, the strategy aligns product benefits-high protein, low sugar, zero preparation-with real-world consumption gaps. The China market expansion introduces a parallel segment of career-focused women with long working hours and increasing reliance on grab-and-go food, reinforcing the global demand for convenience-driven nutrition. The work connects product positioning, consumer behavior, and market dynamics into a unified go-to-market approach across regions.",
+    "topic": "marketing",
+    "type": "Strategy",
+    "year": "2024",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/premier-protein-muffin/premier-protein-muffin-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/premier-protein-muffin/premier-protein-muffin-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/premier-protein-muffin/premier-protein-muffin-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/premier-protein-muffin/premier-protein-muffin.pdf",
+    "context": {
+      "problem": "A full integrated marketing strategy for a ready-to-eat protein muffin positioned as a convenient, nutritionally complete meal alternative. The project defines a high-intent target audience driven by time constraints, specifically working mothers in the U.S. and young working women in urban China. By combining demographic, psychographic, and behavioral analysis, the strategy aligns product benefits-high protein, low sugar, zero preparation-with real-world consumption gaps. The China market expansion introduces a parallel segment of career-focused women with long working hours and increasing reliance on grab-and-go food, reinforcing the global demand for convenience-driven nutrition. The work connects product positioning, consumer behavior, and market dynamics into a unified go-to-market approach across regions."
+    },
+    "approach": {
+      "summary": "A full integrated marketing strategy for a ready-to-eat protein muffin positioned as a convenient, nutritionally complete meal alternative. The project defines a high-intent target audience driven by time constraints, specifically working mothers in the U.S. and young working women in urban China. By combining demographic, psychographic, and behavioral analysis, the strategy aligns product benefits-high protein, low sugar, zero preparation-with real-world consumption gaps. The China market expansion introduces a parallel segment of career-focused women with long working hours and increasing reliance on grab-and-go food, reinforcing the global demand for convenience-driven nutrition. The work connects product positioning, consumer behavior, and market dynamics into a unified go-to-market approach across regions.",
+      "data": [
+        "Consumer Research",
+        "Segmentation",
+        "IMC Planning",
+        "CDSTEP Analysis",
+        "Market Analysis"
+      ]
+    },
+    "results": {
+      "before": [
+        "Lack of convenient, nutritious meal options for time-constrained consumers",
+        "High frequency of skipped or incomplete meals due to lifestyle constraints",
+        "Disconnect between demand for health and ability to prepare meals",
+        "Limited differentiation in ready-to-eat category",
+        "China market saturated with convenience but lacking nutritionally optimized options"
+      ],
+      "after": [
+        "Defined two high-intent target segments across US and China with aligned behavioral needs",
+        "Positioned product as a functional meal replacement, not a snack",
+        "Mapped product benefits directly to real daily consumption gaps",
+        "Developed integrated communications strategy across markets",
+        "Established clear differentiation through nutrition + convenience positioning"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Global strategy works when behavior aligns across markets",
+        "body": "Different markets can share the same core demand. When behavior-not geography-drives segmentation, expansion becomes scalable and coherent."
+      }
+    ]
+  },
+  {
+    "num": "15",
+    "id": "kensie-merchandising",
+    "title": "Kensie Merchandising",
+    "short": "Kensie Store Assortment Renewal Proposal",
+    "desc": "An assortment restructuring proposal identifying opportunities to modernize product mix and improve retail positioning through targeted analysis.",
+    "topic": "fashion",
+    "type": "Merchandising",
+    "year": "2022",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kensie-merchandising/kensie-merchandising-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kensie-merchandising/kensie-merchandising-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kensie-merchandising/kensie-merchandising-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kensie-merchandising/kensie-merchandising.pdf",
+    "context": {
+      "problem": "An assortment restructuring proposal identifying opportunities to modernize product mix and improve retail positioning through targeted analysis."
+    },
+    "approach": {
+      "summary": "An assortment restructuring proposal identifying opportunities to modernize product mix and improve retail positioning through targeted analysis."
+    },
+    "results": {},
+    "takeaways": []
+  },
+  {
+    "num": "16",
+    "id": "mccormick-mixology",
+    "title": "McCormick Mixology",
+    "short": "McCormick Mixology Diffusion Line Concept",
+    "desc": "A brand extension proposal positioning McCormick within the cocktail and home mixology space. The concept leverages McCormick’s existing authority in flavor to introduce pre-formulated cocktail blends designed for younger consumers seeking social and experiential value. The strategy focuses on accessibility, affordability, and shareability, targeting Gen Z and Millennials who value experimentation and social engagement.",
+    "topic": "marketing",
+    "type": "Proposal",
+    "year": "2023",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-1.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-2.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-3.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-4.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-1.jpg"
+      },
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-2.jpg"
+      },
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-3.jpg"
+      },
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-4.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology.pdf",
+    "context": {
+      "problem": "A brand extension proposal positioning McCormick within the cocktail and home mixology space. The concept leverages McCormick’s existing authority in flavor to introduce pre-formulated cocktail blends designed for younger consumers seeking social and experiential value. The strategy focuses on accessibility, affordability, and shareability, targeting Gen Z and Millennials who value experimentation and social engagement."
+    },
+    "approach": {
+      "summary": "A brand extension proposal positioning McCormick within the cocktail and home mixology space. The concept leverages McCormick’s existing authority in flavor to introduce pre-formulated cocktail blends designed for younger consumers seeking social and experiential value. The strategy focuses on accessibility, affordability, and shareability, targeting Gen Z and Millennials who value experimentation and social engagement.",
+      "data": [
+        "Brand Strategy",
+        "Consumer Segmentation",
+        "Product Development"
+      ]
+    },
+    "results": {
+      "before": [
+        "McCormick limited to traditional cooking use cases",
+        "No presence in experiential/social beverage category",
+        "Missed younger demographic engagement"
+      ],
+      "after": [
+        "Introduced cocktail blend product line aligned with social behavior",
+        "Expanded brand into experiential consumption category",
+        "Leveraged existing distribution channels for scale",
+        "Positioned product as both functional and social enhancer"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Strong brands win by extending into behavior, not just categories",
+        "body": "The opportunity isn’t just new products-it’s aligning with how people actually live and socialize."
+      }
+    ]
+  },
+  {
+    "num": "17",
+    "id": "work-pod-proposal",
+    "title": "Work Pod Proposal",
+    "short": "Work Pod 3-D Spatial Design",
+    "desc": "A spatial design concept addressing productivity challenges in open offices through modular, focused work environments.",
+    "topic": "design",
+    "type": "Proposal",
+    "year": "2023",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/work-pod-proposal/work-pod-proposal-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/work-pod-proposal/work-pod-proposal-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/work-pod-proposal/work-pod-proposal-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/work-pod-proposal/work-pod-proposal.pdf",
+    "context": {
+      "problem": "A spatial design concept addressing productivity challenges in open offices through modular, focused work environments."
+    },
+    "approach": {
+      "summary": "A spatial design concept addressing productivity challenges in open offices through modular, focused work environments."
+    },
+    "results": {},
+    "takeaways": []
+  },
+  {
+    "num": "18",
+    "id": "heinz-brand-loyalty",
+    "title": "Heinz Brand Loyalty",
+    "short": "Heinz Brand Loyalty Assessment",
+    "desc": "A brand loyalty analysis examining why Heinz maintains long-term consumer dominance despite higher pricing. The project explores how consistency, nostalgia, and sensory experience contribute to trust and habitual purchasing behavior. Heinz’s presence across multiple environments-from fast food to home kitchens-reinforces its identity as a default choice, embedding the brand into daily routines and cultural memory.",
+    "topic": "marketing",
+    "type": "Proposal",
+    "year": "2023",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/heinz-brand-loyalty/heinz-brand-loyalty-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/heinz-brand-loyalty/heinz-brand-loyalty-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/heinz-brand-loyalty/heinz-brand-loyalty-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/heinz-brand-loyalty/heinz-brand-loyalty.pdf",
+    "context": {
+      "problem": "A brand loyalty analysis examining why Heinz maintains long-term consumer dominance despite higher pricing. The project explores how consistency, nostalgia, and sensory experience contribute to trust and habitual purchasing behavior. Heinz’s presence across multiple environments-from fast food to home kitchens-reinforces its identity as a default choice, embedding the brand into daily routines and cultural memory."
+    },
+    "approach": {
+      "summary": "A brand loyalty analysis examining why Heinz maintains long-term consumer dominance despite higher pricing. The project explores how consistency, nostalgia, and sensory experience contribute to trust and habitual purchasing behavior. Heinz’s presence across multiple environments-from fast food to home kitchens-reinforces its identity as a default choice, embedding the brand into daily routines and cultural memory.",
+      "data": [
+        "Brand Analysis",
+        "Consumer Behavior",
+        "Positioning"
+      ]
+    },
+    "results": {
+      "before": [
+        "Commodity category with high competition",
+        "Price sensitivity across consumers",
+        "Minimal reliance on aggressive marketing"
+      ],
+      "after": [
+        "Strong emotional and nostalgic brand associations",
+        "Consistent product experience reinforces trust",
+        "Ubiquitous presence drives habitual consumption",
+        "Maintains premium positioning despite alternatives"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Loyalty is built through consistency, not campaigns",
+        "body": "Brands that deliver the same experience every time become defaults, not options."
+      }
+    ]
+  },
+  {
+    "num": "19",
+    "id": "poseidon-user-testing",
+    "title": "Poseidon Project",
+    "short": "User Testing & UX Evaluation",
+    "desc": "A usability evaluation of the Poseidon Project, a research-driven platform designed to educate users on industrial fish farming and its environmental impact. The project focused on understanding how real users navigate dense informational content, where breakdowns occur, and how effectively the interface supports both discovery and comprehension. Through direct observation, the work surfaces friction points in navigation, labeling, and accessibility, revealing how even well-intentioned content fails when structure does not align with user expectations.",
+    "topic": "ux research",
+    "type": "User Research",
+    "year": "2024",
+    "affiliation": "pratt",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/poseidon-user-testing/poseidon-user-testing-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/poseidon-user-testing/poseidon-user-testing-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/poseidon-user-testing/poseidon-user-testing-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/poseidon-user-testing/poseidon-user-testing.pdf",
+    "context": {
+      "problem": "A usability evaluation of the Poseidon Project, a research-driven platform designed to educate users on industrial fish farming and its environmental impact. The project focused on understanding how real users navigate dense informational content, where breakdowns occur, and how effectively the interface supports both discovery and comprehension. Through direct observation, the work surfaces friction points in navigation, labeling, and accessibility, revealing how even well-intentioned content fails when structure does not align with user expectations."
+    },
+    "approach": {
+      "summary": "A usability evaluation of the Poseidon Project, a research-driven platform designed to educate users on industrial fish farming and its environmental impact. The project focused on understanding how real users navigate dense informational content, where breakdowns occur, and how effectively the interface supports both discovery and comprehension. Through direct observation, the work surfaces friction points in navigation, labeling, and accessibility, revealing how even well-intentioned content fails when structure does not align with user expectations.",
+      "data": [
+        "Figma",
+        "Zoom",
+        "Miro",
+        "Notion",
+        "Google Sheets"
+      ]
+    },
+    "results": {
+      "before": [
+        "Navigation labels were unclear and inconsistent across pages",
+        "Users struggled to locate key resources even after multiple attempts",
+        "Important content buried several layers deep within the hierarchy",
+        "Accessibility gaps limited usability for broader audiences",
+        "No clear onboarding or entry point for first-time users"
+      ],
+      "after": [
+        "Friction points mapped and prioritized based on severity and frequency",
+        "Navigation labeling simplified and aligned to user language",
+        "Content hierarchy restructured for faster access to high-value information",
+        "Accessibility issues documented with actionable recommendations",
+        "Clear entry points and pathways proposed for new users"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Test what users actually do, not what you assume",
+        "body": "Teams are too close to their own systems to see breakdowns objectively. Watching users interact in real time reveals friction that internal reviews consistently miss, especially in content-heavy environments where structure matters more than volume."
+      }
+    ]
+  },
+  {
+    "num": "20",
+    "id": "nyc-tourism-midterm",
+    "title": "NYC Tourism IA Study",
+    "short": "Business Owner Research",
+    "desc": "A research-driven evaluation of NYCTourism.com focused on how local business owners understand, navigate, and engage with the platform. The study examines the disconnect between the site’s intended structure and the mental models of its users, particularly those seeking to participate or get featured. By combining interviews, card sorting, and tree testing, the work identifies where information architecture fails to support key user goals and where labeling creates ambiguity rather than clarity.",
+    "topic": "ux research",
+    "type": "UX Research",
+    "year": "2024",
+    "affiliation": "pratt",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-midterm/nyc-tourism-midterm-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-midterm/nyc-tourism-midterm-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-midterm/nyc-tourism-midterm-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-midterm/nyc-tourism-midterm.pdf",
+    "context": {
+      "problem": "A research-driven evaluation of NYCTourism.com focused on how local business owners understand, navigate, and engage with the platform. The study examines the disconnect between the site’s intended structure and the mental models of its users, particularly those seeking to participate or get featured. By combining interviews, card sorting, and tree testing, the work identifies where information architecture fails to support key user goals and where labeling creates ambiguity rather than clarity."
+    },
+    "approach": {
+      "summary": "A research-driven evaluation of NYCTourism.com focused on how local business owners understand, navigate, and engage with the platform. The study examines the disconnect between the site’s intended structure and the mental models of its users, particularly those seeking to participate or get featured. By combining interviews, card sorting, and tree testing, the work identifies where information architecture fails to support key user goals and where labeling creates ambiguity rather than clarity.",
+      "data": [
+        "Miro",
+        "Optimal Workshop",
+        "Zoom",
+        "Google Docs"
+      ]
+    },
+    "results": {
+      "before": [
+        "Business-related pathways were difficult to locate or poorly labeled",
+        "Navigation structure did not align with how users categorized information",
+        "Users expressed uncertainty about how to take action (e.g., get featured)",
+        "Content overlap created confusion between sections",
+        "Low success rates in task-based navigation exercises"
+      ],
+      "after": [
+        "Reorganized IA based on user mental models derived from card sorting",
+        "Improved labeling clarity to reflect real user language and expectations",
+        "Defined clearer pathways for business engagement and participation",
+        "Reduced structural redundancy across sections",
+        "Validated improved structure through tree testing outcomes"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Users don’t learn your system - they expect it to match theirs",
+        "body": "Information architecture is not about how content is organized internally, but how users expect to find it. When those two don’t align, usability breaks regardless of content quality."
+      }
+    ]
+  },
+  {
+    "num": "21",
+    "id": "nyc-tourism-final",
+    "title": "NYC Tourism Redesign",
+    "short": "IA & UX Solution",
+    "desc": "A continuation of the NYC Tourism study, translating research insights into applied design solutions. This phase focused on resolving structural issues identified in earlier testing and creating a scalable system that supports both tourists and business owners without compromising usability. Through iterative prototyping and validation, the project demonstrates how research findings can be operationalized into clear navigation systems, improved flows, and more intuitive user pathways.",
+    "topic": "ux research",
+    "type": "UX Design",
+    "year": "2024",
+    "affiliation": "pratt",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-final/nyc-tourism-final-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-final/nyc-tourism-final-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-final/nyc-tourism-final-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-final/nyc-tourism-final.pdf",
+    "context": {
+      "problem": "A continuation of the NYC Tourism study, translating research insights into applied design solutions. This phase focused on resolving structural issues identified in earlier testing and creating a scalable system that supports both tourists and business owners without compromising usability. Through iterative prototyping and validation, the project demonstrates how research findings can be operationalized into clear navigation systems, improved flows, and more intuitive user pathways."
+    },
+    "approach": {
+      "summary": "A continuation of the NYC Tourism study, translating research insights into applied design solutions. This phase focused on resolving structural issues identified in earlier testing and creating a scalable system that supports both tourists and business owners without compromising usability. Through iterative prototyping and validation, the project demonstrates how research findings can be operationalized into clear navigation systems, improved flows, and more intuitive user pathways.",
+      "data": [
+        "Figma",
+        "Miro",
+        "Usability Testing"
+      ]
+    },
+    "results": {
+      "before": [
+        "Fragmented user journeys between tourists and business owners",
+        "Navigation hierarchy lacked clarity and prioritization",
+        "Key actions (e.g., business participation) were not surfaced effectively",
+        "Content organization created unnecessary cognitive load",
+        "No unified structure across the experience"
+      ],
+      "after": [
+        "Developed a unified navigation system supporting dual audiences",
+        "Created clearer separation of user journeys and intents",
+        "Streamlined flows to reduce friction and task completion time",
+        "Introduced consistent labeling and hierarchy across pages",
+        "Validated improvements through usability testing and iteration"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Insight without execution has no impact",
+        "body": "Research only creates value when it informs concrete design decisions. The difference between analysis and impact is implementation."
+      }
+    ]
+  },
+  {
+    "num": "22",
+    "id": "amon-carter-analytics",
+    "title": "Amon Carter Museum",
+    "short": "Digital Analytics Strategy",
+    "desc": "A comprehensive digital audit of the Amon Carter Museum’s online presence, focusing on SEO performance, website analytics, and social media engagement. The project evaluates how effectively the museum reaches and engages its target audiences, particularly younger and non-local users. By analyzing GA4 data, search visibility, and content performance, the work identifies gaps in discoverability and proposes a structured strategy for improving digital reach and engagement.",
+    "topic": "analytics",
+    "type": "Data Strategy",
+    "year": "2025",
+    "affiliation": "pratt",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/amon-carter-analytics/amon-carter-analytics-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/amon-carter-analytics/amon-carter-analytics-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/amon-carter-analytics/amon-carter-analytics-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/amon-carter-analytics/amon-carter-analytics.pdf",
+    "context": {
+      "problem": "A comprehensive digital audit of the Amon Carter Museum’s online presence, focusing on SEO performance, website analytics, and social media engagement. The project evaluates how effectively the museum reaches and engages its target audiences, particularly younger and non-local users. By analyzing GA4 data, search visibility, and content performance, the work identifies gaps in discoverability and proposes a structured strategy for improving digital reach and engagement."
+    },
+    "approach": {
+      "summary": "A comprehensive digital audit of the Amon Carter Museum’s online presence, focusing on SEO performance, website analytics, and social media engagement. The project evaluates how effectively the museum reaches and engages its target audiences, particularly younger and non-local users. By analyzing GA4 data, search visibility, and content performance, the work identifies gaps in discoverability and proposes a structured strategy for improving digital reach and engagement.",
+      "data": [
+        "GA4",
+        "SEMrush",
+        "Excel",
+        "Screaming Frog"
+      ]
+    },
+    "results": {
+      "before": [
+        "Low organic search visibility for non-branded queries",
+        "Limited reach beyond existing audience segments",
+        "Underutilized analytics data in decision-making",
+        "Weak alignment between content and search intent",
+        "Lack of clear performance benchmarks"
+      ],
+      "after": [
+        "Prioritized SEO roadmap targeting high-impact opportunities",
+        "Defined audience expansion strategy focused on younger demographics",
+        "Improved alignment between content and search intent",
+        "Established clearer KPI tracking and reporting structure",
+        "Delivered actionable recommendations for ongoing optimization"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Data needs prioritization to be useful",
+        "body": "Analytics without direction creates noise. Value comes from identifying what matters, ranking it, and acting on it."
+      }
+    ]
+  },
+  {
+    "num": "23",
+    "id": "eyewear-sales-analysis",
+    "title": "Eyewear Sales Analysis",
+    "short": "Retail Data Insights",
+    "desc": "A large-scale retail data analysis transforming over 100,000 rows of eyewear sales data into structured, decision-ready insights. The project focuses on identifying the key drivers of performance across pricing, promotions, and product attributes. By cleaning, standardizing, and modeling the data, the work enables consistent comparisons across brands, accounts, and time periods, turning fragmented reporting into a cohesive analytical framework.",
+    "topic": "data analysis",
+    "type": "Analytics",
+    "year": "2025",
+    "affiliation": "pratt",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-sales-analysis/eyewear-sales-analysis-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-sales-analysis/eyewear-sales-analysis-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-sales-analysis/eyewear-sales-analysis-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-sales-analysis/eyewear-sales-analysis.pdf",
+    "context": {
+      "problem": "A large-scale retail data analysis transforming over 100,000 rows of eyewear sales data into structured, decision-ready insights. The project focuses on identifying the key drivers of performance across pricing, promotions, and product attributes. By cleaning, standardizing, and modeling the data, the work enables consistent comparisons across brands, accounts, and time periods, turning fragmented reporting into a cohesive analytical framework."
+    },
+    "approach": {
+      "summary": "A large-scale retail data analysis transforming over 100,000 rows of eyewear sales data into structured, decision-ready insights. The project focuses on identifying the key drivers of performance across pricing, promotions, and product attributes. By cleaning, standardizing, and modeling the data, the work enables consistent comparisons across brands, accounts, and time periods, turning fragmented reporting into a cohesive analytical framework.",
+      "data": [
+        "R",
+        "Excel",
+        "tidyverse",
+        "ggplot2"
+      ]
+    },
+    "results": {
+      "before": [
+        "Data inconsistencies across sources prevented reliable analysis",
+        "No clear visibility into performance drivers",
+        "Manual reporting limited scalability",
+        "Pricing and promotion impact unclear",
+        "Difficulty comparing performance across accounts and categories"
+      ],
+      "after": [
+        "Clean, normalized dataset enabling consistent analysis",
+        "Identified key drivers of sales performance (pricing, promotions, attributes)",
+        "Built repeatable analysis framework for ongoing use",
+        "Enabled cross-account and cross-brand comparisons",
+        "Translated findings into actionable merchandising insights"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Good data structure is non-negotiable",
+        "body": "Without clean, structured data, analysis becomes subjective. Structure is what turns data into a decision-making tool."
+      }
+    ]
+  },
+  {
+    "num": "24",
+    "id": "data-viz-literacy",
+    "title": "Data Visualization Literacy",
+    "short": "Research Paper",
+    "desc": "A research study exploring how individuals interpret visual data and the risks associated with low data visualization literacy. The work examines the intersection of data, digital, and AI literacy, highlighting how visualizations can both inform and mislead depending on the viewer’s ability to critically evaluate them. By reviewing existing frameworks and educational gaps, the project outlines the growing importance of visualization literacy in a data-driven world.",
+    "topic": "research",
+    "type": "Academic",
+    "year": "2024",
+    "affiliation": "pratt",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/data-viz-literacy/data-viz-literacy-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/data-viz-literacy/data-viz-literacy-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/data-viz-literacy/data-viz-literacy-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/data-viz-literacy/data-viz-literacy.pdf",
+    "context": {
+      "problem": "A research study exploring how individuals interpret visual data and the risks associated with low data visualization literacy. The work examines the intersection of data, digital, and AI literacy, highlighting how visualizations can both inform and mislead depending on the viewer’s ability to critically evaluate them. By reviewing existing frameworks and educational gaps, the project outlines the growing importance of visualization literacy in a data-driven world."
+    },
+    "approach": {
+      "summary": "A research study exploring how individuals interpret visual data and the risks associated with low data visualization literacy. The work examines the intersection of data, digital, and AI literacy, highlighting how visualizations can both inform and mislead depending on the viewer’s ability to critically evaluate them. By reviewing existing frameworks and educational gaps, the project outlines the growing importance of visualization literacy in a data-driven world.",
+      "data": [
+        "Literature Review",
+        "Academic Sources"
+      ]
+    },
+    "results": {
+      "before": [
+        "Widespread misinterpretation of common visualization formats",
+        "Overreliance on visual cues without critical evaluation",
+        "Lack of formal education in data literacy",
+        "Difficulty distinguishing accurate vs misleading visuals",
+        "Limited frameworks for assessing visual information"
+      ],
+      "after": [
+        "Key literacy gaps identified and categorized",
+        "Frameworks for evaluating visualizations outlined",
+        "Risks of misinformation clearly defined",
+        "Recommendations proposed for improving literacy education",
+        "Positioned visualization literacy as essential modern skill"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Visualization is persuasive, not neutral",
+        "body": "Charts shape perception. Without the ability to question them, users are vulnerable to misinformation even when data appears credible."
+      }
+    ]
+  },
+  {
+    "num": "25",
+    "id": "jif-site-audit",
+    "title": "JIF.com Audit",
+    "short": "SEO & Site Analysis",
+    "desc": "A technical and strategic SEO audit of JIF.com, evaluating how site structure, backlinks, and keyword strategy impact organic performance. The project identifies inefficiencies in crawlability, authority distribution, and content alignment, translating findings into a prioritized roadmap for improvement. The focus is on turning SEO from a passive metric into an active growth lever.",
+    "topic": "seo",
+    "type": "Audit",
+    "year": "2025",
+    "affiliation": "pratt",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/jif-site-audit/jif-site-audit-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/jif-site-audit/jif-site-audit-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/jif-site-audit/jif-site-audit-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/jif-site-audit/jif-site-audit.pdf",
+    "context": {
+      "problem": "A technical and strategic SEO audit of JIF.com, evaluating how site structure, backlinks, and keyword strategy impact organic performance. The project identifies inefficiencies in crawlability, authority distribution, and content alignment, translating findings into a prioritized roadmap for improvement. The focus is on turning SEO from a passive metric into an active growth lever."
+    },
+    "approach": {
+      "summary": "A technical and strategic SEO audit of JIF.com, evaluating how site structure, backlinks, and keyword strategy impact organic performance. The project identifies inefficiencies in crawlability, authority distribution, and content alignment, translating findings into a prioritized roadmap for improvement. The focus is on turning SEO from a passive metric into an active growth lever.",
+      "data": [
+        "SEMrush",
+        "Screaming Frog",
+        "Google Search Console",
+        "Excel"
+      ]
+    },
+    "results": {
+      "before": [
+        "Broken backlinks reducing domain authority",
+        "Weak keyword targeting relative to search intent",
+        "Technical SEO issues affecting crawlability",
+        "Inefficient site structure limiting discovery",
+        "Missed opportunities in non-branded search"
+      ],
+      "after": [
+        "Critical SEO issues identified and ranked by impact",
+        "Backlink recovery and optimization opportunities mapped",
+        "Refined keyword strategy aligned with user intent",
+        "Technical fixes prioritized to improve crawlability",
+        "Actionable roadmap created for performance improvement"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Strong brands still fail without strong infrastructure",
+        "body": "SEO performance is not just content-driven - it depends on technical execution and structural integrity."
+      }
+    ]
+  },
+  {
+    "num": "26",
+    "id": "chipotle-ux",
+    "title": "Chipotle UX Evaluation",
+    "short": "Heuristic Evaluation",
+    "desc": "A heuristic evaluation of Chipotle’s ordering platform using Nielsen’s usability principles. The project identifies friction in navigation, customization, and system feedback, focusing on how usability gaps impact ordering efficiency and user satisfaction.",
+    "topic": "ux research",
+    "type": "User Research",
+    "year": "2024",
+    "affiliation": "pratt",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/chipotle-ux/chipotle-ux-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/chipotle-ux/chipotle-ux-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/chipotle-ux/chipotle-ux-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/chipotle-ux/chipotle-ux.pdf",
+    "context": {
+      "problem": "A heuristic evaluation of Chipotle’s ordering platform using Nielsen’s usability principles. The project identifies friction in navigation, customization, and system feedback, focusing on how usability gaps impact ordering efficiency and user satisfaction."
+    },
+    "approach": {
+      "summary": "A heuristic evaluation of Chipotle’s ordering platform using Nielsen’s usability principles. The project identifies friction in navigation, customization, and system feedback, focusing on how usability gaps impact ordering efficiency and user satisfaction.",
+      "data": [
+        "Heuristic Evaluation",
+        "UX Research"
+      ]
+    },
+    "results": {
+      "before": [
+        "Inconsistent system feedback",
+        "Complex customization flows",
+        "Unclear labeling of key features"
+      ],
+      "after": [
+        "Simplified interaction flows",
+        "Improved system feedback recommendations",
+        "Reduced cognitive load in ordering process"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Usability is efficiency",
+        "body": "Every extra step reduces conversion."
+      }
+    ]
+  },
+  {
+    "num": "27",
+    "id": "eyewear-db",
+    "title": "Eyewear Database System",
+    "short": "SQL Data Architecture",
+    "desc": "A database design transforming raw retail sales data into a structured relational system. The project enables dynamic querying, automated reporting, and scalable analysis across product, retailer, and time dimensions.",
+    "topic": "data analysis",
+    "type": "Data Engineering",
+    "year": "2025",
+    "affiliation": "pratt",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-db/eyewear-db-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-db/eyewear-db-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-db/eyewear-db-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-db/eyewear-db.pdf",
+    "context": {
+      "problem": "A database design transforming raw retail sales data into a structured relational system. The project enables dynamic querying, automated reporting, and scalable analysis across product, retailer, and time dimensions."
+    },
+    "approach": {
+      "summary": "A database design transforming raw retail sales data into a structured relational system. The project enables dynamic querying, automated reporting, and scalable analysis across product, retailer, and time dimensions.",
+      "data": [
+        "SQL",
+        "Data Modeling"
+      ]
+    },
+    "results": {
+      "before": [
+        "Fragmented data across spreadsheets",
+        "Manual reporting workflows",
+        "Limited scalability in analysis"
+      ],
+      "after": [
+        "Created centralized relational database",
+        "Enabled automated queries and reporting",
+        "Improved decision-making speed and accuracy"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Data structure drives decisions",
+        "body": "Without structure, data cannot scale into insight."
+      }
+    ]
+  },
+  {
+    "num": "28",
+    "id": "textile-dyes",
+    "title": "Textile Dyes",
+    "short": "Environmental Impact Study",
+    "desc": "A research study examining the environmental consequences of textile dye production, focusing on pollution, community health, and global manufacturing practices. The project highlights how large-scale garment production impacts ecosystems and emphasizes the need for sustainable alternatives.",
+    "topic": "fashion",
+    "type": "Research",
+    "year": "2022",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/textile-dyes/textile-dyes-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/textile-dyes/textile-dyes-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/textile-dyes/textile-dyes-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/textile-dyes/textile-dyes.pdf",
+    "context": {
+      "problem": "A research study examining the environmental consequences of textile dye production, focusing on pollution, community health, and global manufacturing practices. The project highlights how large-scale garment production impacts ecosystems and emphasizes the need for sustainable alternatives."
+    },
+    "approach": {
+      "summary": "A research study examining the environmental consequences of textile dye production, focusing on pollution, community health, and global manufacturing practices. The project highlights how large-scale garment production impacts ecosystems and emphasizes the need for sustainable alternatives.",
+      "data": [
+        "Research",
+        "Sustainability Analysis"
+      ]
+    },
+    "results": {
+      "before": [
+        "Lack of awareness of environmental impact",
+        "Heavy reliance on harmful dye processes",
+        "Limited transparency in production"
+      ],
+      "after": [
+        "Highlighted environmental and health risks",
+        "Connected production to global impact",
+        "Proposed awareness of sustainable practices"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Sustainability is systemic",
+        "body": "Production decisions impact ecosystems beyond the product."
+      }
+    ]
+  },
+  {
+    "num": "29",
+    "id": "knit-wear",
+    "title": "Knit & Wear",
+    "short": "Sustainability Trend Analysis",
+    "desc": "A trend analysis examining knitting as both a cultural and sustainable movement. The project explores how post-pandemic behaviors, self-expression, and upcycling influence fashion consumption and product design.",
+    "topic": "trend",
+    "type": "Forecast",
+    "year": "2022",
+    "affiliation": "lim",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/knit-wear/knit-wear-1.jpg",
+    "gallery": [
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/knit-wear/knit-wear-1.jpg"
+    ],
+    "media": [
+      {
+        "type": "image",
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/knit-wear/knit-wear-1.jpg"
+      }
+    ],
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/knit-wear/knit-wear.pdf",
+    "context": {
+      "problem": "A trend analysis examining knitting as both a cultural and sustainable movement. The project explores how post-pandemic behaviors, self-expression, and upcycling influence fashion consumption and product design."
+    },
+    "approach": {
+      "summary": "A trend analysis examining knitting as both a cultural and sustainable movement. The project explores how post-pandemic behaviors, self-expression, and upcycling influence fashion consumption and product design.",
+      "data": [
+        "Trend Analysis",
+        "Cultural Research"
+      ]
+    },
+    "results": {
+      "before": [
+        "Knitwear viewed as niche or seasonal",
+        "Limited connection to sustainability",
+        "Underestimated cultural relevance"
+      ],
+      "after": [
+        "Linked knitting to sustainability and self-expression",
+        "Positioned as accessible and therapeutic practice",
+        "Connected trend to post-pandemic behavior shifts"
+      ]
+    },
+    "takeaways": [
+      {
+        "title": "Culture drives sustainability adoption",
+        "body": "People adopt sustainable practices when they align with identity and lifestyle."
+      }
+    ]
   }
 ];

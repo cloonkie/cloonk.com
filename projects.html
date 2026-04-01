@@ -97,7 +97,7 @@
       border-bottom: 1px solid transparent;
     }
     .filter-drawer.is-open {
-      max-height: 320px;
+      max-height: 420px;
       opacity: 1;
       border-bottom-color: var(--border);
     }
@@ -195,21 +195,46 @@
       border-color: var(--accent);
     }
 
+    /* ── Sticky filter wrap ── */
+    .work-sticky {
+      position: sticky;
+      top: var(--nav-height, 56px); /* matches your nav height */
+      z-index: 50;
+      background: var(--bg);
+      /* bleed the sticky block to cover full width incl. page padding */
+      margin-left: calc(-1 * var(--page-pad, 2rem));
+      margin-right: calc(-1 * var(--page-pad, 2rem));
+      padding-left: var(--page-pad, 2rem);
+      padding-right: var(--page-pad, 2rem);
+    }
+    /* Hairline shadow only once it's actually stuck */
+    .work-sticky.is-stuck {
+      box-shadow: 0 1px 0 var(--border);
+    }
+
     /* ── Toolbar row (count + buttons) ── */
     .work-toolbar-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 1.1rem 0 1.1rem;
+      padding: 1.1rem 0;
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
-      margin-bottom: 2rem;
+    }
+    /* Remove the bottom border when a drawer is open — drawer has its own */
+    .work-toolbar-row.drawer-open {
+      border-bottom-color: transparent;
     }
     .work-toolbar-count {
       font-size: 11px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--muted);
+    }
+
+    /* Space below the sticky block so grid doesn't jump under it */
+    .work-sticky-spacer {
+      margin-bottom: 2rem;
     }
 
     /* Active filter chips */
@@ -298,25 +323,28 @@
         </div>
       </div>
 
-      <!-- Toolbar row: count + filter/refine triggers -->
-      <div class="work-toolbar-row fade-in">
-        <span class="work-toolbar-count" id="work-count">— projects</span>
-        <div style="display:flex;gap:0.5rem;align-items:center;">
-          <button class="toolbar-btn" id="btn-refine" aria-expanded="false" aria-controls="refine-drawer">
-            Sort
-          </button>
-          <button class="toolbar-btn" id="btn-filter" aria-expanded="false" aria-controls="filter-drawer">
-            <span class="tb-icon">
-              <span></span><span></span><span></span>
-            </span>
-            Filter
-            <span class="toolbar-badge" id="filter-badge">0</span>
-          </button>
-        </div>
-      </div>
+      <!-- ── Sticky toolbar + drawers ── -->
+      <div class="work-sticky fade-in" id="work-sticky">
 
-      <!-- Refine (sort) drawer -->
-      <div class="refine-drawer" id="refine-drawer" role="region">
+        <!-- Toolbar row: count + filter/refine triggers -->
+        <div class="work-toolbar-row" id="work-toolbar-row">
+          <span class="work-toolbar-count" id="work-count">— projects</span>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <button class="toolbar-btn" id="btn-refine" aria-expanded="false" aria-controls="refine-drawer">
+              Sort
+            </button>
+            <button class="toolbar-btn" id="btn-filter" aria-expanded="false" aria-controls="filter-drawer">
+              <span class="tb-icon">
+                <span></span><span></span><span></span>
+              </span>
+              Filter
+              <span class="toolbar-badge" id="filter-badge">0</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Refine (sort) drawer -->
+        <div class="refine-drawer" id="refine-drawer" role="region">
         <div class="refine-drawer__inner">
           <span class="refine-label">Sort by</span>
           <div style="display:flex;gap:0.4rem;flex-wrap:wrap;" id="sort-group">
@@ -369,11 +397,22 @@
             </div>
           </div>
 
+          <div class="filter-row-new">
+            <span class="filter-row-new__label">Type</span>
+            <!-- Pills injected dynamically by projects-grid.js from PROJECTS data -->
+            <div class="filter-group-new" id="filter-type"></div>
+          </div>
+
         </div>
       </div>
 
-      <!-- Active filter chips -->
-      <div class="active-filters" id="active-filters" style="margin-bottom:1.5rem;min-height:24px;"></div>
+      <!-- Active filter chips (inside sticky so they stay visible) -->
+      <div class="active-filters" id="active-filters" style="padding-bottom:0.75rem;min-height:0;"></div>
+
+      </div><!-- /.work-sticky -->
+
+      <!-- Spacer so grid doesn't start flush under the sticky bar -->
+      <div class="work-sticky-spacer"></div>
 
       <div class="work-grid" id="work-grid"></div>
 
@@ -409,5 +448,36 @@
   <script src="js/projects-data.js"></script>
   <script src="js/projects-grid.js"></script>
   <script src="js/cursor.js"></script>
+  <script>
+    /* ── Sticky sentinel: add shadow when toolbar is actually stuck ── */
+    (function () {
+      var sticky = document.getElementById('work-sticky');
+      if (!sticky || !window.IntersectionObserver) return;
+
+      /* A 1px sentinel placed just above the sticky element */
+      var sentinel = document.createElement('div');
+      sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:1px;pointer-events:none;';
+      sticky.parentElement.insertBefore(sentinel, sticky);
+
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          sticky.classList.toggle('is-stuck', !e.isIntersecting);
+        });
+      }, { threshold: 0, rootMargin: '-' + (parseInt(getComputedStyle(sticky).top) || 56) + 'px 0px 0px 0px' });
+
+      obs.observe(sentinel);
+
+      /* drawer-open class on toolbar row for border treatment */
+      var toolbarRow = document.getElementById('work-toolbar-row');
+      var btnFilter  = document.getElementById('btn-filter');
+      var btnRefine  = document.getElementById('btn-refine');
+      function syncDrawerClass() {
+        var open = btnFilter.classList.contains('is-open') || btnRefine.classList.contains('is-open');
+        toolbarRow.classList.toggle('drawer-open', open);
+      }
+      btnFilter.addEventListener('click', function () { setTimeout(syncDrawerClass, 10); });
+      btnRefine.addEventListener('click', function () { setTimeout(syncDrawerClass, 10); });
+    })();
+  </script>
 </body>
 </html>
