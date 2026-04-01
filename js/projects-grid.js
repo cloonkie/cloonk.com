@@ -258,12 +258,14 @@
           && (sel.type.size        === 0 || sel.type.has(card.dataset.type));
     });
 
-    if (activeSort === 'year-asc') {
-  filtered.sort((a, b) => Number(a.dataset.year) - Number(b.dataset.year));
-} else {
-  // Default = newest (year-desc)
-  filtered.sort((a, b) => Number(b.dataset.year) - Number(a.dataset.year));
-}
+    if (activeSort === 'year-desc') {
+      filtered.sort((a, b) => Number(b.dataset.year) - Number(a.dataset.year));
+    } else if (activeSort === 'year-asc') {
+      filtered.sort((a, b) => Number(a.dataset.year) - Number(b.dataset.year));
+    } else {
+      const order = window.PROJECTS.map(p => p.id);
+      filtered.sort((a, b) => order.indexOf(a.dataset.id) - order.indexOf(b.dataset.id));
+    }
 
     filtered.forEach(card => grid.appendChild(card));
 
@@ -335,20 +337,20 @@
   function scrollToGrid() { grid.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
+  /* ── Read URL params and pre-apply filters ──
+     e.g. projects.html?affiliation=pratt
+          projects.html?affiliation=pratt&topic=design
+          projects.html?year=2024,2025
+  ───────────────────────────────────────── */
+  const urlParams = new URLSearchParams(window.location.search);
+  ['topic', 'year', 'affiliation', 'type'].forEach(key => {
+    const val = urlParams.get(key);
+    if (!val) return;
+    val.split(',').forEach(v => sel[key].add(v.trim().toLowerCase()));
+    const group = document.getElementById('filter-' + key);
+    if (group) syncPills(group, key);
+  });
+
   applyFilters();
 
-})();
-
-// At the very top of the IIFE, after state is declared, before applyFilters():
-(function() {
-  const params = new URLSearchParams(window.location.search);
-  ['topic', 'year', 'affiliation', 'type'].forEach(key => {
-    const val = params.get(key);
-    if (val) {
-      val.split(',').forEach(v => sel[key].add(v.toLowerCase()));
-      const group = document.getElementById('filter-' + key);
-      if (group) syncPills(group, key);
-    }
-  });
-  // applyFilters() call that's already at the bottom handles the rest
 })();
