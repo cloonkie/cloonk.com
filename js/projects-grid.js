@@ -17,6 +17,7 @@
   let activeYear   = 'all';
   let currentPage  = 1;
   let filtered     = [];
+  let activeAffiliation = 'all';
 
   /* ── Build all cards once ── */
   window.PROJECTS.forEach(p => {
@@ -25,6 +26,7 @@
     card.dataset.topic = p.topic;
     card.dataset.year  = p.year;
     card.dataset.id    = p.id;
+    card.dataset.affiliation = p.affiliation || 'other';
 
     card.innerHTML = `
       <a href="project.html?id=${p.id}" class="wk-card__link">
@@ -51,11 +53,12 @@
 
   /* ── Apply filters + rebuild page ── */
   function applyFilters() {
-    filtered = allCards.filter(card => {
-      const topicOk = activeTopic === 'all' || card.dataset.topic === activeTopic;
-      const yearOk  = activeYear  === 'all' || card.dataset.year  === activeYear;
-      return topicOk && yearOk;
-    });
+  filtered = allCards.filter(card => {
+  const topicOk       = activeTopic       === 'all' || card.dataset.topic       === activeTopic;
+  const yearOk        = activeYear        === 'all' || card.dataset.year        === activeYear;
+  const affiliationOk = activeAffiliation === 'all' || card.dataset.affiliation === activeAffiliation;
+  return topicOk && yearOk && affiliationOk;
+});
 
     currentPage = 1;
     renderPage();
@@ -162,6 +165,16 @@
       applyFilters();
     });
   });
+
+  document.getElementById('filter-affiliation').querySelectorAll('.filter-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.getElementById('filter-affiliation').querySelectorAll('.filter-btn')
+      .forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    activeAffiliation = b.dataset.affiliation;
+    applyFilters();
+  });
+});
 
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 

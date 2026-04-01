@@ -139,6 +139,7 @@
         + '<div class="detail-meta__item"><span class="detail-meta__label">Type</span><span class="detail-meta__value">' + p.type + '</span></div>'
         + '<div class="detail-meta__item"><span class="detail-meta__label">Year</span><span class="detail-meta__value">' + p.year + '</span></div>'
         + (p.role ? '<div class="detail-meta__item"><span class="detail-meta__label">Role</span><span class="detail-meta__value">' + p.role + '</span></div>' : '')
+        + (p.affiliation ? '<div class="detail-meta__item"><span class="detail-meta__label">School</span><span class="detail-meta__value">' + cap(p.affiliation) + '</span></div>' : '')
       + '</div>'
     + '</div>'
 

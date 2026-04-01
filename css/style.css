@@ -155,9 +155,9 @@ nav {
 .nav__hamburger.open span:nth-child(2) { opacity: 0; }
 .nav__hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-/* Mobile menu overlay */
+/* Mobie monenu overlay */
 .nav__mobile-menu {
-  display: none;
+  display: ne;
   position: fixed;
   inset: 0;
   z-index: 99;
@@ -173,7 +173,7 @@ nav {
   font-family: var(--font-display);
   font-size: clamp(28px, 8vw, 52px);
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.01em;l
   color: var(--fg);
 }
 .nav__mobile-menu a:hover { color: var(--accent); }
@@ -185,7 +185,7 @@ main {
 }
 
 .page {
-  padding: clamp(40px, 6vw, 80px) var(--page-pad);
+  padding: clamp(20px, 6vw, 40px) var(--page-pad);
 }
 
 /* ─── Footer — slim, nav-height, all pages ───────────────── */
