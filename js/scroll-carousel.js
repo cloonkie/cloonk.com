@@ -40,13 +40,6 @@
       img:      'images/nav-contact.png',
       fallback: '#1a1a18',
     },
-    {
-      label:    'Archive',
-      sub:      'Image dump',
-      href:     'projects.html',
-      img:      'images/nav-archive.png',
-      fallback: '#0d0d0b',
-    },
   ];
 
   const N      = CARDS.length;   /* 5 */

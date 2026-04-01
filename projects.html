@@ -195,21 +195,12 @@
       border-color: var(--accent);
     }
 
-    /* ── Sticky filter wrap ── */
+    /* ── Sticky filter wrap — pure CSS, no JS, matches detail section nav ── */
     .work-sticky {
       position: sticky;
-      top: var(--nav-height, 56px); /* matches your nav height */
-      z-index: 50;
+      top: 0;
+      z-index: 40;
       background: var(--bg);
-      /* bleed the sticky block to cover full width incl. page padding */
-      margin-left: calc(-1 * var(--page-pad, 2rem));
-      margin-right: calc(-1 * var(--page-pad, 2rem));
-      padding-left: var(--page-pad, 2rem);
-      padding-right: var(--page-pad, 2rem);
-    }
-    /* Hairline shadow only once it's actually stuck */
-    .work-sticky.is-stuck {
-      box-shadow: 0 1px 0 var(--border);
     }
 
     /* ── Toolbar row (count + buttons) ── */
@@ -221,7 +212,6 @@
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
     }
-    /* Remove the bottom border when a drawer is open — drawer has its own */
     .work-toolbar-row.drawer-open {
       border-bottom-color: transparent;
     }
@@ -232,7 +222,7 @@
       color: var(--muted);
     }
 
-    /* Space below the sticky block so grid doesn't jump under it */
+    /* Space below the sticky block so grid doesn't start flush */
     .work-sticky-spacer {
       margin-bottom: 2rem;
     }
@@ -449,34 +439,18 @@
   <script src="js/projects-grid.js"></script>
   <script src="js/cursor.js"></script>
   <script>
-    /* ── Sticky sentinel: add shadow when toolbar is actually stuck ── */
+    /* Sync drawer-open class for toolbar border treatment */
     (function () {
-      var sticky = document.getElementById('work-sticky');
-      if (!sticky || !window.IntersectionObserver) return;
-
-      /* A 1px sentinel placed just above the sticky element */
-      var sentinel = document.createElement('div');
-      sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:1px;pointer-events:none;';
-      sticky.parentElement.insertBefore(sentinel, sticky);
-
-      var obs = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          sticky.classList.toggle('is-stuck', !e.isIntersecting);
-        });
-      }, { threshold: 0, rootMargin: '-' + (parseInt(getComputedStyle(sticky).top) || 56) + 'px 0px 0px 0px' });
-
-      obs.observe(sentinel);
-
-      /* drawer-open class on toolbar row for border treatment */
       var toolbarRow = document.getElementById('work-toolbar-row');
       var btnFilter  = document.getElementById('btn-filter');
       var btnRefine  = document.getElementById('btn-refine');
-      function syncDrawerClass() {
+      if (!toolbarRow || !btnFilter || !btnRefine) return;
+      function sync() {
         var open = btnFilter.classList.contains('is-open') || btnRefine.classList.contains('is-open');
         toolbarRow.classList.toggle('drawer-open', open);
       }
-      btnFilter.addEventListener('click', function () { setTimeout(syncDrawerClass, 10); });
-      btnRefine.addEventListener('click', function () { setTimeout(syncDrawerClass, 10); });
+      btnFilter.addEventListener('click', function () { setTimeout(sync, 10); });
+      btnRefine.addEventListener('click', function () { setTimeout(sync, 10); });
     })();
   </script>
 </body>
