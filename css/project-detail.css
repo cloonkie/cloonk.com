@@ -120,3 +120,68 @@
   .lightbox__next{right:4px}
   .detail-pdf-wrap{height:60vh}
 }
+
+/* Artifact header — prevents nav overlap */
+.detail-artifact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  /* Push below sticky nav when section opens */
+  scroll-margin-top: 112px;
+}
+
+.detail-artifact-header__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Tab switcher */
+.detail-artifact-switcher {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface, #1a1a1a);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px;
+}
+
+.detail-artifact-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.detail-artifact-tab:hover {
+  color: var(--fg);
+}
+
+.detail-artifact-tab.is-active {
+  background: var(--accent, #c8a96e);
+  color: var(--bg, #111);
+  font-weight: 500;
+}
+
+.detail-artifact-tab svg {
+  flex-shrink: 0;
+}
+
+/* Nav overlap fix — add scroll-margin to the section block itself */
+.detail-section-block {
+  scroll-margin-top: 96px;
+}
