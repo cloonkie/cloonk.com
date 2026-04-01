@@ -155,9 +155,9 @@ nav {
 .nav__hamburger.open span:nth-child(2) { opacity: 0; }
 .nav__hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-/* Mobie monenu overlay */
+/* Mobile menu overlay */
 .nav__mobile-menu {
-  display: ne;
+  display: none;
   position: fixed;
   inset: 0;
   z-index: 99;
@@ -173,7 +173,7 @@ nav {
   font-family: var(--font-display);
   font-size: clamp(28px, 8vw, 52px);
   font-weight: 800;
-  letter-spacing: -0.01em;l
+  letter-spacing: -0.01em;
   color: var(--fg);
 }
 .nav__mobile-menu a:hover { color: var(--accent); }
