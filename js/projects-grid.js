@@ -166,6 +166,7 @@
     });
   });
 
+    /* ── Wire affiliation buttons ── */
   document.getElementById('filter-affiliation').querySelectorAll('.filter-btn').forEach(b => {
   b.addEventListener('click', () => {
     document.getElementById('filter-affiliation').querySelectorAll('.filter-btn')
