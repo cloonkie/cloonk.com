@@ -1,5 +1,8 @@
-/* projects-data.js — auto-generated from Portfolio.csv + Cloudflare R2 */
-/* CDN base: https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev */
+/* projects-data.js — generated from Portfolio.csv + Cloudflare R2
+ * CDN: https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev
+ * Images: upload to assests/images/{id}-1.jpg (etc.) to activate
+ * PDFs:   mapped to assests/pdf/ exact filenames
+ */
 
 window.PROJECTS = [
   {
@@ -12,17 +15,17 @@ window.PROJECTS = [
     "type": "Copy Writing",
     "year": "2023",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/peleton-ad-campaign/peleton-ad-campaign-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/peleton-ad-campaign-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/peleton-ad-campaign/peleton-ad-campaign-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/peleton-ad-campaign-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/peleton-ad-campaign/peleton-ad-campaign-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/peleton-ad-campaign-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/peleton-ad-campaign/peleton-ad-campaign.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Peleton%20Marketing%20Concept-compressed.pdf",
     "context": {
       "problem": "A campaign concept positioning Peloton as more than a fitness product, but as a system embedded into everyday routines. The work explores how at-home fitness shifts from transactional exercise to identity-driven behavior, where consistency, accessibility, and environment replace traditional gym barriers. The campaign focuses on visual storytelling and copy that reinforces movement as part of daily life rather than a scheduled activity."
     },
@@ -63,17 +66,17 @@ window.PROJECTS = [
     "type": "Analysis",
     "year": "2022",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kenzo-product-elements/kenzo-product-elements-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/kenzo-product-elements-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kenzo-product-elements/kenzo-product-elements-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/kenzo-product-elements-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kenzo-product-elements/kenzo-product-elements-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/kenzo-product-elements-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kenzo-product-elements/kenzo-product-elements.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Kenzo%20Product%20Elements%20Final%20Project-compressed.pdf",
     "context": {
       "problem": "A detailed breakdown of Kenzo garments analyzing how construction, fabric, and design elements communicate brand identity. The project evaluates material composition, fit, pattern integration, and finishing details to understand how individual product decisions reinforce a cohesive brand language across collections."
     },
@@ -114,17 +117,17 @@ window.PROJECTS = [
     "type": "Forecast",
     "year": "2021",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/fashion-freedom/fashion-freedom-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/fashion-freedom-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/fashion-freedom/fashion-freedom-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/fashion-freedom-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/fashion-freedom/fashion-freedom-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/fashion-freedom-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/fashion-freedom/fashion-freedom.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Fashion%20Equal%20Freedom%20Macro%20Trend%20Forecast-compressed.pdf",
     "context": {
       "problem": "A macro-trend analysis examining how Gen Z’s relationship with identity, privacy, and digital environments is reshaping fashion. The work explores how technology and the metaverse drive a shift toward self-expression and individuality, positioning fashion as a medium for control and personal narrative rather than conformity."
     },
@@ -164,37 +167,37 @@ window.PROJECTS = [
     "type": "Merchandising",
     "year": "2022",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-1.jpg",
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-2.jpg",
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-3.jpg",
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-4.jpg",
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-5.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-1.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-2.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-3.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-4.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-5.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-1.jpg"
       },
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-2.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-2.jpg"
       },
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-3.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-3.jpg"
       },
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-4.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-4.jpg"
       },
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan-5.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-5.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-store-plan/tiffany-store-plan.pdf",
+    "pdf": null,
     "context": {
       "problem": "A full retail strategy translating brand positioning into physical space. Covers layout optimization, product adjacency logic, and fixture planning to drive both traffic flow and conversion efficiency."
     },
@@ -214,17 +217,17 @@ window.PROJECTS = [
     "type": "Analysis",
     "year": "2022",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-ar/tiffany-ar-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-ar-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-ar/tiffany-ar-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-ar-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-ar/tiffany-ar-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-ar-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-ar/tiffany-ar.pdf",
+    "pdf": null,
     "context": {
       "problem": "An analysis of Tiffany’s transition into augmented reality as a strategy to expand beyond its traditional luxury retail base. The project evaluates how Tiffany leveraged AR technology, including NFT-backed digital jewelry and Snapchat-based filters, to reposition itself toward a younger, tech-native audience. By integrating digital ownership, social media distribution, and immersive experiences, the campaign reframes luxury from physical exclusivity to digital accessibility while maintaining brand prestige."
     },
@@ -268,17 +271,17 @@ window.PROJECTS = [
     "type": "Analysis",
     "year": "2023",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-lock-campaign/tiffany-lock-campaign-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-lock-campaign-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-lock-campaign/tiffany-lock-campaign-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-lock-campaign-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-lock-campaign/tiffany-lock-campaign-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-lock-campaign-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/tiffany-lock-campaign/tiffany-lock-campaign.pdf",
+    "pdf": null,
     "context": {
       "problem": "A campaign-level evaluation of Tiffany’s Lock collection, focusing on how symbolic storytelling is scaled across modern media channels. The project analyzes influencer alignment, media distribution, and cultural positioning, showing how a simple product motif-the lock-was transformed into a narrative of permanence, connection, and identity. The campaign demonstrates how legacy brands translate emotional storytelling into measurable engagement across platforms."
     },
@@ -320,17 +323,17 @@ window.PROJECTS = [
     "type": "Merchandising",
     "year": "2022",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/uniqlo-assortment-refresh/uniqlo-assortment-refresh-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/uniqlo-assortment-refresh-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/uniqlo-assortment-refresh/uniqlo-assortment-refresh-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/uniqlo-assortment-refresh-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/uniqlo-assortment-refresh/uniqlo-assortment-refresh-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/uniqlo-assortment-refresh-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/uniqlo-assortment-refresh/uniqlo-assortment-refresh.pdf",
+    "pdf": null,
     "context": {
       "problem": "A merchandising proposal identifying gaps in assortment strategy and aligning product mix with target consumer shifts through structured analysis and repositioning."
     },
@@ -350,22 +353,22 @@ window.PROJECTS = [
     "type": "Copy Writing",
     "year": "2023",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/smiski-campaign/smiski-campaign-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/smiski-campaign-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/smiski-campaign/smiski-campaign-1.jpg",
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/smiski-campaign/smiski-campaign-2.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/smiski-campaign-1.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/smiski-campaign-2.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/smiski-campaign/smiski-campaign-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/smiski-campaign-1.jpg"
       },
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/smiski-campaign/smiski-campaign-2.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/smiski-campaign-2.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/smiski-campaign/smiski-campaign.pdf",
+    "pdf": null,
     "context": {
       "problem": "A concept campaign leveraging brand mystique and collector behavior. Focused on reinforcing product identity through tone, visual consistency, and niche audience alignment."
     },
@@ -385,17 +388,17 @@ window.PROJECTS = [
     "type": "Forecast",
     "year": "2021",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/sos-save-our-society/sos-save-our-society-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/sos-save-our-society-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/sos-save-our-society/sos-save-our-society-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/sos-save-our-society-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/sos-save-our-society/sos-save-our-society-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/sos-save-our-society-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/sos-save-our-society/sos-save-our-society.pdf",
+    "pdf": null,
     "context": {
       "problem": "A macro-trend study examining sustainability as a systemic shift in fashion, from sourcing and production to consumer expectations and brand accountability."
     },
@@ -415,17 +418,17 @@ window.PROJECTS = [
     "type": "Forecast",
     "year": "2021",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/race-to-space/race-to-space-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/race-to-space-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/race-to-space/race-to-space-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/race-to-space-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/race-to-space/race-to-space-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/race-to-space-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/race-to-space/race-to-space.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/FM245%20Fashion%20Forecast%20Popcorn%20No.2_%20Color-compressed.pdf",
     "context": {
       "problem": "A micro-trend forecast analyzing how space-driven aesthetics influence color palettes and material direction across fashion and design."
     },
@@ -445,17 +448,17 @@ window.PROJECTS = [
     "type": "Analysis",
     "year": "2021",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/pvh-corporation/pvh-corporation-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/pvh-corporation-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/pvh-corporation/pvh-corporation-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/pvh-corporation-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/pvh-corporation/pvh-corporation-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/pvh-corporation-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/pvh-corporation/pvh-corporation.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Incalculable%20Loss-compressed.pdf",
     "context": {
       "problem": "A corporate-level analysis of PVH examining brand portfolio strategy, financial performance, and positioning within the global apparel market."
     },
@@ -475,17 +478,17 @@ window.PROJECTS = [
     "type": "Analysis",
     "year": "2022",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/cl-kpop-eye-candy/cl-kpop-eye-candy-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/cl-kpop-eye-candy-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/cl-kpop-eye-candy/cl-kpop-eye-candy-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/cl-kpop-eye-candy-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/cl-kpop-eye-candy/cl-kpop-eye-candy-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/cl-kpop-eye-candy-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/cl-kpop-eye-candy/cl-kpop-eye-candy.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/CL%20Influencer%20Report-compressed.pdf",
     "context": {
       "problem": "An influencer analysis of CL examining how individuality, cultural identity, and styling choices position her as a global fashion figure. The project evaluates how her ability to shift between bold and vulnerable aesthetics, combined with brand partnerships and cultural influence, creates a distinct and difficult-to-replicate identity."
     },
@@ -525,17 +528,17 @@ window.PROJECTS = [
     "type": "Strategy",
     "year": "2023",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/coca-cola-zero/coca-cola-zero-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/coca-cola-zero-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/coca-cola-zero/coca-cola-zero-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/coca-cola-zero-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/coca-cola-zero/coca-cola-zero-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/coca-cola-zero-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/coca-cola-zero/coca-cola-zero.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Coca%20Cola%20Zero%20Media%20AD%20Plan-compressed.pdf",
     "context": {
       "problem": "A media planning strategy for Coca-Cola Zero Sugar focusing on global brand scale and targeted audience engagement. The project evaluates Coca-Cola’s extensive product ecosystem and identifies opportunities to refine media allocation across digital, sponsorship, and entertainment channels to maintain relevance among health-conscious consumers."
     },
@@ -575,17 +578,17 @@ window.PROJECTS = [
     "type": "Strategy",
     "year": "2024",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/premier-protein-muffin/premier-protein-muffin-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/premier-protein-muffin-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/premier-protein-muffin/premier-protein-muffin-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/premier-protein-muffin-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/premier-protein-muffin/premier-protein-muffin-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/premier-protein-muffin-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/premier-protein-muffin/premier-protein-muffin.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Premier%20Protein%20MUFFIN%20PPT-compressed.pdf",
     "context": {
       "problem": "A full integrated marketing strategy for a ready-to-eat protein muffin positioned as a convenient, nutritionally complete meal alternative. The project defines a high-intent target audience driven by time constraints, specifically working mothers in the U.S. and young working women in urban China. By combining demographic, psychographic, and behavioral analysis, the strategy aligns product benefits-high protein, low sugar, zero preparation-with real-world consumption gaps. The China market expansion introduces a parallel segment of career-focused women with long working hours and increasing reliance on grab-and-go food, reinforcing the global demand for convenience-driven nutrition. The work connects product positioning, consumer behavior, and market dynamics into a unified go-to-market approach across regions."
     },
@@ -632,17 +635,17 @@ window.PROJECTS = [
     "type": "Merchandising",
     "year": "2022",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kensie-merchandising/kensie-merchandising-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/kensie-merchandising-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kensie-merchandising/kensie-merchandising-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/kensie-merchandising-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kensie-merchandising/kensie-merchandising-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/kensie-merchandising-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/kensie-merchandising/kensie-merchandising.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Kensie%20Outerwear%20Buy%20Plan-compressed.pdf",
     "context": {
       "problem": "An assortment restructuring proposal identifying opportunities to modernize product mix and improve retail positioning through targeted analysis."
     },
@@ -662,32 +665,32 @@ window.PROJECTS = [
     "type": "Proposal",
     "year": "2023",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/mccormick-mixology-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-1.jpg",
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-2.jpg",
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-3.jpg",
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-4.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/mccormick-mixology-1.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/mccormick-mixology-2.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/mccormick-mixology-3.jpg",
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/mccormick-mixology-4.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/mccormick-mixology-1.jpg"
       },
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-2.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/mccormick-mixology-2.jpg"
       },
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-3.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/mccormick-mixology-3.jpg"
       },
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology-4.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/mccormick-mixology-4.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/mccormick-mixology/mccormick-mixology.pdf",
+    "pdf": null,
     "context": {
       "problem": "A brand extension proposal positioning McCormick within the cocktail and home mixology space. The concept leverages McCormick’s existing authority in flavor to introduce pre-formulated cocktail blends designed for younger consumers seeking social and experiential value. The strategy focuses on accessibility, affordability, and shareability, targeting Gen Z and Millennials who value experimentation and social engagement."
     },
@@ -729,17 +732,17 @@ window.PROJECTS = [
     "type": "Proposal",
     "year": "2023",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/work-pod-proposal/work-pod-proposal-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/work-pod-proposal-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/work-pod-proposal/work-pod-proposal-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/work-pod-proposal-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/work-pod-proposal/work-pod-proposal-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/work-pod-proposal-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/work-pod-proposal/work-pod-proposal.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/INFO-639%20FINAL%20Proposal-compressed.pdf",
     "context": {
       "problem": "A spatial design concept addressing productivity challenges in open offices through modular, focused work environments."
     },
@@ -759,17 +762,17 @@ window.PROJECTS = [
     "type": "Proposal",
     "year": "2023",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/heinz-brand-loyalty/heinz-brand-loyalty-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/heinz-brand-loyalty-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/heinz-brand-loyalty/heinz-brand-loyalty-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/heinz-brand-loyalty-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/heinz-brand-loyalty/heinz-brand-loyalty-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/heinz-brand-loyalty-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/heinz-brand-loyalty/heinz-brand-loyalty.pdf",
+    "pdf": null,
     "context": {
       "problem": "A brand loyalty analysis examining why Heinz maintains long-term consumer dominance despite higher pricing. The project explores how consistency, nostalgia, and sensory experience contribute to trust and habitual purchasing behavior. Heinz’s presence across multiple environments-from fast food to home kitchens-reinforces its identity as a default choice, embedding the brand into daily routines and cultural memory."
     },
@@ -811,17 +814,17 @@ window.PROJECTS = [
     "type": "User Research",
     "year": "2024",
     "affiliation": "pratt",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/poseidon-user-testing/poseidon-user-testing-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/poseidon-user-testing-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/poseidon-user-testing/poseidon-user-testing-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/poseidon-user-testing-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/poseidon-user-testing/poseidon-user-testing-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/poseidon-user-testing-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/poseidon-user-testing/poseidon-user-testing.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Poseidon%20project%20User%20Testing%20Report-compressed.pdf",
     "context": {
       "problem": "A usability evaluation of the Poseidon Project, a research-driven platform designed to educate users on industrial fish farming and its environmental impact. The project focused on understanding how real users navigate dense informational content, where breakdowns occur, and how effectively the interface supports both discovery and comprehension. Through direct observation, the work surfaces friction points in navigation, labeling, and accessibility, revealing how even well-intentioned content fails when structure does not align with user expectations."
     },
@@ -868,17 +871,17 @@ window.PROJECTS = [
     "type": "UX Research",
     "year": "2024",
     "affiliation": "pratt",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-midterm/nyc-tourism-midterm-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/nyc-tourism-midterm-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-midterm/nyc-tourism-midterm-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/nyc-tourism-midterm-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-midterm/nyc-tourism-midterm-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/nyc-tourism-midterm-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-midterm/nyc-tourism-midterm.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Midterm%20Presentation%20-%20NYCTourism%20Communicating%20User%20Research.pdf",
     "context": {
       "problem": "A research-driven evaluation of NYCTourism.com focused on how local business owners understand, navigate, and engage with the platform. The study examines the disconnect between the site’s intended structure and the mental models of its users, particularly those seeking to participate or get featured. By combining interviews, card sorting, and tree testing, the work identifies where information architecture fails to support key user goals and where labeling creates ambiguity rather than clarity."
     },
@@ -924,17 +927,17 @@ window.PROJECTS = [
     "type": "UX Design",
     "year": "2024",
     "affiliation": "pratt",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-final/nyc-tourism-final-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/nyc-tourism-final-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-final/nyc-tourism-final-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/nyc-tourism-final-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-final/nyc-tourism-final-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/nyc-tourism-final-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/nyc-tourism-final/nyc-tourism-final.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Final%20Presentation%20-%20NYCTourism%20Communicating%20User%20Research.pdf",
     "context": {
       "problem": "A continuation of the NYC Tourism study, translating research insights into applied design solutions. This phase focused on resolving structural issues identified in earlier testing and creating a scalable system that supports both tourists and business owners without compromising usability. Through iterative prototyping and validation, the project demonstrates how research findings can be operationalized into clear navigation systems, improved flows, and more intuitive user pathways."
     },
@@ -979,17 +982,17 @@ window.PROJECTS = [
     "type": "Data Strategy",
     "year": "2025",
     "affiliation": "pratt",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/amon-carter-analytics/amon-carter-analytics-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/amon-carter-analytics-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/amon-carter-analytics/amon-carter-analytics-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/amon-carter-analytics-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/amon-carter-analytics/amon-carter-analytics-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/amon-carter-analytics-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/amon-carter-analytics/amon-carter-analytics.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Amon%20Carter%20Museum%20-%20Digital%20Analysis%20compressed.pdf",
     "context": {
       "problem": "A comprehensive digital audit of the Amon Carter Museum’s online presence, focusing on SEO performance, website analytics, and social media engagement. The project evaluates how effectively the museum reaches and engages its target audiences, particularly younger and non-local users. By analyzing GA4 data, search visibility, and content performance, the work identifies gaps in discoverability and proposes a structured strategy for improving digital reach and engagement."
     },
@@ -1035,17 +1038,17 @@ window.PROJECTS = [
     "type": "Analytics",
     "year": "2025",
     "affiliation": "pratt",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-sales-analysis/eyewear-sales-analysis-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/eyewear-sales-analysis-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-sales-analysis/eyewear-sales-analysis-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/eyewear-sales-analysis-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-sales-analysis/eyewear-sales-analysis-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/eyewear-sales-analysis-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-sales-analysis/eyewear-sales-analysis.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/What%27s%20Driving%20Eyewear%20Sales_.pdf",
     "context": {
       "problem": "A large-scale retail data analysis transforming over 100,000 rows of eyewear sales data into structured, decision-ready insights. The project focuses on identifying the key drivers of performance across pricing, promotions, and product attributes. By cleaning, standardizing, and modeling the data, the work enables consistent comparisons across brands, accounts, and time periods, turning fragmented reporting into a cohesive analytical framework."
     },
@@ -1091,17 +1094,17 @@ window.PROJECTS = [
     "type": "Academic",
     "year": "2024",
     "affiliation": "pratt",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/data-viz-literacy/data-viz-literacy-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/data-viz-literacy-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/data-viz-literacy/data-viz-literacy-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/data-viz-literacy-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/data-viz-literacy/data-viz-literacy-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/data-viz-literacy-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/data-viz-literacy/data-viz-literacy.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Data%20Visualization%20Literacy%20%28Final%29-compressed.pdf",
     "context": {
       "problem": "A research study exploring how individuals interpret visual data and the risks associated with low data visualization literacy. The work examines the intersection of data, digital, and AI literacy, highlighting how visualizations can both inform and mislead depending on the viewer’s ability to critically evaluate them. By reviewing existing frameworks and educational gaps, the project outlines the growing importance of visualization literacy in a data-driven world."
     },
@@ -1145,17 +1148,17 @@ window.PROJECTS = [
     "type": "Audit",
     "year": "2025",
     "affiliation": "pratt",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/jif-site-audit/jif-site-audit-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/jif-site-audit-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/jif-site-audit/jif-site-audit-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/jif-site-audit-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/jif-site-audit/jif-site-audit-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/jif-site-audit-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/jif-site-audit/jif-site-audit.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/SEO%20Audit%20for%20Jif.com%20Guideline-compressed.pdf",
     "context": {
       "problem": "A technical and strategic SEO audit of JIF.com, evaluating how site structure, backlinks, and keyword strategy impact organic performance. The project identifies inefficiencies in crawlability, authority distribution, and content alignment, translating findings into a prioritized roadmap for improvement. The focus is on turning SEO from a passive metric into an active growth lever."
     },
@@ -1201,17 +1204,17 @@ window.PROJECTS = [
     "type": "User Research",
     "year": "2024",
     "affiliation": "pratt",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/chipotle-ux/chipotle-ux-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/chipotle-ux-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/chipotle-ux/chipotle-ux-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/chipotle-ux-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/chipotle-ux/chipotle-ux-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/chipotle-ux-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/chipotle-ux/chipotle-ux.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/INFO%20644%20-%20CHIPOTLE%20HEURISTIC%20EVALUATION-compressed.pdf",
     "context": {
       "problem": "A heuristic evaluation of Chipotle’s ordering platform using Nielsen’s usability principles. The project identifies friction in navigation, customization, and system feedback, focusing on how usability gaps impact ordering efficiency and user satisfaction."
     },
@@ -1251,17 +1254,17 @@ window.PROJECTS = [
     "type": "Data Engineering",
     "year": "2025",
     "affiliation": "pratt",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-db/eyewear-db-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/eyewear-db-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-db/eyewear-db-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/eyewear-db-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-db/eyewear-db-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/eyewear-db-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/eyewear-db/eyewear-db.pdf",
+    "pdf": null,
     "context": {
       "problem": "A database design transforming raw retail sales data into a structured relational system. The project enables dynamic querying, automated reporting, and scalable analysis across product, retailer, and time dimensions."
     },
@@ -1301,17 +1304,17 @@ window.PROJECTS = [
     "type": "Research",
     "year": "2022",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/textile-dyes/textile-dyes-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/textile-dyes-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/textile-dyes/textile-dyes-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/textile-dyes-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/textile-dyes/textile-dyes-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/textile-dyes-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/textile-dyes/textile-dyes.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/SC121%20Textile%20Dye%20Final%20Project-compressed.pdf",
     "context": {
       "problem": "A research study examining the environmental consequences of textile dye production, focusing on pollution, community health, and global manufacturing practices. The project highlights how large-scale garment production impacts ecosystems and emphasizes the need for sustainable alternatives."
     },
@@ -1351,17 +1354,17 @@ window.PROJECTS = [
     "type": "Forecast",
     "year": "2022",
     "affiliation": "lim",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/knit-wear/knit-wear-1.jpg",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/knit-wear-1.jpg",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/knit-wear/knit-wear-1.jpg"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/knit-wear-1.jpg"
     ],
     "media": [
       {
         "type": "image",
-        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/knit-wear/knit-wear-1.jpg"
+        "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/knit-wear-1.jpg"
       }
     ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/knit-wear/knit-wear.pdf",
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Knit%20and%20Wear%20-%20The%20Loop%20Towards%20Fashion%20Sustainability-compressed.pdf",
     "context": {
       "problem": "A trend analysis examining knitting as both a cultural and sustainable movement. The project explores how post-pandemic behaviors, self-expression, and upcycling influence fashion consumption and product design."
     },
