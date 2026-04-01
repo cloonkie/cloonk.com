@@ -338,3 +338,17 @@
   applyFilters();
 
 })();
+
+// At the very top of the IIFE, after state is declared, before applyFilters():
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  ['topic', 'year', 'affiliation', 'type'].forEach(key => {
+    const val = params.get(key);
+    if (val) {
+      val.split(',').forEach(v => sel[key].add(v.toLowerCase()));
+      const group = document.getElementById('filter-' + key);
+      if (group) syncPills(group, key);
+    }
+  });
+  // applyFilters() call that's already at the bottom handles the rest
+})();
