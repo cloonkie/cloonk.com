@@ -8,7 +8,7 @@
   const pagControls     = document.getElementById('pagination-controls');
   const activeFiltersEl = document.getElementById('active-filters');
   const clearAllBtn     = document.getElementById('panel-clear-all');
-  const filterBadge     = document.getElementById('filter-badge-mobile');
+  const filterBadge     = document.getElementById('filter-badge');
 
   if (!grid || !window.PROJECTS) return;
 
@@ -21,7 +21,7 @@
     affiliation: new Set(),
     type:        new Set(),
   };
-  let activeSort  = 'default';
+  let activeSort  = 'year-desc';
   let currentPage = 1;
   let filtered    = [];
 
