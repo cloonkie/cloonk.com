@@ -8,6 +8,255 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/projects.css" />
   <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark');</script>
+
+  <style>
+    /* ── Toolbar ── */
+    .work-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 0;
+    }
+    .work-toolbar__left { flex: 1; }
+
+    /* Sort + Filter trigger buttons */
+    .work-toolbar__right {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .toolbar-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, color 0.2s;
+    }
+    .toolbar-btn:hover { border-color: var(--accent); }
+    .toolbar-btn.is-open {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .toolbar-btn .tb-icon {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .toolbar-btn .tb-icon span {
+      display: block;
+      height: 1px;
+      background: currentColor;
+      transition: width 0.2s;
+    }
+    .toolbar-btn .tb-icon span:nth-child(1) { width: 14px; }
+    .toolbar-btn .tb-icon span:nth-child(2) { width: 10px; }
+    .toolbar-btn .tb-icon span:nth-child(3) { width: 6px; }
+    .toolbar-btn.is-open .tb-icon span:nth-child(1) { width: 6px; }
+    .toolbar-btn.is-open .tb-icon span:nth-child(3) { width: 14px; }
+
+    /* Active filter badge */
+    .toolbar-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 9px;
+      font-weight: 700;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .toolbar-badge.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .toolbar-btn.is-open .toolbar-badge {
+      background: rgba(255,255,255,0.85);
+      color: var(--accent);
+    }
+
+    /* ── Filter drawer ── */
+    .filter-drawer {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+      border-bottom: 1px solid transparent;
+    }
+    .filter-drawer.is-open {
+      max-height: 320px;
+      opacity: 1;
+      border-bottom-color: var(--border);
+    }
+    .filter-drawer__inner {
+      padding: 1.25rem 0 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    /* ── Refine panel (sort) ── */
+    .refine-drawer {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+      border-bottom: 1px solid transparent;
+    }
+    .refine-drawer.is-open {
+      max-height: 120px;
+      opacity: 1;
+      border-bottom-color: var(--border);
+    }
+    .refine-drawer__inner {
+      padding: 1.25rem 0 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .refine-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ── Filter rows inside drawer ── */
+    .filter-row-new {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .filter-row-new__label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      min-width: 56px;
+      flex-shrink: 0;
+    }
+    .filter-group-new {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    /* ── Pills ── */
+    .filter-pill {
+      padding: 5px 13px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: border-color 0.18s, background 0.18s, color 0.18s;
+    }
+    .filter-pill:hover { border-color: var(--accent); }
+    .filter-pill.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* Sort pill (radio style) */
+    .sort-pill {
+      padding: 5px 13px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: border-color 0.18s, background 0.18s, color 0.18s;
+    }
+    .sort-pill:hover { border-color: var(--accent); }
+    .sort-pill.active {
+      background: transparent;
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* ── Toolbar row (count + buttons) ── */
+    .work-toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 0 1.1rem;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    .work-toolbar-count {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* Active filter chips */
+    .active-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+    }
+    .active-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 3px 10px 3px 10px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 10px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+    .active-chip__remove {
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.15s;
+      font-size: 12px;
+      line-height: 1;
+      background: none;
+      border: none;
+      color: inherit;
+      padding: 0;
+    }
+    .active-chip__remove:hover { opacity: 1; }
+    .clear-all-btn {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      padding: 0;
+    }
+    .clear-all-btn:hover { color: var(--text); }
+  </style>
 </head>
 <body>
 
@@ -19,19 +268,11 @@
       <a href="info.html">Info</a>
       <a href="contact.html">Contact</a>
     </div>
-
     <div class="nav__right">
       <span class="nav__clock" id="nav-clock"></span>
       <button class="nav__theme-toggle" id="nav-theme-toggle" aria-label="Toggle light/dark mode">
-        <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-          <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-        </svg>
-        <svg class="icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
+        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
       <button class="nav__hamburger" id="nav-hamburger" aria-label="Menu">
         <span></span><span></span><span></span>
@@ -46,59 +287,93 @@
     <a href="contact.html">Contact</a>
   </div>
 
-<main>
+  <main>
     <div class="page work-page">
 
-      <div class="work-header fade-in">
-        <div class="work-header__top">
-          <div>
-            <p class="label label--gold">Work</p>
-            <h1 class="work-title">Selected Projects</h1>
-          </div>
-          <span class="work-count" id="work-count">25 projects</span>
-        </div>
-
-        <div class="filter-row">
-          <span class="filter-row__label">Topic</span>
-          <div class="filter-group" id="filter-topic">
-            <button class="filter-btn active" data-topic="all">All</button>
-            <button class="filter-btn" data-topic="fashion">Fashion</button>
-            <button class="filter-btn" data-topic="marketing">Marketing</button>
-            <button class="filter-btn" data-topic="trend">Trend</button>
-            <button class="filter-btn" data-topic="design">Design</button>
-            <button class="filter-btn" data-topic="ux research">UX Research</button>
-            <button class="filter-btn" data-topic="analytics">Analytics</button>
-            <button class="filter-btn" data-topic="data analysis">Data Analysis</button>
-            <button class="filter-btn" data-topic="seo">SEO</button>
-            <button class="filter-btn" data-topic="research">Research</button>
-          </div>
-        </div>
-
-        <div class="filter-row">
-          <span class="filter-row__label">Year</span>
-          <div class="filter-group" id="filter-year">
-            <button class="filter-btn active" data-year="all">All</button>
-            <button class="filter-btn" data-year="2021">2021</button>
-            <button class="filter-btn" data-year="2022">2022</button>
-            <button class="filter-btn" data-year="2023">2023</button>
-            <button class="filter-btn" data-year="2024">2024</button>
-            <button class="filter-btn" data-year="2025">2025</button>
-          </div>
-        </div>
-
-        <div class="filter-row">
-        <span class="filter-row__label">School</span>
-        <div class="filter-group" id="filter-affiliation">
-          <button class="filter-btn active" data-affiliation="all">Affiliation</button>
-          <button class="filter-btn" data-affiliation="lim">FIT</button>
-          <button class="filter-btn" data-affiliation="pratt">Pratt</button>
-          <button class="filter-btn" data-affiliation="professional">Professional</button>
+      <!-- Header -->
+      <div class="work-toolbar fade-in">
+        <div class="work-toolbar__left">
+          <p class="label label--gold">Work</p>
+          <h1 class="work-title">Selected Projects</h1>
         </div>
       </div>
+
+      <!-- Toolbar row: count + filter/refine triggers -->
+      <div class="work-toolbar-row fade-in">
+        <span class="work-toolbar-count" id="work-count">— projects</span>
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <button class="toolbar-btn" id="btn-refine" aria-expanded="false" aria-controls="refine-drawer">
+            Sort
+          </button>
+          <button class="toolbar-btn" id="btn-filter" aria-expanded="false" aria-controls="filter-drawer">
+            <span class="tb-icon">
+              <span></span><span></span><span></span>
+            </span>
+            Filter
+            <span class="toolbar-badge" id="filter-badge">0</span>
+          </button>
+        </div>
       </div>
 
+      <!-- Refine (sort) drawer -->
+      <div class="refine-drawer" id="refine-drawer" role="region">
+        <div class="refine-drawer__inner">
+          <span class="refine-label">Sort by</span>
+          <div style="display:flex;gap:0.4rem;flex-wrap:wrap;" id="sort-group">
+            <button class="sort-pill active" data-sort="default">Default</button>
+            <button class="sort-pill" data-sort="year-desc">Newest first</button>
+            <button class="sort-pill" data-sort="year-asc">Oldest first</button>
+          </div>
+        </div>
+      </div>
 
-      <hr class="divider fade-in" />
+      <!-- Filter drawer -->
+      <div class="filter-drawer" id="filter-drawer" role="region">
+        <div class="filter-drawer__inner">
+
+          <div class="filter-row-new">
+            <span class="filter-row-new__label">Topic</span>
+            <div class="filter-group-new" id="filter-topic">
+              <button class="filter-pill active" data-topic="all">All</button>
+              <button class="filter-pill" data-topic="fashion">Fashion</button>
+              <button class="filter-pill" data-topic="marketing">Marketing</button>
+              <button class="filter-pill" data-topic="trend">Trend</button>
+              <button class="filter-pill" data-topic="design">Design</button>
+              <button class="filter-pill" data-topic="ux research">UX Research</button>
+              <button class="filter-pill" data-topic="analytics">Analytics</button>
+              <button class="filter-pill" data-topic="data analysis">Data Analysis</button>
+              <button class="filter-pill" data-topic="seo">SEO</button>
+              <button class="filter-pill" data-topic="research">Research</button>
+            </div>
+          </div>
+
+          <div class="filter-row-new">
+            <span class="filter-row-new__label">Year</span>
+            <div class="filter-group-new" id="filter-year">
+              <button class="filter-pill active" data-year="all">All</button>
+              <button class="filter-pill" data-year="2021">2021</button>
+              <button class="filter-pill" data-year="2022">2022</button>
+              <button class="filter-pill" data-year="2023">2023</button>
+              <button class="filter-pill" data-year="2024">2024</button>
+              <button class="filter-pill" data-year="2025">2025</button>
+            </div>
+          </div>
+
+          <div class="filter-row-new">
+            <span class="filter-row-new__label">Source</span>
+            <div class="filter-group-new" id="filter-affiliation">
+              <button class="filter-pill active" data-affiliation="all">All</button>
+              <button class="filter-pill" data-affiliation="lim">FIT</button>
+              <button class="filter-pill" data-affiliation="pratt">Pratt</button>
+              <button class="filter-pill" data-affiliation="professional">Professional</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Active filter chips -->
+      <div class="active-filters" id="active-filters" style="margin-bottom:1.5rem;min-height:24px;"></div>
 
       <div class="work-grid" id="work-grid"></div>
 

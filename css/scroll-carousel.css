@@ -139,7 +139,7 @@ body.index-body footer {
   min-height: clamp(120px, 13vh, 200px);
   object-fit: contain;
   display: block;
-  pointer-events: none;
+  pointer-events: fill;
   background: var(--border);
   flex: 1;
 }
