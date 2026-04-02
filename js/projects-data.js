@@ -1,4 +1,4 @@
-/* projects-data.js — generated from Portfolio.csv
+/* projects-data.js - generated from Portfolio.csv
  * CDN: https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev
  * Images: assests/images/{id}-1.jpg (etc.)
  * PDFs:   assests/pdf/ exact filenames
@@ -74,7 +74,7 @@ window.PROJECTS = [
       "before": ["Product elements treated as isolated features", "Limited understanding of how design communicates brand", "Surface-level evaluation of garments"],
       "after": ["Linked construction and material decisions to brand identity", "Identified consistency across patterns, silhouettes, and finishes", "Translated product details into strategic brand signals"]
     },
-    "takeaways": [{ "title": "Details are the brand", "body": "Brand identity is not messaging—it's embedded in the product itself." }]
+    "takeaways": [{ "title": "Details are the brand", "body": "Brand identity is not messaging-it's embedded in the product itself." }]
   },
 
   {
@@ -294,7 +294,7 @@ window.PROJECTS = [
     "id": "incalculable-loss",
     "title": "Incalculable Loss",
     "short": "Digital Accessibility & Framing Experience",
-    "desc": "A collaborative accessibility design project developed in partnership with the Cooper Hewitt Smithsonian Design Museum, focused on creating a framing experience for Incalculable Loss — an interactive digital memorial originally published by the New York Times that documents the first 100,000 COVID-19 deaths in the United States. Because the museum cannot alter the original work, the challenge was to design an accessible layer around it: a structured framing experience that allows screen reader users, low-vision users, and keyboard-only users to engage meaningfully with a piece that — by its own design — is overwhelming, chaotic, and deliberately difficult to parse. The project required understanding the piece not just as a website but as art: its emotional weight, its intentional opacity, and its use of scale as a rhetorical device. The team developed a two-pronged solution — a linear screen reader path that honors the intended scrolling experience, and a three-level navigation framework with custom keyboard shortcuts that gives users autonomy to explore on their own terms. Research included stakeholder interviews with the museum, analysis of WCAG 2.1+ compliance requirements, screen reader user behavior research, and technical investigation into how the piece's existing HTML structure could be extracted and reframed without modifying the original source. Deliverables included a Figma prototype, annotated technical recommendations, a WCAG compliance audit, and a full case study documenting the design process from research through solution.",
+    "desc": "A collaborative accessibility design project developed in partnership with the Cooper Hewitt Smithsonian Design Museum, focused on creating a framing experience for Incalculable Loss - an interactive digital memorial originally published by the New York Times that documents the first 100,000 COVID-19 deaths in the United States. Because the museum cannot alter the original work, the challenge was to design an accessible layer around it: a structured framing experience that allows screen reader users, low-vision users, and keyboard-only users to engage meaningfully with a piece that - by its own design - is overwhelming, chaotic, and deliberately difficult to parse. The project required understanding the piece not just as a website but as art: its emotional weight, its intentional opacity, and its use of scale as a rhetorical device. The team developed a two-pronged solution - a linear screen reader path that honors the intended scrolling experience, and a three-level navigation framework with custom keyboard shortcuts that gives users autonomy to explore on their own terms. Research included stakeholder interviews with the museum, analysis of WCAG 2.1+ compliance requirements, screen reader user behavior research, and technical investigation into how the piece's existing HTML structure could be extracted and reframed without modifying the original source. Deliverables included a Figma prototype, annotated technical recommendations, a WCAG compliance audit, and a full case study documenting the design process from research through solution.",
     "topic": "ux research",
     "type": "UX Design",
     "year": "2025",
@@ -308,10 +308,10 @@ window.PROJECTS = [
     "sheets": null,
     "canva": null,
     "context": {
-      "problem": "The original NYT piece was built as a continuous scroll with no semantic structure, making screen reader traversal disorienting and nonlinear. Custom links in the work were largely non-functional, creating navigation dead ends for keyboard users. Emotional and narrative content — obituary snippets, background individuals, death counts — was invisible to assistive technology. No existing accessibility layer existed; the museum had no mechanism to surface the piece's meaning to users who could not see it."
+      "problem": "The original NYT piece was built as a continuous scroll with no semantic structure, making screen reader traversal disorienting and nonlinear. Custom links in the work were largely non-functional, creating navigation dead ends for keyboard users. Emotional and narrative content - obituary snippets, background individuals, death counts - was invisible to assistive technology. No existing accessibility layer existed; the museum had no mechanism to surface the piece's meaning to users who could not see it."
     },
     "approach": {
-      "summary": "Designed a persistent side panel delivering a structured, screen-reader-friendly linear narrative path synchronized with the scroll experience. Developed a three-level content taxonomy — death date and count, white card text, individual background obituaries — mapped to custom keyboard shortcuts for direct navigation.",
+      "summary": "Designed a persistent side panel delivering a structured, screen-reader-friendly linear narrative path synchronized with the scroll experience. Developed a three-level content taxonomy - death date and count, white card text, individual background obituaries - mapped to custom keyboard shortcuts for direct navigation.",
       "data": ["Figma", "WCAG 2.1+", "BeautifulSoup", "Screen Reader Testing (NVDA / VoiceOver / JAWS)", "ARIA", "Miro", "Cooper Hewitt Client Collaboration"]
     },
     "results": {
@@ -332,7 +332,7 @@ window.PROJECTS = [
         "Delivered case study and technical recommendation document to Cooper Hewitt as final stakeholder artifact"
       ]
     },
-    "takeaways": [{ "title": "Accessibility and artistic intent are not opposites — they require negotiation", "body": "The hardest design constraint was not technical. It was philosophical: the piece is inaccessible by design. Its chaos, its overwhelming scale, its refusal to organize — these are the artistic statement. Making it accessible without sanitizing that statement required understanding what the experience is meant to do emotionally, then finding ways to honor that through structure." }]
+    "takeaways": [{ "title": "Accessibility and artistic intent are not opposites - they require negotiation", "body": "The hardest design constraint was not technical. It was philosophical: the piece is inaccessible by design. Its chaos, its overwhelming scale, its refusal to organize - these are the artistic statement. Making it accessible without sanitizing that statement required understanding what the experience is meant to do emotionally, then finding ways to honor that through structure." }]
   },
 
   {
@@ -569,7 +569,7 @@ window.PROJECTS = [
     "gallery": ["https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/nyc-tourism-midterm-1.jpg"],
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/nyc-tourism-midterm-1.jpg" }],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Midterm%20Presentation%20-%20NYCTourism%20Communicating%20User%20Research.pdf",
-    "pdf_label": "NYC Tourism IA Study — Midterm Presentation",
+    "pdf_label": "NYC Tourism IA Study - Midterm Presentation",
     "figma": "https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/slides/c2bxt1NZaabB9WxIfpXsfW/INFO-643-MIDTERM",
     "sheets": null, "canva": null,
     "context": { "problem": "A research-driven evaluation of NYCTourism.com focused on how local business owners understand, navigate, and engage with the platform." },
@@ -598,7 +598,7 @@ window.PROJECTS = [
     "gallery": ["https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/nyc-tourism-final-1.jpg"],
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/nyc-tourism-final-1.jpg" }],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Final%20Presentation%20-%20NYCTourism%20Communicating%20User%20Research.pdf",
-    "pdf_label": "NYC Tourism Redesign — Final Presentation",
+    "pdf_label": "NYC Tourism Redesign - Final Presentation",
     "figma": "https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/slides/ApwB2KG4pKoDg5tlS8Gr9v/Final-Presentation---NYCTourism-Communicating-User-Research",
     "sheets": null, "canva": null,
     "context": { "problem": "A continuation of the NYC Tourism study, translating research insights into applied design solutions." },
@@ -830,7 +830,7 @@ window.PROJECTS = [
     "gallery": ["https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/knit-wear-1.jpg"],
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/knit-wear-1.jpg" }],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Knit%20and%20Wear%20-%20The%20Loop%20Towards%20Fashion%20Sustainability-compressed.pdf",
-    "pdf_label": "Knit & Wear — The Loop Towards Fashion Sustainability",
+    "pdf_label": "Knit & Wear - The Loop Towards Fashion Sustainability",
     "figma": null, "sheets": null, "canva": null,
     "context": { "problem": "A trend analysis examining knitting as both a cultural and sustainable movement." },
     "approach": {
@@ -848,11 +848,11 @@ window.PROJECTS = [
     "num": "30",
     "id": "undl-idp",
     "title": "UN Digital Library",
-    "short": "Item Details Page — UX Research & Evaluation",
-    "desc": "A multi-method UX evaluation of the UN Digital Library's Item Details Page, conducted as part of a graduate research initiative at Pratt Institute. The project examines how researchers, students, and institutional users navigate and interact with one of the most critical pages in the UNDL ecosystem — the page responsible for surfacing document metadata, download access, and related content. Using a combination of eye-tracking (Tobii), think-aloud sessions, task-based usability testing, SEQ and SUS scoring, post-session surveys, and Matomo behavioral analytics, the study builds a comprehensive picture of where the interface succeeds and where it creates friction. Findings reveal systemic issues in information hierarchy, labeling clarity, download affordance, and the discoverability of metadata fields. The work culminates in a stakeholder presentation translating quantitative and qualitative findings into a prioritized set of redesign recommendations grounded in observed behavior rather than assumption.",
+    "short": "Item Details Page - UX Research & Evaluation",
+    "desc": "A multi-method UX evaluation of the UN Digital Library's Item Details Page, conducted as part of a graduate research initiative at Pratt Institute. The project examines how researchers, students, and institutional users navigate and interact with one of the most critical pages in the UNDL ecosystem - the page responsible for surfacing document metadata, download access, and related content. Using a combination of eye-tracking (Tobii), think-aloud sessions, task-based usability testing, SEQ and SUS scoring, post-session surveys, and Matomo behavioral analytics, the study builds a comprehensive picture of where the interface succeeds and where it creates friction. Findings reveal systemic issues in information hierarchy, labeling clarity, download affordance, and the discoverability of metadata fields. The work culminates in a stakeholder presentation translating quantitative and qualitative findings into a prioritized set of redesign recommendations grounded in observed behavior rather than assumption.",
     "topic": "ux research",
     "type": "UX Research",
-    "year": "2025",
+    "year": "2026",
     "affiliation": "pratt",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl-idp-1.jpg",
     "gallery": [
@@ -878,7 +878,7 @@ window.PROJECTS = [
       "before": ["Users struggled to locate download links and full-text access across document types", "Metadata fields were inconsistently labeled and difficult to parse for non-expert users", "Eye-tracking data revealed low fixation density on high-value interface areas", "Think-aloud sessions surfaced repeated confusion around related items and subject navigation", "SUS scores indicated marginal usability with specific pain points in navigation and feedback", "Matomo analytics showed high drop-off on item detail pages with low return engagement", "No clear visual hierarchy distinguished primary actions from supplementary metadata"],
       "after": ["Download affordance redesigned and repositioned based on gaze and click data", "Metadata labeling simplified and aligned to user mental models across expert and novice segments", "Navigation and related content pathways restructured to reduce dead-end browsing", "SEQ task scores mapped to specific interaction breakdowns with severity rankings", "SUS findings benchmarked against comparable research platforms", "Matomo patterns corroborated usability findings and identified highest-exit content areas", "Stakeholder presentation delivered with quantified impact estimates per recommendation"]
     },
-    "takeaways": [{ "title": "Behavioral data reveals what users won't say", "body": "In moderated sessions, users self-correct and rationalize confusion. Eye-tracking and analytics don't — they show exactly where attention collapses, which actions are attempted before the correct one, and which interface areas are simply ignored. The most actionable findings came not from what participants said, but from the gap between what they said and what they did." }]
+    "takeaways": [{ "title": "Behavioral data reveals what users won't say", "body": "In moderated sessions, users self-correct and rationalize confusion. Eye-tracking and analytics don't - they show exactly where attention collapses, which actions are attempted before the correct one, and which interface areas are simply ignored. The most actionable findings came not from what participants said, but from the gap between what they said and what they did." }]
   },
 
   {
@@ -886,7 +886,7 @@ window.PROJECTS = [
     "id": "rooted-in-data",
     "title": "Rooted in Data",
     "short": "Data Visualization Poster",
-    "desc": "A data visualization poster examining the geographic and demographic patterns underlying urban tree canopy distribution across New York City. The project translates raw municipal tree census data into a visual argument about environmental equity — specifically, how canopy coverage correlates with neighborhood income, race, and historical investment. Designed as both an analytical and editorial artifact, the poster uses spatial mapping, comparative charts, and typographic hierarchy to make a data-heavy argument legible to a general audience. The work sits at the intersection of data science and visual communication, treating the poster format as a medium for evidence-based storytelling rather than decoration. Produced for a graduate-level information design course at Pratt Institute, the piece demonstrates how visualization choices — scale, color, composition — carry rhetorical weight and shape how data is interpreted.",
+    "desc": "A data visualization poster examining the geographic and demographic patterns underlying urban tree canopy distribution across New York City. The project translates raw municipal tree census data into a visual argument about environmental equity - specifically, how canopy coverage correlates with neighborhood income, race, and historical investment. Designed as both an analytical and editorial artifact, the poster uses spatial mapping, comparative charts, and typographic hierarchy to make a data-heavy argument legible to a general audience. The work sits at the intersection of data science and visual communication, treating the poster format as a medium for evidence-based storytelling rather than decoration. Produced for a graduate-level information design course at Pratt Institute, the piece demonstrates how visualization choices - scale, color, composition - carry rhetorical weight and shape how data is interpreted.",
     "topic": "data analysis",
     "type": "Design",
     "year": "2025",
@@ -909,7 +909,7 @@ window.PROJECTS = [
       "before": ["Tree canopy data existed as raw municipal records with no accessible visual layer", "Spatial inequity in canopy distribution was not legible from tabular data alone", "No clear connection established between canopy gaps and socioeconomic indicators", "Data required cleaning and normalization across multiple city datasets", "Visual communication of environmental equity required balancing rigor with accessibility"],
       "after": ["Cleaned and merged NYC tree census data with demographic and income datasets", "Spatial distribution of canopy coverage mapped and annotated across all five boroughs", "Statistical correlation between low-canopy areas and low-income neighborhoods visualized", "Poster design hierarchy prioritized the equity argument without sacrificing data integrity", "Final artifact functions as both an analytical report and a public-facing communication piece"]
     },
-    "takeaways": [{ "title": "Data is never neutral — neither is its design", "body": "Every visualization encodes a perspective. The choice of what to show, how to scale it, and what to label first is an argument. Good data visualization makes that argument deliberately, not accidentally." }]
+    "takeaways": [{ "title": "Data is never neutral - neither is its design", "body": "Every visualization encodes a perspective. The choice of what to show, how to scale it, and what to label first is an argument. Good data visualization makes that argument deliberately, not accidentally." }]
   },
 
   {
@@ -917,16 +917,16 @@ window.PROJECTS = [
     "id": "urban-retail-access",
     "title": "Urban Retail Access",
     "short": "GIS Web Dashboard",
-    "desc": "An interactive geospatial dashboard analyzing pedestrian retail accessibility across ten major U.S. cities. The project addresses a structural gap in urban planning research: the absence of a unified, reproducible tool for comparing how walkable retail environments are distributed relative to income and population density. Built as a full-stack GIS application, the dashboard layers Median Household Income heatmaps over pedestrian isochrones — time-based walking radii derived from Valhalla routing — to show which neighborhoods have meaningful retail access on foot and which are underserved. The pipeline is built in Python and DuckDB for data processing, with Tippecanoe handling vector tile generation and Mapbox GL JS rendering the front-end visualization. Assets are hosted on Cloudflare R2 for scalable, low-latency delivery. The result is a reproducible analytical framework that can be extended to additional cities, updated with new census data, or adapted for transit-based accessibility modeling.",
+    "desc": "An interactive geospatial dashboard analyzing pedestrian retail accessibility across ten major U.S. cities. The project addresses a structural gap in urban planning research: the absence of a unified, reproducible tool for comparing how walkable retail environments are distributed relative to income and population density. Built as a full-stack GIS application, the dashboard layers Median Household Income heatmaps over pedestrian isochrones - time-based walking radii derived from Valhalla routing - to show which neighborhoods have meaningful retail access on foot and which are underserved. The pipeline is built in Python and DuckDB for data processing, with Tippecanoe handling vector tile generation and Mapbox GL JS rendering the front-end visualization. Assets are hosted on Cloudflare R2 for scalable, low-latency delivery. The result is a reproducible analytical framework that can be extended to additional cities, updated with new census data, or adapted for transit-based accessibility modeling.",
     "topic": "data analysis",
     "type": "Data Engineering",
-    "year": "2025",
+    "year": "2026",
     "affiliation": "pratt",
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/urban-retail-access-1.jpg",
     "gallery": ["https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/urban-retail-access-1.jpg"],
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/urban-retail-access-1.jpg" }],
     "pdf": null,
-    "pdf_label": "Urban Retail Access — Project Proposal",
+    "pdf_label": "Urban Retail Access - Project Proposal",
     "figma": null, "sheets": null, "canva": null,
     "context": {
       "problem": "No unified tool existed for cross-city comparison of pedestrian retail accessibility. Walking isochrones and income data had never been joined into a single queryable layer. Raw Census and OSM data required significant cleaning before spatial joins were possible."
@@ -939,6 +939,6 @@ window.PROJECTS = [
       "before": ["No unified tool existed for cross-city comparison of pedestrian retail accessibility", "Walking isochrones and income data had never been joined into a single queryable layer", "Raw Census and OSM data required significant cleaning before spatial joins were possible", "Tile generation and hosting pipeline needed to support fast rendering at neighborhood scale", "Dashboard required balancing analytical depth with interpretability for a non-technical audience"],
       "after": ["Built end-to-end GIS pipeline from raw data ingestion through vector tile delivery", "Pedestrian isochrones generated for 10 cities using Valhalla routing engine", "Median Household Income overlaid on isochrones to surface access inequality at census tract level", "DuckDB used for performant spatial queries across large datasets without a full database server", "Mapbox GL JS dashboard delivered interactive city-switching and layer toggling for exploratory analysis", "Cloudflare R2 hosting enabled fast tile delivery without infrastructure overhead", "Framework documented for reproducibility and extension to additional cities or transit modes"]
     },
-    "takeaways": [{ "title": "Infrastructure is the analysis", "body": "The hardest part of spatial work is not the map — it's the pipeline that makes the map trustworthy. Data cleaning, projection alignment, and tile performance are not supporting tasks; they determine whether the analysis is valid. Building the infrastructure correctly is the research." }]
+    "takeaways": [{ "title": "Infrastructure is the analysis", "body": "The hardest part of spatial work is not the map - it's the pipeline that makes the map trustworthy. Data cleaning, projection alignment, and tile performance are not supporting tasks; they determine whether the analysis is valid. Building the infrastructure correctly is the research." }]
   }
 ];
