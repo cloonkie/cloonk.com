@@ -74,103 +74,31 @@
     + ((!p.results || (!p.results.metrics && !p.results.before)) ?
         '<p class="detail-prose" style="color:var(--muted)">Results coming soon.</p>' : '');
 
-  /* ── Artifact: priority → figma → sheets → canva → pdf ── */
-  var ARTIFACT_PRIORITY = ['figma', 'sheets', 'canva', 'pdf'];
+/* ── Artifact select switcher ── */
+  (function() {
+    var select  = root.querySelector('.detail-artifact-select');
+    var panels  = root.querySelectorAll('.detail-artifact-panel');
+    var extLink = root.querySelector('.detail-artifact-extlink');
 
-  var ARTIFACT_LABELS = {
-    figma:  'Figma',
-    sheets: 'Google Sheets',
-    canva:  'Canva',
-    pdf:    'PDF'
-  };
+    /* Always show the first panel on load */
+    var firstPanel = root.querySelector('.detail-artifact-panel');
+    if (firstPanel) firstPanel.style.display = '';
 
-  var ARTIFACT_OPEN_LABELS = {
-    figma:  'Open in Figma ↗',
-    sheets: 'Open in Sheets ↗',
-    canva:  'Open in Canva ↗',
-    pdf:    'Download PDF ↗'
-  };
+    if (!select) return; /* single source — nothing more to wire up */
 
-  var ARTIFACT_ICONS = {
-    figma:  '<svg width="13" height="13" viewBox="0 0 38 57" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 28.5A9.5 9.5 0 1 1 28.5 19 9.5 9.5 0 0 1 19 28.5Z" fill="currentColor"/><path d="M9.5 57A9.5 9.5 0 0 0 19 47.5V38H9.5A9.5 9.5 0 0 0 9.5 57Z" fill="currentColor" opacity=".7"/><path d="M0 19A9.5 9.5 0 0 0 9.5 28.5H19V9.5H9.5A9.5 9.5 0 0 0 0 19Z" fill="currentColor" opacity=".7"/><path d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5Z" fill="currentColor" opacity=".5"/><path d="M19 0V19H28.5A9.5 9.5 0 0 0 19 0Z" fill="currentColor" opacity=".5"/></svg>',
-    sheets: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="9" x2="21" y2="9" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="15" x2="21" y2="15" stroke="currentColor" stroke-width="1.5"/><line x1="9" y1="9" x2="9" y2="21" stroke="currentColor" stroke-width="1.5"/></svg>',
-    canva:  '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M9 12c0-1.657 1.343-3 3-3s3 1.343 3 3-1.343 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-    pdf:    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="13" x2="16" y2="13" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="17" x2="16" y2="17" stroke="currentColor" stroke-width="1.5"/></svg>'
-  };
-
-  /* Collect available sources */
-  var pdfRaw = p.pdf || null;
-  if (!pdfRaw && p.media) {
-    var pdfMedia = p.media.find(function(m){ return m.type === 'pdf'; });
-    if (pdfMedia) pdfRaw = pdfMedia.src.startsWith('http') ? pdfMedia.src : WIX_CDN + pdfMedia.src;
-  }
-
-  var artifactSources = {
-    figma:  p.figma  || null,
-    sheets: p.sheets || null,
-    canva:  p.canva  || null,
-    pdf:    pdfRaw   || null
-  };
-
-  var availableTypes = ARTIFACT_PRIORITY.filter(function(t){ return artifactSources[t]; });
-
-  var artifactHTML;
-
-  if (!availableTypes.length) {
-    /* No artifact at all */
-    artifactHTML = '<span class="detail-label-tag">Full deck</span>'
-      + '<div class="detail-pdf-fallback" style="height:200px;border:1px solid var(--border)">'
-      + '<p style="color:var(--muted);font-size:13px">No document attached.</p></div>';
-
-  } else {
-    var firstType = availableTypes[0];
-
-    /* Tab switcher — only rendered when 2+ sources exist */
-    var switcherHTML = '';
-    if (availableTypes.length > 1) {
-      switcherHTML = '<div class="detail-artifact-switcher">'
-        + availableTypes.map(function(t){
-            return '<button class="detail-artifact-tab" data-type="' + t + '">'
-              + ARTIFACT_ICONS[t]
-              + '<span>' + ARTIFACT_LABELS[t] + '</span>'
-              + '</button>';
-          }).join('')
-        + '</div>';
+    function activate(type) {
+      panels.forEach(function(panel) {
+        panel.style.display = panel.dataset.type === type ? '' : 'none';
+      });
+      if (extLink) {
+        var key = 'src' + type.charAt(0).toUpperCase() + type.slice(1);
+        extLink.href        = extLink.dataset[key] || '#';
+        extLink.textContent = ARTIFACT_OPEN_LABELS[type] || 'Open ↗';
+      }
     }
 
-    /* External open link — src and label update on tab switch via JS */
-    var extLinkHTML = '<a href="' + artifactSources[firstType] + '" '
-      + 'target="_blank" rel="noopener" '
-      + 'class="detail-pdf-download detail-artifact-extlink" '
-      + 'data-src-figma="'  + (artifactSources.figma  || '') + '" '
-      + 'data-src-sheets="' + (artifactSources.sheets || '') + '" '
-      + 'data-src-canva="'  + (artifactSources.canva  || '') + '" '
-      + 'data-src-pdf="'    + (artifactSources.pdf    || '') + '">'
-      + ARTIFACT_OPEN_LABELS[firstType]
-      + '</a>';
-
-    /* One iframe panel per available source */
-    var panelsHTML = availableTypes.map(function(t){
-      var src    = artifactSources[t];
-      var extras = (t === 'figma' || t === 'canva') ? ' allowfullscreen' : '';
-      return '<div class="detail-artifact-panel" data-type="' + t + '" style="display:none">'
-        + '<div class="detail-pdf-wrap">'
-        + '<iframe src="' + src + '" class="detail-pdf-frame" '
-        + 'title="' + p.title + ' — ' + ARTIFACT_LABELS[t] + '" '
-        + 'loading="lazy"' + extras + '></iframe>'
-        + '</div>'
-        + '</div>';
-    }).join('');
-
-    artifactHTML = '<div class="detail-artifact-header">'
-      + '<span class="detail-label-tag" style="margin-bottom:0">Full deck</span>'
-      + '<div class="detail-artifact-header__right">'
-      + switcherHTML
-      + extLinkHTML
-      + '</div>'
-      + '</div>'
-      + panelsHTML;
-  }
+    select.addEventListener('change', function() { activate(select.value); });
+  })();
 
   /* ── Gallery: images only, resolve URLs ── */
   var hasGallery   = p.gallery && p.gallery.length > 0;

@@ -185,3 +185,33 @@
 .detail-section-block {
   scroll-margin-top: 96px;
 }
+
+/* ── Artifact format select dropdown ── */
+.detail-artifact-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--surface, #1a1a1a);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  padding: 5px 28px 5px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  /* custom chevron */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888882' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+}
+.detail-artifact-select:hover {
+  border-color: var(--accent);
+}
+.detail-artifact-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+[data-theme="light"] .detail-artifact-select {
+  background-color: #ede9e2;
+}
