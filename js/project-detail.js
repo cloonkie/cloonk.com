@@ -252,11 +252,11 @@
 
     + '<div class="detail-sections">'
       + section('s-artifact',  '01', 'Artifact',  artifactHTML,  true)
-      + section('s-context',   '02', 'Context',   contextHTML,   true)
-      + section('s-approach',  '03', 'Approach',  approachHTML,  true)
-      + section('s-results',   '04', 'Results',   resultsHTML,   true)
+      + section('s-context',   '02', 'Context',   contextHTML,   false)
+      + section('s-approach',  '03', 'Approach',  approachHTML,  false)
+      + section('s-results',   '04', 'Results',   resultsHTML,   false)
       + gallerySection
-      + section('s-takeaways', tkNum, 'Takeaways', takeawaysHTML, true)
+      + section('s-takeaways', tkNum, 'Takeaways', takeawaysHTML, false)
     + '</div>'
 
     + '<div class="lightbox" id="lightbox" role="dialog" aria-modal="true">'
@@ -368,4 +368,4 @@
   var tx = 0;
   lightbox.addEventListener('touchstart', function(e) { tx = e.touches[0].clientX; }, { passive: true });
   lightbox.addEventListener('touchend',   function(e) { var dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 40) dx < 0 ? showNext() : showPrev(); });
-});
+})();
