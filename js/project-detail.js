@@ -368,4 +368,4 @@
   var tx = 0;
   lightbox.addEventListener('touchstart', function(e) { tx = e.touches[0].clientX; }, { passive: true });
   lightbox.addEventListener('touchend',   function(e) { var dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 40) dx < 0 ? showNext() : showPrev(); });
-});
+})();
