@@ -252,11 +252,11 @@
 
     + '<div class="detail-sections">'
       + section('s-artifact',  '01', 'Artifact',  artifactHTML,  true)
-      + section('s-context',   '02', 'Context',   contextHTML,   false)
-      + section('s-approach',  '03', 'Approach',  approachHTML,  false)
-      + section('s-results',   '04', 'Results',   resultsHTML,   false)
+      + section('s-context',   '02', 'Context',   contextHTML,   true)
+      + section('s-approach',  '03', 'Approach',  approachHTML,  true)
+      + section('s-results',   '04', 'Results',   resultsHTML,   true)
       + gallerySection
-      + section('s-takeaways', tkNum, 'Takeaways', takeawaysHTML, false)
+      + section('s-takeaways', tkNum, 'Takeaways', takeawaysHTML, true)
     + '</div>'
 
     + '<div class="lightbox" id="lightbox" role="dialog" aria-modal="true">'
