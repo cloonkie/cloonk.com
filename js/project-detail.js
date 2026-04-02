@@ -340,10 +340,7 @@
       /* Offset accounts for sticky nav height (~56px) + nav-wrap (~48px) + breathing room */
       var navWrap = document.querySelector('.detail-section-nav-wrap');
       var offset  = navWrap ? navWrap.offsetHeight + 64 : 120;
-      window.scrollTo({
-        top:      target.getBoundingClientRect().top + window.scrollY - offset,
-        behavior: 'smooth'
-      });
+      window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 160, behavior: 'smooth' });
     });
   });
 
