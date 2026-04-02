@@ -22,7 +22,6 @@
   const idx  = window.PROJECTS.indexOf(p);
   const next = window.PROJECTS[idx + 1] || null;
 
-  /* Resolve image src: full URLs pass through; slugs get Wix CDN prefix */
   function imgSrc(raw) {
     return (raw && raw.startsWith('http')) ? raw : WIX_CDN + raw;
   }
@@ -74,31 +73,92 @@
     + ((!p.results || (!p.results.metrics && !p.results.before)) ?
         '<p class="detail-prose" style="color:var(--muted)">Results coming soon.</p>' : '');
 
-/* ── Artifact select switcher ── */
-  (function() {
-    var select  = root.querySelector('.detail-artifact-select');
-    var panels  = root.querySelectorAll('.detail-artifact-panel');
-    var extLink = root.querySelector('.detail-artifact-extlink');
+  /* ── Artifact: priority → figma → sheets → canva → pdf ── */
+  var ARTIFACT_PRIORITY = ['figma', 'sheets', 'canva', 'pdf'];
 
-    /* Always show the first panel on load */
-    var firstPanel = root.querySelector('.detail-artifact-panel');
-    if (firstPanel) firstPanel.style.display = '';
+  var ARTIFACT_LABELS = {
+    figma:  'Figma',
+    sheets: 'Google Slides',
+    canva:  'Canva',
+    pdf:    'PDF'
+  };
 
-    if (!select) return; /* single source — nothing more to wire up */
+  var ARTIFACT_OPEN_LABELS = {
+    figma:  'Open in Figma ↗',
+    sheets: 'Open in Slides ↗',
+    canva:  'Open in Canva ↗',
+    pdf:    'Download PDF ↗'
+  };
 
-    function activate(type) {
-      panels.forEach(function(panel) {
-        panel.style.display = panel.dataset.type === type ? '' : 'none';
-      });
-      if (extLink) {
-        var key = 'src' + type.charAt(0).toUpperCase() + type.slice(1);
-        extLink.href        = extLink.dataset[key] || '#';
-        extLink.textContent = ARTIFACT_OPEN_LABELS[type] || 'Open ↗';
-      }
+  /* Collect available sources */
+  var pdfRaw = p.pdf || null;
+  if (!pdfRaw && p.media) {
+    var pdfMedia = p.media.find(function(m){ return m.type === 'pdf'; });
+    if (pdfMedia) pdfRaw = pdfMedia.src.startsWith('http') ? pdfMedia.src : WIX_CDN + pdfMedia.src;
+  }
+
+  var artifactSources = {
+    figma:  p.figma  || null,
+    sheets: p.sheets || null,
+    canva:  p.canva  || null,
+    pdf:    pdfRaw   || null
+  };
+
+  var availableTypes = ARTIFACT_PRIORITY.filter(function(t){ return artifactSources[t]; });
+
+  var artifactHTML;
+
+  if (!availableTypes.length) {
+    artifactHTML = '<span class="detail-label-tag">Full deck</span>'
+      + '<div class="detail-pdf-fallback" style="height:200px;border:1px solid var(--border)">'
+      + '<p style="color:var(--muted);font-size:13px">No document attached.</p></div>';
+
+  } else {
+    var firstType = availableTypes[0];
+
+    /* Dropdown — only rendered when 2+ sources exist */
+    var dropdownHTML = '';
+    if (availableTypes.length > 1) {
+      dropdownHTML = '<select class="detail-artifact-select" aria-label="Select format">'
+        + availableTypes.map(function(t){
+            return '<option value="' + t + '">' + ARTIFACT_LABELS[t] + '</option>';
+          }).join('')
+        + '</select>';
     }
 
-    select.addEventListener('change', function() { activate(select.value); });
-  })();
+    /* External open link */
+    var extLinkHTML = '<a href="' + artifactSources[firstType] + '" '
+      + 'target="_blank" rel="noopener" '
+      + 'class="detail-pdf-download detail-artifact-extlink" '
+      + 'data-src-figma="'  + (artifactSources.figma  || '') + '" '
+      + 'data-src-sheets="' + (artifactSources.sheets || '') + '" '
+      + 'data-src-canva="'  + (artifactSources.canva  || '') + '" '
+      + 'data-src-pdf="'    + (artifactSources.pdf    || '') + '">'
+      + ARTIFACT_OPEN_LABELS[firstType]
+      + '</a>';
+
+    /* One iframe panel per available source */
+    var panelsHTML = availableTypes.map(function(t){
+      var src    = artifactSources[t];
+      var extras = (t === 'figma' || t === 'canva') ? ' allowfullscreen' : '';
+      return '<div class="detail-artifact-panel" data-type="' + t + '" style="display:none">'
+        + '<div class="detail-pdf-wrap">'
+        + '<iframe src="' + src + '" class="detail-pdf-frame" '
+        + 'title="' + p.title + ' — ' + ARTIFACT_LABELS[t] + '" '
+        + 'loading="lazy"' + extras + '></iframe>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+
+    artifactHTML = '<div class="detail-artifact-header">'
+      + '<span class="detail-label-tag" style="margin-bottom:0">Full deck</span>'
+      + '<div class="detail-artifact-header__right">'
+      + dropdownHTML
+      + extLinkHTML
+      + '</div>'
+      + '</div>'
+      + panelsHTML;
+  }
 
   /* ── Gallery: images only, resolve URLs ── */
   var hasGallery   = p.gallery && p.gallery.length > 0;
@@ -219,31 +279,22 @@
     });
   });
 
-  /* ── Artifact tab switcher ── */
+  /* ── Artifact select switcher ── */
   (function() {
-    var tabs    = root.querySelectorAll('.detail-artifact-tab');
+    var select  = root.querySelector('.detail-artifact-select');
     var panels  = root.querySelectorAll('.detail-artifact-panel');
     var extLink = root.querySelector('.detail-artifact-extlink');
 
-    /* Always show the first (or only) panel on load */
+    /* Always show the first panel on load */
     var firstPanel = root.querySelector('.detail-artifact-panel');
     if (firstPanel) firstPanel.style.display = '';
 
-    if (!tabs.length) return; /* single source — nothing more to wire up */
-
-    /* Activate the first tab on load */
-    if (tabs[0]) tabs[0].classList.add('is-active');
+    if (!select) return; /* single source — nothing more to wire up */
 
     function activate(type) {
-      /* Tabs */
-      tabs.forEach(function(b) {
-        b.classList.toggle('is-active', b.dataset.type === type);
-      });
-      /* Panels */
       panels.forEach(function(panel) {
         panel.style.display = panel.dataset.type === type ? '' : 'none';
       });
-      /* External link — update href and label */
       if (extLink) {
         var key = 'src' + type.charAt(0).toUpperCase() + type.slice(1);
         extLink.href        = extLink.dataset[key] || '#';
@@ -251,9 +302,7 @@
       }
     }
 
-    tabs.forEach(function(btn) {
-      btn.addEventListener('click', function() { activate(btn.dataset.type); });
-    });
+    select.addEventListener('change', function() { activate(select.value); });
   })();
 
   /* ── Section nav click ── */
@@ -265,7 +314,6 @@
         target.classList.add('is-open');
         target.querySelector('.detail-section-header').setAttribute('aria-expanded', 'true');
       }
-      /* Offset accounts for sticky nav height (~56px) + nav-wrap (~48px) + breathing room */
       var navWrap = document.querySelector('.detail-section-nav-wrap');
       var offset  = navWrap ? navWrap.offsetHeight + 64 : 120;
       window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 160, behavior: 'smooth' });
