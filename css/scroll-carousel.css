@@ -119,7 +119,6 @@ body.index-body footer {
   height: clamp(160px, 18vh, 260px);
   margin-top: calc(clamp(160px, 18vh, 260px) / -2);
   border-radius: 3px;
-  overflow: hidden;
   will-change: transform;
   display: flex;
   flex-direction: column;
