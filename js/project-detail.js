@@ -73,10 +73,11 @@
     + ((!p.results || (!p.results.metrics && !p.results.before)) ?
         '<p class="detail-prose" style="color:var(--muted)">Results coming soon.</p>' : '');
 
-  /* ── Artifact: priority → figma → sheets → canva → pdf ── */
-  var ARTIFACT_PRIORITY = ['figma', 'sheets', 'canva', 'pdf'];
+  /* ── Artifact: priority → github → figma → sheets → canva → pdf ── */
+  var ARTIFACT_PRIORITY = ['github', 'figma', 'sheets', 'canva', 'pdf'];
 
   var ARTIFACT_LABELS = {
+    github: 'GitHub',
     figma:  'Figma',
     sheets: 'Google Slides',
     canva:  'Canva',
@@ -84,11 +85,17 @@
   };
 
   var ARTIFACT_OPEN_LABELS = {
+    github: 'View on GitHub ↗',
     figma:  'Open in Figma ↗',
     sheets: 'Open in Slides ↗',
     canva:  'Open in Canva ↗',
     pdf:    'Download PDF ↗'
   };
+
+  /* ── GitHub icon SVG ── */
+  var GITHUB_ICON = '<svg class="detail-github-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">'
+    + '<path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>'
+    + '</svg>';
 
   /* Collect available sources */
   var pdfRaw = p.pdf || null;
@@ -98,6 +105,7 @@
   }
 
   var artifactSources = {
+    github: p.github || null,
     figma:  p.figma  || null,
     sheets: p.sheets || null,
     canva:  p.canva  || null,
@@ -105,6 +113,41 @@
   };
 
   var availableTypes = ARTIFACT_PRIORITY.filter(function(t){ return artifactSources[t]; });
+
+  /* ── Build GitHub card HTML ── */
+  function buildGitHubCard(url) {
+    /* Parse repo name from URL */
+    var parts    = url.replace(/\/$/, '').split('/');
+    var repoName = parts[parts.length - 1] || 'Repository';
+    var owner    = parts[parts.length - 2] || '';
+
+    /* Extract languages/tools from approach.data if available */
+    var langs = (p.approach && p.approach.data) ? p.approach.data : [];
+    var langBadges = langs.map(function(lang) {
+      return '<span class="detail-github-badge">' + lang + '</span>';
+    }).join('');
+
+    /* Use project short desc or desc */
+    var desc = p.short || p.desc || '';
+    if (desc.length > 200) desc = desc.substring(0, 200) + '…';
+
+    return '<div class="detail-github-card">'
+      + '<div class="detail-github-card__header">'
+        + GITHUB_ICON
+        + '<div class="detail-github-card__repo">'
+          + '<span class="detail-github-card__owner">' + owner + ' /</span>'
+          + '<span class="detail-github-card__name">' + repoName + '</span>'
+        + '</div>'
+      + '</div>'
+      + '<p class="detail-github-card__desc">' + desc + '</p>'
+      + (langBadges ? '<div class="detail-github-card__langs">' + langBadges + '</div>' : '')
+      + '<a href="' + url + '" target="_blank" rel="noopener" class="detail-github-card__btn">'
+        + GITHUB_ICON
+        + '<span>View Repository on GitHub</span>'
+        + '<span class="detail-github-card__arrow">↗</span>'
+      + '</a>'
+    + '</div>';
+  }
 
   var artifactHTML;
 
@@ -116,29 +159,38 @@
   } else {
     var firstType = availableTypes[0];
 
-    /* Dropdown — only rendered when 2+ sources exist */
+    /* Separate iframe-able types from non-iframe types (github) */
+    var iframeTypes = availableTypes.filter(function(t) { return t !== 'github'; });
+    var hasGithub   = artifactSources.github ? true : false;
+
+    /* Dropdown — only rendered when 2+ iframe-able sources exist */
     var dropdownHTML = '';
-    if (availableTypes.length > 1) {
+    if (iframeTypes.length > 1) {
       dropdownHTML = '<select class="detail-artifact-select" aria-label="Select format">'
-        + availableTypes.map(function(t){
+        + iframeTypes.map(function(t){
             return '<option value="' + t + '">' + ARTIFACT_LABELS[t] + '</option>';
           }).join('')
         + '</select>';
     }
 
-    /* External open link */
-    var extLinkHTML = '<a href="' + artifactSources[firstType] + '" '
+    /* External open link — point to first available source */
+    var linkType = iframeTypes.length > 0 ? iframeTypes[0] : firstType;
+    var extLinkHTML = '<a href="' + artifactSources[linkType] + '" '
       + 'target="_blank" rel="noopener" '
       + 'class="detail-pdf-download detail-artifact-extlink" '
+      + 'data-src-github="' + (artifactSources.github || '') + '" '
       + 'data-src-figma="'  + (artifactSources.figma  || '') + '" '
       + 'data-src-sheets="' + (artifactSources.sheets || '') + '" '
       + 'data-src-canva="'  + (artifactSources.canva  || '') + '" '
       + 'data-src-pdf="'    + (artifactSources.pdf    || '') + '">'
-      + ARTIFACT_OPEN_LABELS[firstType]
+      + ARTIFACT_OPEN_LABELS[linkType]
       + '</a>';
 
-    /* One iframe panel per available source */
-    var panelsHTML = availableTypes.map(function(t){
+    /* GitHub card (rendered above the iframe panels if present) */
+    var githubCardHTML = hasGithub ? buildGitHubCard(artifactSources.github) : '';
+
+    /* One iframe panel per available iframe-able source */
+    var panelsHTML = iframeTypes.map(function(t){
       var src    = artifactSources[t];
       var extras = (t === 'figma' || t === 'canva') ? ' allowfullscreen' : '';
       return '<div class="detail-artifact-panel" data-type="' + t + '" style="display:none">'
@@ -150,14 +202,28 @@
         + '</div>';
     }).join('');
 
-    artifactHTML = '<div class="detail-artifact-header">'
-      + '<span class="detail-label-tag" style="margin-bottom:0">Full deck</span>'
-      + '<div class="detail-artifact-header__right">'
-      + dropdownHTML
-      + extLinkHTML
-      + '</div>'
-      + '</div>'
-      + panelsHTML;
+    /* Header with dropdown + external link (only if iframe sources exist) */
+    var headerHTML = '';
+    if (iframeTypes.length > 0) {
+      headerHTML = '<div class="detail-artifact-header">'
+        + '<span class="detail-label-tag" style="margin-bottom:0">Full deck</span>'
+        + '<div class="detail-artifact-header__right">'
+        + dropdownHTML
+        + extLinkHTML
+        + '</div>'
+        + '</div>';
+    }
+
+    /* If ONLY github (no iframes), show just the card */
+    if (iframeTypes.length === 0 && hasGithub) {
+      artifactHTML = '<span class="detail-label-tag">Source code</span>'
+        + githubCardHTML;
+    } else {
+      /* Mixed: github card on top, then iframe header + panels below */
+      artifactHTML = githubCardHTML
+        + headerHTML
+        + panelsHTML;
+    }
   }
 
   /* ── Gallery: images only, resolve URLs ── */
@@ -285,11 +351,11 @@
     var panels  = root.querySelectorAll('.detail-artifact-panel');
     var extLink = root.querySelector('.detail-artifact-extlink');
 
-    /* Always show the first panel on load */
+    /* Always show the first iframe panel on load */
     var firstPanel = root.querySelector('.detail-artifact-panel');
     if (firstPanel) firstPanel.style.display = '';
 
-    if (!select) return; /* single source — nothing more to wire up */
+    if (!select) return;
 
     function activate(type) {
       panels.forEach(function(panel) {
