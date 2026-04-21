@@ -1,0 +1,201 @@
+/* github-card.css — GitHub repo card for project detail pages
+   Matches cloonk design system:
+   Dark: #0a0a0a bg, #f5f2ec fg, #39ff14 accent
+   Light: #f5f2ec bg, #0a0a0a fg, #1b09bc accent
+*/
+
+/* ── Card container ── */
+.detail-github-card {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: clamp(20px, 3vw, 32px);
+  margin-bottom: 24px;
+  background: var(--bg);
+  transition: border-color 0.2s ease;
+}
+
+.detail-github-card:hover {
+  border-color: var(--accent);
+}
+
+/* ── Header: icon + repo name ── */
+.detail-github-card__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.detail-github-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: var(--fg);
+  opacity: 0.7;
+}
+
+.detail-github-card__repo {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-family: var(--font-display);
+  overflow: hidden;
+}
+
+.detail-github-card__owner {
+  font-size: clamp(13px, 1.4vw, 15px);
+  color: var(--muted);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.detail-github-card__name {
+  font-size: clamp(15px, 1.8vw, 20px);
+  font-weight: 700;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Description ── */
+.detail-github-card__desc {
+  font-size: clamp(13px, 1.3vw, 15px);
+  line-height: 1.55;
+  color: var(--muted);
+  margin-bottom: 20px;
+  max-width: 64ch;
+}
+
+/* ── Language / tool badges ── */
+.detail-github-card__langs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.detail-github-badge {
+  display: inline-block;
+  font-family: var(--font-body, inherit);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--fg);
+  background: transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.detail-github-card:hover .detail-github-badge {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── CTA button ── */
+.detail-github-card__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: clamp(13px, 1.3vw, 15px);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--bg);
+  background: var(--fg);
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 3px;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.detail-github-card__btn:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.detail-github-card__btn:active {
+  transform: scale(0.98);
+}
+
+.detail-github-card__btn .detail-github-icon {
+  width: 18px;
+  height: 18px;
+  color: inherit;
+  opacity: 1;
+}
+
+.detail-github-card__arrow {
+  font-size: 16px;
+  margin-left: 2px;
+}
+
+/* ── Light mode overrides ── */
+[data-theme="light"] .detail-github-card__btn {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+[data-theme="light"] .detail-github-card__btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  .detail-github-card {
+    padding: 16px;
+  }
+
+  .detail-github-card__header {
+    gap: 8px;
+  }
+
+  .detail-github-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .detail-github-card__repo {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  .detail-github-card__desc {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .detail-github-card__langs {
+    gap: 4px;
+    margin-bottom: 20px;
+  }
+
+  .detail-github-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  .detail-github-card__btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .detail-github-card {
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+
+  .detail-github-card__btn {
+    font-size: 13px;
+    padding: 12px 16px;
+  }
+}
