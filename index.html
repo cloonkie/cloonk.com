@@ -8,6 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/scroll-carousel.css" />
+  <link rel="stylesheet" href="css/github-card.css" />
   <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark');</script>
 </head>
 <body class="index-body">
@@ -68,8 +69,8 @@
     <div class="footer__left">
       <div class="footer__socials">
         <a href="https://instagram.com/cloonk" target="_blank" rel="noopener">Instagram</a>
-        <a href="https://linkedin.com/in/kevinzhang" target="_blank" rel="noopener">LinkedIn</a>
-        <a href="https://open.spotify.com/user/cloonk" target="_blank" rel="noopener">Spotify</a>
+        <a href="https://linkedin.com/in/cloonk/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://open.spotify.com/user/22rxk5lrx3w4nz3y5ehvyd2ja" target="_blank" rel="noopener">Spotify</a>
       </div>
       <div>&copy; 2025 Kevin Zhang</div>
     </div>
@@ -78,7 +79,11 @@
     </div>
   </footer>
 
-  <script>var fe=document.getElementById("footer-email");if(fe){fe.href="mai"+"lto:kevin@cloo"+"nk.com";}</script>
+  <script>
+    /* JS-constructed mailto to avoid Cloudflare email obfuscation */
+    var fe=document.getElementById("footer-email");
+    if(fe){fe.href="mai"+"lto:kevinzhan"+"g813@gm"+"ail.com";}
+  </script>
   <script src="js/nav.js"></script>
   <script src="js/logo.js"></script>
   <script src="js/projects-data.js"></script>
