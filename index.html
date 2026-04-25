@@ -1,93 +1,287 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kevin Zhang &mdash; cloonk.com</title>
-  <meta name="description" content="Kevin Zhang &mdash; Data analyst, designer, and creative based in Brooklyn, NY." />
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/scroll-carousel.css" />
-  <link rel="stylesheet" href="css/github-card.css" />
-  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark');</script>
-</head>
-<body class="index-body">
-
-  <nav>
-    <a class="nav__logo" id="nav-logo" href="index.html">cloonk ʕ·ᴥ·ʔ</a>
-    <div class="nav__links">
-      <a href="projects.html">Work</a>
-      <a href="resume.html">Resume</a>
-      <a href="info.html">Info</a>
-      <a href="contact.html">Contact</a>
-    </div>
-    <div class="nav__right">
-      <span class="nav__clock" id="nav-clock"></span>
-      <button class="nav__theme-toggle" id="nav-theme-toggle" aria-label="Toggle light/dark mode">
-        <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-          <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-        </svg>
-        <svg class="icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-      </button>
-      <button class="nav__hamburger" id="nav-hamburger" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </nav>
-
-  <div class="nav__mobile-menu" id="nav-mobile-menu">
-    <a href="projects.html">Work</a>
-    <a href="resume.html">Resume</a>
-    <a href="info.html">Info</a>
-    <a href="contact.html">Contact</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Urban Access — New York</title>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet"/>
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mapbox-pmtiles@1/dist/mapbox-pmtiles.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0c0f;--surface:#111418;--border:#1e2329;--border2:#2a3040;--text:#e8eaf0;--muted:#6b7280;--dim:#3a4050;--accent:#00e5ff;--accent2:#ff6b35;--accent-mhi:#c4396e;--accent-public:#7c6ef0;--panel-bg:rgba(10,12,15,.90);--panel-blur:blur(14px)}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'DM Mono',monospace}
+#map{position:absolute;inset:0}
+#topbar{position:absolute;top:0;left:0;right:0;height:48px;background:var(--panel-bg);backdrop-filter:var(--panel-blur);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:14px;z-index:100}
+#wordmark{font-family:'Syne',sans-serif;font-weight:800;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--text);cursor:pointer;white-space:nowrap;flex-shrink:0}
+#wordmark span{color:var(--accent);transition:color .3s}
+body.mode-public #wordmark span{color:var(--accent-public)}
+.divider{width:1px;height:18px;background:var(--border2);flex-shrink:0}
+#mode-toggle{display:flex;align-items:center;gap:0;border:1px solid var(--border2);border-radius:3px;overflow:hidden;flex-shrink:0}
+.product-mode-btn{font-size:8px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:4px 10px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.product-mode-btn.active{background:rgba(0,229,255,.08);color:var(--accent)}
+body.mode-public .product-mode-btn.active{background:rgba(124,110,240,.08);color:var(--accent-public)}
+#city-nav{display:flex;gap:2px;overflow-x:auto;flex-shrink:1;min-width:0}
+.city-btn{font-size:9px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid transparent;padding:3px 8px;border-radius:3px;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block;line-height:1.6;transition:all .25s;overflow:hidden;max-width:42px}
+.city-btn:hover{color:var(--text);border-color:var(--border2);max-width:120px}
+.city-btn.active{color:var(--accent);border-color:var(--accent);background:rgba(0,229,255,.06);max-width:120px}
+body.mode-public .city-btn.active{color:var(--accent-public);border-color:var(--accent-public);background:rgba(124,110,240,.06)}
+.city-btn .full{display:none;margin-left:4px;font-weight:300;opacity:.7}
+.city-btn:hover .full,.city-btn.active .full{display:inline}
+#layer-toggles{display:flex;gap:10px;margin-left:auto;flex-shrink:0}
+.toggle-pill{font-size:9px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;transition:color .2s}
+.toggle-pill[data-layer="mhi"]{color:var(--accent-mhi)}.toggle-pill[data-layer="hex"]{color:var(--accent)}.toggle-pill[data-layer="poi"]{color:var(--accent2)}
+body.mode-public .toggle-pill[data-layer="hex"]{color:var(--accent-public)}
+.toggle-pill.inactive{color:var(--dim)!important}
+.toggle-dot{width:7px;height:7px;border-radius:50%;border:1.5px solid currentColor;transition:background .2s}
+.toggle-pill:not(.inactive) .toggle-dot{background:currentColor}
+#side-panel{position:absolute;top:58px;right:12px;z-index:100;display:flex;flex-direction:column;gap:5px;width:200px}
+.panel-section{background:var(--panel-bg);backdrop-filter:var(--panel-blur);border:1px solid var(--border);border-radius:5px;overflow:hidden}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;user-select:none}
+.section-title{font-size:8px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.section-arrow{font-size:8px;color:var(--muted);transition:transform .2s}
+.panel-section.open .section-arrow{transform:rotate(180deg)}
+.section-body{padding:0 12px 10px;display:none}
+.panel-section.open .section-body{display:block}
+#cat-btns{display:flex;flex-wrap:wrap;gap:3px}
+.cat-btn{font-size:7.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border:1px solid var(--border2);padding:2px 6px;border-radius:3px;cursor:pointer;transition:all .15s}
+.cat-btn:hover{color:var(--text);border-color:var(--dim)}
+.cat-btn.active{color:var(--accent2);border-color:var(--accent2);background:rgba(255,107,53,.08)}
+#mode-btns,.time-btns{display:flex;gap:3px}
+.mode-btn,.time-btn{font-size:8px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--border2);padding:3px 0;border-radius:3px;cursor:pointer;flex:1;text-align:center;transition:all .15s}
+.mode-btn.active,.time-btn.active{color:var(--accent);border-color:var(--accent);background:rgba(0,229,255,.08)}
+body.mode-public .mode-btn.active,body.mode-public .time-btn.active{color:var(--accent-public);border-color:var(--accent-public);background:rgba(124,110,240,.08)}
+.slider-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.slider-tag{font-size:7.5px;text-transform:uppercase;color:var(--muted);width:26px}
+.slider-val{font-size:7.5px;color:var(--muted);width:26px;text-align:right}
+input[type=range]{flex:1;-webkit-appearance:none;height:2px;border-radius:2px;cursor:pointer;background:var(--border2)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:9px;height:9px;border-radius:50%;cursor:pointer;border:1.5px solid var(--bg)}
+input[type=range].mhi-range::-webkit-slider-thumb{background:var(--accent-mhi)}
+input[type=range].hex-range::-webkit-slider-thumb{background:var(--accent)}
+input[type=range].poi-range::-webkit-slider-thumb{background:var(--accent2)}
+#legend{position:absolute;bottom:34px;left:12px;z-index:100;background:var(--panel-bg);backdrop-filter:var(--panel-blur);border:1px solid var(--border);border-radius:5px;padding:10px 14px;width:220px}
+#legend.collapsed{padding:6px 14px}
+#legend.collapsed .legend-content{display:none}
+#legend-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;margin-bottom:6px}
+#legend.collapsed #legend-toggle{margin-bottom:0}
+.legend-label{font-size:8px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.legend-gradient-wrap{position:relative;height:8px;border-radius:3px;overflow:visible;margin-bottom:3px}
+.legend-gradient{height:100%;border-radius:3px;width:100%}
+.legend-marker{position:absolute;top:-3px;width:2px;height:14px;background:var(--text);border-radius:1px;pointer-events:none;display:none;opacity:.9;transition:left .08s}
+.legend-marker-label{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:7px;color:var(--text);white-space:nowrap;background:var(--bg);padding:1px 4px;border-radius:2px}
+.legend-labels{display:flex;justify-content:space-between;font-size:7.5px;color:var(--muted);margin-bottom:10px}
+#hex-score-label{font-size:8px;color:var(--accent);text-align:center;margin-bottom:3px}
+body.mode-public #hex-score-label{color:var(--accent-public)}
+#hex-detail{position:absolute;bottom:34px;left:244px;z-index:100;background:var(--panel-bg);backdrop-filter:var(--panel-blur);border:1px solid var(--border);border-radius:5px;padding:10px 14px;width:220px;max-height:300px;overflow-y:auto;display:none}
+#hex-detail.visible{display:block}
+#hex-detail-title{font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+body.mode-public #hex-detail-title{color:var(--accent-public)}
+#hex-detail-close{position:absolute;top:8px;right:12px;font-size:12px;color:var(--muted);cursor:pointer}
+#hex-detail-count{font-size:20px;font-weight:500;color:var(--text)}
+#hex-detail-meta{font-size:8px;color:var(--muted);margin-bottom:8px}
+#hex-detail-list{list-style:none}
+#hex-detail-list li{font-size:8px;color:var(--text);padding:2px 0;border-bottom:1px solid var(--border)}
+#hex-detail-list .poi-cat{color:var(--accent2);margin-left:4px}
+#coords-bar{position:absolute;bottom:0;left:0;right:0;height:26px;background:rgba(10,12,15,.88);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:16px;z-index:100}
+#coords-text,#zoom-text{font-size:9px;color:var(--muted)}
+#coords-text span,#zoom-text span{color:var(--text)}
+#zoom-text{margin-left:auto}
+#tooltip{position:absolute;z-index:200;pointer-events:none;background:rgba(10,12,15,.95);border:1px solid var(--border2);border-radius:4px;padding:8px 12px;font-size:10px;color:var(--text);max-width:240px;display:none}
+.tt-label{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.tt-value{font-size:14px;font-weight:500;color:var(--accent)}
+body.mode-public .tt-value{color:var(--accent-public)}
+.tt-sub{font-size:8px;color:var(--muted);margin-top:2px}
+.tt-pop{font-size:8px;color:var(--muted);margin-top:2px;opacity:.85}
+.tt-cat{font-size:8px;color:var(--accent2);margin-top:1px}
+#loader{position:absolute;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s}
+#loader.hidden{opacity:0;pointer-events:none}
+.loader-word{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:.15em;text-transform:uppercase;color:var(--text)}
+.loader-word span{color:var(--accent)}
+body.mode-public .loader-word span{color:var(--accent-public)}
+.loader-bar-wrap{width:180px;height:2px;background:var(--border);border-radius:2px;overflow:hidden}
+.loader-bar{height:100%;background:var(--accent);animation:lp 1.6s ease-in-out infinite}
+body.mode-public .loader-bar{background:var(--accent-public)}
+@keyframes lp{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
+.loader-status{font-size:9px;color:var(--muted)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style></head><body>
+<div id="loader"><div class="loader-word">Urban <span>Access</span></div><div class="loader-city" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)">New York</div><div class="loader-bar-wrap"><div class="loader-bar"></div></div><div class="loader-status" id="loader-status">Initializing...</div></div>
+<div id="map"></div>
+<div id="topbar">
+  <div id="wordmark">Urban <span>Access</span></div><div class="divider"></div>
+  <div id="mode-toggle"><div class="product-mode-btn active" data-product="retail">Retail</div><div class="product-mode-btn" data-product="public">Public</div></div>
+  <div class="divider"></div>
+  <div id="city-nav"><a class="city-btn active" data-city="new-york" href="index.html">NYC<span class="full">New York</span></a>
+    <a class="city-btn" data-city="los-angeles" href="los-angeles.html">LA<span class="full">Los Angeles</span></a>
+    <a class="city-btn" data-city="chicago" href="chicago.html">CHI<span class="full">Chicago</span></a>
+    <a class="city-btn" data-city="houston" href="houston.html">HOU<span class="full">Houston</span></a>
+    <a class="city-btn" data-city="phoenix" href="phoenix.html">PHX<span class="full">Phoenix</span></a>
+    <a class="city-btn" data-city="san-antonio" href="san-antonio.html">SAT<span class="full">San Antonio</span></a>
+    <a class="city-btn" data-city="philadelphia" href="philadelphia.html">PHL<span class="full">Philadelphia</span></a>
+    <a class="city-btn" data-city="san-diego" href="san-diego.html">SAN<span class="full">San Diego</span></a>
+    <a class="city-btn" data-city="dallas" href="dallas.html">DAL<span class="full">Dallas</span></a>
+    <a class="city-btn" data-city="fort-worth" href="fort-worth.html">FTW<span class="full">Fort Worth</span></a></div>
+  <div class="divider"></div>
+  <div id="layer-toggles">
+    <div class="toggle-pill" data-layer="mhi"><div class="toggle-dot"></div>Income</div>
+    <div class="toggle-pill" data-layer="hex"><div class="toggle-dot"></div>Access</div>
+    <div class="toggle-pill" data-layer="poi"><div class="toggle-dot"></div>Places</div>
   </div>
-
-  <main>
-    <section id="scroll-carousel-section">
-
-      <div id="scroll-carousel-wrap">
-        <p id="scroll-carousel-label"></p>
-        <div id="scroll-carousel-scene">
-          <div id="scroll-carousel-ring"></div>
-        </div>
-      </div>
-
-      <div class="sc-hint">
-        <span>drag or scroll</span>
-        <div class="sc-hint__line"></div>
-      </div>
-
-    </section>
-  </main>
-
-  <footer class="index-footer">
-    <div class="footer__left">
-      <div class="footer__socials">
-        <a href="https://instagram.com/cloonk" target="_blank" rel="noopener">Instagram</a>
-        <a href="https://linkedin.com/in/cloonk/" target="_blank" rel="noopener">LinkedIn</a>
-        <a href="https://open.spotify.com/user/22rxk5lrx3w4nz3y5ehvyd2ja" target="_blank" rel="noopener">Spotify</a>
-      </div>
-      <div>&copy; 2025 Kevin Zhang</div>
+</div>
+<div id="side-panel">
+  <div class="panel-section open"><div class="section-header"><span class="section-title">Destinations</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div id="cat-btns"></div></div></div>
+  <div class="panel-section open"><div class="section-header"><span class="section-title">Transport</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div id="mode-btns">
+    <div class="mode-btn active" data-mode="pedestrian">Walk</div>
+    <div class="mode-btn" data-mode="bicycle">Bike</div>
+    <div class="mode-btn" data-mode="auto">Drive</div>
+  </div></div></div>
+  <div class="panel-section open"><div class="section-header"><span class="section-title">Max Time</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div class="time-btns">
+    <div class="time-btn" data-minutes="5">5m</div>
+    <div class="time-btn" data-minutes="10">10m</div>
+    <div class="time-btn active" data-minutes="20">20m</div>
+  </div></div></div>
+  <div class="panel-section"><div class="section-header"><span class="section-title">Opacity</span><span class="section-arrow">&#9650;</span></div><div class="section-body">
+    <div class="slider-row"><span class="slider-tag">INC</span><input type="range" id="mhi-opacity" class="mhi-range" min="0" max="100" value="70"/><span class="slider-val" id="mhi-opacity-val">70%</span></div>
+    <div class="slider-row"><span class="slider-tag">ACC</span><input type="range" id="hex-opacity" class="hex-range" min="0" max="100" value="55"/><span class="slider-val" id="hex-opacity-val">55%</span></div>
+    <div class="slider-row"><span class="slider-tag">PLC</span><input type="range" id="poi-opacity" class="poi-range" min="0" max="100" value="75"/><span class="slider-val" id="poi-opacity-val">75%</span></div>
+  </div></div>
+</div>
+<div id="legend">
+  <div id="legend-toggle" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;margin-bottom:6px"><span style="font-size:8px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Legend</span><span id="legend-toggle-arrow" style="font-size:8px;color:var(--muted)">&#9650;</span></div>
+  <div class="legend-content">
+    <div style="margin-bottom:10px"><div class="legend-label">Median Household Income</div>
+      <div class="legend-gradient-wrap" id="mhi-legend-bar"><div class="legend-gradient" style="background:linear-gradient(to right,#1a0533,#4a0e6b,#8b1a8b,#c4396e,#f06b2e,#ffd166)"></div><div class="legend-marker" id="mhi-marker"><div class="legend-marker-label" id="mhi-marker-label"></div></div></div>
+      <div class="legend-labels"><span>$0</span><span>$160k+</span></div>
     </div>
-    <div class="footer__right">
-      <a href="https://cloonk.com">cloonk.com</a>
+    <div><div class="legend-label">Reachable Destinations</div>
+      <div id="hex-score-label">pedestrian · 20 min · all</div>
+      <div class="legend-gradient-wrap" id="hex-legend-bar"><div class="legend-gradient" style="background:linear-gradient(to right,#0a1628,#0d3b66,#1a8a8a,#3ec48c,#a8e06c,#f0f060)"></div><div class="legend-marker" id="hex-marker"><div class="legend-marker-label" id="hex-marker-label"></div></div></div>
+      <div class="legend-labels"><span>0</span><span>50+</span></div>
     </div>
-  </footer>
+  </div>
+</div>
+<div id="hex-detail"><div id="hex-detail-title">Hex Detail</div><span id="hex-detail-close">&times;</span><div id="hex-detail-count">—</div><div id="hex-detail-meta"></div><ul id="hex-detail-list"></ul></div>
+<div id="coords-bar"><div id="coords-text">LAT <span id="lat-val">--</span> &nbsp; LNG <span id="lng-val">--</span></div><div id="zoom-text">ZOOM <span id="zoom-val">11</span></div></div>
+<div id="tooltip"><div class="tt-label" id="tt-label"></div><div class="tt-value" id="tt-value"></div><div class="tt-sub" id="tt-sub"></div><div class="tt-pop" id="tt-pop"></div><div class="tt-cat" id="tt-cat"></div></div>
+<script>
+const RETAIL_CATS=[{"key": "all", "label": "All"}, {"key": "Grocery & Food", "label": "Grocery"}, {"key": "Restaurant", "label": "Restaurant"}, {"key": "Pharmacy", "label": "Pharmacy"}, {"key": "Convenience", "label": "Convenience"}, {"key": "Fashion", "label": "Fashion"}, {"key": "Electronics", "label": "Electronics"}, {"key": "Department Store", "label": "Dept Store"}, {"key": "Hardware", "label": "Hardware"}, {"key": "Bookstore", "label": "Books"}, {"key": "Thrift", "label": "Thrift"}];
+const PUBLIC_CATS=[{"key": "all", "label": "All"}, {"key": "Parks & Outdoors", "label": "Parks"}, {"key": "Education", "label": "Education"}, {"key": "Community & Govt", "label": "Community"}, {"key": "Arts & Entertainment", "label": "Arts"}, {"key": "Health & Medical", "label": "Health"}, {"key": "Travel & Transport", "label": "Transit"}, {"key": "Professional & Other", "label": "Other"}];
+const PUBLIC_KEYS=["Parks & Outdoors", "Education", "Community & Govt", "Arts & Entertainment", "Health & Medical", "Travel & Transport", "Professional & Other"];
+const RETAIL_KEYS=["Grocery & Food", "Restaurant", "Pharmacy", "Convenience", "Fashion", "Electronics", "Department Store", "Hardware", "Bookstore", "Thrift"];
+const CITY_SLUG='new-york',CITY_NAME='New York',R2='https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev',MHI_MIN=0,MHI_MAX=160000;
 
-  <script>
-    /* JS-constructed mailto to avoid Cloudflare email obfuscation */
-    var fe=document.getElementById("footer-email");
-    if(fe){fe.href="mai"+"lto:kevinzhan"+"g813@gm"+"ail.com";}
-  </script>
-  <script src="js/nav.js"></script>
-  <script src="js/logo.js"></script>
-  <script src="js/projects-data.js"></script>
-  <script src="js/scroll-carousel.js"></script>
-  <script src="js/cursor.js"></script>
-</body>
-</html>
+let activeMinutes=20,activeMode='pedestrian',activeCat='all',productMode='retail';
+let layerVisible={mhi:true,hex:true,poi:true},opacity={mhi:.7,hex:.55,poi:.75};
+
+function readUrlState(){const p=new URLSearchParams(window.location.search);if(p.get('product'))productMode=p.get('product');if(p.get('mode'))activeMode=p.get('mode');if(p.get('cat'))activeCat=p.get('cat');if(p.get('minutes'))activeMinutes=parseInt(p.get('minutes'))}
+function writeUrlState(){const p=new URLSearchParams();p.set('product',productMode);p.set('mode',activeMode);p.set('cat',activeCat);p.set('minutes',String(activeMinutes));history.replaceState(null,'',window.location.pathname+'?'+p.toString())}
+readUrlState();
+
+mapboxgl.Style.setSourceType(mapboxPmTiles.PmTilesSource.SOURCE_TYPE,mapboxPmTiles.PmTilesSource);
+mapboxgl.accessToken='pk.eyJ1IjoiY2xvb25rIiwiYSI6ImNtbjQxdDF1NzA0YXgycXByNXVuMnllYW4ifQ.3NHqjWQmGopsx5Xy1uHkQg';
+const map=new mapboxgl.Map({container:'map',style:'mapbox://styles/mapbox/dark-v11',center:[-73.9857,40.7484],zoom:11,minZoom:8,maxZoom:16,antialias:true});
+map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'bottom-right');
+const MHI_VALID=['>',['coalesce',['get','mhi'],['get','MHI'],0],0];
+
+function setProductMode(mode){
+  productMode=mode;document.body.classList.toggle('mode-public',mode==='public');
+  document.getElementById('wordmark').innerHTML='Urban <span>'+(mode==='retail'?'Retail':'Public')+'</span> Access';
+  document.title='Urban '+(mode==='retail'?'Retail':'Public')+' Access — '+CITY_NAME;
+  document.querySelectorAll('.product-mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.product===mode));
+  buildCatButtons();activeCat='all';applyFilters();writeUrlState();
+}
+function buildCatButtons(){
+  const cats=productMode==='retail'?RETAIL_CATS:PUBLIC_CATS,container=document.getElementById('cat-btns');container.innerHTML='';
+  cats.forEach(c=>{const btn=document.createElement('div');btn.className='cat-btn'+(c.key===activeCat?' active':'');btn.dataset.cat=c.key;btn.textContent=c.label;
+    btn.addEventListener('click',()=>{activeCat=c.key;container.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active');applyFilters();writeUrlState()});container.appendChild(btn)});
+}
+function getHexProp(){return activeMode+'_'+activeMinutes+'_'+activeCat}
+function updateHexLayer(){
+  const prop=getHexProp();document.getElementById('hex-score-label').textContent=activeMode+' · '+activeMinutes+' min · '+(activeCat==='all'?'all categories':activeCat);
+  if(map.getLayer('hex-fill')){
+    map.setPaintProperty('hex-fill','fill-color',['case',['==',['coalesce',['get',prop],0],0],'rgba(30,35,41,0.3)',['interpolate',['linear'],['coalesce',['get',prop],0],1,'#0d3b66',5,'#0d3b66',15,'#1a8a8a',30,'#3ec48c',50,'#a8e06c',80,'#f0f060']]);
+    map.setPaintProperty('hex-outline','line-color',['case',['==',['coalesce',['get',prop],0],0],'rgba(255,255,255,0.02)','rgba(0,229,255,0.08)']);
+  }
+}
+function buildPoiFilter(){const modeKeys=productMode==='retail'?RETAIL_KEYS:PUBLIC_KEYS;return activeCat==='all'?['in',['get','category'],['literal',modeKeys]]:['==',['get','category'],activeCat]}
+function applyFilters(){updateHexLayer();if(map.getLayer('poi-circle'))map.setFilter('poi-circle',buildPoiFilter());writeUrlState()}
+function updateLegendMarker(markerId,labelId,value,min,max,fmt){
+  const m=document.getElementById(markerId),l=document.getElementById(labelId);
+  if(!value||value<=0){m.style.display='none';return}
+  const pct=Math.min(Math.max((value-min)/(max-min),0),1)*100;m.style.display='block';m.style.left=pct+'%';l.textContent=fmt(value);
+}
+
+setProductMode(productMode);
+document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===activeMode));
+document.querySelectorAll('.time-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.minutes)===activeMinutes));
+document.querySelectorAll('.section-header').forEach(h=>h.addEventListener('click',()=>h.closest('.panel-section').classList.toggle('open')));
+document.getElementById('legend-toggle').addEventListener('click',()=>document.getElementById('legend').classList.toggle('collapsed'));
+
+const loaderEl=document.getElementById('loader'),statusEl=document.getElementById('loader-status');
+function hideLoader(){loaderEl.classList.add('hidden');setTimeout(()=>loaderEl.style.display='none',600)}
+map.on('mousemove',e=>{document.getElementById('lat-val').textContent=e.lngLat.lat.toFixed(5);document.getElementById('lng-val').textContent=e.lngLat.lng.toFixed(5)});
+map.on('zoom',()=>{document.getElementById('zoom-val').textContent=map.getZoom().toFixed(1)});
+
+map.on('load',async()=>{try{
+statusEl.textContent='Loading income data...';
+const mH=await mapboxPmTiles.PmTilesSource.getHeader('https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev/cities/new-york/mhi_tracts.pmtiles');
+map.addSource('mhi',{type:mapboxPmTiles.PmTilesSource.SOURCE_TYPE,url:'https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev/cities/new-york/mhi_tracts.pmtiles',minzoom:mH.minZoom,maxzoom:mH.maxZoom});
+map.addLayer({id:'mhi-fill',type:'fill',source:'mhi','source-layer':'mhi_tracts',filter:MHI_VALID,paint:{'fill-color':['interpolate',['linear'],['coalesce',['get','mhi'],['get','MHI'],0],0,'#1a0533',30000,'#4a0e6b',60000,'#8b1a8b',90000,'#c4396e',120000,'#f06b2e',160000,'#ffd166'],'fill-opacity':opacity.mhi}});
+map.addLayer({id:'mhi-outline',type:'line',source:'mhi','source-layer':'mhi_tracts',filter:MHI_VALID,paint:{'line-color':'rgba(255,255,255,0.04)','line-width':0.4}});
+
+statusEl.textContent='Loading access grid...';
+const hH=await mapboxPmTiles.PmTilesSource.getHeader('https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev/cities/new-york/hex_access.pmtiles');
+map.addSource('hex',{type:mapboxPmTiles.PmTilesSource.SOURCE_TYPE,url:'https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev/cities/new-york/hex_access.pmtiles',minzoom:hH.minZoom,maxzoom:hH.maxZoom});
+map.addLayer({id:'hex-fill',type:'fill',source:'hex','source-layer':'hex_access',paint:{'fill-color':['interpolate',['linear'],['coalesce',['get',getHexProp()],0],0,'#0a1628',5,'#0d3b66',15,'#1a8a8a',30,'#3ec48c',50,'#a8e06c',80,'#f0f060'],'fill-opacity':opacity.hex}});
+map.addLayer({id:'hex-outline',type:'line',source:'hex','source-layer':'hex_access',paint:{'line-color':'rgba(0,229,255,0.08)','line-width':0.3}});
+map.addLayer({id:'hex-selected',type:'line',source:'hex','source-layer':'hex_access',filter:['==',['id'],0],paint:{'line-color':'#ffffff','line-width':2,'line-opacity':0.8}});
+
+statusEl.textContent='Loading destinations...';
+const pH=await mapboxPmTiles.PmTilesSource.getHeader('https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev/cities/new-york/retail_pois.pmtiles');
+map.addSource('poi',{type:mapboxPmTiles.PmTilesSource.SOURCE_TYPE,url:'https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev/cities/new-york/retail_pois.pmtiles',minzoom:pH.minZoom,maxzoom:pH.maxZoom});
+map.addLayer({id:'poi-circle',type:'circle',source:'poi','source-layer':'retail_pois',minzoom:12,filter:buildPoiFilter(),paint:{'circle-radius':['interpolate',['linear'],['zoom'],12,1.5,15,4.5],'circle-color':'#ff6b35','circle-opacity':opacity.poi,'circle-stroke-width':0.4,'circle-stroke-color':'rgba(255,107,53,0.3)'}});
+updateHexLayer();document.querySelectorAll('.toggle-pill').forEach(p=>p.classList.remove('inactive'));hideLoader()}catch(e){statusEl.textContent='Error: '+e.message;console.error(e)}});
+
+// UI bindings
+document.querySelectorAll('#mode-toggle .product-mode-btn').forEach(b=>b.addEventListener('click',()=>setProductMode(b.dataset.product)));
+document.querySelectorAll('.mode-btn').forEach(b=>b.addEventListener('click',()=>{activeMode=b.dataset.mode;document.querySelectorAll('.mode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');applyFilters()}));
+document.querySelectorAll('.time-btn').forEach(b=>b.addEventListener('click',()=>{activeMinutes=parseInt(b.dataset.minutes);document.querySelectorAll('.time-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');applyFilters()}));
+document.getElementById('mhi-opacity').addEventListener('input',function(){opacity.mhi=this.value/100;document.getElementById('mhi-opacity-val').textContent=this.value+'%';if(map.getLayer('mhi-fill'))map.setPaintProperty('mhi-fill','fill-opacity',opacity.mhi)});
+document.getElementById('hex-opacity').addEventListener('input',function(){opacity.hex=this.value/100;document.getElementById('hex-opacity-val').textContent=this.value+'%';if(map.getLayer('hex-fill'))map.setPaintProperty('hex-fill','fill-opacity',opacity.hex)});
+document.getElementById('poi-opacity').addEventListener('input',function(){opacity.poi=this.value/100;document.getElementById('poi-opacity-val').textContent=this.value+'%';if(map.getLayer('poi-circle'))map.setPaintProperty('poi-circle','circle-opacity',opacity.poi)});
+const LM={mhi:['mhi-fill','mhi-outline'],hex:['hex-fill','hex-outline','hex-selected'],poi:['poi-circle']};
+document.querySelectorAll('.toggle-pill').forEach(p=>p.addEventListener('click',()=>{const k=p.dataset.layer;layerVisible[k]=!layerVisible[k];p.classList.toggle('inactive',!layerVisible[k]);LM[k].forEach(id=>{if(map.getLayer(id))map.setLayoutProperty(id,'visibility',layerVisible[k]?'visible':'none')})}));
+document.getElementById('hex-detail-close').addEventListener('click',()=>{document.getElementById('hex-detail').classList.remove('visible');if(map.getLayer('hex-selected'))map.setFilter('hex-selected',['==',['id'],0])});
+document.getElementById('wordmark').addEventListener('click',()=>{/* modal placeholder */});
+// City nav preserves state
+document.querySelectorAll('.city-btn').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();const p=new URLSearchParams();p.set('product',productMode);p.set('mode',activeMode);p.set('cat',activeCat);p.set('minutes',String(activeMinutes));window.location.href=btn.getAttribute('href')+'?'+p.toString()}));
+
+// Tooltips
+const tt=document.getElementById('tooltip'),tl=document.getElementById('tt-label'),tv=document.getElementById('tt-value'),ts=document.getElementById('tt-sub'),tp=document.getElementById('tt-pop'),tc=document.getElementById('tt-cat');
+function showTip(e,l,v,s,c,pop){tl.textContent=l;tv.textContent=v;ts.textContent=s||'';tc.textContent=c||'';tp.textContent=pop||'';tt.style.display='block';tt.style.left=(e.point.x+14)+'px';tt.style.top=(e.point.y-10)+'px'}
+function hideTip(){tt.style.display='none'}
+
+map.on('mousemove','mhi-fill',e=>{if(!layerVisible.mhi)return;const p=e.features[0].properties,v=p.mhi||p.MHI;
+  let popStr='';if(p.pop&&p.pop>0){popStr='Pop '+Math.round(p.pop).toLocaleString();if(p.pop_density&&p.pop_density>0)popStr+=' · '+Math.round(p.pop_density).toLocaleString()+'/mi²'}
+  showTip(e,'Median Household Income',(!v||v<=0)?'No data':'$'+Math.round(v).toLocaleString(),p.GEOID?'Tract '+String(p.GEOID).slice(-6):'','',popStr);
+  updateLegendMarker('mhi-marker','mhi-marker-label',v,MHI_MIN,MHI_MAX,v=>'$'+Math.round(v/1000)+'k')});
+map.on('mouseleave','mhi-fill',()=>{hideTip();document.getElementById('mhi-marker').style.display='none'});
+
+map.on('mousemove','hex-fill',e=>{if(!layerVisible.hex)return;const p=e.features[0].properties,prop=getHexProp(),score=p[prop]||0;
+  const ml=activeMode==='pedestrian'?'Walk':activeMode==='bicycle'?'Bike':'Drive';
+  showTip(e,'Reachable Destinations ('+ml+' '+activeMinutes+'m)',score+' locations',activeCat==='all'?'All categories':activeCat,'','');
+  updateLegendMarker('hex-marker','hex-marker-label',score,0,80,v=>v+' POIs');
+  map.getCanvas().style.cursor=score>0?'pointer':'default'});
+map.on('mouseleave','hex-fill',()=>{hideTip();document.getElementById('hex-marker').style.display='none';map.getCanvas().style.cursor=''});
+
+map.on('click','hex-fill',e=>{if(!layerVisible.hex)return;const feat=e.features[0],p=feat.properties,prop=getHexProp(),score=p[prop]||0;
+  if(score===0){document.getElementById('hex-detail').classList.remove('visible');return}
+  if(map.getLayer('hex-selected'))map.setFilter('hex-selected',['==',['id'],feat.id||0]);
+  const ml=activeMode==='pedestrian'?'Walk':activeMode==='bicycle'?'Bike':'Drive';
+  document.getElementById('hex-detail-count').textContent=score;document.getElementById('hex-detail-meta').textContent=ml+' · '+activeMinutes+' min · '+(activeCat==='all'?'all':activeCat);
+  const bbox=[e.point.x-30,e.point.y-30,e.point.x+30,e.point.y+30],pois=map.queryRenderedFeatures(bbox,{layers:['poi-circle']}),list=document.getElementById('hex-detail-list');list.innerHTML='';
+  const seen=new Set();pois.slice(0,25).forEach(poi=>{const n=poi.properties.name||'Unknown';if(seen.has(n))return;seen.add(n);const li=document.createElement('li');li.textContent=n;if(poi.properties.category){const sp=document.createElement('span');sp.className='poi-cat';sp.textContent=poi.properties.category;li.appendChild(sp)}list.appendChild(li)});
+  if(list.children.length===0){const li=document.createElement('li');li.textContent='Zoom in to see places';li.style.color='var(--muted)';list.appendChild(li)}
+  document.getElementById('hex-detail').classList.add('visible')});
+
+map.on('mousemove','poi-circle',e=>{if(!layerVisible.poi)return;const p=e.features[0].properties;showTip(e,'Point of Interest',p.name||'POI',p.locality||'',p.category||'','');map.getCanvas().style.cursor='pointer'});
+map.on('mouseleave','poi-circle',()=>{hideTip();map.getCanvas().style.cursor=''});
+map.on('click',e=>{const hf=map.queryRenderedFeatures(e.point,{layers:['hex-fill']});if(hf.length===0){document.getElementById('hex-detail').classList.remove('visible');if(map.getLayer('hex-selected'))map.setFilter('hex-selected',['==',['id'],0])}});
+</script></body></html>
