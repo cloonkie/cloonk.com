@@ -155,10 +155,6 @@ body.index-body footer {
   color: var(--muted);
 }
 
-/* Light mode: invert card body */
-[data-theme="light"] .sc-card__body { background: var(--fg); }
-[data-theme="light"] .sc-card__title { color: var(--bg); }
-[data-theme="light"] .sc-card__sub { color: rgba(245,242,236,0.6); }
 
 
 /* ── Hint ── */
