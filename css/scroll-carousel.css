@@ -61,7 +61,7 @@ body.index-body footer {
 #scroll-carousel-wrap {
   position: relative;
   width: 100%;
-  height: clamp(300px, 66vh, 520px);
+  height: clamp(300px, 6vh, 520px);
   display: flex;
   align-items: center;
   justify-content: center;
