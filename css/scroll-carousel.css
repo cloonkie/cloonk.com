@@ -95,10 +95,10 @@ body.index-body footer {
 /* ── Cards ── */
 .sc-card {
   position: absolute;
-  width: clamp(200px, 22vw, 340px);
-  margin-left: calc(clamp(200px, 22vw, 340px) / -2);
-  height: clamp(160px, 18vh, 260px);
-  margin-top: calc(clamp(160px, 18vh, 260px) / -2);
+  width: clamp(160px, 17vw, 265px);               /* was clamp(200px, 22vw, 340px) */
+  margin-left: calc(clamp(160px, 17vw, 265px) / -2);
+  height: clamp(120px, 13vh, 195px);              /* was clamp(160px, 18vh, 260px) */
+  margin-top: calc(clamp(120px, 13vh, 195px) / -2);
   border-radius: 3px;
   will-change: transform;
   display: flex;
@@ -168,15 +168,15 @@ body.index-body footer {
 /* ── Hint ── */
 .sc-hint {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;                        
+  right: 0;                        
   bottom: calc(var(--nav-h) + 16px);
   z-index: 30;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;          
   margin-top: 0;
-}
 
 .sc-hint span {
   font-size: 10px;
