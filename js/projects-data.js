@@ -735,7 +735,9 @@ window.PROJECTS = [
     "pdf_label": "What's Driving Eyewear Sales?",
     "figma": null,
     "sheets": "https://docs.google.com/presentation/d/1q4ruGfN-bCCI1i_v5cMW1qyRFMrZO2nFbQ2qWVwSDFg/preview",
-    "canva": null, "github": null, "live": null,
+    "canva": null, 
+    "github": "https://github.com/cloonkie/Retail-R-Analytics/tree/main",
+    "live": null,
     "context": {
       "problem": "The raw sales data existed across multiple export formats with inconsistent field naming, duplicated entries, and non-standardized category codes that varied by account. Before any analysis was possible, the data needed normalization. But normalization isn't the interesting part — it's the cost of admission. The real question was about performance drivers: which product attributes predict sell-through? How does pricing interact with promotional activity? Where are the account-level patterns hiding in the aggregate numbers?"
     },
@@ -865,7 +867,7 @@ window.PROJECTS = [
     "gallery": ["https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/eyewear-db-1.jpg"],
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/eyewear-db-1.jpg" }],
     "pdf": null, "pdf_label": null,
-    "figma": "https://embed.figma.com/slides/4sktzXNoRfRS9Xn3GlDhZo/Eyewear-Database-Slides?node-id=1-54&embed-host=share",
+    "figma": "https://embed.figma.com/slides/4sktzXNoRfRS9Xn3GlDhZo/Eyewear-Database-Slides?node-id=3-29&embed-host=share",
     "sheets": null, "canva": null, 
     "github": "https://github.com/cloonkie/Database-Design", 
     "live": null,
@@ -973,7 +975,7 @@ window.PROJECTS = [
     ],
     "pdf": null,
     "pdf_label": "UNDL Item Details Page Research",
-    "figma": "https://embed.figma.com/slides/8s86dGE2V3ADDe9NAxOc1B/UNDL-IDP-Final-Slides--detailed-copy-?node-id=2149-4691&embed-host=share",
+    "figma": "https://embed.figma.com/slides/8s86dGE2V3ADDe9NAxOc1B/UNDL-IDP-Final-Report?node-id=1-391&embed-host=share",
     "sheets": null, "canva": null, "github": null, "live": null,
     "context": {
       "problem": "Users couldn't reliably find what they came for. Download links were inconsistently positioned across document types. Metadata fields were labeled for archivists, not researchers. Eye-tracking data showed low fixation density on the highest-value interface areas — users were literally looking past the things they needed. Think-aloud sessions made the confusion explicit, with participants narrating their uncertainty in real time as they moved through the page.",
@@ -1041,7 +1043,8 @@ window.PROJECTS = [
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/urban-retail-access-1.jpg" }],
     "pdf": null,
     "pdf_label": "Urban Retail Access - Project Proposal",
-    "figma": null, "sheets": null, "canva": null, "github": null,
+    "figma": null, "sheets": null, "canva": null, 
+    "github": "https://github.com/cloonkie/urban-retail-access",
     "live": "https://cloonkie.github.io/urban-retail-access/index.html?product=retail&mode=pedestrian&minutes=20&cats=all",
     "context": {
       "problem": "Urban planning research on walkability exists but it's fragmented. Walk Score gives you a number without a breakdown. Census data gives you demographics without destinations. No unified, reproducible tool existed for comparing pedestrian retail accessibility across cities at the neighborhood level. The problem wasn't data availability — Census ACS, OpenStreetMap, and Foursquare OS Places are all public. The problem was the pipeline connecting them into something queryable and visual.",
