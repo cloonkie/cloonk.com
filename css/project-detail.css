@@ -215,3 +215,93 @@
 [data-theme="light"] .detail-artifact-select {
   background-color: #ede9e2;
 }
+
+
+/* ── GitHub card ── */
+.detail-github-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.detail-github-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.detail-github-card__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.detail-github-card__repo {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.detail-github-card__owner {
+  color: var(--muted);
+  margin-right: 2px;
+}
+
+.detail-github-card__name {
+  color: var(--fg);
+}
+
+.detail-github-card__desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.detail-github-card__langs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.detail-github-badge {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid rgba(57,255,20,.25);
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+
+[data-theme="light"] .detail-github-badge {
+  color: var(--accent);
+  border-color: rgba(27,9,188,.25);
+}
+
+.detail-github-card__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  padding: 7px 14px;
+  border-radius: 4px;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.detail-github-card__btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.detail-github-card__arrow {
+  margin-left: 2px;
+  opacity: 0.6;
+}
