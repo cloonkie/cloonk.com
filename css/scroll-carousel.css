@@ -35,7 +35,9 @@ body.index-body footer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;        /* was flex-start */
+  padding-top: 0;                 /* was clamp(8px, 2vh, 24px) */
+  padding-bottom: clamp(24px, 5vh, 48px);  /* add — offsets hint at bottom */
   gap: 0;
 }
 
