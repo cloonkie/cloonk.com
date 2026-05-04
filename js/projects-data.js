@@ -664,7 +664,7 @@ window.PROJECTS = [
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/nyc-tourism-final-1.jpg" }],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Final%20Presentation%20-%20NYCTourism%20Communicating%20User%20Research.pdf",
     "pdf_label": "NYC Tourism Redesign - Final Presentation",
-    "figma": "https://embed.figma.com/slides/ApwB2KG4pKoDg5tlS8Gr9v/Final-Presentation---NYCTourism-Communicating-User-Research&embed-host=share",
+    "figma": "https://embed.figma.com/slides/ApwB2KG4pKoDg5tlS8Gr9v/Final-Presentation---NYCTourism-Communicating-User-Research?node-id=358-1689&embed-host=share",
     "sheets": null, "canva": null, "github": null, "live": null,
     "context": {
       "problem": "NYCTourism.com has two meaningfully different user groups with conflicting mental models: tourists looking for things to do, and businesses looking to participate in the tourism ecosystem. The site's IA was built almost entirely for the former, leaving the latter to navigate a structure never designed for their goals. Business-related pathways were buried, inconsistently labeled, and written in language only internal teams used.",
@@ -865,7 +865,7 @@ window.PROJECTS = [
     "gallery": ["https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/eyewear-db-1.jpg"],
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/eyewear-db-1.jpg" }],
     "pdf": null, "pdf_label": null,
-    "figma": "https://embed.figma.com/slides/4sktzXNoRfRS9Xn3GlDhZo/Eyewear-Database-Slides&embed-host=share",
+    "figma": "https://embed.figma.com/slides/4sktzXNoRfRS9Xn3GlDhZo/Eyewear-Database-Slides?node-id=1-54&embed-host=share",
     "sheets": null, "canva": null, 
     "github": "https://github.com/cloonkie/Database-Design", 
     "live": null,
@@ -973,7 +973,7 @@ window.PROJECTS = [
     ],
     "pdf": null,
     "pdf_label": "UNDL Item Details Page Research",
-    "figma": "https://embed.figma.com/slides/8s86dGE2V3ADDe9NAxOc1B/UNDL-IDP-Final-Slides--detailed-copy-&embed-host=share",
+    "figma": "https://embed.figma.com/slides/8s86dGE2V3ADDe9NAxOc1B/UNDL-IDP-Final-Slides--detailed-copy-?node-id=2149-4691&embed-host=share",
     "sheets": null, "canva": null, "github": null, "live": null,
     "context": {
       "problem": "Users couldn't reliably find what they came for. Download links were inconsistently positioned across document types. Metadata fields were labeled for archivists, not researchers. Eye-tracking data showed low fixation density on the highest-value interface areas — users were literally looking past the things they needed. Think-aloud sessions made the confusion explicit, with participants narrating their uncertainty in real time as they moved through the page.",
