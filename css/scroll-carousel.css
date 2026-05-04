@@ -102,6 +102,7 @@ body.index-body footer {
   border-radius: 3px;
   will-change: transform;
   display: flex;
+  pointer-events: auto;
   flex-direction: column;
 }
 
