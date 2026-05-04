@@ -74,9 +74,10 @@
         '<p class="detail-prose" style="color:var(--muted)">Results coming soon.</p>' : '');
 
   /* ── Artifact: priority → github → figma → sheets → canva → pdf ── */
-  var ARTIFACT_PRIORITY = ['github', 'figma', 'sheets', 'canva', 'pdf'];
+  var ARTIFACT_PRIORITY = ['live','github', 'figma', 'sheets', 'canva', 'pdf'];
 
   var ARTIFACT_LABELS = {
+    live: 'Live Site',
     github: 'GitHub',
     figma:  'Figma',
     sheets: 'Google Slides',
@@ -85,6 +86,7 @@
   };
 
   var ARTIFACT_OPEN_LABELS = {
+    live: 'Open Live ↗',
     github: 'View on GitHub ↗',
     figma:  'Open in Figma ↗',
     sheets: 'Open in Slides ↗',
@@ -105,6 +107,7 @@
   }
 
   var artifactSources = {
+    live:   p.live   || null,
     github: p.github || null,
     figma:  p.figma  || null,
     sheets: p.sheets || null,
