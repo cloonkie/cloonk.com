@@ -32,13 +32,8 @@ body.index-body footer {
 #scroll-carousel-section {
   width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;        /* was flex-start */
-  padding-top: 0;                 /* was clamp(8px, 2vh, 24px) */
+  align-items: center; 
   padding-bottom: clamp(24px, 5vh, 48px);  /* add — offsets hint at bottom */
-  gap: 0;
 }
 
 /* ── Label — hidden by default, fades in on wrap hover ── */
