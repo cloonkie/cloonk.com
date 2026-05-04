@@ -69,24 +69,18 @@
   var RADIUS = getRadius();
   var PERSP  = getPersp();
 
-  /* ── Build cards ── */
+/* ── Build cards ── */
   CARDS.forEach(function (card, i) {
-    var rotY   = i * STEP;
-    var isBack = (rotY >= 108 && rotY <= 252);
-
+    var rotY = i * STEP;
     var el = document.createElement('div');
-    el.className = 'sc-card' + (isBack ? ' sc-card--mirror' : '');
+    el.className = 'sc-card';
     el.dataset.index = i;
-
-    el.style.backfaceVisibility       = isBack ? 'hidden' : 'visible';
-    el.style.webkitBackfaceVisibility = isBack ? 'hidden' : 'visible';
+    el.style.backfaceVisibility       = 'visible';
+    el.style.webkitBackfaceVisibility = 'visible';
     el.style.transform = 'rotateY(' + rotY + 'deg) translateZ(' + RADIUS + 'px)';
 
-    var innerScale = isBack ? 'transform:scaleX(-1);' : '';
-
     el.innerHTML =
-      '<a href="' + card.href + '" class="sc-card__link" draggable="false"'
-      + ' style="' + innerScale + '">'
+      '<a href="' + card.href + '" class="sc-card__link" draggable="false">'
       + '<img class="sc-card__img"'
       + ' src="' + card.img + '"'
       + ' alt="' + card.label + '"'
