@@ -928,6 +928,7 @@ window.PROJECTS = [
     "pdf": null,
     "pdf_label": "Urban Retail Access - Project Proposal",
     "figma": null, "sheets": null, "canva": null,
+    "live": "https://cloonkie.github.io/urban-retail-access/index.html?product=retail&mode=pedestrian&minutes=20&cats=all",
     "context": {
       "problem": "No unified tool existed for cross-city comparison of pedestrian retail accessibility. Walking isochrones and income data had never been joined into a single queryable layer. Raw Census and OSM data required significant cleaning before spatial joins were possible."
     },
