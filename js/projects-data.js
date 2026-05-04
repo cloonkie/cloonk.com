@@ -974,7 +974,7 @@ window.PROJECTS = [
       { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl-idp-1.jpg" },
       { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl-idp-2.jpg" }
     ],
-    "pdf": null,
+    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20IDP%20Final%20Report.pdf",
     "pdf_label": "UNDL Item Details Page Research",
     "figma": "https://embed.figma.com/slides/8s86dGE2V3ADDe9NAxOc1B/UNDL-IDP-Final-Report?node-id=1-391&embed-host=share",
     "sheets": null, "canva": null, "github": null, "live": null,
