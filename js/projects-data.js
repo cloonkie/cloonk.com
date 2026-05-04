@@ -866,7 +866,9 @@ window.PROJECTS = [
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/eyewear-db-1.jpg" }],
     "pdf": null, "pdf_label": null,
     "figma": "https://embed.figma.com/slides/4sktzXNoRfRS9Xn3GlDhZo/Eyewear-Database-Slides?node-id=1-54&embed-host=share",
-    "sheets": null, "canva": null, "github": null, "live": null, — was structured for export, not analysis. The same product could appear under three different naming conventions depending on which account it came from. Retailer codes weren't normalized across brands. Time dimensions were split across columns requiring transformation before any trend analysis was possible. The database design challenge: build the schema that makes this data reliably queryable without those transformations every time.",
+    "sheets": null, "canva": null, "github": null, "live": null,
+    "context": {
+      "problem": "The source data — SPS Reporting exports from EssilorLuxottica's retail analytics system — was structured for export, not analysis. The same product could appear under three different naming conventions depending on which account it came from. Retailer codes weren't normalized across brands. Time dimensions were split across columns requiring transformation before any trend analysis was possible. The database design challenge: build the schema that makes this data reliably queryable without those transformations every time.",
       "constraints": ["Schema had to accommodate products across multiple brands with different attribute structures", "Needed to support both transactional reporting and time-series analysis without separate tables", "Inventory trigger logic had to work without a persistent connection to live POS data"]
     },
     "approach": {
