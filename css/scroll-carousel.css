@@ -36,7 +36,6 @@ body.index-body footer {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: clamp(8px, 2vh, 24px);
   gap: 0;
 }
 
