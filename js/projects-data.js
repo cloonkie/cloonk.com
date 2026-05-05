@@ -965,12 +965,12 @@ window.PROJECTS = [
     "type": "UX Research",
     "year": "2026",
     "affiliation": "pratt",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL.png",
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl.png",
     "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL.png"
+      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl.png"
     ],
     "media": [
-      { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL.png" }
+      { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl.png" }
     ],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20IDP%20Final%20Report.pdf",
     "pdf_label": "UNDL Item Details Page Research",
