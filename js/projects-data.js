@@ -959,8 +959,8 @@ window.PROJECTS = [
     "num": "30",
     "id": "undl-idp",
     "title": "UN Digital Library",
-    "short": "Eye-Tracking a United Nations Interface",
-    "desc": "A multi-method usability study of the UN Digital Library's Item Details Page — the page responsible for surfacing document metadata, download access, and related content for one of the world's most consequential institutional archives. The UNDL serves researchers, students, diplomats, and journalists. Getting the interface wrong isn't just a UX problem; it has real consequences for how people access and use international policy documents.\n\nThis was the most methodologically rigorous research project I've undertaken at Pratt: Tobii eye-tracking, think-aloud protocol, SUS and SEQ scoring, post-session surveys, and Matomo behavioral analytics — all synthesized into a recommendation set actually delivered to UNDL stakeholders.",
+    "short": "Designing for What Users Actually See",
+    "desc": "The United Nations Digital Library hosts one of the world's most consequential institutional archives — and its most-visited page was silently driving users away. This multi-method usability study combined Tobii Pro eye-tracking, think-aloud protocol, SUS/SEQ scoring, and Matomo behavioral analytics across twelve moderated sessions with academic researchers, students, and general-public users. The core analytical work involved cleaning, structuring, and operationalizing Matomo behavioral exports, running a comparative benchmark against peer research platforms, and synthesizing multi-source findings into a coherent narrative for UNDL stakeholders. The result: a quantified, implementation-ready roadmap that translated fragmented behavioral data into clear design actions for a platform serving 100,000+ monthly users.",
     "topic": "ux research",
     "type": "UX Research",
     "year": "2026",
@@ -977,19 +977,39 @@ window.PROJECTS = [
     "figma": "https://embed.figma.com/slides/8s86dGE2V3ADDe9NAxOc1B/UNDL-IDP-Final-Report?node-id=1-391&embed-host=share",
     "sheets": null, "canva": null, "github": null, "live": null,
     "context": {
-      "problem": "Users couldn't reliably find what they came for. Download links were inconsistently positioned across document types. Metadata fields were labeled for archivists, not researchers. Eye-tracking data showed low fixation density on the highest-value interface areas — users were literally looking past the things they needed. Think-aloud sessions made the confusion explicit, with participants narrating their uncertainty in real time as they moved through the page.",
-      "why": ["The UNDL serves 100,000+ users per month, making even marginal usability improvements high-impact", "Item Details Page was the highest-traffic page and highest drop-off point simultaneously", "Recommendations needed to be implementable without a full redesign due to institutional constraints"]
+      "problem": "The Item Details Page was the UNDL's highest-traffic page and its highest drop-off point simultaneously. At scale, this meant the platform was successfully attracting users — but systematically failing at conversion. Download links were inconsistently positioned across document types. Metadata fields were labeled for archivists, not researchers. Eye-tracking heatmaps showed low fixation density on the highest-value interface areas — users were looking past exactly what they needed. The behavioral story matched: a 64% drop-off rate with minimal return engagement, surfaced only after cleaning and reconstructing the funnel from Matomo's noisy session exports.",
+      "why": [
+        "The UNDL serves 100,000+ users per month — researchers, journalists, diplomats, and students — making even marginal usability improvements high-impact",
+        "The Item Details Page was simultaneously the highest-traffic page and the highest drop-off point on the site",
+        "Recommendations needed to be scoped for institutional constraints — targeted and implementable, not dependent on a full redesign"
+      ]
     },
     "approach": {
-      "summary": "Conducted twelve moderated sessions across three user profiles (academic researchers, students, general public) using Tobii Pro eye-tracking hardware, supplemented by think-aloud protocol and post-task questionnaires. SUS scores were benchmarked against comparable research platforms. Matomo analytics provided behavioral corroboration for patterns observed in sessions. Findings were translated into a prioritized recommendation report with quantified impact estimates for each proposed change.",
+      "summary": "My primary responsibility was the data layer — everything between raw collection and finished narrative. This work sat on the critical path: without structured behavioral data, the team's qualitative findings would not have translated into defensible recommendations. I cleaned, structured, and operationalized Matomo behavioral exports — filtering bot traffic, normalizing sessions across document types, and reconstructing the drop-off funnel that became a headline finding. I analyzed post-session survey responses (SUS, SEQ, open-ended) and distributed results across stakeholders to align on severity and prioritization before finalization. I also ran a comparative benchmark against peer research platforms — contextualizing the UNDL's SUS score and surfacing conventions that comparable interfaces had adopted and the UNDL had silently diverged from. Teammates led moderated sessions and Tobii hardware operation; I operationalized raw session outputs into a structured dataset that made cross-method validation possible.",
       "data": ["Tobii Pro Eye Tracking", "Think-Aloud Protocol", "SUS Scoring", "SEQ Task Evaluation", "Matomo Analytics", "Figma", "Miro", "Survey Design", "Stakeholder Presentation"]
     },
     "results": {
-      "before": ["Eye-tracking heatmaps showed users consistently missing the primary download affordance", "SUS score of 58 — below the 68-point industry benchmark for acceptable usability", "8 of 12 participants couldn't locate full-text access without assistance in moderated sessions", "Matomo data showed 64% drop-off rate on Item Details Pages with minimal return engagement", "Metadata label comprehension near zero among non-expert users across all three profiles"],
-      "after": ["Download affordance redesign recommendations with specific positioning and visual weight specifications grounded in gaze data", "Metadata labeling simplified through a controlled plain-language replacement framework", "Three-tier content hierarchy proposed based on task frequency and observed user priority ranking", "Stakeholder presentation delivered with quantified impact estimates and implementation priority scoring for every recommendation"]
+      "before": [
+        "SUS score of 46.4 — 21.6 points below the 68-point industry benchmark, and well below scores observed in the peer platform comparison set",
+        "64% drop-off rate on Item Details Pages with minimal return engagement, confirmed via cleaned Matomo data",
+        "8 of 12 participants could not locate full-text access without assistance during moderated sessions",
+        "Eye-tracking heatmaps showed fixation density concentrated in peripheral areas — consistently low attention on the download affordance and above-the-fold metadata",
+        "Metadata label comprehension near zero among non-expert users across all three participant profiles"
+      ],
+      "after": [
+        "Download affordance redesign specifications grounded in gaze data — positioning, visual weight, and color contrast defined precisely enough to implement without interpretation",
+        "Plain-language metadata relabeling standard targeting the highest-traffic fields, validated against participant comprehension patterns",
+        "Three-tier content hierarchy defined from task frequency data and observed user priority ranking across session profiles",
+        "Comparative benchmark framing that gave the SUS score real context — not just 'below average,' but below what, and by how much, relative to peer platforms",
+        "Stakeholder presentation delivered with quantified impact estimates and implementation feasibility ratings for every recommendation",
+        "Given the page's traffic volume, even marginal improvements in task success would translate into meaningful gains in document access and user retention."
+      ]
     },
     "takeaways": [
-      { "title": "Eye-tracking tells you where attention goes. The interesting question is why it didn't go where you needed it to.", "body": "Every heatmap gap is a design hypothesis. Low fixation on the download button isn't a mystery — it's a specific failure of visual hierarchy, color contrast, or affordance clarity that you can trace and fix. The data tells you what's broken. The designer's job is to figure out why, and build something better." }
+      {
+        "title": "The data tells you what's broken. My job is making it legible enough that the why becomes obvious.",
+        "body": "Every heatmap gap is a specific, diagnosable failure — a visual hierarchy problem, a contrast issue, an affordance that doesn't communicate what it needs to. But that diagnosis only holds if the underlying data is clean, consistently structured, and contextualized against something real. The comparative benchmark didn't just add a slide to the presentation — it changed how stakeholders heard the SUS score. Numbers land differently when they're anchored. That's the work."
+      }
     ]
   },
 
