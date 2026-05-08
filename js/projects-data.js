@@ -1063,7 +1063,7 @@ window.PROJECTS = [
     "pdf": null,
     "pdf_label": "Urban Retail Access - Project Proposal",
     "figma": null, "sheets": null, "canva": null, 
-    "github": "https://github.com/cloonkie/urban-retail-access",
+    "github": "https://github.com/cloonkie/cloonk.com/tree/main/projects/urban-retail-access",
     "live": "https://cloonkie.github.io/urban-retail-access/index.html?product=retail&mode=pedestrian&minutes=20&cats=all",
     "context": {
       "problem": "Urban planning research on walkability exists but it's fragmented. Walk Score gives you a number without a breakdown. Census data gives you demographics without destinations. No unified, reproducible tool existed for comparing pedestrian retail accessibility across cities at the neighborhood level. The problem wasn't data availability — Census ACS, OpenStreetMap, and Foursquare OS Places are all public. The problem was the pipeline connecting them into something queryable and visual.",
