@@ -756,7 +756,7 @@ let activeCats=new Set(['all']);
 let layerVisible={mhi:true,hex:true,poi:true},opacity={mhi:.7,hex:.55,poi:.75};
 
 mapboxgl.Style.setSourceType(mapboxPmTiles.PmTilesSource.SOURCE_TYPE,mapboxPmTiles.PmTilesSource);
-mapboxgl.accessToken='pk.eyJ1IjoiY2xvb25rIiwiYSI6ImNtbjQxdDF1NzA0YXgycXByNXVuMnllYW4ifQ.3NHqjWQmGopsx5Xy1uHkQg';
+mapboxgl.accessToken='pk.eyJ1IjoiY2xvb25rIiwiYSI6ImNtb3hkNnkxNjA3bWIydG9lNTk4MzlydXYifQ.4fY2vNlTwCF0VyUdRpbiSQ';
 const map=new mapboxgl.Map({container:'map',style:'mapbox://styles/mapbox/dark-v11',center:[-73.9857,40.7484],zoom:11,minZoom:8,maxZoom:16,antialias:true});
 map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'bottom-right');
 const MHI_VALID=['>',['coalesce',['get','mhi'],['get','MHI'],0],0];
