@@ -797,6 +797,7 @@ def step6_split_export(creds, force=False, city_slug=None, skip_clip=False, **kw
 def step7_build_frontend(creds, force=False, **kw):
     section("Step 7 — Build Frontend HTML (Dual Mode)")
     FRONTEND_DIR.mkdir(exist_ok=True)
+    site_root = "https://cloonk.com/projects/urban-retail-access"
 
     # load the html template from the script directory or frontend directory.
     search_paths = [
@@ -846,8 +847,30 @@ def step7_build_frontend(creds, force=False, **kw):
         r2m = f"{R2_BASE}/cities/{slug}/mhi_tracts.pmtiles"
         r2h = f"{R2_BASE}/cities/{slug}/hex_access.pmtiles"
         r2p = f"{R2_BASE}/cities/{slug}/retail_pois.pmtiles"
+        page_url = site_root if fn == "index.html" else f"{site_root}/{fn}"
+        page_title = f"Urban Access — {city['name']}"
+        meta_description = (
+            f"Urban Access — {city['name']}: an interactive spatial analysis comparing "
+            f"retail and public infrastructure reachability across {city['name']} neighborhoods. "
+            "Hex-grid access scores by walking, biking, and driving, layered against median household income."
+        )
+        social_description = (
+            f"Interactive spatial analysis comparing retail and public infrastructure reachability "
+            f"across {city['name']} neighborhoods."
+        )
+        meta_keywords = (
+            "urban access, retail access, public access, "
+            f"{city['name'].lower()}, {city['short'].lower()}, "
+            "spatial analysis, accessibility, isochrone, mapbox, hex grid, h3, "
+            "points of interest, poi, median household income, mhi, urban planning, data visualization"
+        )
 
         html = (template
+            .replace("__PAGE_TITLE__",      page_title)
+            .replace("__META_DESCRIPTION__", meta_description)
+            .replace("__META_KEYWORDS__",   meta_keywords)
+            .replace("__SOCIAL_DESCRIPTION__", social_description)
+            .replace("__PAGE_URL__",        page_url)
             .replace("__CITY_NAME__",       city["name"])
             .replace("__CITY_SLUG__",       slug)
             .replace("__CITY_LNG__",        str(city["lng"]))
