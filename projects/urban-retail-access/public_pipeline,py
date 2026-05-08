@@ -1,0 +1,970 @@
+"""full pipeline runner for urban access."""
+
+import os, sys, ast, time, shutil, argparse, subprocess, threading, warnings, json, math
+from pathlib import Path
+
+warnings.filterwarnings('ignore', category=FutureWarning)
+warnings.filterwarnings('ignore', 'GeoSeries.notna', UserWarning)
+
+def _load_env(path="pipeline.env"):
+    p = Path(path)
+    if not p.exists(): return
+    for line in p.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"): continue
+        if "=" in line:
+            key, _, val = line.partition("=")
+            key, val = key.strip(), val.strip().strip('"').strip("'")
+            if key and val: os.environ.setdefault(key, val)
+_load_env()
+
+# public-safe defaults loaded from env.
+MAPBOX_TOKEN = os.environ.get("MAPBOX_TOKEN", "")
+R2_BASE = os.environ.get("R2_BASE", "https://<your-public-r2-base>.r2.dev")
+R2_ACCOUNT_ID_DEFAULT = os.environ.get("R2_ACCOUNT_ID", "")
+BUCKET_DEFAULT = "urban-retail-access"
+OUTPUT_DIR = Path("output"); FRONTEND_DIR = Path("frontend"); CITIES_DIR = OUTPUT_DIR / "cities"
+
+CITIES = [
+    {"name":"New York","slug":"new-york","short":"NYC","lng":-73.9857,"lat":40.7484,"zoom":11,"col_value":"New York"},
+    {"name":"Los Angeles","slug":"los-angeles","short":"LA","lng":-118.2437,"lat":34.0522,"zoom":10,"col_value":"Los Angeles"},
+    {"name":"Chicago","slug":"chicago","short":"CHI","lng":-87.6298,"lat":41.8781,"zoom":11,"col_value":"Chicago"},
+    {"name":"Houston","slug":"houston","short":"HOU","lng":-95.3698,"lat":29.7604,"zoom":10,"col_value":"Houston"},
+    {"name":"Phoenix","slug":"phoenix","short":"PHX","lng":-112.0740,"lat":33.4484,"zoom":10,"col_value":"Phoenix"},
+    {"name":"San Antonio","slug":"san-antonio","short":"SAT","lng":-98.4936,"lat":29.4241,"zoom":10,"col_value":"San Antonio"},
+    {"name":"Philadelphia","slug":"philadelphia","short":"PHL","lng":-75.1652,"lat":39.9526,"zoom":11,"col_value":"Philadelphia"},
+    {"name":"San Diego","slug":"san-diego","short":"SAN","lng":-117.1611,"lat":32.7157,"zoom":10,"col_value":"San Diego"},
+    {"name":"Dallas","slug":"dallas","short":"DAL","lng":-96.7970,"lat":32.7767,"zoom":10,"col_value":"Dallas"},
+    {"name":"Fort Worth","slug":"fort-worth","short":"FTW","lng":-97.3308,"lat":32.7555,"zoom":10,"col_value":"Fort Worth"},
+]
+CITY_FIPS = {"New York": ("36", ["005","047","061","081","085"]),"Los Angeles":("06",["037"]),"Chicago":("17",["031"]),"Houston":("48",["201"]),"Phoenix":("04",["013"]),"San Antonio":("48",["029"]),"Philadelphia":("42",["101"]),"San Diego":("06",["073"]),"Dallas":("48",["113"]),"Fort Worth":("48",["439"])}
+
+# county fips values used for areawater downloads.
+CITY_COUNTY_FIPS = {
+    "New York": ["36061","36047","36081","36005","36085"],
+    "Los Angeles": ["06037"], "Chicago": ["17031"], "Houston": ["48201"],
+    "Phoenix": ["04013"], "San Antonio": ["48029"], "Philadelphia": ["42101"],
+    "San Diego": ["06073"], "Dallas": ["48113"], "Fort Worth": ["48439"],
+}
+
+H3_RESOLUTION = 9
+TRANSPORT_MODES = ["pedestrian", "bicycle", "auto"]
+TRAVEL_TIMES = [5, 10, 20]
+MATRIX_MAX_TARGETS = 50
+SEARCH_RADIUS_KM = {5: 1.5, 10: 3.0, 20: 8.0}
+
+POI_CATEGORIES = [{"key":"all","label":"All"},{"key":"Grocery & Food","label":"Grocery"},{"key":"Restaurant","label":"Restaurant"},{"key":"Pharmacy","label":"Pharmacy"},{"key":"Convenience","label":"Convenience"},{"key":"Fashion","label":"Fashion"},{"key":"Electronics","label":"Electronics"},{"key":"Department Store","label":"Dept Store"},{"key":"Hardware","label":"Hardware"},{"key":"Bookstore","label":"Books"},{"key":"Thrift","label":"Thrift"},{"key":"Parks & Outdoors","label":"Parks"},{"key":"Education","label":"Education"},{"key":"Community & Govt","label":"Community"},{"key":"Arts & Entertainment","label":"Arts"},{"key":"Health & Medical","label":"Health"},{"key":"Travel & Transport","label":"Transit"},{"key":"Professional & Other","label":"Other"}]
+
+RETAIL_CATS = [c for c in POI_CATEGORIES if c["key"] in ("all","Grocery & Food","Restaurant","Pharmacy","Convenience","Fashion","Electronics","Department Store","Hardware","Bookstore","Thrift")]
+PUBLIC_CATS = [c for c in POI_CATEGORIES if c["key"] in ("all","Parks & Outdoors","Education","Community & Govt","Arts & Entertainment","Health & Medical","Travel & Transport","Professional & Other")]
+
+CATEGORY_MAP = {"Food and Beverage Retail":"Grocery & Food","Convenience Store":"Convenience","Food Truck":"Grocery & Food","Grocery Store":"Grocery & Food","Supermarket":"Grocery & Food","Farmers Market":"Grocery & Food","Butcher":"Grocery & Food","Bakery":"Grocery & Food","Fish Market":"Grocery & Food","Restaurant":"Restaurant","Fast Food Restaurant":"Restaurant","Cafe":"Restaurant","Coffee Shop":"Restaurant","Diner":"Restaurant","Pizza Place":"Restaurant","Bar":"Restaurant","Brewery":"Restaurant","Pharmacy":"Pharmacy","Eyecare Store":"Pharmacy","Health and Beauty Service":"Pharmacy","Fashion Retail":"Fashion","Boutique":"Fashion","Shoe Store":"Fashion","Jewelry Store":"Fashion","Clothing Store":"Fashion","Department Store":"Department Store","Vintage and Thrift Store":"Thrift","Thrift Store":"Thrift","Consignment Shop":"Thrift","Electronics":"Electronics","Computers and Electronics Retail":"Electronics","Mobile Phone Store":"Electronics","Bookstore":"Bookstore","Sporting Goods Retail":"Hardware","Hardware Store":"Hardware","Furniture and Home Store":"Hardware","Pet Supplies Store":"Hardware","Automotive Retail":"Hardware","Park":"Parks & Outdoors","Dog Park":"Parks & Outdoors","Garden":"Parks & Outdoors","Playground":"Parks & Outdoors","Plaza":"Parks & Outdoors","Recreation Center":"Parks & Outdoors","Pool":"Parks & Outdoors","Swimming Pool":"Parks & Outdoors","Trail":"Parks & Outdoors","Nature Preserve":"Parks & Outdoors","National Park":"Parks & Outdoors","State Park":"Parks & Outdoors","Botanical Garden":"Parks & Outdoors","Sculpture Garden":"Parks & Outdoors","Skate Park":"Parks & Outdoors","Beach":"Parks & Outdoors","Campground":"Parks & Outdoors","Field":"Parks & Outdoors","Hiking Trail":"Parks & Outdoors","Lake":"Parks & Outdoors","Nature / Wildlife Sanctuary":"Parks & Outdoors","Wildlife Sanctuary":"Parks & Outdoors","Outdoor Recreation":"Parks & Outdoors","Sports Field":"Parks & Outdoors","Athletic Field":"Parks & Outdoors","Golf Course":"Parks & Outdoors","Tennis Court":"Parks & Outdoors","Basketball Court":"Parks & Outdoors","Library":"Education","School":"Education","College / University":"Education","College and University":"Education","Community College":"Education","High School":"Education","Middle School":"Education","Elementary School":"Education","General College & University":"Education","General College and University":"Education","Sorority / Fraternity":"Education","Student Center":"Education","College Academic Building":"Education","Preschool":"Education","Private School":"Education","Tutoring Center":"Education","Driving School":"Education","City Hall":"Community & Govt","Courthouse":"Community & Govt","Fire Station":"Community & Govt","Police Station":"Community & Govt","Post Office":"Community & Govt","Government Building":"Community & Govt","Town Hall":"Community & Govt","Community Center":"Community & Govt","Convention Center":"Community & Govt","Social Services":"Community & Govt","Non-Profit":"Community & Govt","Non-Profit Organization":"Community & Govt","Embassy / Consulate":"Community & Govt","Embassy":"Community & Govt","Consulate":"Community & Govt","Military Base":"Community & Govt","Capitol Building":"Community & Govt","Museum":"Arts & Entertainment","Art Gallery":"Arts & Entertainment","Art Museum":"Arts & Entertainment","History Museum":"Arts & Entertainment","Science Museum":"Arts & Entertainment","Performing Arts Venue":"Arts & Entertainment","Theater":"Arts & Entertainment","Concert Hall":"Arts & Entertainment","Music Venue":"Arts & Entertainment","Planetarium":"Arts & Entertainment","Aquarium":"Arts & Entertainment","Zoo":"Arts & Entertainment","Public Art":"Arts & Entertainment","Street Art":"Arts & Entertainment","Movie Theater":"Arts & Entertainment","Historic Site":"Arts & Entertainment","Monument / Landmark":"Arts & Entertainment","Monument":"Arts & Entertainment","Landmark":"Arts & Entertainment","Amphitheater":"Arts & Entertainment","Comedy Club":"Arts & Entertainment","Opera House":"Arts & Entertainment","Hospital":"Health & Medical","Urgent Care":"Health & Medical","Medical Center":"Health & Medical","Mental Health Office":"Health & Medical","Doctor's Office":"Health & Medical","Doctor":"Health & Medical","Dentist":"Health & Medical","Dentist's Office":"Health & Medical","Emergency Room":"Health & Medical","Veterinarian":"Health & Medical","Clinic":"Health & Medical","Optometrist":"Health & Medical","Physical Therapist":"Health & Medical","Chiropractor":"Health & Medical","Bus Station":"Travel & Transport","Bus Stop":"Travel & Transport","Train Station":"Travel & Transport","Subway":"Travel & Transport","Metro Station":"Travel & Transport","Light Rail Station":"Travel & Transport","Airport":"Travel & Transport","Ferry Terminal":"Travel & Transport","Taxi Stand":"Travel & Transport","Bike Rental / Bike Share":"Travel & Transport","Bike Rental":"Travel & Transport","Bike Share":"Travel & Transport","Parking Lot":"Travel & Transport","Parking Garage":"Travel & Transport","Gas Station":"Travel & Transport","Charging Station":"Travel & Transport","Ride Share":"Travel & Transport","Auditorium":"Professional & Other","Animal Shelter":"Professional & Other","Conference Center":"Professional & Other","Funeral Home":"Professional & Other","Event Space":"Professional & Other","Cultural Center":"Professional & Other","Church":"Professional & Other","Mosque":"Professional & Other","Synagogue":"Professional & Other","Temple":"Professional & Other","Spiritual Center":"Professional & Other","Religious Center":"Professional & Other","Place of Worship":"Professional & Other","Cemetery":"Professional & Other","Banquet Hall":"Professional & Other","Wedding Venue":"Professional & Other"}
+DEFAULT_CATEGORY = "all"
+
+TIPPECANOE = {
+    "mhi": ["tippecanoe","-z14","-Z8","-l","mhi_tracts","--simplification=2","--coalesce-densest-as-needed","--extend-zooms-if-still-dropping","--force"],
+    "hex": ["tippecanoe","-z14","-Z8","-l","hex_access","--coalesce-densest-as-needed","--extend-zooms-if-still-dropping","--force"],
+    "poi": ["tippecanoe","-z16","-Z10","-l","retail_pois","--drop-densest-as-needed","--extend-zooms-if-still-dropping","--force"],
+}
+
+REQUIRED_CREDENTIALS = [{"key":"CENSUS_API_KEY","label":"Census API Key","help":"https://api.census.gov/data/key_signup.html"},{"key":"FSQ_ACCESS_TOKEN","label":"Foursquare Access Token","help":"https://foursquare.com/developer"},{"key":"R2_ACCESS_KEY","label":"R2 Access Key ID","help":"Cloudflare R2"},{"key":"R2_SECRET_KEY","label":"R2 Secret Key","help":"R2 token creation"},{"key":"R2_ACCOUNT_ID","label":"R2 Account ID","help":"R2 endpoint URL","default":R2_ACCOUNT_ID_DEFAULT},{"key":"R2_BUCKET_NAME","label":"R2 Bucket","help":"R2 bucket name","default":BUCKET_DEFAULT}]
+
+def load_credentials(): return {c["key"]: os.environ.get(c["key"], "") for c in REQUIRED_CREDENTIALS}
+def prompt_credentials(creds):
+    missing = [c for c in REQUIRED_CREDENTIALS if not creds.get(c["key"])]
+    if not missing: return creds
+    bashrc = Path.home() / ".bashrc"; new_exports = []
+    for cred in missing:
+        default = cred.get("default","")
+        prompt = f"  {cred['label']} [{default}]: " if default else f"  {cred['label']}: "
+        while True:
+            val = input(prompt).strip()
+            if not val and default: val = default
+            if val: break
+        creds[cred["key"]] = val; os.environ[cred["key"]] = val; new_exports.append(f'export {cred["key"]}="{val}"')
+    if new_exports:
+        lines = bashrc.read_text().splitlines() if bashrc.exists() else []
+        keys = {c["key"] for c in missing}
+        lines = [l for l in lines if not any(l.startswith(f'export {k}=') for k in keys)] + new_exports
+        bashrc.write_text("\n".join(lines) + "\n")
+    return creds
+def verify_credentials(creds, steps):
+    needed = set()
+    if any(s in steps for s in ["1"]): needed.add("CENSUS_API_KEY")
+    if any(s in steps for s in ["8"]): needed.update(["R2_ACCESS_KEY","R2_SECRET_KEY","R2_ACCOUNT_ID","R2_BUCKET_NAME"])
+    missing = [k for k in needed if not creds.get(k)]
+    if missing: print("  ❌ Missing:", ", ".join(missing)); sys.exit(1)
+
+def log(msg): print(f"  {msg}", flush=True)
+def section(title): print(f"\n{'='*60}\n  {title}\n{'='*60}", flush=True)
+def ok(msg): print(f"  ✅ {msg}", flush=True)
+def warn(msg): print(f"  ⚠️  {msg}", flush=True)
+def skip(msg): print(f"  ⏭️  SKIP {msg}", flush=True)
+def file_ok(path, min_bytes=1000): p = Path(path); return p.exists() and p.stat().st_size > min_bytes
+def save_gdf(gdf, path):
+    g = gdf.copy()
+    if len(g) > 0:
+        ft = g.geometry.geom_type.dropna().iloc[0]
+        if "Polygon" in ft or "LineString" in ft: g["geometry"] = g.geometry.buffer(0)
+    g = g[~g.geometry.is_empty & g.geometry.notna()]; g.to_file(path, driver="GeoJSON"); return path
+def run_tippecanoe(layer, in_path, out_path, force=False):
+    if not force and file_ok(out_path): skip(f"{Path(out_path).name}"); return True
+    r = subprocess.run(TIPPECANOE[layer] + ["-o", str(out_path), str(in_path)], capture_output=True, text=True)
+    if r.returncode != 0: warn(f"tippecanoe: {r.stderr[-300:]}"); return False
+    ok(f"{Path(out_path).name} ({Path(out_path).stat().st_size/(1024*1024):.1f} MB)"); return True
+def find_city_col(gdf, val):
+    for col in ["city","City","CITY","city_name"]:
+        if col in gdf.columns and gdf[col].dropna().astype(str).str.contains(val, case=False).any(): return col
+    return None
+
+class KeepAlive:
+    def __init__(self, interval=120): self._interval = interval; self._stop = threading.Event(); self._thread = None
+    def start(self):
+        def _beat():
+            while not self._stop.wait(self._interval): print(".", end="", flush=True)
+        self._thread = threading.Thread(target=_beat, daemon=True); self._thread.start()
+    def stop(self): self._stop.set(); self._thread and self._thread.join(timeout=2)
+
+def step1_fetch_census(creds, force=False, **kw):
+    section("Step 1 — Fetch Census MHI + Population Data")
+    out = OUTPUT_DIR / "mhi_data.parquet"
+    if not force and file_ok(out): skip(str(out)); return
+    import requests, pandas as pd
+    all_mhi = []
+    for city, (state, counties) in CITY_FIPS.items():
+        if isinstance(counties, str): counties = [counties]
+        for county in counties:
+            url = (f"https://api.census.gov/data/2022/acs/acs5"
+                   f"?get=B19013_001E,B01003_001E,GEO_ID,NAME"
+                   f"&for=tract:*&in=state:{state}%20county:{county}"
+                   f"&key={creds['CENSUS_API_KEY']}")
+            r = requests.get(url, timeout=30)
+            if r.ok:
+                data = r.json(); df = pd.DataFrame(data[1:], columns=data[0]); df["city"] = city
+                df["MHI"] = pd.to_numeric(df["B19013_001E"], errors="coerce"); df.loc[df["MHI"]<0,"MHI"] = None
+                df["pop"] = pd.to_numeric(df["B01003_001E"], errors="coerce"); df.loc[df["pop"]<0,"pop"] = None
+                all_mhi.append(df)
+            else:
+                warn(f"Census API error for {city} county {county}: {r.status_code}")
+    result = pd.concat(all_mhi, ignore_index=True)
+    result.to_parquet(out)
+    ok(f"Saved {out} — {len(result):,} tracts with MHI + population")
+
+def step2_fetch_tiger(creds, force=False, **kw):
+    section("Step 2 — Fetch TIGER Tract Boundaries")
+    out = OUTPUT_DIR / "tiger_tracts.geojson"
+    if not force and file_ok(out, 1_000_000): skip(str(out)); return
+    import requests, geopandas as gpd, pandas as pd
+    all_gdfs = []
+    for state in sorted(set(v[0] for v in CITY_FIPS.values())):
+        r = requests.get(f"https://www2.census.gov/geo/tiger/TIGER2022/TRACT/tl_2022_{state}_tract.zip", timeout=120)
+        if r.ok:
+            zp = OUTPUT_DIR / f"tiger_{state}.zip"; zp.write_bytes(r.content)
+            all_gdfs.append(gpd.read_file(f"zip://{zp}")); zp.unlink()
+    tiger = pd.concat(all_gdfs, ignore_index=True).to_crs("EPSG:4326") if all_gdfs else None
+    if tiger is None: raise RuntimeError("No TIGER data")
+    tiger.to_file(out, driver="GeoJSON"); ok(f"Saved {out}")
+
+def step3_join_mhi(creds, force=False, **kw):
+    section("Step 3 — Join MHI + Population onto Tracts")
+    out = OUTPUT_DIR / "mhi_tracts.geojson"
+    if not force and file_ok(out, 1_000_000): skip(str(out)); return
+    import geopandas as gpd, pandas as pd
+    tiger = gpd.read_file(OUTPUT_DIR / "tiger_tracts.geojson")
+    mhi = pd.read_parquet(OUTPUT_DIR / "mhi_data.parquet")
+    mhi["GEOID"] = mhi["state"].astype(str) + mhi["county"].astype(str) + mhi["tract"].astype(str)
+    # join mhi and population fields onto tract geometries.
+    merge_cols = ["GEOID", "MHI", "city"]
+    if "pop" in mhi.columns:
+        merge_cols.append("pop")
+    joined = tiger.merge(mhi[merge_cols], on="GEOID", how="inner")
+    joined = joined[joined["MHI"].notna() & (joined["MHI"] > 0)]
+    # compute population density per square mile when population is available.
+    if "pop" in joined.columns:
+        area_m2 = joined.to_crs(epsg=3857).geometry.area
+        joined["area_mi2"] = area_m2 / 2_589_988.11  # sq meters per sq mile
+        joined["pop_density"] = (joined["pop"] / joined["area_mi2"]).round(1)
+        joined.loc[joined["area_mi2"] <= 0, "pop_density"] = None
+        joined.loc[joined["pop"].isna(), "pop_density"] = None
+        log(f"  Population density computed for {joined['pop_density'].notna().sum():,} tracts")
+    joined.to_file(out, driver="GeoJSON")
+    ok(f"Saved {out} — {len(joined):,} tracts")
+
+def step4_fetch_fsq(creds, force=False, **kw):
+    section("Step 4 — Fetch Foursquare POIs")
+    out = OUTPUT_DIR / "fsq_retail.parquet"
+    if not force and file_ok(out, 1_000_000): skip(str(out)); return
+    import duckdb
+    placeholders = ",".join([f"'{c['col_value']}'" for c in CITIES])
+    con = duckdb.connect(); con.execute("INSTALL httpfs; LOAD httpfs;")
+    LOCAL_FSQ = Path.home() / "urban-retail-access" / "data" / "fsq-raw"
+    DATES = ["2026-03-18","2026-02-12","2025-11-18","2025-09-09","2025-05-09","2025-02-06"]
+    parquet_path = None
+    for dt in DATES:
+        lp = LOCAL_FSQ / "release" / f"dt={dt}" / "places" / "parquet"
+        if lp.exists() and any(lp.glob("*.parquet")): parquet_path = str(lp / "*.parquet"); log(f"  ✅ Local dt={dt}"); break
+    if not parquet_path:
+        for dt in DATES:
+            hf = f"hf://datasets/foursquare/fsq-os-places/release/dt={dt}/places/parquet/*.parquet"
+            try: con.execute(f"SELECT 1 FROM read_parquet('{hf}') LIMIT 1"); parquet_path = hf; log(f"  ✅ HF dt={dt}"); break
+            except: pass
+    if not parquet_path:
+        con.execute("SET s3_region='us-east-1';SET s3_endpoint='s3.amazonaws.com';SET s3_url_style='path';SET s3_access_key_id='';SET s3_secret_access_key='';")
+        for dt, g in [("2025-09-09","*.zstd.parquet"),("2024-11-19","*.parquet")]:
+            tp = f"s3://fsq-os-places-us-east-1/release/dt={dt}/places/parquet/{g}"
+            try: con.execute(f"SELECT 1 FROM read_parquet('{tp}') LIMIT 1"); parquet_path = tp; break
+            except: pass
+    if not parquet_path: raise RuntimeError("No FSQ data found")
+
+    # base search terms used to filter fsq categories.
+    TERMS_STANDARD = [
+        "Retail","Dining","Grocery","Food","Pharmacy","Park","Garden","Playground",
+        "Plaza","Recreation","Pool","Trail","Beach","Nature","Wildlife","Library",
+        "School","College","University","City Hall","Courthouse","Fire Station",
+        "Police Station","Post Office","Government","Community Center","Museum",
+        "Art Gallery","Theater","Theatre","Concert Hall","Aquarium","Zoo",
+        "Historic Site","Monument","Landmark","Hospital","Urgent Care",
+        "Medical Center","Doctor","Dentist","Clinic","Bus Station","Train Station",
+        "Subway","Metro Station","Airport","Ferry Terminal","Bike Rental",
+        "Church","Mosque","Synagogue","Temple","Cemetery","Conference Center",
+        "Cultural Center"
+    ]
+
+    # expanded search terms for broader poi matching.
+    TERMS_BROAD = TERMS_STANDARD + [
+        "Supermarket","Convenience","Bakery","Butcher","Fish Market","Deli",
+        "Farmers Market","Food Truck","Bodega","Liquor","Tobacco","Nail Salon",
+        "Barbershop","Hair Salon","Laundromat","Dry Cleaner","Tailor","Locksmith",
+        "Print Shop","Copy Center","Notary","Tax","Insurance","Pawn","Check Cashing",
+        "Payday Loan","Mechanic","Car Wash","Auto Parts","Tire Shop","Towing",
+        "Storage","Moving","Florist","Gift Shop","Toy","Hobby","Craft","Art Supply",
+        "Office Supply","Pet","Vet","Animal","Shelter","Nursery","Garden Center",
+        "Greenhouse","Hardware","Home Improvement","Furniture","Appliance",
+        "Mattress","Rug","Lighting","Kitchen","Bathroom","Flooring","Paint",
+        "Sporting Goods","Bicycle","Outdoors","Camping","Hunting","Fishing",
+        "Running","Yoga","Gym","Fitness","Martial Arts","Dance","Swimming",
+        "Bowling","Pool Hall","Arcade","Mini Golf","Go Kart","Escape Room",
+        "Karaoke","Comedy","Nightclub","Casino","Bingo","Shooting Range",
+        "Spa","Massage","Acupuncture","Chiropractor","Physical Therapy","Optometrist",
+        "Hearing","Mental Health","Counseling","Social Work","Rehabilitation",
+        "Nursing Home","Assisted Living","Daycare","Preschool","Tutoring",
+        "Driving School","Language","Music Lesson","Art Class","Cooking Class",
+        "Vocational","Trade School","Embassy","Consulate","DMV","Social Security",
+        "Unemployment","Veterans","Legal Aid","Food Bank","Shelter","Soup Kitchen",
+        "Thrift","Consignment","Vintage","Antique","Flea Market","Auction",
+        "Pawn","Comic","Record","Video Game","Electronics","Mobile","Computer",
+        "Camera","Optical","Jewelry","Watch","Shoe","Clothing","Fashion","Boutique",
+        "Department Store","Outlet","Mall","Discount","Dollar Store","Warehouse"
+    ]
+
+    use_broad = kw.get("broad", False)
+    terms = TERMS_BROAD if use_broad else TERMS_STANDARD
+    if use_broad: log(f"  Using BROAD term set ({len(terms)} terms)")
+    likes = "\n            OR ".join(f"cat_str LIKE '%{t}%'" for t in terms)
+    query = f"WITH raw AS (SELECT *, array_to_string(fsq_category_labels, ' | ') AS cat_str FROM read_parquet('{parquet_path}') WHERE country='US' AND locality IN ({placeholders})) SELECT fsq_place_id,name,latitude,longitude,fsq_category_ids,fsq_category_labels,locality,region,country FROM raw WHERE ({likes})"
+    log("Querying..."); df = con.execute(query).df(); log(f"  {len(df):,} POIs"); df.to_parquet(out); ok(str(out))
+
+def step5_hex_access(creds, force=False, city_slug=None, **kw):
+    """build h3 accessibility scores with a haversine kdtree."""
+    section("Step 5 — H3 Hex Accessibility Scores (KDTree)")
+
+    import geopandas as gpd, pandas as pd, numpy as np
+    from scipy.spatial import cKDTree
+    import h3
+
+    MODE_PARAMS = {
+        "pedestrian": {"speed_kmh": 5.0,  "detour": 1.4},
+        "bicycle":    {"speed_kmh": 15.0, "detour": 1.3},
+        "auto":       {"speed_kmh": 30.0, "detour": 1.2},
+    }
+
+    mhi_gdf = gpd.read_file(OUTPUT_DIR / "mhi_tracts.geojson")
+    poi_df = pd.read_parquet(OUTPUT_DIR / "fsq_retail.parquet")
+
+    def parse_category(label_str):
+        try:
+            items = ast.literal_eval(label_str) if isinstance(label_str, str) else label_str
+            if not items: return "Other"
+            parts = items[0].split(" > ")
+            second = parts[1].strip() if len(parts) >= 2 else parts[0].strip()
+            return CATEGORY_MAP.get(second, "Other")
+        except: return "Other"
+
+    poi_df["category"] = poi_df["fsq_category_labels"].apply(parse_category)
+    poi_df = poi_df.dropna(subset=["latitude","longitude"])
+    cat_keys = sorted(set(c["key"] for c in POI_CATEGORIES if c["key"] != "all"))
+    log(f"  {len(poi_df):,} POIs with categories, {len(cat_keys)} category types")
+
+    targets_cities = CITIES if not city_slug else [c for c in CITIES if c["slug"] == city_slug]
+
+    for city in targets_cities:
+        slug, val = city["slug"], city["col_value"]
+        out_path = OUTPUT_DIR / f"hex_access_{slug}.geojson"
+        if not force and file_ok(out_path, 100_000):
+            skip(f"{out_path.name}"); continue
+
+        t0 = time.time()
+        log(f"\n  ── {city['name']} ──")
+
+        col = find_city_col(mhi_gdf, val)
+        city_tracts = mhi_gdf[mhi_gdf[col].astype(str).str.contains(val, case=False)] if col else mhi_gdf
+        log(f"  {len(city_tracts)} tracts")
+
+        log(f"  Generating H3 grid (res {H3_RESOLUTION})...")
+        hex_ids = set()
+        for _, tract in city_tracts.iterrows():
+            geom = tract.geometry
+            polys = list(geom.geoms) if geom.geom_type == "MultiPolygon" else [geom]
+            for poly in polys:
+                latlng = [(c[1], c[0]) for c in poly.exterior.coords]
+                try: hex_ids.update(h3.geo_to_cells(h3.LatLngPoly(latlng), H3_RESOLUTION))
+                except: pass
+        hex_ids = sorted(hex_ids)
+        log(f"  {len(hex_ids):,} hexagons")
+
+        hex_coords_list = [h3.cell_to_latlng(h) for h in hex_ids]
+        hex_lats = np.array([c[0] for c in hex_coords_list])
+        hex_lngs = np.array([c[1] for c in hex_coords_list])
+
+        city_pois = poi_df[poi_df["locality"].astype(str) == val].reset_index(drop=True)
+        log(f"  {len(city_pois):,} POIs")
+        if len(city_pois) == 0:
+            warn(f"No POIs for {city['name']}"); continue
+
+        poi_lats = city_pois["latitude"].values.astype(np.float64)
+        poi_lngs = city_pois["longitude"].values.astype(np.float64)
+        poi_cats = city_pois["category"].values
+
+        hex_lat_r = np.radians(hex_lats); hex_lng_r = np.radians(hex_lngs)
+        poi_lat_r = np.radians(poi_lats); poi_lng_r = np.radians(poi_lngs)
+        poi_tree = cKDTree(np.column_stack([poi_lat_r, poi_lng_r]))
+
+        all_scores = [{} for _ in hex_ids]
+        for mode, params in MODE_PARAMS.items():
+            log(f"    Mode: {mode}")
+            speed_km_min = params["speed_kmh"] / 60.0
+            detour = params["detour"]
+            for t_min in TRAVEL_TIMES:
+                max_dist_km = speed_km_min * t_min / detour
+                max_dist_rad = max_dist_km / 6371.0
+                hex_query = np.column_stack([hex_lat_r, hex_lng_r])
+                results = poi_tree.query_ball_point(hex_query, r=max_dist_rad)
+                for i, nearby_indices in enumerate(results):
+                    all_scores[i][f"{mode}_{t_min}_all"] = len(nearby_indices)
+                    if nearby_indices:
+                        nearby_cats = poi_cats[nearby_indices]
+                        for cat in cat_keys:
+                            all_scores[i][f"{mode}_{t_min}_{cat}"] = int(np.sum(nearby_cats == cat))
+                    else:
+                        for cat in cat_keys:
+                            all_scores[i][f"{mode}_{t_min}_{cat}"] = 0
+                log(f"      {t_min}min: max {max_dist_km:.1f}km → avg {np.mean([len(r) for r in results]):.1f} POIs/hex")
+
+        log(f"  Building GeoJSON...")
+        features = []
+        for i, hid in enumerate(hex_ids):
+            boundary = h3.cell_to_boundary(hid)
+            coords = [[lng, lat] for lat, lng in boundary]
+            coords.append(coords[0])
+            props = {"h3": hid}; props.update(all_scores[i])
+            features.append({"type":"Feature","geometry":{"type":"Polygon","coordinates":[coords]},"properties":props})
+
+        with open(out_path, "w") as f: json.dump({"type":"FeatureCollection","features":features}, f)
+        ok(f"{out_path.name} ({out_path.stat().st_size/(1024*1024):.1f} MB) — {len(features):,} hexes in {time.time()-t0:.1f}s")
+
+def step5b_clip_water(creds, force=False, city_slug=None, skip_clip=False, **kw):
+    """clip tracts and hexes to county boundaries and land areas."""
+    section("Step 5b — Clip to City Boundary + Water Mask")
+
+    if skip_clip:
+        skip("--skip-clip flag set"); return
+
+    import geopandas as gpd, pandas as pd, requests, tempfile, zipfile
+    from io import BytesIO
+    from shapely.ops import unary_union
+    from shapely.geometry import MultiPolygon, Polygon
+    from shapely.validation import make_valid
+
+    TIGER_COUNTY_URL = "https://www2.census.gov/geo/tiger/TIGER2022/COUNTY/tl_2022_us_county.zip"
+    TIGER_WATER_URL  = "https://www2.census.gov/geo/tiger/TIGER2023/AREAWATER/tl_2023_{fips}_areawater.zip"
+    cache_dir = OUTPUT_DIR / "_water_cache"; cache_dir.mkdir(exist_ok=True)
+
+    def fetch_with_retry(url, label, timeout=300):
+        for attempt in range(1, 5):
+            try:
+                resp = requests.get(url, timeout=timeout)
+                resp.raise_for_status()
+                return resp
+            except Exception as e:
+                wait = 15 * attempt
+                warn(f"    Attempt {attempt} failed for {label}: {e} — retrying in {wait}s")
+                time.sleep(wait)
+        warn(f"    Skipping {label} after 4 failed attempts")
+        return None
+
+    def fetch_county_boundary(county_fips_list):
+        """load county boundaries for the target fips values."""
+        cache_path = cache_dir / "us_counties.gpkg"
+        if not cache_path.exists():
+            log(f"    [download] US county boundaries (~75MB, cached after first run)")
+            resp = fetch_with_retry(TIGER_COUNTY_URL, "US counties", timeout=600)
+            if resp is None: return None
+            with tempfile.TemporaryDirectory() as td:
+                zf = zipfile.ZipFile(BytesIO(resp.content)); zf.extractall(td)
+                shp = [f for f in os.listdir(td) if f.endswith(".shp")][0]
+                gdf = gpd.read_file(os.path.join(td, shp))
+            gdf.to_file(cache_path, driver="GPKG")
+            log(f"    Cached {len(gdf):,} counties")
+        else:
+            log(f"    [cache] US county boundaries")
+            gdf = gpd.read_file(cache_path)
+        matched = gdf[gdf["GEOID"].isin(county_fips_list)].to_crs(epsg=4326)
+        if len(matched) == 0:
+            warn(f"    No counties matched for {county_fips_list}"); return None
+        log(f"    {len(matched)} county boundary polygon(s) matched")
+        return make_valid(unary_union(matched.geometry))
+
+    def fetch_water(county_fips_list):
+        frames = []
+        for fips in county_fips_list:
+            cache_path = cache_dir / f"areawater_{fips}.gpkg"
+            if cache_path.exists():
+                log(f"    [cache] {fips}"); gdf = gpd.read_file(cache_path)
+            else:
+                url = TIGER_WATER_URL.format(fips=fips)
+                log(f"    [download] {fips}")
+                resp = fetch_with_retry(url, fips)
+                if resp is None: continue
+                with tempfile.TemporaryDirectory() as td:
+                    zf = zipfile.ZipFile(BytesIO(resp.content)); zf.extractall(td)
+                    shp = [f for f in os.listdir(td) if f.endswith(".shp")][0]
+                    gdf = gpd.read_file(os.path.join(td, shp))
+                gdf.to_file(cache_path, driver="GPKG")
+            frames.append(gdf)
+        if not frames: return None
+        return gpd.GeoDataFrame(pd.concat(frames, ignore_index=True), geometry="geometry", crs=frames[0].crs)
+
+    def build_water_mask(water_gdf, min_area_m2=5000):
+        wp = water_gdf.to_crs(epsg=3857)
+        wp = wp[wp.geometry.area >= min_area_m2].to_crs(epsg=4326)
+        geoms = [make_valid(g) for g in wp.geometry if g is not None and not g.is_empty]
+        if not geoms: return None
+        mask = unary_union(geoms)
+        return MultiPolygon([mask]) if isinstance(mask, Polygon) else mask
+
+    def clip_to_boundary_and_water(gdf, boundary, water_mask):
+        """apply boundary clipping and water removal."""
+        clipped = []
+        for geom in gdf.geometry:
+            if geom is None or geom.is_empty: clipped.append(geom); continue
+            g = make_valid(geom)
+            if boundary is not None:
+                g = g.intersection(boundary)
+            if water_mask is not None and not g.is_empty:
+                g = g.difference(water_mask)
+            clipped.append(g)
+        result = gdf.copy()
+        result["geometry"] = clipped
+        return result[result.geometry.notna() & ~result.geometry.is_empty]
+
+    targets = CITIES if not city_slug else [c for c in CITIES if c["slug"] == city_slug]
+
+    for city in targets:
+        name, slug = city["name"], city["slug"]
+        county_list = CITY_COUNTY_FIPS.get(name)
+        if not county_list: warn(f"No county mapping for {name}"); continue
+
+        mhi_path         = OUTPUT_DIR / "mhi_tracts.geojson"
+        hex_path         = OUTPUT_DIR / f"hex_access_{slug}.geojson"
+        mhi_clipped_path = OUTPUT_DIR / f"mhi_tracts_clipped_{slug}.geojson"
+        hex_clipped_path = OUTPUT_DIR / f"hex_access_clipped_{slug}.geojson"
+
+        if not force and file_ok(mhi_clipped_path, 50_000) and file_ok(hex_clipped_path, 50_000):
+            skip(f"{name} (already clipped — {mhi_clipped_path.stat().st_size//1024}KB / {hex_clipped_path.stat().st_size//1024}KB)")
+            continue
+
+        log(f"\n  ── {name} ──")
+
+        log(f"  Fetching county boundary...")
+        boundary = fetch_county_boundary(county_list)
+        if boundary is None:
+            warn(f"  No boundary for {name}, will use water-only clip")
+
+        log(f"  Fetching water polygons...")
+        water_gdf  = fetch_water(county_list)
+        water_mask = build_water_mask(water_gdf) if water_gdf is not None else None
+        if water_mask is None:
+            warn(f"  No water data for {name}, using boundary clip only")
+
+        if mhi_path.exists():
+            log(f"  Clipping MHI tracts...")
+            mhi = gpd.read_file(mhi_path)
+            col = find_city_col(mhi, city["col_value"])
+            city_mhi = mhi[mhi[col].astype(str).str.contains(city["col_value"], case=False)] if col else mhi
+            clipped = clip_to_boundary_and_water(city_mhi, boundary, water_mask)
+            clipped.to_file(mhi_clipped_path, driver="GeoJSON")
+            log(f"    {len(city_mhi)} -> {len(clipped)} tracts")
+
+        if hex_path.exists():
+            log(f"  Clipping hex grid...")
+            hexg = gpd.read_file(hex_path)
+            clipped_h = clip_to_boundary_and_water(hexg, boundary, water_mask)
+            clipped_h.to_file(hex_clipped_path, driver="GeoJSON")
+            log(f"    {len(hexg)} -> {len(clipped_h)} hexes")
+
+        ok(f"{name} clipped to boundary + water")
+
+def step5c_analytics(creds, force=False, city_slug=None, **kw):
+    """precompute per-city analytics files for the frontend."""
+    section("Step 5c — Precompute City Analytics")
+    import geopandas as gpd
+    import pandas as pd
+    import numpy as np
+    from scipy import stats as scipy_stats
+
+    def gini(arr):
+        """return the gini coefficient for a numeric array."""
+        a = np.sort(np.abs(arr.astype(float)))
+        n = len(a)
+        if n == 0 or a.sum() == 0: return 0.0
+        idx = np.arange(1, n + 1)
+        return float((2 * (idx * a).sum() / (n * a.sum())) - (n + 1) / n)
+
+    def quartile_label(q):
+        return ["Q1 Low", "Q2 Mid-Low", "Q3 Mid-High", "Q4 High"][q]
+
+    mhi_gdf = gpd.read_file(OUTPUT_DIR / "mhi_tracts.geojson").to_crs(epsg=4326)
+    targets = CITIES if not city_slug else [c for c in CITIES if c["slug"] == city_slug]
+
+    all_city_summaries = {}
+
+    for city in targets:
+        slug, val, name = city["slug"], city["col_value"], city["name"]
+        out_path = CITIES_DIR / slug / "city_stats.json"
+        CITIES_DIR.joinpath(slug).mkdir(parents=True, exist_ok=True)
+
+        if not force and out_path.exists():
+            skip(f"{name} city_stats.json"); continue
+
+        hex_path = OUTPUT_DIR / f"hex_access_{slug}.geojson"
+        if not hex_path.exists():
+            warn(f"No hex file for {slug}, skipping analytics"); continue
+
+        log(f"\n  ── {name} ──")
+
+        # load hex data for the city.
+        hex_gdf = gpd.read_file(hex_path).to_crs(epsg=4326)
+        log(f"  {len(hex_gdf):,} hexes loaded")
+
+        # filter mhi tracts to the current city.
+        col = find_city_col(mhi_gdf, val)
+        city_mhi = mhi_gdf[mhi_gdf[col].astype(str).str.contains(val, case=False)].copy() if col else mhi_gdf.copy()
+        city_mhi = city_mhi[city_mhi["MHI"].notna() & (city_mhi["MHI"] > 0)]
+        log(f"  {len(city_mhi)} MHI tracts")
+
+        # include optional population fields when they exist.
+        join_cols = ["geometry", "MHI"]
+        for optional in ["pop", "pop_density"]:
+            if optional in city_mhi.columns:
+                join_cols.append(optional)
+
+        # assign tract attributes to hex centroids with a spatial join.
+        hex_centroids = hex_gdf.copy()
+        hex_centroids["geometry"] = hex_gdf.geometry.centroid
+        joined = gpd.sjoin(hex_centroids, city_mhi[join_cols],
+                           how="left", predicate="within")
+        joined = joined[~joined.index.duplicated(keep="first")]
+        hex_gdf["MHI"] = joined["MHI"].values
+        hex_gdf["pop"] = joined["pop"].values if "pop" in joined.columns else np.nan
+        hex_gdf = hex_gdf[hex_gdf["MHI"].notna()]
+        log(f"  {len(hex_gdf):,} hexes with MHI after join")
+
+        if len(hex_gdf) < 10:
+            warn(f"  Too few hexes for {name}, skipping"); continue
+
+        # group hexes into mhi quartiles.
+        hex_gdf["mhi_q"] = pd.qcut(hex_gdf["MHI"], q=4, labels=[0,1,2,3], duplicates="drop")
+
+        scores_all  = hex_gdf["pedestrian_20_all"].fillna(0).astype(float)
+        scores_walk_groc = hex_gdf.get("pedestrian_20_Grocery & Food",
+                           pd.Series(np.zeros(len(hex_gdf)))).fillna(0).astype(float)
+        scores_auto_groc = hex_gdf.get("auto_20_Grocery & Food",
+                           pd.Series(np.zeros(len(hex_gdf)))).fillna(0).astype(float)
+        mhi_vals    = hex_gdf["MHI"].astype(float)
+
+        # compute income versus walk-access correlation.
+        r, p = scipy_stats.spearmanr(mhi_vals, scores_all)
+        correlation = {"spearman_r": round(float(r), 3), "p_value": round(float(p), 4),
+                       "interpretation": (
+                           "Higher income areas have significantly better walk access" if r > 0.3 and p < 0.05
+                           else "Lower income areas have significantly better walk access" if r < -0.3 and p < 0.05
+                           else "No strong income-access correlation detected")}
+        log(f"  Correlation r={r:.3f} p={p:.4f}")
+
+        # compute zero-access rates by income quartile.
+        desert_by_q = []
+        for q in range(4):
+            grp = hex_gdf[hex_gdf["mhi_q"] == q]
+            if len(grp) == 0: continue
+            zero_pct = round(float((grp["pedestrian_20_all"].fillna(0) == 0).mean() * 100), 1)
+            avg_mhi  = round(float(grp["MHI"].mean()))
+            desert_by_q.append({"quartile": quartile_label(q), "q": q,
+                                 "zero_access_pct": zero_pct,
+                                 "avg_mhi": avg_mhi, "hex_count": len(grp)})
+
+        # compute walk versus auto access gaps by quartile.
+        mode_gap_by_q = []
+        for q in range(4):
+            grp = hex_gdf[hex_gdf["mhi_q"] == q]
+            if len(grp) == 0: continue
+            w = grp.get("pedestrian_20_all", pd.Series(dtype=float)).fillna(0).mean()
+            a = grp.get("auto_20_all", pd.Series(dtype=float)).fillna(0).mean()
+            wg = grp.get("pedestrian_20_Grocery & Food", pd.Series(dtype=float)).fillna(0).mean()
+            ag = grp.get("auto_20_Grocery & Food", pd.Series(dtype=float)).fillna(0).mean()
+            mode_gap_by_q.append({
+                "quartile": quartile_label(q), "q": q,
+                "avg_walk_all": round(float(w), 1), "avg_auto_all": round(float(a), 1),
+                "walk_auto_gap_all": round(float(a - w), 1),
+                "avg_walk_grocery": round(float(wg), 1), "avg_auto_grocery": round(float(ag), 1),
+                "walk_auto_gap_grocery": round(float(ag - wg), 1),
+            })
+
+        # compute gini-based equity metrics.
+        gini_all   = gini(scores_all.values)
+        gini_groc  = gini(scores_walk_groc.values)
+        # precompute repeated mode, time, and category combinations.
+        MODES = ["pedestrian", "bicycle", "auto"]
+        TIMES = [5, 10, 20]
+        KEY_CATS = [
+            "Grocery & Food", "Restaurant", "Pharmacy",
+            "Parks & Outdoors", "Education", "all"
+        ]
+
+        # summarize scores by quartile across modes, times, and categories.
+        quartile_avgs = []
+        for q in range(4):
+            grp = hex_gdf[hex_gdf["mhi_q"] == q]
+            if len(grp) == 0: continue
+            entry = {
+                "quartile": quartile_label(q), "q": q,
+                "avg_mhi": round(float(grp["MHI"].mean())),
+                "hex_count": len(grp),
+            }
+            for mode in MODES:
+                for t in TIMES:
+                    col_all = f"{mode}_{t}_all"
+                    if col_all in grp.columns:
+                        entry[f"avg_{mode}_{t}_all"] = round(float(grp[col_all].fillna(0).mean()), 1)
+                    for cat in KEY_CATS:
+                        if cat == "all": continue
+                        col_cat = f"{mode}_{t}_{cat}"
+                        if col_cat in grp.columns:
+                            entry[f"avg_{mode}_{t}_{cat}"] = round(float(grp[col_cat].fillna(0).mean()), 1)
+            quartile_avgs.append(entry)
+
+        # summarize zero-access rates across modes and times.
+        desert_all = []
+        for q in range(4):
+            grp = hex_gdf[hex_gdf["mhi_q"] == q]
+            if len(grp) == 0: continue
+            entry = {
+                "quartile": quartile_label(q), "q": q,
+                "avg_mhi": round(float(grp["MHI"].mean())),
+                "hex_count": len(grp),
+                # keep legacy output keys.
+                "zero_access_pct": round(float((grp["pedestrian_20_all"].fillna(0) == 0).mean() * 100), 1),
+            }
+            for mode in MODES:
+                for t in TIMES:
+                    col = f"{mode}_{t}_all"
+                    if col in grp.columns:
+                        entry[f"desert_{mode}_{t}_pct"] = round(
+                            float((grp[col].fillna(0) == 0).mean() * 100), 1)
+            desert_all.append(entry)
+
+        # compute gini values across modes, times, and categories.
+        def gini_col(series):
+            a = np.sort(np.abs(series.fillna(0).values.astype(float)))
+            n = len(a)
+            if n == 0 or a.sum() == 0: return 0.0
+            idx = np.arange(1, n + 1)
+            return float((2 * (idx * a).sum() / (n * a.sum())) - (n + 1) / n)
+
+        equity_data = {}
+        for mode in MODES:
+            for t in TIMES:
+                col_all = f"{mode}_{t}_all"
+                if col_all in hex_gdf.columns:
+                    equity_data[f"gini_{mode}_{t}_all"] = round(gini_col(hex_gdf[col_all]), 3)
+                for cat in KEY_CATS:
+                    if cat == "all": continue
+                    col_cat = f"{mode}_{t}_{cat}"
+                    if col_cat in hex_gdf.columns:
+                        equity_data[f"gini_{mode}_{t}_{cat}"] = round(gini_col(hex_gdf[col_cat]), 3)
+
+        # keep legacy equity keys.
+        equity_data["gini_walk_all"]     = equity_data.get("gini_pedestrian_20_all", round(gini_all, 3))
+        equity_data["gini_walk_grocery"] = equity_data.get("gini_pedestrian_20_Grocery & Food", round(gini_groc, 3))
+        equity_data["interpretation"] = (
+            "High inequality — access concentrated in certain areas" if gini_all > 0.5
+            else "Moderate inequality in access distribution" if gini_all > 0.3
+            else "Relatively equitable access distribution")
+
+        stats = {
+            "city": name, "slug": slug,
+            "hex_count": len(hex_gdf),
+            "mhi_median": round(float(mhi_vals.median())),
+            "mhi_range": [round(float(mhi_vals.min())), round(float(mhi_vals.max()))],
+            "correlation": correlation,
+            "access_deserts": desert_all,
+            "mode_dependency": mode_gap_by_q,
+            "equity": equity_data,
+            "quartile_summary": quartile_avgs,
+        }
+
+        with open(out_path, "w") as f:
+            json.dump(stats, f, indent=2)
+        all_city_summaries[slug] = {
+            "city": name, "gini": round(gini_all, 3),
+            "spearman_r": round(float(r), 3),
+            "mhi_median": stats["mhi_median"],
+            "desert_pct_q1": desert_by_q[0]["zero_access_pct"] if desert_by_q else None,
+        }
+        ok(f"{name} → {out_path.name}")
+
+    # write a cross-city summary file for comparisons.
+    if all_city_summaries:
+        summary_path = OUTPUT_DIR / "cities_summary.json"
+        with open(summary_path, "w") as f:
+            json.dump(all_city_summaries, f, indent=2)
+        ok(f"cities_summary.json ({len(all_city_summaries)} cities)")
+
+def step6_split_export(creds, force=False, city_slug=None, skip_clip=False, **kw):
+    section("Step 6 — Split & Export Per-City PMTiles")
+    import geopandas as gpd, pandas as pd
+
+    poi_df = pd.read_parquet(OUTPUT_DIR / "fsq_retail.parquet")
+    def parse_category(label_str):
+        try:
+            items = ast.literal_eval(label_str) if isinstance(label_str, str) else label_str
+            if not items: return "Other"
+            parts = items[0].split(" > ")
+            second = parts[1].strip() if len(parts) >= 2 else parts[0].strip()
+            return CATEGORY_MAP.get(second, "Other")
+        except: return "Other"
+    poi_df["category"] = poi_df["fsq_category_labels"].apply(parse_category)
+    poi = gpd.GeoDataFrame(poi_df, geometry=gpd.points_from_xy(poi_df.longitude, poi_df.latitude), crs="EPSG:4326")
+
+    mhi_base = gpd.read_file(OUTPUT_DIR / "mhi_tracts.geojson")
+
+    targets = CITIES if not city_slug else [c for c in CITIES if c["slug"] == city_slug]
+    for city in targets:
+        slug, val = city["slug"], city["col_value"]
+        cd = CITIES_DIR / slug; cd.mkdir(parents=True, exist_ok=True)
+        td = cd / "tmp"; td.mkdir(exist_ok=True)
+        log(f"\n  {city['name']}")
+
+        # use the clipped tract file when available.
+        mhi_clipped = OUTPUT_DIR / f"mhi_tracts_clipped_{slug}.geojson"
+        if mhi_clipped.exists() and not skip_clip:
+            log(f"    Using clipped MHI tracts")
+            mc = gpd.read_file(mhi_clipped)
+        else:
+            col = find_city_col(mhi_base, val)
+            mc = mhi_base[mhi_base[col].astype(str).str.contains(val, case=False)] if col else mhi_base
+        save_gdf(mc, td / "mhi.geojson")
+        run_tippecanoe("mhi", td / "mhi.geojson", cd / "mhi_tracts.pmtiles", force=force)
+
+        # use the clipped hex file when available.
+        hex_clipped = OUTPUT_DIR / f"hex_access_clipped_{slug}.geojson"
+        hex_raw     = OUTPUT_DIR / f"hex_access_{slug}.geojson"
+        if hex_clipped.exists() and not skip_clip:
+            log(f"    Using clipped hex grid")
+            run_tippecanoe("hex", str(hex_clipped), cd / "hex_access.pmtiles", force=force)
+        elif hex_raw.exists():
+            run_tippecanoe("hex", str(hex_raw), cd / "hex_access.pmtiles", force=force)
+        else:
+            warn(f"No hex file for {slug}")
+
+        # export city pois.
+        pc = poi[poi["locality"].astype(str) == val]
+        save_gdf(pc, td / "poi.geojson")
+        run_tippecanoe("poi", td / "poi.geojson", cd / "retail_pois.pmtiles", force=force)
+
+        shutil.rmtree(td, ignore_errors=True)
+
+
+def step7_build_frontend(creds, force=False, **kw):
+    section("Step 7 — Build Frontend HTML (Dual Mode)")
+    FRONTEND_DIR.mkdir(exist_ok=True)
+
+    # load the html template from the script directory or frontend directory.
+    search_paths = [
+        Path(__file__).parent / "template.html",
+        Path(__file__).parent / "frontend" / "template.html",
+        Path("template.html"),
+    ]
+    template_path = next((p for p in search_paths if p.exists()), None)
+    if template_path is None:
+        raise FileNotFoundError(
+            "template.html not found.\n"
+            "Expected alongside pipeline.py or in frontend/.\n"
+            "Download it from your project repo or run the dev-journey export."
+        )
+    template = template_path.read_text(encoding="utf-8")
+    log(f"  Template: {template_path} ({len(template):,} chars)")
+
+    # build shared city navigation markup.
+    def city_nav_html(active_slug):
+        items = []
+        for c in CITIES:
+            href = "index.html" if c["slug"] == "new-york" else c["slug"] + ".html"
+            cls  = "city-btn active" if c["slug"] == active_slug else "city-btn"
+            items.append(
+                f'<a class="{cls}" data-city="{c["slug"]}" href="{href}">'
+                f'{c["short"]}<span class="full">{c["name"]}</span></a>'
+            )
+        return "\n    ".join(items)
+
+    # build shared category arrays for template replacement.
+    retail_cats_js  = json.dumps([{"key": c["key"], "label": c["label"]} for c in RETAIL_CATS])
+    public_cats_js  = json.dumps([{"key": c["key"], "label": c["label"]} for c in PUBLIC_CATS])
+    public_keys_js  = json.dumps([c["key"] for c in PUBLIC_CATS if c["key"] != "all"])
+    retail_keys_js  = json.dumps([c["key"] for c in RETAIL_CATS if c["key"] != "all"])
+
+    # render one html file per city.
+    for city in CITIES:
+        slug = city["slug"]
+        fn   = "index.html" if slug == "new-york" else f"{slug}.html"
+        out  = FRONTEND_DIR / fn
+
+        if not force and out.exists():
+            skip(fn)
+            continue
+
+        nav = city_nav_html(slug)
+        r2m = f"{R2_BASE}/cities/{slug}/mhi_tracts.pmtiles"
+        r2h = f"{R2_BASE}/cities/{slug}/hex_access.pmtiles"
+        r2p = f"{R2_BASE}/cities/{slug}/retail_pois.pmtiles"
+
+        html = (template
+            .replace("__CITY_NAME__",       city["name"])
+            .replace("__CITY_SLUG__",       slug)
+            .replace("__CITY_LNG__",        str(city["lng"]))
+            .replace("__CITY_LAT__",        str(city["lat"]))
+            .replace("__CITY_ZOOM__",       str(city["zoom"]))
+            .replace("__R2_BASE__",         R2_BASE)
+            .replace("__R2_MHI__",          r2m)
+            .replace("__R2_HEX__",          r2h)
+            .replace("__R2_POI__",          r2p)
+            .replace("__MAPBOX_TOKEN__",    MAPBOX_TOKEN)
+            .replace("__CITY_NAV__",        nav)
+            .replace("__MOBILE_CITY_NAV__", nav)
+            .replace("__RETAIL_CATS_JS__",  retail_cats_js)
+            .replace("__PUBLIC_CATS_JS__",  public_cats_js)
+            .replace("__PUBLIC_KEYS_JS__",  public_keys_js)
+            .replace("__RETAIL_KEYS_JS__",  retail_keys_js)
+        )
+
+        out.write_text(html, encoding="utf-8")
+        ok(f"{fn}  ({out.stat().st_size / 1024:.1f} KB)")
+
+
+def step8_upload(creds, force=False, city_slug=None, **kw):
+    section("Step 8 — Upload to R2")
+    import boto3; from boto3.s3.transfer import TransferConfig
+    ep = f"https://{creds['R2_ACCOUNT_ID']}.r2.cloudflarestorage.com"
+    cl = boto3.client('s3', endpoint_url=ep, aws_access_key_id=creds['R2_ACCESS_KEY'], aws_secret_access_key=creds['R2_SECRET_KEY'], region_name='auto')
+    cfg = TransferConfig(multipart_threshold=32*1024*1024, multipart_chunksize=32*1024*1024, max_concurrency=2, use_threads=True)
+    def uploaded(key, local):
+        try: return cl.head_object(Bucket=creds['R2_BUCKET_NAME'], Key=key)["ContentLength"] == Path(local).stat().st_size
+        except: return False
+    class Prog:
+        def __init__(self, total): self._t=total; self._d=0; self._l=threading.Lock()
+        def __call__(self, n):
+            with self._l: self._d+=n; pct=self._d/self._t*100; print(f"\r    {'█'*int(pct/2)}{'░'*(50-int(pct/2))} {pct:5.1f}%",end="",flush=True); pct>=100 and print()
+    targets = CITIES if not city_slug else [c for c in CITIES if c["slug"]==city_slug]
+    for city in targets:
+        slug = city["slug"]; log(f"\n  {city['name']}")
+        for layer in ["mhi_tracts.pmtiles","hex_access.pmtiles","retail_pois.pmtiles",
+                      "city_stats.json"]:
+            local = CITIES_DIR / slug / layer; key = f"cities/{slug}/{layer}"
+            if not local.exists(): warn(f"MISSING {local}"); continue
+            if not force and uploaded(key, local): skip(key); continue
+            ct = "application/json" if layer.endswith(".json") or layer.endswith(".geojson") else "application/octet-stream"
+            for att in range(1,5):
+                try: cl.upload_file(str(local), creds['R2_BUCKET_NAME'], key, ExtraArgs={"ContentType":ct}, Config=cfg, Callback=Prog(local.stat().st_size)); ok(key); break
+                except Exception as e: warn(f"Attempt {att}: {e}"); att<4 and time.sleep(10*att)
+    # upload the cross-city summary file.
+    summary = OUTPUT_DIR / "cities_summary.json"
+    if summary.exists():
+        key = "cities_summary.json"
+        try: cl.upload_file(str(summary), creds['R2_BUCKET_NAME'], key, ExtraArgs={"ContentType":"application/json"}); ok(key)
+        except Exception as e: warn(f"cities_summary upload: {e}")
+
+# keep step order flat so --from works with alphanumeric step ids.
+STEP_ORDER = ["1", "2", "3", "4", "5", "5b", "5c", "6", "7", "8"]
+
+STEP_MAP = {
+    "1":  ("Fetch Census MHI + Pop",  step1_fetch_census),
+    "2":  ("Fetch TIGER",             step2_fetch_tiger),
+    "3":  ("Join MHI + Pop",          step3_join_mhi),
+    "4":  ("Fetch FSQ POIs",          step4_fetch_fsq),
+    "5":  ("H3 Hex Accessibility",    step5_hex_access),
+    "5b": ("Clip Water (land mask)",  step5b_clip_water),
+    "5c": ("Precompute Analytics",    step5c_analytics),
+    "6":  ("Split & export PMTiles",  step6_split_export),
+    "7":  ("Build frontend",          step7_build_frontend),
+    "8":  ("Upload to R2",            step8_upload),
+}
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--steps", nargs="+")
+    parser.add_argument("--from", dest="from_step")
+    parser.add_argument("--force", action="store_true")
+    parser.add_argument("--city")
+    parser.add_argument("--skip-clip", action="store_true")
+    parser.add_argument("--broad", action="store_true", help="Use expanded FSQ keyword list in step 4")
+    parser.add_argument("--list", action="store_true")
+    args = parser.parse_args()
+
+    for d in [OUTPUT_DIR, CITIES_DIR, FRONTEND_DIR, Path("logs")]:
+        d.mkdir(exist_ok=True)
+
+    if args.list:
+        for k in STEP_ORDER:
+            n, _ = STEP_MAP[k]
+            print(f"  {k:<4} {n}")
+        return
+
+    # build the step list from the flat ordered keys.
+    if args.steps:
+        targets = args.steps
+    elif args.from_step:
+        if args.from_step not in STEP_ORDER:
+            print(f"  ❌ Unknown step: {args.from_step}"); sys.exit(1)
+        targets = STEP_ORDER[STEP_ORDER.index(args.from_step):]
+    else:
+        targets = STEP_ORDER
+
+    creds = prompt_credentials(load_credentials())
+    verify_credentials(creds, targets)
+    print(f"\n{'='*60}\n  URBAN ACCESS — PIPELINE\n  Steps: {', '.join(targets)}\n{'='*60}")
+    t0 = time.time()
+
+    for key in targets:
+        if key not in STEP_MAP:
+            warn(f"Unknown step '{key}', skipping"); continue
+        name, fn = STEP_MAP[key]
+        try:
+            fn(creds=creds, force=args.force, city_slug=args.city, skip_clip=args.skip_clip, broad=args.broad)
+        except Exception as e:
+            print(f"\n  ❌ {key} ({name}): {e}")
+            import traceback; traceback.print_exc()
+            print(f"  Resume: python3 pipeline.py --from {key}")
+            sys.exit(1)
+
+    print(f"\n{'='*60}\n  ✅ Done in {time.time()-t0:.1f}s\n{'='*60}\n")
+
+if __name__ == "__main__": main()
