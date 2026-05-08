@@ -670,4 +670,732 @@ __MOBILE_CITY_NAV__
         </div>
         <div class="ds-color-section-label" style="margin-top:16px">MHI Gradient — income signal</div>
         <div style="height:10px;border-radius:4px;background:linear-gradient(to right,#1a0533,#4a0e6b,#8b1a8b,#c4396e,#f06b2e,#ffd166);margin-bottom:4px"></div>
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:8px"><span>$0</span><span>$30k</span><span>$60k</span><span>$90k</span><span>$120k</span><
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:8px"><span>$0</span><span>$30k</span><span>$60k</span><span>$90k</span><span>$120k</span><span>$160k+</span></div>
+        <p style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:14px">Sequential purple-to-gold ramp. The warm-to-cool direction avoids traffic-light connotations — no moral judgment embedded. Each stop is perceptually equidistant.</p>
+        <div class="ds-color-section-label">Access Score Gradient — density signal</div>
+        <div style="height:10px;border-radius:4px;background:linear-gradient(to right,#0a1628,#0d3b66,#1a8a8a,#3ec48c,#a8e06c,#f0f060);margin-bottom:4px"></div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:8px"><span>0</span><span>5</span><span>15</span><span>30</span><span>50</span><span>80+</span></div>
+        <p style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:14px">Navy-to-acid-yellow. Spectrally separated from the MHI ramp so both gradients are readable when overlaid at partial opacity. Zero-score hexes disappear rather than claiming false data.</p>
+        <h3>Typography</h3>
+        <div class="ds-type-pair">
+          <div class="ds-type-block">
+            <div class="ds-type-specimen" style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:.08em;line-height:1.15">Urban<br>Access</div>
+            <div class="ds-type-meta"><span class="ds-type-name">Syne</span><span class="ds-type-weights">800 · 700 · 600</span></div>
+            <div class="ds-type-usage">Wordmark · Section headers · Modal titles · Stats · Loader</div>
+            <div class="ds-type-rationale">Geometric display with engineered tension between wide bowls and compressed counters. Reads as technical authority. Its 800 weight creates hierarchy contrast against Mono body text where Inter would read as identical weight.</div>
+          </div>
+          <div class="ds-type-block">
+            <div class="ds-type-specimen" style="font-family:'DM Mono',monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.8;color:var(--muted)">LAT __CITY_LAT__<br>LNG __CITY_LNG__<br>ZOOM __CITY_ZOOM__<br>pedestrian · 20 min</div>
+            <div class="ds-type-meta"><span class="ds-type-name">DM Mono</span><span class="ds-type-weights">300 · 400 · 500</span></div>
+            <div class="ds-type-usage">All UI labels · Coords · Tooltips · Controls · Data values</div>
+            <div class="ds-type-rationale">Monospaced type mirrors the data-instrument aesthetic. Fixed-width characters prevent layout shift as values update on hover. DM Mono's optical corrections give better small-size legibility than system monospace.</div>
+          </div>
+        </div>
+        <div class="ds-type-scale">
+          <div class="ds-scale-row"><span style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:.15em;text-transform:uppercase">URBAN ACCESS</span><span class="ds-scale-label">18px · Syne 800 · Loader</span></div>
+          <div class="ds-scale-row"><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase">__CITY_NAME__</span><span class="ds-scale-label">13px · Syne 700 · Modal title</span></div>
+          <div class="ds-scale-row"><span style="font-family:'Syne',sans-serif;font-weight:600;font-size:22px;color:var(--accent)">47</span><span class="ds-scale-label">22px · Syne 600 · Stat numbers</span></div>
+          <div class="ds-scale-row"><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">Modal body — description and analysis copy</span><span class="ds-scale-label">10px · DM Mono 400 · Body</span></div>
+          <div class="ds-scale-row"><span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">PEDESTRIAN · 20 MIN</span><span class="ds-scale-label">9px · DM Mono 500 · Controls</span></div>
+          <div class="ds-scale-row"><span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">DESTINATIONS</span><span class="ds-scale-label">9px · DM Mono 600 · Panel labels</span></div>
+          <div class="ds-scale-row"><span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">$0 &nbsp;&nbsp; $80k &nbsp;&nbsp; $160k+</span><span class="ds-scale-label">9px · DM Mono 400 · Legend ticks</span></div>
+        </div>
+        <h3>Accessibility &amp; Compliance</h3>
+        <div class="ds-compliance-grid">
+          <div class="ds-compliance-item"><div class="ds-comp-head"><span class="ds-comp-badge pass">PASS</span><span class="ds-comp-title">Keyboard Navigation</span></div><div class="ds-comp-body">All interactive controls are Tab-reachable and activate via Enter or Space. Custom <code>:focus-visible</code> rings use <code>var(--accent)</code> at 2px offset — visible against all panel backgrounds.</div></div>
+          <div class="ds-compliance-item"><div class="ds-comp-head"><span class="ds-comp-badge pass">PASS</span><span class="ds-comp-title">ARIA Labeling</span></div><div class="ds-comp-body">Map: <code>role="application"</code> + <code>aria-label</code>. Toggle pills: <code>aria-pressed</code>. Mode buttons: <code>role="radio"</code> + <code>aria-checked</code>. Hamburger: <code>aria-expanded</code>. Mobile nav: <code>role="dialog"</code>.</div></div>
+          <div class="ds-compliance-item"><div class="ds-comp-head"><span class="ds-comp-badge pass">PASS</span><span class="ds-comp-title">Escape / Dismiss</span></div><div class="ds-comp-body">Escape closes modal and mobile nav independently. Clicking the backdrop dismisses without keyboard trap. Hex detail panel has an explicit ×close button with hover feedback.</div></div>
+          <div class="ds-compliance-item"><div class="ds-comp-head"><span class="ds-comp-badge pass">PASS</span><span class="ds-comp-title">URL State Persistence</span></div><div class="ds-comp-body"><code>URLSearchParams</code> encodes <code>product</code>, <code>mode</code>, <code>minutes</code>, and <code>cats</code> on every interaction. Deep-linking and browser back/forward restore exact filter state without server sessions.</div></div>
+          <div class="ds-compliance-item"><div class="ds-comp-head"><span class="ds-comp-badge pass">PASS</span><span class="ds-comp-title">Motion Safety</span></div><div class="ds-comp-body">Loader animation is isolated and decorative. Bar chart transitions use <code>width .5s</code> — non-vestibular. No autonomous or scroll-triggered animation. All map interactions are pointer-driven.</div></div>
+          <div class="ds-compliance-item"><div class="ds-comp-head"><span class="ds-comp-badge note">NOTE</span><span class="ds-comp-title">Color-only Encoding</span></div><div class="ds-comp-body">Gradients rely on color to encode value. Tooltips and legend text provide numeric equivalents on hover. Full CVD support would require pattern fills or symbol layers — flagged for a future version.</div></div>
+        </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="coords-bar">
+  <div id="coords-text">LAT <span id="lat-val">--</span> &nbsp; LNG <span id="lng-val">--</span></div>
+  <div id="zoom-text">ZOOM <span id="zoom-val">11</span></div>
+</div>
+<div id="tooltip">
+  <div class="tt-label" id="tt-label"></div>
+  <div class="tt-value" id="tt-value"></div>
+  <div class="tt-sub" id="tt-sub"></div>
+  <div class="tt-pop" id="tt-pop"></div>
+  <div class="tt-cat" id="tt-cat"></div>
+</div>
+
+<script>
+const RETAIL_CATS=__RETAIL_CATS_JS__;const PUBLIC_CATS=__PUBLIC_CATS_JS__;const PUBLIC_KEYS=__PUBLIC_KEYS_JS__;const RETAIL_KEYS=__RETAIL_KEYS_JS__;
+const CITY_SLUG='__CITY_SLUG__',CITY_NAME='__CITY_NAME__',R2='__R2_BASE__',MHI_MIN=0,MHI_MAX=160000;
+
+let activeMinutes=20,activeMode='pedestrian',productMode='retail';
+let activeCats=new Set(['all']);
+let layerVisible={mhi:true,hex:true,poi:true},opacity={mhi:.7,hex:.55,poi:.75};
+
+mapboxgl.Style.setSourceType(mapboxPmTiles.PmTilesSource.SOURCE_TYPE,mapboxPmTiles.PmTilesSource);
+mapboxgl.accessToken='__MAPBOX_TOKEN__';
+const map=new mapboxgl.Map({container:'map',style:'mapbox://styles/mapbox/dark-v11',center:[__CITY_LNG__,__CITY_LAT__],zoom:__CITY_ZOOM__,minZoom:8,maxZoom:16,antialias:true});
+map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'bottom-right');
+const MHI_VALID=['>',['coalesce',['get','mhi'],['get','MHI'],0],0];
+
+function setProductMode(mode){
+  productMode=mode;document.body.classList.toggle('mode-public',mode==='public');
+  document.getElementById('wordmark').innerHTML='Urban <span>'+(mode==='retail'?'Retail':'Public')+'</span> Access';
+  document.title='Urban '+(mode==='retail'?'Retail':'Public')+' Access — '+CITY_NAME;
+  document.querySelectorAll('.product-mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.product===mode));
+  activeCats=new Set(['all']);buildCatButtons();applyFilters();writeUrlState();
+}
+
+// active category keys scoped to the current product mode.
+function getActiveCatKeys(){
+  const modeKeys=productMode==='retail'?RETAIL_KEYS:PUBLIC_KEYS;
+  if(activeCats.has('all')||activeCats.size===0)return modeKeys.slice();
+  return [...activeCats].filter(k=>modeKeys.includes(k));
+}
+
+// per-hex sum across active categories.
+function computeHexScore(props){
+  return getActiveCatKeys().reduce((s,k)=>s+(props[activeMode+'_'+activeMinutes+'_'+k]||0),0);
+}
+
+// mapbox paint expression equivalent to computehexscore.
+function hexValueExpression(){
+  const keys=getActiveCatKeys();
+  if(keys.length===0)return ['literal',0];
+  if(keys.length===1)return ['coalesce',['get',activeMode+'_'+activeMinutes+'_'+keys[0]],0];
+  const parts=keys.map(k=>['coalesce',['get',activeMode+'_'+activeMinutes+'_'+k],0]);
+  return ['+',...parts];
+}
+
+function buildCatButtons(){
+  const cats=productMode==='retail'?RETAIL_CATS:PUBLIC_CATS;
+  const container=document.getElementById('cat-btns');container.innerHTML='';
+  const allRow=document.createElement('div');allRow.className='cat-all-row'+(activeCats.has('all')?' active':'');
+  allRow.innerHTML='<span class="cat-all-label">All</span><span style="font-size:8px;color:var(--muted)">'+cats.filter(c=>c.key!=='all').length+' types</span>';
+  allRow.addEventListener('click',()=>{activeCats=new Set(['all']);container.querySelectorAll('.cat-row').forEach(r=>r.classList.remove('active'));allRow.classList.add('active');applyFilters();writeUrlState()});
+  container.appendChild(allRow);
+  cats.filter(c=>c.key!=='all').forEach(c=>{
+    const row=document.createElement('div');row.className='cat-row'+(activeCats.has(c.key)&&!activeCats.has('all')?' active':'');row.dataset.cat=c.key;
+    row.innerHTML='<span class="cat-row-label">'+c.label+'</span><div class="cat-toggle"></div>';
+    row.addEventListener('click',()=>{
+      if(activeCats.has('all')){activeCats=new Set();allRow.classList.remove('active')}
+      if(activeCats.has(c.key)){activeCats.delete(c.key);row.classList.remove('active')}
+      else{activeCats.add(c.key);row.classList.add('active')}
+      if(activeCats.size===0){activeCats=new Set(['all']);allRow.classList.add('active');container.querySelectorAll('.cat-row').forEach(r=>r.classList.remove('active'))}
+      applyFilters();writeUrlState();
+    });
+    container.appendChild(row);
+  });
+}
+
+function updateHexLayer(){
+  const valExpr=hexValueExpression();
+  const catLabel=activeCats.has('all')?'all categories':[...activeCats].join(', ');
+  document.getElementById('hex-score-label').textContent=activeMode+' · '+activeMinutes+' min · '+catLabel;
+  if(map.getLayer('hex-fill')){
+    map.setPaintProperty('hex-fill','fill-color',['case',['==',valExpr,0],'rgba(30,35,41,0.3)',['interpolate',['linear'],valExpr,1,'#0d3b66',5,'#0d3b66',15,'#1a8a8a',30,'#3ec48c',50,'#a8e06c',80,'#f0f060']]);
+    map.setPaintProperty('hex-outline','line-color',['case',['==',valExpr,0],'rgba(255,255,255,0.02)','rgba(0,229,255,0.08)']);
+  }
+}
+
+function buildPoiFilter(){
+  const modeKeys=productMode==='retail'?RETAIL_KEYS:PUBLIC_KEYS;
+  const activeKeys=activeCats.has('all')?modeKeys:[...activeCats].filter(k=>modeKeys.includes(k));
+  if(activeKeys.length===0)return['==',['get','category'],'__none__'];
+  return['in',['get','category'],['literal',activeKeys]];
+}
+
+function applyFilters(){updateHexLayer();if(map.getLayer('poi-circle'))map.setFilter('poi-circle',buildPoiFilter());writeUrlState()}
+
+function readUrlState(){
+  const p=new URLSearchParams(window.location.search);
+  if(p.get('product'))productMode=p.get('product');
+  if(p.get('mode'))activeMode=p.get('mode');
+  if(p.get('minutes'))activeMinutes=parseInt(p.get('minutes'));
+  if(p.get('cats')){const keys=p.get('cats').split(',').filter(Boolean);activeCats=keys.length?new Set(keys):new Set(['all'])}
+}
+
+function writeUrlState(){
+  const p=new URLSearchParams();
+  p.set('product',productMode);p.set('mode',activeMode);p.set('minutes',String(activeMinutes));
+  p.set('cats',activeCats.has('all')?'all':[...activeCats].join(','));
+  history.replaceState(null,'',window.location.pathname+'?'+p.toString());
+}
+
+function updateLegendMarker(markerId,labelId,value,min,max,fmt){
+  const m=document.getElementById(markerId),l=document.getElementById(labelId);
+  if(!value||value<=0){m.style.display='none';return}
+  const pct=Math.min(Math.max((value-min)/(max-min),0),1)*100;m.style.display='block';m.style.left=pct+'%';l.textContent=fmt(value);
+}
+
+readUrlState();
+setProductMode(productMode);
+document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===activeMode));
+document.querySelectorAll('.time-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.minutes)===activeMinutes));
+document.querySelectorAll('.section-header').forEach(h=>h.addEventListener('click',()=>h.closest('.panel-section').classList.toggle('open')));
+
+const loaderEl=document.getElementById('loader'),statusEl=document.getElementById('loader-status');
+function hideLoader(){loaderEl.classList.add('hidden');setTimeout(()=>loaderEl.style.display='none',600)}
+
+map.on('mousemove',e=>{document.getElementById('lat-val').textContent=e.lngLat.lat.toFixed(5);document.getElementById('lng-val').textContent=e.lngLat.lng.toFixed(5)});
+map.on('zoom',()=>{document.getElementById('zoom-val').textContent=map.getZoom().toFixed(1)});
+
+map.on('load',async()=>{
+  async function loadLayer(label,url,sourceId,addFn){
+    statusEl.textContent='Loading '+label+'...';
+    const pill=document.querySelector('.toggle-pill[data-layer="'+sourceId+'"]');
+    try{
+      const header=await mapboxPmTiles.PmTilesSource.getHeader(url);
+      map.addSource(sourceId,{type:mapboxPmTiles.PmTilesSource.SOURCE_TYPE,url,minzoom:header.minZoom,maxzoom:header.maxZoom});
+      addFn();return true;
+    }catch(e){
+      console.warn('['+label+'] '+e.message);
+      layerVisible[sourceId]=false;
+      if(pill){pill.classList.add('inactive');pill.title='Layer unavailable — re-run pipeline for this city ('+e.message+')';pill.style.opacity='.35';}
+      return false;
+    }
+  }
+  await loadLayer('income data','__R2_MHI__','mhi',()=>{
+    map.addLayer({id:'mhi-fill',type:'fill',source:'mhi','source-layer':'mhi_tracts',filter:MHI_VALID,paint:{'fill-color':['interpolate',['linear'],['coalesce',['get','mhi'],['get','MHI'],0],0,'#1a0533',30000,'#4a0e6b',60000,'#8b1a8b',90000,'#c4396e',120000,'#f06b2e',160000,'#ffd166'],'fill-opacity':opacity.mhi}});
+    map.addLayer({id:'mhi-outline',type:'line',source:'mhi','source-layer':'mhi_tracts',filter:MHI_VALID,paint:{'line-color':'rgba(255,255,255,0.04)','line-width':0.4}});
+  });
+  await loadLayer('access grid','__R2_HEX__','hex',()=>{
+    // placeholder paint; updatehexlayer() installs the real expression below.
+    map.addLayer({id:'hex-fill',type:'fill',source:'hex','source-layer':'hex_access',paint:{'fill-color':'rgba(30,35,41,0.3)','fill-opacity':opacity.hex}});
+    map.addLayer({id:'hex-outline',type:'line',source:'hex','source-layer':'hex_access',paint:{'line-color':'rgba(0,229,255,0.08)','line-width':0.3}});
+    map.addLayer({id:'hex-selected',type:'line',source:'hex','source-layer':'hex_access',filter:['==',['id'],0],paint:{'line-color':'#ffffff','line-width':2,'line-opacity':0.8}});
+  });
+  await loadLayer('destinations','__R2_POI__','poi',()=>{
+    map.addLayer({id:'poi-circle',type:'circle',source:'poi','source-layer':'retail_pois',minzoom:12,filter:buildPoiFilter(),paint:{'circle-radius':['interpolate',['linear'],['zoom'],12,1.5,15,4.5],'circle-color':'#ff6b35','circle-opacity':opacity.poi,'circle-stroke-width':0.4,'circle-stroke-color':'rgba(255,107,53,0.3)'}});
+  });
+  updateHexLayer();
+  document.querySelectorAll('.toggle-pill').forEach(p=>{if(layerVisible[p.dataset.layer]!==false)p.classList.remove('inactive');});
+  applyWaterMask();
+  hideLoader();
+});
+
+const MHI_MASK_LAYERS=['mhi-fill','mhi-outline'];
+const WATER_REFERENCE_LAYERS=['water','water_shadow','waterway'];
+function applyWaterMask(){
+  const ref=WATER_REFERENCE_LAYERS.find(id=>map.getLayer(id));
+  if(!ref)return;
+  MHI_MASK_LAYERS.forEach(id=>{try{if(map.getLayer(id))map.moveLayer(id,ref)}catch(e){}});
+}
+map.on('styledata',()=>{if(map.getLayer('mhi-fill'))applyWaterMask()});
+
+// ── ui bindings ───────────────────────────────────────────────────────────
+document.querySelectorAll('#mode-toggle .product-mode-btn').forEach(b=>b.addEventListener('click',()=>setProductMode(b.dataset.product)));
+document.querySelectorAll('.mode-btn').forEach(b=>b.addEventListener('click',()=>{activeMode=b.dataset.mode;document.querySelectorAll('.mode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');applyFilters()}));
+document.querySelectorAll('.time-btn').forEach(b=>b.addEventListener('click',()=>{activeMinutes=parseInt(b.dataset.minutes);document.querySelectorAll('.time-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');applyFilters()}));
+document.getElementById('mhi-opacity').addEventListener('input',function(){opacity.mhi=this.value/100;document.getElementById('mhi-opacity-val').textContent=this.value+'%';if(map.getLayer('mhi-fill'))map.setPaintProperty('mhi-fill','fill-opacity',opacity.mhi)});
+document.getElementById('hex-opacity').addEventListener('input',function(){opacity.hex=this.value/100;document.getElementById('hex-opacity-val').textContent=this.value+'%';if(map.getLayer('hex-fill'))map.setPaintProperty('hex-fill','fill-opacity',opacity.hex)});
+document.getElementById('poi-opacity').addEventListener('input',function(){opacity.poi=this.value/100;document.getElementById('poi-opacity-val').textContent=this.value+'%';if(map.getLayer('poi-circle'))map.setPaintProperty('poi-circle','circle-opacity',opacity.poi)});
+const LM={mhi:['mhi-fill','mhi-outline'],hex:['hex-fill','hex-outline','hex-selected'],poi:['poi-circle']};
+document.querySelectorAll('.toggle-pill').forEach(p=>p.addEventListener('click',()=>{const k=p.dataset.layer;layerVisible[k]=!layerVisible[k];p.classList.toggle('inactive',!layerVisible[k]);LM[k].forEach(id=>{if(map.getLayer(id))map.setLayoutProperty(id,'visibility',layerVisible[k]?'visible':'none')})}));
+document.getElementById('hex-detail-close').addEventListener('click',()=>{
+  document.getElementById('hex-detail').classList.remove('visible');
+  if(map.getLayer('hex-selected'))map.setFilter('hex-selected',['==',['id'],0]);
+});
+
+// ── info modal ────────────────────────────────────────────────────────────
+function openInfoModal(){
+  document.getElementById('info-modal-overlay').classList.add('open');
+  loadModalAnalytics();
+  setTimeout(()=>{
+    document.querySelectorAll('.term').forEach(t=>{
+      t.addEventListener('mouseenter',()=>{
+        const tip=t.querySelector('.term-tip');if(!tip)return;
+        const rect=t.getBoundingClientRect();
+        tip.style.top=(rect.bottom+6)+'px';
+        tip.style.left=Math.min(rect.left,window.innerWidth-280)+'px';
+        tip.style.display='block';
+      });
+      t.addEventListener('mouseleave',()=>{const tip=t.querySelector('.term-tip');if(tip)tip.style.display='none'});
+    });
+  },100);
+}
+document.getElementById('wordmark-trigger').addEventListener('click',openInfoModal);
+document.getElementById('wordmark-trigger').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openInfoModal()}});
+document.getElementById('info-modal-close').addEventListener('click',()=>document.getElementById('info-modal-overlay').classList.remove('open'));
+document.getElementById('info-modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('info-modal-overlay'))document.getElementById('info-modal-overlay').classList.remove('open')});
+document.querySelectorAll('.info-modal-tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.info-modal-tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.info-modal-pane').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('modal-tab-'+t.dataset.tab).classList.add('active');
+  if(t.dataset.tab==='analytics')loadModalAnalytics();
+}));
+
+// ── modal analytics ───────────────────────────────────────────────────────
+let _modalStatsCache=null;
+async function loadModalAnalytics(){
+  const el=document.getElementById('modal-analytics-content');
+  if(!_modalStatsCache){
+    try{
+      const resp=await fetch(R2+'/cities/'+CITY_SLUG+'/city_stats.json');
+      if(!resp.ok){el.innerHTML='<p style="color:var(--muted)">Analytics not available.</p>';return}
+      _modalStatsCache=await resp.json();
+    }catch(e){el.innerHTML='<p>Error: '+e.message+'</p>';return}
+  }
+  renderModalAnalytics();
+}
+function renderModalAnalytics(){
+  const s=_modalStatsCache;if(!s)return;
+  const el=document.getElementById('modal-analytics-content');
+  const selMode=(document.getElementById('modal-mode-sel')||{value:'pedestrian'}).value;
+  const selTime=parseInt((document.getElementById('modal-time-sel')||{value:'20'}).value);
+  const selGiniCat=(document.getElementById('modal-gini-sel')||{value:'Grocery & Food'}).value;
+  const modeLabel={pedestrian:'Walk',bicycle:'Bike',auto:'Drive'}[selMode]||selMode;
+  const barColor=selMode==='pedestrian'?'#3ec48c':selMode==='bicycle'?'var(--accent)':'var(--accent2)';
+  const r=s.correlation.spearman_r,pv=s.correlation.p_value;
+  const rColor=Math.abs(r)>0.3&&pv<0.05?(r>0?'var(--accent2)':'#3ec48c'):'var(--muted)';
+
+  function sectionTitle(title,definition){
+    return '<div class="modal-section-title"><h3>'+title+'<span class="a-term-tip">'+definition+'</span></h3></div>';
+  }
+  function positionTips(container){
+    container.querySelectorAll('.modal-section-title h3').forEach(h=>{
+      h.addEventListener('mouseenter',()=>{
+        const tip=h.querySelector('.a-term-tip');if(!tip)return;
+        const rect=h.getBoundingClientRect();
+        tip.style.top=(rect.bottom+6)+'px';
+        tip.style.left=Math.min(rect.left,window.innerWidth-280)+'px';
+        tip.style.display='block';
+      });
+      h.addEventListener('mouseleave',()=>{const tip=h.querySelector('.a-term-tip');if(tip)tip.style.display='none'});
+    });
+  }
+
+  let html='';
+
+  html+=sectionTitle('Income × Access Correlation','Spearman r measures how closely income and walk access move together. +1 = perfect positive (richer = more access), −1 = inverse, 0 = no relationship. p-value below 0.05 means the pattern is statistically real.');
+  html+='<div class="stat-row">';
+  html+='<div class="stat-box"><div class="stat-n" style="color:'+rColor+'">'+r.toFixed(3)+'</div><div class="stat-l">Spearman r</div></div>';
+  html+='<div class="stat-box"><div class="stat-n">'+(pv<0.001?'<0.001':pv.toFixed(4))+'</div><div class="stat-l">p-value</div></div>';
+  html+='</div>';
+  html+='<p style="font-size:10px;color:var(--muted);margin-bottom:12px;line-height:1.6">'+s.correlation.interpretation+'. ';
+  html+=(Math.abs(r)>0.3&&pv<0.05)?'<span style="color:#3ec48c">Statistically significant.</span>':'<span style="color:var(--muted)">Not statistically significant.</span>';
+  html+='</p>';
+
+  html+=sectionTitle(modeLabel+' Access by Income Quartile — '+selTime+' min','Each bar shows average number of '+modeLabel.toLowerCase()+' destinations reachable in '+selTime+' minutes. Income quartiles are city-specific — hex cells split into four equal groups by Census tract median household income.');
+  const useQ=s.quartile_summary?.map(q=>{
+    const key='avg_'+selMode+'_'+selTime+'_all';
+    const val=q[key]??q.avg_walk_20_all??0;
+    return{label:q.quartile,avg:val,avg_mhi:q.avg_mhi,n:q.hex_count};
+  });
+  if(useQ){
+    const maxV=Math.max(...useQ.map(q=>q.avg||0),1);
+    if(s.quartile_summary?.length>=4){
+      const qs=s.quartile_summary;
+      const minMhi=qs[0].avg_mhi,maxMhi=qs[qs.length-1].avg_mhi,rangeMhi=maxMhi-minMhi||1;
+      html+='<div style="margin-bottom:2px"><div class="quartile-mhi-bar">';
+      qs.forEach((q,i)=>{
+        if(i===0||i===qs.length-1)return;
+        const pct=((q.avg_mhi-minMhi)/rangeMhi*100).toFixed(1);
+        html+='<div class="quartile-mhi-tick" style="left:'+pct+'%"></div>';
+      });
+      html+='</div><div class="quartile-mhi-labels">';
+      qs.forEach(q=>html+='<span>$'+(q.avg_mhi/1000).toFixed(0)+'k</span>');
+      html+='</div></div>';
+    }
+    useQ.forEach(q=>{
+      const val=q.avg||0,pct=Math.round(val/maxV*100);
+      html+='<div class="analytics-bar-row" style="margin-bottom:8px;align-items:flex-start">';
+      html+='<div style="width:90px;flex-shrink:0"><span class="q-label">'+q.label+'</span>';
+      if(q.avg_mhi)html+='<span class="q-sublabel">$'+(q.avg_mhi/1000).toFixed(0)+'k avg MHI</span>';
+      html+='</div>';
+      html+='<div style="flex:1;min-width:0;padding-top:7px"><div class="analytics-bar-track"><div class="analytics-bar-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div></div>';
+      html+='<span class="analytics-bar-num" style="padding-top:2px">'+val.toFixed(0)+'</span></div>';
+    });
+    html+='<p style="font-size:9px;color:var(--muted);font-style:italic;margin-bottom:12px">Pre-computed · '+selMode+' · '+selTime+' min</p>';
+  }
+
+  html+=sectionTitle('Access Deserts — '+modeLabel+' · '+selTime+' min','Percentage of hex cells where zero destinations are reachable within the selected time and mode.');
+  if(s.access_deserts){
+    const desertKey='desert_'+selMode+'_'+selTime+'_pct';
+    const desertData=s.access_deserts.map(d=>({...d,zero_access_pct:d[desertKey]??d.zero_access_pct??0}));
+    const maxP=Math.max(...desertData.map(d=>d.zero_access_pct),1);
+    desertData.forEach(d=>{
+      const pct=Math.round(d.zero_access_pct/maxP*100);
+      html+='<div class="analytics-bar-row" style="margin-bottom:8px;align-items:flex-start">';
+      html+='<div style="width:90px;flex-shrink:0"><span class="q-label">'+d.quartile+'</span>';
+      if(d.avg_mhi)html+='<span class="q-sublabel">$'+(d.avg_mhi/1000).toFixed(0)+'k avg MHI</span>';
+      html+='</div>';
+      html+='<div style="flex:1;min-width:0;padding-top:7px"><div class="analytics-bar-track"><div class="analytics-bar-fill" style="width:'+pct+'%;background:#c4396e"></div></div></div>';
+      html+='<span class="analytics-bar-num" style="padding-top:2px">'+d.zero_access_pct+'%</span></div>';
+    });
+    const q1d=desertData[0],q4d=desertData[desertData.length-1];
+    if(q1d&&q4d){
+      const diff=(q1d.zero_access_pct-q4d.zero_access_pct).toFixed(1);
+      html+='<p style="font-size:10px;color:var(--muted);margin-bottom:12px;line-height:1.5">'+(diff>0?'Low-income areas have <strong style="color:#c4396e">'+diff+'% more</strong> access deserts than high-income areas.':'Access deserts are roughly evenly distributed across income levels.')+'</p>';
+    }
+  }
+
+  html+=sectionTitle('Walk vs Drive Gap by Quartile (20 min)','How many more destinations can you reach by driving vs walking in 20 minutes?');
+  if(s.mode_dependency){
+    const maxG=Math.max(...s.mode_dependency.map(d=>d.walk_auto_gap_all),1);
+    s.mode_dependency.forEach(d=>{
+      const pct=Math.round(d.walk_auto_gap_all/maxG*100);
+      html+='<div class="analytics-bar-row" style="margin-bottom:8px;align-items:flex-start">';
+      html+='<div style="width:90px;flex-shrink:0"><span class="q-label">'+d.quartile+'</span>';
+      if(d.avg_mhi)html+='<span class="q-sublabel">$'+(d.avg_mhi/1000).toFixed(0)+'k avg MHI</span>';
+      html+='</div>';
+      html+='<div style="flex:1;min-width:0;padding-top:7px"><div class="analytics-bar-track"><div class="analytics-bar-fill" style="width:'+pct+'%;background:var(--accent)"></div></div></div>';
+      html+='<span class="analytics-bar-num" style="padding-top:2px">+'+d.walk_auto_gap_all.toFixed(0)+'</span></div>';
+    });
+    html+='<p style="font-size:10px;color:var(--muted);margin-bottom:12px">Higher = more car-dependent for that income group.</p>';
+  }
+
+  const giniCats=[{key:'Grocery & Food',label:'Grocery'},{key:'Restaurant',label:'Restaurant'},{key:'Pharmacy',label:'Pharmacy'},{key:'Parks & Outdoors',label:'Parks'},{key:'Education',label:'Education'},{key:'all',label:'All destinations'}];
+  html+=sectionTitle('Access Inequality (Gini)','The Gini coefficient measures how evenly access is distributed across all hex cells. 0 = perfectly equal. 1 = maximally unequal.');
+  html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span class="modal-drop-label">Category</span><select class="modal-select" id="modal-gini-sel">';
+  giniCats.forEach(c=>html+='<option value="'+c.key+'"'+(selGiniCat===c.key?' selected':'')+'>'+c.label+'</option>');
+  html+='</select></div>';
+  const giniLookupKey=selGiniCat==='all'?'gini_'+selMode+'_'+selTime+'_all':'gini_'+selMode+'_'+selTime+'_'+selGiniCat;
+  const giniVal=s.equity[giniLookupKey]??s.equity['gini_pedestrian_20_'+(selGiniCat==='all'?'all':selGiniCat)]??s.equity.gini_walk_all??0;
+  const gColor=giniVal>0.5?'#c4396e':giniVal>0.3?'var(--accent2)':'#3ec48c';
+  const catLabel=giniCats.find(c=>c.key===selGiniCat)?.label||selGiniCat;
+  const giniPct=Math.round(giniVal*100);
+  html+='<div style="margin-bottom:10px">';
+  html+='<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px"><span style="font-size:28px;font-weight:500;font-family:Syne,sans-serif;color:'+gColor+'">'+giniVal.toFixed(3)+'</span><span style="font-size:9px;color:var(--muted)">'+catLabel+'</span></div>';
+  html+='<div style="position:relative;height:6px;background:linear-gradient(to right,#3ec48c,var(--accent2),#c4396e);border-radius:3px;margin-bottom:3px"><div style="position:absolute;top:-4px;left:'+giniPct+'%;width:2px;height:14px;background:var(--text);border-radius:1px;transform:translateX(-50%)"></div></div>';
+  html+='<div style="display:flex;justify-content:space-between;font-size:7.5px;color:var(--muted);margin-bottom:8px"><span>0 equal</span><span>1 unequal</span></div>';
+  html+='<p style="font-size:9px;color:var(--muted);font-style:italic;margin-bottom:4px">Pre-computed · '+selMode+' · '+selTime+' min</p>';
+  html+='<p style="font-size:10px;color:var(--muted);line-height:1.5">'+s.equity.interpretation+'.</p>';
+  html+='</div>';
+
+  el.innerHTML=html;
+  positionTips(el);
+}
+
+document.addEventListener('change',e=>{
+  if(['modal-mode-sel','modal-time-sel','modal-gini-sel'].includes(e.target.id))renderModalAnalytics();
+});
+
+// ── accessibility ─────────────────────────────────────────────────────────
+document.getElementById('map').setAttribute('aria-label','Interactive map showing retail access and household income across '+CITY_NAME);
+document.getElementById('map').setAttribute('role','application');
+
+document.querySelectorAll('.toggle-pill').forEach(p=>{
+  p.setAttribute('tabindex','0');
+  p.setAttribute('aria-pressed',String(layerVisible[p.dataset.layer]!==false));
+  p.addEventListener('click',()=>p.setAttribute('aria-pressed',layerVisible[p.dataset.layer]?'true':'false'));
+  p.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();p.click()}});
+});
+
+document.querySelectorAll('.mode-btn,.time-btn').forEach(b=>{
+  b.setAttribute('role','radio');b.setAttribute('tabindex','0');
+  b.setAttribute('aria-checked',b.classList.contains('active')?'true':'false');
+  b.addEventListener('click',()=>{
+    const group=b.classList.contains('mode-btn')?'.mode-btn':'.time-btn';
+    document.querySelectorAll(group).forEach(x=>x.setAttribute('aria-checked','false'));
+    b.setAttribute('aria-checked','true');
+  });
+  b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();b.click()}});
+});
+
+document.querySelectorAll('.cat-row,.cat-all-row').forEach(el=>{
+  el.setAttribute('tabindex','0');
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click()}});
+});
+
+[['mhi-opacity','Income layer opacity'],['hex-opacity','Access layer opacity'],['poi-opacity','Places layer opacity']].forEach(([id,label])=>{
+  const el=document.getElementById(id);if(el)el.setAttribute('aria-label',label);
+});
+
+const focusStyle=document.createElement('style');
+focusStyle.textContent=':is(.mode-btn,.time-btn,.toggle-pill,.city-btn,.cat-row,.cat-all-row,#info-modal-close,.modal-select,#hamburger):focus-visible{outline:2px solid var(--accent);outline-offset:2px}input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}';
+document.head.appendChild(focusStyle);
+
+const hamburger=document.getElementById('hamburger');
+const mobileNav=document.getElementById('mobile-nav-overlay');
+const mobileClose=document.getElementById('mobile-nav-close');
+if(hamburger&&mobileNav){
+  hamburger.addEventListener('click',()=>{const open=mobileNav.classList.toggle('open');hamburger.setAttribute('aria-expanded',String(open))});
+  if(mobileClose)mobileClose.addEventListener('click',()=>{mobileNav.classList.remove('open');hamburger.setAttribute('aria-expanded','false')});
+  mobileNav.querySelectorAll('.city-btn').forEach(btn=>btn.addEventListener('click',()=>mobileNav.classList.remove('open')));
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    document.getElementById('info-modal-overlay').classList.remove('open');
+    if(mobileNav){mobileNav.classList.remove('open');if(hamburger)hamburger.setAttribute('aria-expanded','false')}
+  }
+});
+
+// ── tooltip on hover ──────────────────────────────────────────────────────
+map.on('mousemove',e=>{
+  const layers=[];
+  if(layerVisible.mhi&&map.getLayer('mhi-fill'))layers.push('mhi-fill');
+  if(layerVisible.hex&&map.getLayer('hex-fill'))layers.push('hex-fill');
+  if(layerVisible.poi&&map.getLayer('poi-circle'))layers.push('poi-circle');
+
+  if(!layers.length){document.getElementById('tooltip').style.display='none';return}
+
+  const feats=map.queryRenderedFeatures(e.point,{layers});
+  if(!feats.length){
+    document.getElementById('tooltip').style.display='none';
+    document.getElementById('mhi-marker').style.display='none';
+    document.getElementById('hex-marker').style.display='none';
+    map.getCanvas().style.cursor='';
+    return;
+  }
+
+  let mhiFeat=null,hexFeat=null,poiFeat=null;
+  feats.forEach(f=>{
+    if(f.layer.id==='mhi-fill'&&!mhiFeat)mhiFeat=f;
+    if(f.layer.id==='hex-fill'&&!hexFeat)hexFeat=f;
+    if(f.layer.id==='poi-circle'&&!poiFeat)poiFeat=f;
+  });
+
+  const tt=document.getElementById('tooltip');
+  let html='';
+
+  if(poiFeat){
+    const p=poiFeat.properties;
+    html+='<div style="margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border)">';
+    html+='<div class="tt-label">Place</div>';
+    html+='<div style="font-size:12px;font-weight:500;color:var(--text)">'+(p.name||'POI')+'</div>';
+    if(p.category)html+='<div class="tt-cat">'+p.category+'</div>';
+    html+='</div>';
+    map.getCanvas().style.cursor='pointer';
+  } else {
+    map.getCanvas().style.cursor=hexFeat&&computeHexScore(hexFeat.properties)>0?'pointer':'default';
+  }
+
+  if(hexFeat&&layerVisible.hex){
+    const p=hexFeat.properties;
+    const ttScore=computeHexScore(p);
+    const ml=activeMode==='pedestrian'?'Walk':activeMode==='bicycle'?'Bike':'Drive';
+    html+='<div style="margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border)">';
+    html+='<div class="tt-label">'+ml+' Access · '+activeMinutes+' min</div>';
+    html+='<div style="font-size:14px;font-weight:500;color:var(--accent)">'+ttScore+' destinations</div>';
+    html+='<div class="tt-sub">'+(activeCats.has('all')?'All categories':[...activeCats].join(', '))+'</div>';
+    html+='<div style="font-size:8px;color:var(--dim);margin-top:3px">Click for breakdown</div>';
+    html+='</div>';
+    updateLegendMarker('hex-marker','hex-marker-label',ttScore,0,80,v=>v+' POIs');
+  } else {
+    document.getElementById('hex-marker').style.display='none';
+  }
+
+  if(mhiFeat&&layerVisible.mhi){
+    const p=mhiFeat.properties,v=p.mhi||p.MHI;
+    html+='<div>';
+    html+='<div class="tt-label">Median Household Income</div>';
+    if(!v||v<=0){
+      html+='<div style="font-size:12px;font-weight:500;color:var(--muted)">N/A</div>';
+      if(p.GEOID)html+='<div class="tt-sub">Tract '+String(p.GEOID).slice(-6)+'</div>';
+    } else {
+      html+='<div style="font-size:12px;font-weight:500;color:var(--accent-mhi)">$'+Math.round(v).toLocaleString()+'</div>';
+      if(p.GEOID)html+='<div class="tt-sub">Tract '+String(p.GEOID).slice(-6)+'</div>';
+      let popStr='';
+      if(p.pop&&p.pop>0){popStr='Pop '+Math.round(p.pop).toLocaleString();if(p.pop_density&&p.pop_density>0)popStr+=' · '+Math.round(p.pop_density).toLocaleString()+'/mi²';html+='<div class="tt-pop">'+popStr+'</div>';}
+      updateLegendMarker('mhi-marker','mhi-marker-label',v,MHI_MIN,MHI_MAX,v=>'$'+Math.round(v/1000)+'k');
+    }
+    html+='</div>';
+  } else {
+    document.getElementById('mhi-marker').style.display='none';
+  }
+
+  if(html){tt.innerHTML=html;tt.style.display='block';tt.style.left=(e.point.x+14)+'px';tt.style.top=(e.point.y-10)+'px'}
+  else tt.style.display='none';
+});
+
+map.on('mouseleave','mhi-fill',()=>document.getElementById('mhi-marker').style.display='none');
+map.on('mouseleave','hex-fill',()=>{document.getElementById('hex-marker').style.display='none';map.getCanvas().style.cursor=''});
+map.on('mouseleave','poi-circle',()=>map.getCanvas().style.cursor='');
+
+// ── hex click — detail panel with poi list ────────────────────────────────
+map.on('click','hex-fill',e=>{
+  if(!layerVisible.hex)return;
+  const feat=e.features[0];
+  if(!feat)return;
+  const p=feat.properties;
+  const modeScore=computeHexScore(p);
+
+  if(map.getLayer('hex-selected'))map.setFilter('hex-selected',['==',['id'],feat.id||0]);
+
+  const ml=activeMode==='pedestrian'?'Walk':activeMode==='bicycle'?'Bike':'Drive';
+  const speedLabel=activeMode==='pedestrian'?'~'+Math.round(activeMinutes*80)+'m radius':activeMode==='bicycle'?'~'+Math.round(activeMinutes*250)+'m radius':'~'+Math.round(activeMinutes*500)+'m radius';
+
+  document.getElementById('hex-detail-count').textContent=modeScore>0?modeScore+' reachable':'—';
+  document.getElementById('hex-detail-meta').textContent=ml+' · '+activeMinutes+' min · '+speedLabel;
+
+  const body=document.getElementById('hex-detail-body');
+  body.innerHTML='';
+
+  const currentZoom=map.getZoom();
+  const poisRendered=currentZoom>=12&&layerVisible.poi&&map.getLayer('poi-circle');
+
+  if(poisRendered){
+    const TRAVEL_KM={
+      pedestrian:{5:0.298,10:0.595,20:1.190},
+      bicycle:   {5:0.962,10:1.923,20:3.846},
+      auto:      {5:2.083,10:4.167,20:8.333}
+    };
+    const maxKm=(TRAVEL_KM[activeMode]||TRAVEL_KM.pedestrian)[activeMinutes]||1.19;
+
+    const zoom=map.getZoom();
+    const lat=e.lngLat.lat;
+    const mpp=(40075016.686*Math.cos(lat*Math.PI/180))/(256*Math.pow(2,zoom));
+    const pxRadius=Math.max(60,Math.round((maxKm*1000*3)/mpp));
+    const Rp=map.project(e.lngLat);
+    const bbox=[
+      [Rp.x-pxRadius, Rp.y-pxRadius],
+      [Rp.x+pxRadius, Rp.y+pxRadius]
+    ];
+    const allPoiFeats=map.queryRenderedFeatures(bbox,{layers:['poi-circle']});
+
+    function haversineKm(lat1,lng1,lat2,lng2){
+      const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+      const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+      return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+    }
+    const clickLat=e.lngLat.lat,clickLng=e.lngLat.lng;
+    const poiFeats=allPoiFeats.filter(f=>{
+      const[lng,lt]=f.geometry.coordinates;
+      return haversineKm(clickLat,clickLng,lt,lng)<=maxKm;
+    });
+
+    const byCat={};
+    poiFeats.forEach(f=>{
+      const pp=f.properties;
+      const cat=pp.category||'Other';
+      const name=pp.name||'Unnamed';
+      if(!byCat[cat])byCat[cat]=[];
+      if(!byCat[cat].includes(name))byCat[cat].push(name);
+    });
+
+    const modeKeys=productMode==='retail'?RETAIL_KEYS:PUBLIC_KEYS;
+    const activeKeys=activeCats.has('all')?modeKeys:[...activeCats].filter(k=>modeKeys.includes(k));
+    const cats=productMode==='retail'?RETAIL_CATS:PUBLIC_CATS;
+
+    const catOrder=cats.filter(c=>c.key!=='all').map(c=>c.key);
+    const sortedCats=Object.entries(byCat)
+      .filter(([cat])=>activeKeys.includes(cat))
+      .sort(([a,ac],[b,bc])=>{
+        if(bc.length!==ac.length)return bc.length-ac.length;
+        return catOrder.indexOf(a)-catOrder.indexOf(b);
+      });
+
+    if(sortedCats.length===0){
+      renderCountFallback(body,p,cats,modeScore);
+      const hint=document.createElement('div');
+      hint.className='detail-zoom-hint';
+      hint.textContent='No rendered POIs at this location. Scroll counts from hex properties.';
+      body.appendChild(hint);
+    } else {
+      sortedCats.forEach(([cat,names],idx)=>{
+        const group=document.createElement('div');
+        group.className='detail-cat-group'+(idx===0?' open':'');
+        const catLabel=cats.find(c=>c.key===cat)?.label||cat;
+        group.innerHTML=
+          '<div class="detail-cat-header">'
+          +'<span class="detail-cat-name">'+catLabel+'</span>'
+          +'<span class="detail-cat-count">'+names.length+'</span>'
+          +'<span class="detail-cat-chevron">&#9650;</span>'
+          +'</div>'
+          +'<div class="detail-poi-list">'
+          +names.slice(0,40).map(n=>'<div class="detail-poi-item">'+n+'</div>').join('')
+          +(names.length>40?'<div class="detail-poi-item" style="color:var(--dim)">+'+(names.length-40)+' more…</div>':'')
+          +'</div>';
+        group.querySelector('.detail-cat-header').addEventListener('click',()=>group.classList.toggle('open'));
+        body.appendChild(group);
+      });
+    }
+  } else {
+    const cats=productMode==='retail'?RETAIL_CATS:PUBLIC_CATS;
+    renderCountFallback(body,p,cats,modeScore);
+    if(modeScore>0&&currentZoom<12){
+      const hint=document.createElement('div');
+      hint.className='detail-zoom-hint';
+      hint.textContent='Zoom in past level 12 to see individual place names.';
+      body.appendChild(hint);
+    }
+  }
+
+  document.getElementById('hex-detail').classList.add('visible');
+});
+
+function renderCountFallback(container,hexProps,cats,totalScore){
+  // restrict breakdown to selected categories so it matches the headline.
+  const modeKeys=productMode==='retail'?RETAIL_KEYS:PUBLIC_KEYS;
+  const activeKeys=activeCats.has('all')?modeKeys:[...activeCats].filter(k=>modeKeys.includes(k));
+  const breakdown=cats.filter(c=>c.key!=='all'&&activeKeys.includes(c.key)).map(c=>{
+    const n=hexProps[activeMode+'_'+activeMinutes+'_'+c.key]||0;
+    return{label:c.label,key:c.key,count:n};
+  }).filter(x=>x.count>0).sort((a,b)=>b.count-a.count);
+
+  if(totalScore===0||breakdown.length===0){
+    const msg=document.createElement('div');
+    msg.style.cssText='font-size:8px;color:var(--dim);padding:6px 0;line-height:1.5';
+    msg.textContent='No destinations in range. Try zooming in or increasing travel time.';
+    container.appendChild(msg);
+    return;
+  }
+  const maxC=breakdown[0].count;
+  breakdown.forEach(item=>{
+    const row=document.createElement('div');
+    row.className='detail-count-bar-row';
+    row.innerHTML=
+      '<span class="detail-count-bar-label">'+item.label+'</span>'
+      +'<div class="detail-count-bar-track"><div class="detail-count-bar-fill" style="width:'+Math.round(item.count/maxC*100)+'%"></div></div>'
+      +'<span class="detail-count-bar-num">'+item.count+'</span>';
+    container.appendChild(row);
+  });
+}
+
+map.on('click',e=>{
+  const hf=map.queryRenderedFeatures(e.point,{layers:['hex-fill']});
+  if(!hf.length){
+    document.getElementById('hex-detail').classList.remove('visible');
+    if(map.getLayer('hex-selected'))map.setFilter('hex-selected',['==',['id'],0]);
+  }
+});
+
+// ── design system layer architecture — scroll-driven reveal ──────────────
+const LAYER_META={
+  '1':{num:'01',name:'Dark-v11',col:'var(--muted)'},
+  '2':{num:'02',name:'MHI Tracts',col:'var(--accent-mhi)'},
+  '3':{num:'03',name:'Hex Grid',col:'var(--accent)'},
+  '4':{num:'04',name:'POI Dots',col:'var(--accent2)'},
+  '5':{num:'05',name:'UI Glass',col:'var(--muted)'}
+};
+
+function initArchScroll(){
+  const scroll=document.getElementById('ds-arch-scroll');
+  if(!scroll)return;
+  const sections=[...scroll.querySelectorAll('.ds-arch-section')];
+  const plates=[...document.querySelectorAll('.ds-plate')];
+  const calloutNum=document.getElementById('ds-callout-num');
+  const calloutName=document.getElementById('ds-callout-name');
+  function activateLayer(layerStr){
+    const n=parseInt(layerStr);
+    for(let i=1;i<=5;i++){const plate=document.getElementById('dsplate-'+i);if(!plate)continue;plate.classList.toggle('visible',i<=n);plate.classList.toggle('active',i===n);}
+    sections.forEach(s=>s.classList.toggle('active',s.dataset.layer===layerStr));
+    const meta=LAYER_META[layerStr]||{};
+    if(calloutNum){calloutNum.textContent=meta.num||layerStr;calloutNum.style.color=meta.col||'var(--accent)'}
+    if(calloutName)calloutName.textContent=meta.name||'';
+  }
+  // observe against the modal body (the unified scroll container).
+  const rootEl=scroll.closest('.info-modal-body');
+  const obs=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting)activateLayer(entry.target.dataset.layer);});},{root:rootEl,threshold:0.5});
+  sections.forEach(s=>obs.observe(s));
+  plates.forEach(p=>{p.addEventListener('click',()=>{const target=scroll.querySelector('.ds-arch-section[data-layer="'+p.dataset.layer+'"]');if(target)target.scrollIntoView({behavior:'smooth',block:'nearest'});});});
+  activateLayer('1');
+}
+let _archInited=false;
+document.querySelectorAll('.info-modal-tab').forEach(t=>{
+  t.addEventListener('click',()=>{if(t.dataset.tab==='design'&&!_archInited){setTimeout(()=>{initArchScroll();_archInited=true},80);}});
+});
+document.getElementById('wordmark-trigger').addEventListener('click',()=>{
+  setTimeout(()=>{const designTab=document.querySelector('.info-modal-tab[data-tab="design"]');if(designTab&&designTab.classList.contains('active')&&!_archInited){initArchScroll();_archInited=true;}},120);
+},true);
+</script>
+
+</body></html>
