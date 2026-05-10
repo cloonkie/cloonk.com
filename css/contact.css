@@ -37,7 +37,7 @@ body.contact-body footer {
   font-size: clamp(40px, 7vw, 90px);
   letter-spacing: -0.01em;
   line-height: 0.95;
-  margin-top: 8px;
+  margin-top: 18px;
 }
 
 .accent {

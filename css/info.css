@@ -84,7 +84,7 @@ body.info-body footer {
   body.info-body { overflow: auto; height: auto; }
   body.info-body footer { position: static; }
   .info-main { position: static; grid-template-columns: 1fr; height: auto; }
-  .info-bio-col { border-right: none; border-bottom: 1px solid var(--border); }
+  .info-bio-col { border-right: none;}
   .info-photo-col { height: 80vw; }
-  .info-hero { position: static; height: 100%; width: auto; max-width: 100%; cursor: default; }
+  .info-hero { position: absolute; height: 100%; width: auto; max-width: 100%; cursor: default; }
 }

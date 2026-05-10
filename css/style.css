@@ -181,7 +181,7 @@ nav {
 /* ─── Page Shell ─────────────────────────────────────────── */
 main {
   padding-top: var(--nav-h);
-  min-height: 100vh;
+  min-height: 94vh;
 }
 
 .page {
