@@ -266,7 +266,6 @@ footer {
   .nav__links { display: none; }
   .nav__clock { display: none; }
   .nav__hamburger { display: flex; }
-  footer { flex-direction: column; }
 }
 
 /* ─── Theme Toggle ───────────────────────────────────────── */

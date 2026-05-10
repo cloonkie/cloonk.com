@@ -1,7 +1,7 @@
 /* project-detail.css */
-.detail-page{padding-bottom:100px}
+.detail-page{padding-bottom:20px}
 
-.detail-breadcrumb{display:flex;align-items:center;justify-content:space-between;padding:32px 0 48px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.detail-breadcrumb{display:flex;align-items:center;justify-content:space-between;padding:10px 0 20px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
 .detail-breadcrumb__left{display:flex;align-items:center;gap:10px}
 .detail-back{color:var(--muted);transition:color .2s}
 .detail-back:hover{color:var(--accent)}
@@ -47,7 +47,7 @@
 .detail-section-body__inner{overflow:hidden}
 .detail-section-content{padding-bottom:40px}
 
-.detail-label-tag{display:inline-block;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);border:1px solid rgba(57,255,20,.25);padding:3px 9px;border-radius:2px;margin-bottom:18px}
+.detail-label-tag{display:inline-block;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);padding:3px 9px;border-radius:2px;margin-bottom:18px}
 
 .detail-prose{font-size:15px;line-height:1.8;color:var(--fg);max-width:64ch}
 .detail-prose p+p{margin-top:14px}
@@ -111,6 +111,9 @@
 
 @media(max-width:640px){
   .detail-breadcrumb{flex-direction:column;align-items:flex-start;gap:12px}
+  .detail-hero__num,
+  .detail-breadcrumb__sep,
+  .detail-breadcrumb__current{display:none}
   .detail-hero{grid-template-columns:1fr}
   .detail-meta{flex-direction:row;flex-wrap:wrap;gap:16px 28px}
   .detail-two-col{grid-template-columns:1fr;gap:20px}
