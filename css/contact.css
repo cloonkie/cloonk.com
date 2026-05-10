@@ -148,7 +148,7 @@ body.contact-body footer {
     gap: 24px;
     padding: 24px var(--page-pad);
     flex: none;
-    min-height: auto;
+    min-height: 79vh;
   }
   .contact-sticker {
     position: relative;
