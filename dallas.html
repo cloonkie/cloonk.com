@@ -1,20 +1,20 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Urban Access — New York</title>
-<meta name="description" content="Urban Access — New York: an interactive spatial analysis comparing retail and public infrastructure reachability across New York neighborhoods. Hex-grid access scores by walking, biking, and driving, layered against median household income."/>
-<meta name="keywords" content="urban access, retail access, public access, new york, nyc, spatial analysis, accessibility, isochrone, mapbox, hex grid, h3, points of interest, poi, median household income, mhi, urban planning, data visualization"/>
+<title>Urban Access — Dallas</title>
+<meta name="description" content="Urban Access — Dallas: an interactive spatial analysis comparing retail and public infrastructure reachability across Dallas neighborhoods. Hex-grid access scores by walking, biking, and driving, layered against median household income."/>
+<meta name="keywords" content="urban access, retail access, public access, dallas, dal, spatial analysis, accessibility, isochrone, mapbox, hex grid, h3, points of interest, poi, median household income, mhi, urban planning, data visualization"/>
 <meta name="author" content="Urban Access"/>
 <meta name="robots" content="index,follow"/>
 <meta name="theme-color" content="#0a0c0f"/>
-<link rel="canonical" href="https://cloonk.com/projects/urban-retail-access"/>
+<link rel="canonical" href="https://cloonk.com/projects/urban-retail-access/dallas.html"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="Urban Access — New York"/>
-<meta property="og:description" content="Interactive spatial analysis comparing retail and public infrastructure reachability across New York neighborhoods."/>
+<meta property="og:title" content="Urban Access — Dallas"/>
+<meta property="og:description" content="Interactive spatial analysis comparing retail and public infrastructure reachability across Dallas neighborhoods."/>
 <meta property="og:site_name" content="Urban Access"/>
 <meta property="og:locale" content="en_US"/>
-<meta property="og:url" content="https://cloonk.com/projects/urban-retail-access"/>
+<meta property="og:url" content="https://cloonk.com/projects/urban-retail-access/dallas.html"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="Urban Access — New York"/>
-<meta name="twitter:description" content="Interactive spatial analysis comparing retail and public infrastructure reachability across New York neighborhoods."/>
+<meta name="twitter:title" content="Urban Access — Dallas"/>
+<meta name="twitter:description" content="Interactive spatial analysis comparing retail and public infrastructure reachability across Dallas neighborhoods."/>
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet"/>
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mapbox-pmtiles@1/dist/mapbox-pmtiles.umd.min.js"></script>
@@ -353,7 +353,7 @@ body.mode-public .loader-bar{background:var(--accent-public)}
   .info-modal-body{padding:8px 10px;font-size:10px;line-height:1.7}
 }
 </style></head><body>
-<div id="loader"><div class="loader-word">Urban <span>Access</span></div><div class="loader-city" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)">New York</div><div class="loader-bar-wrap"><div class="loader-bar"></div></div><div class="loader-status" id="loader-status">Initializing...</div></div>
+<div id="loader"><div class="loader-word">Urban <span>Access</span></div><div class="loader-city" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)">Dallas</div><div class="loader-bar-wrap"><div class="loader-bar"></div></div><div class="loader-status" id="loader-status">Initializing...</div></div>
 <div id="map"></div>
 <div id="topbar">
   <div class="topbar-title-row">
@@ -367,7 +367,7 @@ body.mode-public .loader-bar{background:var(--accent-public)}
     <div class="topbar-left">
       <div id="mode-toggle"><div class="product-mode-btn active" data-product="retail">Retail</div><div class="product-mode-btn" data-product="public">Public</div></div>
       <div class="divider"></div>
-      <div id="city-nav"><a class="city-btn active" data-city="new-york" href="index.html">NYC<span class="full">New York</span></a>
+      <div id="city-nav"><a class="city-btn" data-city="new-york" href="index.html">NYC<span class="full">New York</span></a>
     <a class="city-btn" data-city="los-angeles" href="los-angeles.html">LA<span class="full">Los Angeles</span></a>
     <a class="city-btn" data-city="chicago" href="chicago.html">CHI<span class="full">Chicago</span></a>
     <a class="city-btn" data-city="houston" href="houston.html">HOU<span class="full">Houston</span></a>
@@ -375,7 +375,7 @@ body.mode-public .loader-bar{background:var(--accent-public)}
     <a class="city-btn" data-city="san-antonio" href="san-antonio.html">SAT<span class="full">San Antonio</span></a>
     <a class="city-btn" data-city="philadelphia" href="philadelphia.html">PHL<span class="full">Philadelphia</span></a>
     <a class="city-btn" data-city="san-diego" href="san-diego.html">SAN<span class="full">San Diego</span></a>
-    <a class="city-btn" data-city="dallas" href="dallas.html">DAL<span class="full">Dallas</span></a>
+    <a class="city-btn active" data-city="dallas" href="dallas.html">DAL<span class="full">Dallas</span></a>
     <a class="city-btn" data-city="fort-worth" href="fort-worth.html">FTW<span class="full">Fort Worth</span></a></div>
     </div>
     <div class="topbar-right">
@@ -390,7 +390,7 @@ body.mode-public .loader-bar{background:var(--accent-public)}
 <div id="mobile-nav-overlay" role="dialog" aria-label="City navigation">
   <button id="mobile-nav-close" aria-label="Close navigation">&times;</button>
   <div id="mobile-nav-title">Select City</div>
-<a class="city-btn active" data-city="new-york" href="index.html">NYC<span class="full">New York</span></a>
+<a class="city-btn" data-city="new-york" href="index.html">NYC<span class="full">New York</span></a>
     <a class="city-btn" data-city="los-angeles" href="los-angeles.html">LA<span class="full">Los Angeles</span></a>
     <a class="city-btn" data-city="chicago" href="chicago.html">CHI<span class="full">Chicago</span></a>
     <a class="city-btn" data-city="houston" href="houston.html">HOU<span class="full">Houston</span></a>
@@ -398,7 +398,7 @@ body.mode-public .loader-bar{background:var(--accent-public)}
     <a class="city-btn" data-city="san-antonio" href="san-antonio.html">SAT<span class="full">San Antonio</span></a>
     <a class="city-btn" data-city="philadelphia" href="philadelphia.html">PHL<span class="full">Philadelphia</span></a>
     <a class="city-btn" data-city="san-diego" href="san-diego.html">SAN<span class="full">San Diego</span></a>
-    <a class="city-btn" data-city="dallas" href="dallas.html">DAL<span class="full">Dallas</span></a>
+    <a class="city-btn active" data-city="dallas" href="dallas.html">DAL<span class="full">Dallas</span></a>
     <a class="city-btn" data-city="fort-worth" href="fort-worth.html">FTW<span class="full">Fort Worth</span></a>
 </div>
 <div id="side-panel">
@@ -445,7 +445,7 @@ body.mode-public .loader-bar{background:var(--accent-public)}
 <div id="info-modal-overlay">
   <div id="info-modal">
     <div id="info-modal-header">
-      <span id="info-modal-title">Urban <span>Access</span> — New York</span>
+      <span id="info-modal-title">Urban <span>Access</span> — Dallas</span>
       <span id="info-modal-close">&times;</span>
     </div>
     <div class="info-modal-tabs">
@@ -705,7 +705,7 @@ body.mode-public .loader-bar{background:var(--accent-public)}
             <div class="ds-type-rationale">Geometric display with engineered tension between wide bowls and compressed counters. Reads as technical authority. Its 800 weight creates hierarchy contrast against Mono body text where Inter would read as identical weight.</div>
           </div>
           <div class="ds-type-block">
-            <div class="ds-type-specimen" style="font-family:'DM Mono',monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.8;color:var(--muted)">LAT 40.7484<br>LNG -73.9857<br>ZOOM 11<br>pedestrian · 20 min</div>
+            <div class="ds-type-specimen" style="font-family:'DM Mono',monospace;font-weight:400;font-size:12px;letter-spacing:.02em;line-height:1.8;color:var(--muted)">LAT 32.7767<br>LNG -96.797<br>ZOOM 10<br>pedestrian · 20 min</div>
             <div class="ds-type-meta"><span class="ds-type-name">DM Mono</span><span class="ds-type-weights">300 · 400 · 500</span></div>
             <div class="ds-type-usage">All UI labels · Coords · Tooltips · Controls · Data values</div>
             <div class="ds-type-rationale">Monospaced type mirrors the data-instrument aesthetic. Fixed-width characters prevent layout shift as values update on hover. DM Mono's optical corrections give better small-size legibility than system monospace.</div>
@@ -713,7 +713,7 @@ body.mode-public .loader-bar{background:var(--accent-public)}
         </div>
         <div class="ds-type-scale">
           <div class="ds-scale-row"><span style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:.15em;text-transform:uppercase">URBAN ACCESS</span><span class="ds-scale-label">18px · Syne 800 · Loader</span></div>
-          <div class="ds-scale-row"><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase">New York</span><span class="ds-scale-label">13px · Syne 700 · Modal title</span></div>
+          <div class="ds-scale-row"><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase">Dallas</span><span class="ds-scale-label">13px · Syne 700 · Modal title</span></div>
           <div class="ds-scale-row"><span style="font-family:'Syne',sans-serif;font-weight:600;font-size:22px;color:var(--accent)">47</span><span class="ds-scale-label">22px · Syne 600 · Stat numbers</span></div>
           <div class="ds-scale-row"><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">Modal body — description and analysis copy</span><span class="ds-scale-label">10px · DM Mono 400 · Body</span></div>
           <div class="ds-scale-row"><span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">PEDESTRIAN · 20 MIN</span><span class="ds-scale-label">9px · DM Mono 500 · Controls</span></div>
@@ -751,7 +751,7 @@ body.mode-public .loader-bar{background:var(--accent-public)}
 
 <script>
 const RETAIL_CATS=[{"key": "all", "label": "All"}, {"key": "Grocery & Food", "label": "Grocery"}, {"key": "Restaurant", "label": "Restaurant"}, {"key": "Pharmacy", "label": "Pharmacy"}, {"key": "Convenience", "label": "Convenience"}, {"key": "Fashion", "label": "Fashion"}, {"key": "Electronics", "label": "Electronics"}, {"key": "Department Store", "label": "Dept Store"}, {"key": "Hardware", "label": "Hardware"}, {"key": "Bookstore", "label": "Books"}, {"key": "Thrift", "label": "Thrift"}];const PUBLIC_CATS=[{"key": "all", "label": "All"}, {"key": "Parks & Outdoors", "label": "Parks"}, {"key": "Education", "label": "Education"}, {"key": "Community & Govt", "label": "Community"}, {"key": "Arts & Entertainment", "label": "Arts"}, {"key": "Health & Medical", "label": "Health"}, {"key": "Travel & Transport", "label": "Transit"}, {"key": "Professional & Other", "label": "Other"}];const PUBLIC_KEYS=["Parks & Outdoors", "Education", "Community & Govt", "Arts & Entertainment", "Health & Medical", "Travel & Transport", "Professional & Other"];const RETAIL_KEYS=["Grocery & Food", "Restaurant", "Pharmacy", "Convenience", "Fashion", "Electronics", "Department Store", "Hardware", "Bookstore", "Thrift"];
-const CITY_SLUG='new-york',CITY_NAME='New York',R2='https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev',MHI_MIN=0,MHI_MAX=160000;
+const CITY_SLUG='dallas',CITY_NAME='Dallas',R2='https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev',MHI_MIN=0,MHI_MAX=160000;
 
 let activeMinutes=20,activeMode='pedestrian',productMode='retail';
 let activeCats=new Set(['all']);
@@ -759,7 +759,7 @@ let layerVisible={mhi:true,hex:true,poi:true},opacity={mhi:.7,hex:.55,poi:.75};
 
 mapboxgl.Style.setSourceType(mapboxPmTiles.PmTilesSource.SOURCE_TYPE,mapboxPmTiles.PmTilesSource);
 mapboxgl.accessToken='pk.eyJ1IjoiY2xvb25rIiwiYSI6ImNtbjQxdDF1NzA0YXgycXByNXVuMnllYW4ifQ.3NHqjWQmGopsx5Xy1uHkQg';
-const map=new mapboxgl.Map({container:'map',style:'mapbox://styles/mapbox/dark-v11',center:[-73.9857,40.7484],zoom:11,minZoom:8,maxZoom:16,antialias:true});
+const map=new mapboxgl.Map({container:'map',style:'mapbox://styles/mapbox/dark-v11',center:[-96.797,32.7767],zoom:10,minZoom:8,maxZoom:16,antialias:true});
 map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'bottom-right');
 const MHI_VALID=['>',['coalesce',['get','mhi'],['get','MHI'],0],0];
 
@@ -881,17 +881,17 @@ map.on('load',async()=>{
       return false;
     }
   }
-  await loadLayer('income data','https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev/cities/new-york/mhi_tracts.pmtiles','mhi',()=>{
+  await loadLayer('income data','https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev/cities/dallas/mhi_tracts.pmtiles','mhi',()=>{
     map.addLayer({id:'mhi-fill',type:'fill',source:'mhi','source-layer':'mhi_tracts',filter:MHI_VALID,paint:{'fill-color':['interpolate',['linear'],['coalesce',['get','mhi'],['get','MHI'],0],0,'#1a0533',30000,'#4a0e6b',60000,'#8b1a8b',90000,'#c4396e',120000,'#f06b2e',160000,'#ffd166'],'fill-opacity':opacity.mhi}});
     map.addLayer({id:'mhi-outline',type:'line',source:'mhi','source-layer':'mhi_tracts',filter:MHI_VALID,paint:{'line-color':'rgba(255,255,255,0.04)','line-width':0.4}});
   });
-  await loadLayer('access grid','https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev/cities/new-york/hex_access.pmtiles','hex',()=>{
+  await loadLayer('access grid','https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev/cities/dallas/hex_access.pmtiles','hex',()=>{
     // placeholder paint; updatehexlayer() installs the real expression below.
     map.addLayer({id:'hex-fill',type:'fill',source:'hex','source-layer':'hex_access',paint:{'fill-color':'rgba(30,35,41,0.3)','fill-opacity':opacity.hex}});
     map.addLayer({id:'hex-outline',type:'line',source:'hex','source-layer':'hex_access',paint:{'line-color':'rgba(0,229,255,0.08)','line-width':0.3}});
     map.addLayer({id:'hex-selected',type:'line',source:'hex','source-layer':'hex_access',filter:['==',['id'],0],paint:{'line-color':'#ffffff','line-width':2,'line-opacity':0.8}});
   });
-  await loadLayer('destinations','https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev/cities/new-york/retail_pois.pmtiles','poi',()=>{
+  await loadLayer('destinations','https://pub-846dd985fe5743b1a4466cdbb1c48bcc.r2.dev/cities/dallas/retail_pois.pmtiles','poi',()=>{
     map.addLayer({id:'poi-circle',type:'circle',source:'poi','source-layer':'retail_pois',minzoom:12,filter:buildPoiFilter(),paint:{'circle-radius':['interpolate',['linear'],['zoom'],12,1.5,15,4.5],'circle-color':'#ff6b35','circle-opacity':opacity.poi,'circle-stroke-width':0.4,'circle-stroke-color':'rgba(255,107,53,0.3)'}});
   });
   updateHexLayer();
