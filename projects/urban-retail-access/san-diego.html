@@ -348,9 +348,9 @@ body.mode-public .loader-bar{background:var(--accent-public)}
   #hex-score-label{font-size:7px;margin-bottom:2px}
   .mode-btn,.time-btn{font-size:7px;padding:2px 0}
   .cat-row-label{font-size:7px}
-  #info-modal{width:96vw;max-height:90vh}
+  #info-modal{max-height:90vh}
   .info-modal-tab{font-size:8px;padding:8px 10px}
-  .info-modal-body{padding:8px 10px;font-size:10px;line-height:1.7}
+  .info-modal-body{font-size:10px;line-height:1.7}
 }
 </style></head><body>
 <div id="loader"><div class="loader-word">Urban <span>Access</span></div><div class="loader-city" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)">San Diego</div><div class="loader-bar-wrap"><div class="loader-bar"></div></div><div class="loader-status" id="loader-status">Initializing...</div></div>
@@ -1223,7 +1223,7 @@ map.on('mousemove',e=>{
     document.getElementById('mhi-marker').style.display='none';
   }
 
-  if(html){tt.innerHTML=html;tt.style.display='block';tt.style.left=(e.point.x+14)+'px';tt.style.top=(window.innerWidth<=600?Math.max(40,e.point.y-10):e.point.y-10)+'px'}
+  if(html){tt.innerHTML=html;tt.style.display='block';tt.style.left=(e.point.x+14)+'px';tt.style.top=(e.point.y-10)+'px'}
   else tt.style.display='none';
 });
 
