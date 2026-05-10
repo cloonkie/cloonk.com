@@ -1,7 +1,5 @@
 /* contact-drag.js — draggable contact stickers, no jump */
 (function () {
-  if (!window.matchMedia('(hover: hover)').matches) return;
-
   const canvas   = document.getElementById('contact-canvas');
   const stickers = document.querySelectorAll('.contact-sticker');
   if (!stickers.length || !canvas) return;

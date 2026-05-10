@@ -108,12 +108,12 @@
 .detail-not-found{display:flex;flex-direction:column;gap:16px;padding-top:20vh}
 
 @media(max-width:640px){
-  .detail-breadcrumb{flex-direction:column;align-items:flex-start;gap:12px}
+  .detail-breadcrumb{align-items:flex-start;gap:12px}
   .detail-hero__num,
   .detail-breadcrumb__sep,
   .detail-breadcrumb__current{display:none}
   .detail-hero{grid-template-columns:1fr}
-  .detail-meta{flex-direction:row;flex-wrap:wrap;gap:16px 28px}
+  .detail-meta{flex-direction:row;gap:16px 28px}
   .detail-two-col{grid-template-columns:1fr;gap:20px}
   .detail-result-grid{grid-template-columns:1fr}
   .detail-before-after{grid-template-columns:1fr}
