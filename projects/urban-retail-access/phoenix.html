@@ -250,7 +250,7 @@ body.mode-public .loader-bar{background:var(--accent-public)}
 .ds-comp-badge.note{background:rgba(255,107,53,.1);color:var(--accent2);border:1px solid rgba(255,107,53,.25)}
 .ds-comp-body{font-size:9.5px;color:var(--muted);line-height:1.65}
 .ds-arch-wrap{display:flex;align-items:flex-start;border-bottom:1px solid var(--border)}
-.ds-arch-sticky{position:sticky;top:0;width:48%;flex-shrink:0;height:min(500px,92vh);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:24px 20px;background:rgba(8,10,14,.98);border-right:1px solid var(--border);align-self:flex-start;box-shadow:4px 0 32px rgba(0,0,0,.35);overflow:hidden}
+.ds-arch-sticky{position:sticky;top:0;width:48%;flex-shrink:0;height:min(500px,92vh);min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:24px 20px;background:rgba(8,10,14,.98);border-right:1px solid var(--border);align-self:flex-start;box-shadow:4px 0 32px rgba(0,0,0,.35);overflow:hidden}
 .ds-arch-vis{position:relative;width:280px;height:360px}
 .ds-plate{position:absolute;left:0;right:0;height:80px;transition:opacity .5s ease, transform .5s ease, filter .5s ease;opacity:0;pointer-events:none}
 .ds-plate.visible{opacity:1;pointer-events:auto;cursor:pointer}
@@ -268,7 +268,7 @@ body.mode-public .loader-bar{background:var(--accent-public)}
 .ds-callout-num{display:block;font-family:'Syne',sans-serif;font-weight:800;font-size:28px;line-height:1;color:var(--accent);transition:color .4s}
 .ds-callout-name{display:block;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:3px;transition:color .4s}
 .ds-arch-scroll{flex:1;min-width:0}
-.ds-arch-section{min-height:82vh;padding:32px 24px;scroll-margin-top:32px;display:flex;flex-direction:column;justify-content:center;border-bottom:1px solid var(--border);position:relative}
+.ds-arch-section{min-height:60vh;padding:32px 24px;scroll-margin-top:32px;display:flex;flex-direction:column;justify-content:center;border-bottom:1px solid var(--border);position:relative}
 .ds-arch-section:last-child{border-bottom:none}
 .ds-arch-layer-num{font-family:'Syne',sans-serif;font-weight:800;font-size:56px;line-height:1;color:var(--border2);margin-bottom:8px;transition:color .4s;letter-spacing:-.02em}
 .ds-arch-section.active .ds-arch-layer-num{color:var(--accent)}
@@ -348,7 +348,7 @@ body.mode-public .loader-bar{background:var(--accent-public)}
   #hex-score-label{font-size:7px;margin-bottom:2px}
   .mode-btn,.time-btn{font-size:7px;padding:2px 0}
   .cat-row-label{font-size:7px}
-  #info-modal{max-height:none}
+  #info-modal{max-height:80vh}
   .info-modal-tab{font-size:8px;padding:8px 10px}
   .info-modal-body{font-size:10px;line-height:1.7}
   #tooltip{padding-top:16px}
