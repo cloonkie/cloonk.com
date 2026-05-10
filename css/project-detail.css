@@ -1,6 +1,4 @@
 /* project-detail.css */
-.detail-page{padding-bottom:20px}
-
 .detail-breadcrumb{display:flex;align-items:center;justify-content:space-between;padding:10px 0 20px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
 .detail-breadcrumb__left{display:flex;align-items:center;gap:10px}
 .detail-back{color:var(--muted);transition:color .2s}

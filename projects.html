@@ -640,15 +640,37 @@
       });
     });
 
-    /* Refine toggle — opens/closes the right panel column */
+    /* Refine toggle — opens/closes the right panel column (desktop)
+       and the slide-in drawer (mobile, ≤860px) */
     var refineBtn  = document.getElementById('btn-refine-toggle');
     var layoutEl   = document.getElementById('work-layout');
     var panelEl    = document.getElementById('work-panel');
 
-    refineBtn.addEventListener('click', function() {
-      var open = layoutEl.classList.toggle('panel-visible');
+    function setRefineOpen(open) {
+      layoutEl.classList.toggle('panel-visible', open);
+      panelEl.classList.toggle('is-mobile-open', open);
       refineBtn.classList.toggle('is-open', open);
       refineBtn.setAttribute('aria-expanded', String(open));
+      document.body.classList.toggle('refine-open', open);
+    }
+
+    refineBtn.addEventListener('click', function() {
+      setRefineOpen(!layoutEl.classList.contains('panel-visible'));
+    });
+
+    /* Close on Escape */
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && layoutEl.classList.contains('panel-visible')) {
+        setRefineOpen(false);
+      }
+    });
+
+    /* Close when tapping outside the panel on mobile */
+    document.addEventListener('click', function(e) {
+      if (!layoutEl.classList.contains('panel-visible')) return;
+      if (window.matchMedia('(min-width: 861px)').matches) return;
+      if (panelEl.contains(e.target) || refineBtn.contains(e.target)) return;
+      setRefineOpen(false);
     });
   </script>
 </body>
