@@ -417,8 +417,7 @@
 
 @media (max-width: 768px) {
   .tool-chip {
-    padding: 0.75rem 1rem;
-    font-size: 0.9rem;
+    font-size: 0.6rem;
   }
   .tool-chip[data-tooltip]::after {
     max-width: 220px;
