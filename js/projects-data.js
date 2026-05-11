@@ -967,24 +967,23 @@ window.PROJECTS = [
   "affiliation": "pratt",
   "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl.png",
   "gallery": [
-    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl.png",
-    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Formatting.jpg",
-    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Matomo%20Results.jpg",
-    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Opacity%20Analytics.jpg",
-    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Rainbow%20Sheet.jpg",
-    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20SUS%20Result.jpg",
-    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Survery%20Result.jpg",
-    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Term%20Reccomendation.jpg"
+    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20Formatting.jpg",
+    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20Matomo%20Results.jpg",
+    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20Opacity%20Analytics.jpg",
+    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20Rainbow%20Sheet.jpg",
+    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20SUS%20Result.jpg",
+    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20Survery%20Result.jpg",
+    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20Term%20Reccomendation.jpg"
   ],
   "media": [
     { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl.png" },
-    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Formatting.jpg" },
-    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Matomo%20Results.jpg" },
-    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Opacity%20Analytics.jpg" },
-    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Rainbow%20Sheet.jpg" },
-    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20SUS%20Result.jpg" },
-    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Survery%20Result.jpg" },
-    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Term%20Reccomendation.jpg" }
+    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20Formatting.jpg" },
+    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20Matomo%20Results.jpg" },
+    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20Opacity%20Analytics.jpg" },
+    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20Rainbow%20Sheet.jpg" },
+    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20SUS%20Result.jpg" },
+    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20Survery%20Result.jpg" },
+    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20Term%20Reccomendation.jpg" }
   ],
   "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20IDP%20Final%20Report.pdf",
   "pdf_label": "UNDL Item Details Page Research",
