@@ -1,14 +1,3 @@
-/* ---------- container ---------- */
-.findings {
-  margin: 8rem 0;
-}
-
-.findings__heading {
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 3rem);
-  margin-bottom: 4rem;
-}
-
 /* ---------- finding row ---------- */
 .finding {
   display: grid;
@@ -111,8 +100,6 @@
 .stat-moment {
   padding: 8rem 0;
   text-align: center;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
   margin: 6rem 0;
 }
 
@@ -217,16 +204,6 @@
 /* ============================================================
    IMPACT BLOCK — six-row outcome grid
    ============================================================ */
-.impact {
-  margin: 6rem 0;
-}
-
-.impact__heading {
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 3rem);
-  margin-bottom: 3rem;
-}
-
 .impact__grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -439,8 +416,25 @@
 }
 
 @media (max-width: 768px) {
+  .tool-chip {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
   .tool-chip[data-tooltip]::after {
     max-width: 220px;
     font-size: 0.75rem;
+  }
+}
+
+/* Touch devices: tap-to-toggle via :focus (since :focus-visible
+   doesn't fire on tap per W3C heuristic). On hover-capable devices
+   focus styles stay clean. */
+@media (hover: none) {
+  .tool-chip[data-tooltip]:focus::after,
+  .tool-chip[data-tooltip]:focus::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0s;
   }
 }

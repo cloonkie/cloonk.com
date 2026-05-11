@@ -322,10 +322,7 @@
         + '</article>';
     }).join('');
 
-    return '<section class="findings" id="s-findings">'
-      + '<h2 class="findings__heading">Findings</h2>'
-      + findingItems
-      + '</section>';
+    return '<div class="findings">' + findingItems + '</div>';
   }
 
   /* ── Stat moment (full-bleed editorial break) ── */
@@ -352,10 +349,7 @@
         + '<p class="impact__text">' + impactObj[key] + '</p>'
         + '</div>';
     }).join('');
-    return '<section class="impact" id="s-impact">'
-      + '<h2 class="impact__heading">Impact</h2>'
-      + '<div class="impact__grid">' + rows + '</div>'
-      + '</section>';
+    return '<div class="impact"><div class="impact__grid">' + rows + '</div></div>';
   }
 
   /* ── Closing quote (unpaired) ── */
@@ -425,8 +419,14 @@
         + '</a>'
     : '<a href="projects.html" class="detail-breadcrumb__next"><span>All Work →</span></a>';
 
-  var gallerySection = galleryItems.length ? section('s-gallery', '05', 'Gallery', galleryHTML, false) : '';
-  var tkNum          = galleryItems.length ? '06' : '05';
+  var findingsNum    = '05';
+  var impactNum      = String(5 + (hasFindings ? 1 : 0)).padStart(2, '0');
+  var galleryNum     = String(5 + (hasFindings ? 1 : 0) + (hasImpact ? 1 : 0)).padStart(2, '0');
+  var tkNum          = String(5 + (hasFindings ? 1 : 0) + (hasImpact ? 1 : 0) + (galleryItems.length ? 1 : 0)).padStart(2, '0');
+
+  var findingsSection = hasFindings ? section('s-findings', findingsNum, 'Findings', findingsHTML, true)  : '';
+  var impactSection   = hasImpact   ? section('s-impact',   impactNum,   'Impact',   impactHTML,   true)  : '';
+  var gallerySection  = galleryItems.length ? section('s-gallery', galleryNum, 'Gallery', galleryHTML, false) : '';
 
   /* ── Render ── */
   root.innerHTML =
@@ -476,9 +476,9 @@
       + section('s-approach',  '03', 'Approach',  approachHTML,  true)
       + (statements[0]  ? renderStatement(statements[0], 0)   : '')
       + section('s-results',   '04', 'Results',   resultsHTML,   true)
-      + findingsHTML
+      + findingsSection
       + (statMoments[1] ? renderStatMoment(statMoments[1], 1) : '')
-      + impactHTML
+      + impactSection
       + (statMoments[2] ? renderStatMoment(statMoments[2], 2) : '')
       + (statements[1]  ? renderStatement(statements[1], 1)   : '')
       + gallerySection
