@@ -955,63 +955,73 @@ window.PROJECTS = [
     ]
   },
 
-  {
-    "num": "30",
-    "id": "undl-idp",
-    "title": "UN Digital Library",
-    "short": "Designing for What Users Actually See",
-    "desc": "The United Nations Digital Library hosts one of the world's most consequential institutional archives — and its most-visited page was silently driving users away. This multi-method usability study combined Tobii Pro eye-tracking, think-aloud protocol, SUS/SEQ scoring, and Matomo behavioral analytics across twelve moderated sessions with academic researchers, students, and general-public users. The core analytical work involved cleaning, structuring, and operationalizing Matomo behavioral exports, running a comparative benchmark against peer research platforms, and synthesizing multi-source findings into a coherent narrative for UNDL stakeholders. The result: a quantified, implementation-ready roadmap that translated fragmented behavioral data into clear design actions for a platform serving 100,000+ monthly users.",
-    "topic": "ux research",
-    "type": "UX Research",
-    "year": "2026",
-    "affiliation": "pratt",
-    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl.png",
-    "gallery": [
-      "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl.png"
-    ],
-    "media": [
-      { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl.png" }
-    ],
-    "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20IDP%20Final%20Report.pdf",
-    "pdf_label": "UNDL Item Details Page Research",
-    "figma": "https://embed.figma.com/slides/8s86dGE2V3ADDe9NAxOc1B/UNDL-IDP-Final-Report?node-id=1-391&embed-host=share",
-    "sheets": null, "canva": null, "github": null, "live": null,
-    "context": {
-      "problem": "The Item Details Page was the UNDL's highest-traffic page and its highest drop-off point simultaneously. At scale, this meant the platform was successfully attracting users — but systematically failing at conversion. Download links were inconsistently positioned across document types. Metadata fields were labeled for archivists, not researchers. Eye-tracking heatmaps showed low fixation density on the highest-value interface areas — users were looking past exactly what they needed. The behavioral story matched: a 64% drop-off rate with minimal return engagement, surfaced only after cleaning and reconstructing the funnel from Matomo's noisy session exports.",
-      "why": [
-        "The UNDL serves 100,000+ users per month — researchers, journalists, diplomats, and students — making even marginal usability improvements high-impact",
-        "The Item Details Page was simultaneously the highest-traffic page and the highest drop-off point on the site",
-        "Recommendations needed to be scoped for institutional constraints — targeted and implementable, not dependent on a full redesign"
-      ]
-    },
-    "approach": {
-      "summary": "My primary responsibility was the data layer — everything between raw collection and finished narrative. This work sat on the critical path: without structured behavioral data, the team's qualitative findings would not have translated into defensible recommendations. I cleaned, structured, and operationalized Matomo behavioral exports — filtering bot traffic, normalizing sessions across document types, and reconstructing the drop-off funnel that became a headline finding. I analyzed post-session survey responses (SUS, SEQ, open-ended) and distributed results across stakeholders to align on severity and prioritization before finalization. I also ran a comparative benchmark against peer research platforms — contextualizing the UNDL's SUS score and surfacing conventions that comparable interfaces had adopted and the UNDL had silently diverged from. Teammates led moderated sessions and Tobii hardware operation; I operationalized raw session outputs into a structured dataset that made cross-method validation possible.",
-      "data": ["Tobii Pro Eye Tracking", "Think-Aloud Protocol", "SUS Scoring", "SEQ Task Evaluation", "Matomo Analytics", "Figma", "Miro", "Survey Design", "Stakeholder Presentation"]
-    },
-    "results": {
-      "before": [
-        "SUS score of 46.4 — 21.6 points below the 68-point industry benchmark, and well below scores observed in the peer platform comparison set",
-        "64% drop-off rate on Item Details Pages with minimal return engagement, confirmed via cleaned Matomo data",
-        "8 of 12 participants could not locate full-text access without assistance during moderated sessions",
-        "Eye-tracking heatmaps showed fixation density concentrated in peripheral areas — consistently low attention on the download affordance and above-the-fold metadata",
-        "Metadata label comprehension near zero among non-expert users across all three participant profiles"
-      ],
-      "after": [
-        "Download affordance redesign specifications grounded in gaze data — positioning, visual weight, and color contrast defined precisely enough to implement without interpretation",
-        "Plain-language metadata relabeling standard targeting the highest-traffic fields, validated against participant comprehension patterns",
-        "Three-tier content hierarchy defined from task frequency data and observed user priority ranking across session profiles",
-        "Comparative benchmark framing that gave the SUS score real context — not just 'below average,' but below what, and by how much, relative to peer platforms",
-        "Stakeholder presentation delivered with quantified impact estimates and implementation feasibility ratings for every recommendation",
-        "Given the page's traffic volume, even marginal improvements in task success would translate into meaningful gains in document access and user retention."
-      ]
-    },
-    "takeaways": [
-      {
-        "title": "The data tells you what's broken. My job is making it legible enough that the why becomes obvious.",
-        "body": "Every heatmap gap is a specific, diagnosable failure — a visual hierarchy problem, a contrast issue, an affordance that doesn't communicate what it needs to. But that diagnosis only holds if the underlying data is clean, consistently structured, and contextualized against something real. The comparative benchmark didn't just add a slide to the presentation — it changed how stakeholders heard the SUS score. Numbers land differently when they're anchored. That's the work."
-      }
+{
+  "num": "30",
+  "id": "undl-idp",
+  "title": "UN Digital Library",
+  "short": "Designing for What Users Actually See",
+  "desc": "The United Nations Digital Library hosts one of the world's most consequential institutional archives — and its most-visited page was silently driving users away. Across a 12-week engagement with a four-person Pratt research team, we ran a mixed-methods usability study combining Tobii Pro eye-tracking, retrospective think-aloud, SUS and SEQ scoring, a 260-respondent UNDL website experience survey, and Matomo behavioral analytics across eight moderated sessions. My role was the data layer: cleaning Matomo's bot-saturated exports (82.5% non-human traffic), operationalizing quantitative measures across the team, and running a comparative SUS benchmark against peer research platforms that gave the headline finding — a 46.4 score against the 68-point industry benchmark — its real institutional context. The study surfaced 36 prioritized issues and produced an implementation-ready roadmap delivered to the UNDL's Chief of Information Management Section.",
+  "topic": "ux research",
+  "type": "UX Research",
+  "year": "2026",
+  "affiliation": "pratt",
+  "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl.png",
+  "gallery": [
+    "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl.png"
+  ],
+  "media": [
+    { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl.png" }
+  ],
+  "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20IDP%20Final%20Report.pdf",
+  "pdf_label": "UNDL Item Details Page Research",
+  "figma": "https://embed.figma.com/slides/8s86dGE2V3ADDe9NAxOc1B/UNDL-IDP-Final-Report?node-id=1-391&embed-host=share",
+  "sheets": null, "canva": null, "github": null, "live": null,
+  "context": {
+    "problem": "The Item Details Page was the UNDL's highest-traffic page — and the place users were leaving when they couldn't find what they came for. Download links sat in different positions across document types. Metadata fields were labeled for archivists, not researchers. The site's tracking layer compounded the problem: 82.5% of Matomo's recorded sessions were bot traffic, so the engagement metrics the UNDL was using to monitor the page weren't measuring real users. What looked like a design problem was also a measurement problem — and recovering a defensible behavioral picture was the first piece of work the study needed.",
+    "why": [
+      "The UNDL serves a global audience of researchers, journalists, diplomats, and students — even marginal usability improvements compound across an institutional audience",
+      "The Item Details Page is the highest-traffic page on the site, and the platform had never undergone a formal usability study before this engagement",
+      "Recommendations needed to be scoped for institutional constraints — implementable against an existing vendor relationship, not dependent on a full redesign"
     ]
   },
+  "approach": {
+    "summary": "My primary responsibility was the data layer — everything between raw collection and finished narrative. This work sat on the critical path: without structured behavioral data, the team's qualitative findings would not have translated into defensible recommendations. I cleaned and normalized Matomo's session exports — filtering bot traffic that accounted for 82.5% of recorded sessions, de-duplicating across document types, and reconstructing the IDP user funnel from what remained. I operationalized post-session SUS, SEQ, and open-ended survey responses into a structured dataset that made cross-method validation possible, then distributed results across the team to align on severity and prioritization before the 36-issue rainbow sheet was finalized. I also ran a comparative SUS benchmark against peer research platforms — contextualizing the UNDL's 46.4 score against scores from comparable institutional archives, and surfacing layout and labeling conventions those platforms had adopted that the UNDL had silently diverged from. Teammates led the eight moderated user sessions and Tobii hardware operation; I operationalized the raw session outputs into the structured dataset the analysis sat on.",
+    "data": ["Pandas", "Tobii Pro Eye Tracking", "Retrospective Think-Aloud", "SUS Scoring", "SEQ Task Evaluation", "Matomo Analytics", "Comparative Benchmarking", "Figma", "Miro", "Survey Design", "Stakeholder Presentation"]
+  },
+  "results": {
+    "before": [
+      "SUS score of 46.4 — 21.6 points below the 68-point industry benchmark, and below every peer platform in the comparative benchmark set",
+      "Matomo session data 82.5% bot-saturated — standard engagement metrics unusable until filtered and reconstructed",
+      "Across eight moderated sessions, all participants reported low confidence even on successfully completed tasks; the linked-record task averaged 1.9/7 on SEQ difficulty",
+      "Eye-tracking opacity maps showed users defaulting to the Details section to verify authorship when met with UN acronyms (UNCTAD) instead of recognizable names",
+      "IDP body text rendered at 12px / 200 weight — below WCAG accessibility minimums for both size and contrast",
+      "IDP layouts differed across document types without explanation — the missing 'Download' button on records without digitized files left users disoriented mid-task"
+    ],
+    "after": [
+      "36 prioritized usability issues consolidated into two key findings — (1) specialist labels and terminology create access barriers; (2) inconsistent layouts and sub-WCAG typography compound them",
+      "Relabeling specification targeting highest-traffic fields, including 'Formats' → 'Citation Formats' to disambiguate from file-type expectations",
+      "Tooltip pattern for specialist terms (e.g., 'Symbol') that couldn't be renamed without breaking the UN's internal taxonomy",
+      "Disabled 'Download' state with directional tooltip for IDPs without digitized files — preserving layout consistency while signaling availability and routing users to a librarian",
+      "Typography update to 14px minimum at 400 weight with proportional header scaling — bringing IDP body content into WCAG compliance without altering overall layout",
+      "Comparative benchmark framing that gave the 46.4 SUS score institutional context — anchored against named peer platforms rather than the generic 68-point industry threshold",
+      "Final report delivered to the UNDL's Chief of Information Management Section, with a pending invitation to present findings to the broader library and tech department"
+    ]
+  },
+  "takeaways": [
+    {
+      "title": "The data tells you what's broken. My job is making it legible enough that the why becomes obvious.",
+      "body": "Every heatmap gap is a specific, diagnosable failure — a visual hierarchy problem, a contrast issue, an affordance that doesn't communicate what it needs to. But that diagnosis only holds if the underlying data is clean, consistently structured, and contextualized against something real. The comparative benchmark didn't just add a slide to the presentation — it changed how stakeholders heard the SUS score. Numbers land differently when they're anchored. That's the work."
+    },
+    {
+      "title": "When the dataset is 82.5% noise, the cleaning is the analysis.",
+      "body": "Matomo's recorded sessions were almost entirely bots. The UNDL had been watching dashboards that weren't measuring real users. Filtering, de-duping, and reconstructing the funnel wasn't preprocessing — it was the first finding of the study, and it reshaped what the rest of the methodology could trust. The lesson holds outside this project: when an institution's measurement layer is broken, no design recommendation downstream is defensible until someone fixes the layer first."
+    },
+    {
+      "title": "Specialist language isn't neutral — it's an access barrier with traffic numbers attached.",
+      "body": "The UNDL's labels weren't wrong; they were internally consistent with a bibliographic system built by experts for experts. But every general-public user who left without finding a document was a measurable cost of that consistency. The recommendation — relabel where you can, tooltip where you can't — is small. The principle is bigger. Audit your interface for the words that assume your user already speaks your dialect."
+    }
+  ]
+},
 
   {
     "num": "31",
