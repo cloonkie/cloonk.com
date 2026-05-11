@@ -1095,6 +1095,10 @@ window.PROJECTS = [
       {
         "title": "Benchmarking against peer archives",
         "body": "The 46.4 SUS score landed differently when stakeholders could see it anchored against named peer platforms instead of a generic industry threshold. The benchmark was what made the recommendation list defensible at delivery."
+      },
+      {
+        "title": "Conducting in-person eye-tracking study",
+        "body": "Tobii captured fixations and gaze paths. Retrospective think-aloud captured what participants said about what they saw. SUS and SEQ captured how confident they felt. None of those streams meant much on their own. I built the join — fixation patterns by area of interest, RTA quote timestamps, and per-task confidence scores in a single analysis layer — so when finding 1 says 'users defaulted to the Details section to verify authorship,' that claim is backed by gaze data, an RTA quote, and a confidence score, not just one of them."
       }
     ]
   },
