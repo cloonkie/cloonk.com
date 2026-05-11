@@ -1085,12 +1085,8 @@ window.PROJECTS = [
     "data": ["Pandas", "Tobii Pro Eye Tracking", "Retrospective Think-Aloud", "SUS Scoring", "SEQ Task Evaluation", "Matomo Analytics", "Comparative Benchmarking", "Figma", "Miro", "Survey Design", "Stakeholder Presentation"],
     "moves": [
       {
-        "title": "Cleaning the data layer",
-        "body": "Matomo's session data was 82.5% bot traffic. Cleaning it wasn't preprocessing — it was the first finding of the study, and the precondition for trusting anything downstream."
-      },
-      {
-        "title": "Operationalizing the measures",
-        "body": "I structured the post-session SUS, SEQ, and open-ended survey responses into a single dataset that made cross-method validation possible — then distributed results across the team to align on severity before the 36-issue rainbow sheet was finalized."
+        "title": "Building the data layer",
+        "body": "Matomo's session data was 82.5% bot traffic. Cleaning it wasn't preprocessing — it was the first finding of the study, and the precondition for trusting anything downstream. From there, I structured SUS, SEQ, and open-ended survey responses into a single dataset that made cross-method validation possible, and distributed results so the team could align on severity before the 36-issue rainbow sheet was finalized."
       },
       {
         "title": "Benchmarking against peer archives",
@@ -1098,8 +1094,7 @@ window.PROJECTS = [
       },
       {
         "title": "Conducting in-person eye-tracking study",
-        "body": "Tobii captured fixations. RTA captured what participants said. SUS and SEQ captured confidence. None of those streams meant much alone. I built the join — so 'users defaulted to the Details section to verify authorship' is backed by gaze data, a quote, and a confidence score, not just one of them."
-
+        "body": "Across eight moderated sessions, Tobii captured fixations, RTA captured what participants said, and SUS and SEQ captured confidence. None of those streams meant much alone. I built the join — so 'users defaulted to the Details section to verify authorship' is backed by gaze data, a quote, and a confidence score, not just one of them."
       }
     ]
   },
