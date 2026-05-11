@@ -229,6 +229,38 @@
     }
   }
 
+  /* ── Findings ── */
+  function renderFindings(project) {
+    if (!project.findings || project.findings.length === 0) return '';
+
+    var findingItems = project.findings.map(function(f, i) {
+      var num = ('0' + (i + 1)).slice(-2);
+      var imageHtml = f.image
+        ? '<div class="finding__media"><img src="' + f.image + '" alt="' + f.title + '" loading="lazy"/></div>'
+        : '<div class="finding__media finding__media--empty"></div>';
+
+      return '<article class="finding" data-finding-index="' + i + '">'
+        + '<div class="finding__content">'
+          + '<div class="finding__number">' + num + '</div>'
+          + '<h3 class="finding__title">' + f.title + '</h3>'
+          + '<div class="finding__block"><span class="finding__label">Observation</span><p>' + f.observation + '</p></div>'
+          + '<div class="finding__block"><span class="finding__label">Evidence</span><p>' + f.evidence + '</p></div>'
+          + '<div class="finding__block"><span class="finding__label">Impact</span><p>' + f.impact + '</p></div>'
+          + '<div class="finding__block"><span class="finding__label">Recommendation</span><p>' + f.recommendation + '</p></div>'
+        + '</div>'
+        + imageHtml
+        + '</article>';
+    }).join('');
+
+    return '<section class="findings" id="s-findings">'
+      + '<h2 class="findings__heading">Findings</h2>'
+      + findingItems
+      + '</section>';
+  }
+
+  var findingsHTML = renderFindings(p);
+  var hasFindings  = !!findingsHTML;
+
   /* ── Gallery: images only, resolve URLs ── */
   var hasGallery   = p.gallery && p.gallery.length > 0;
   var hasMedia     = p.media   && p.media.length   > 0;
@@ -277,8 +309,9 @@
         + '</a>'
     : '<a href="projects.html" class="detail-breadcrumb__next"><span>All Work →</span></a>';
 
-  var gallerySection = galleryItems.length ? section('s-gallery', '05', 'Gallery', galleryHTML, false) : '';
-  var tkNum          = galleryItems.length ? '06' : '05';
+  var gNum           = hasFindings ? '06' : '05';
+  var gallerySection = galleryItems.length ? section('s-gallery', gNum, 'Gallery', galleryHTML, false) : '';
+  var tkNum          = String(4 + (hasFindings ? 1 : 0) + (galleryItems.length ? 1 : 0) + 1).padStart(2, '0');
 
   /* ── Render ── */
   root.innerHTML =
@@ -314,6 +347,7 @@
         + '<button class="detail-section-nav__item" data-target="s-context"><span class="detail-section-nav__dot"></span>Context</button>'
         + '<button class="detail-section-nav__item" data-target="s-approach"><span class="detail-section-nav__dot"></span>Approach</button>'
         + '<button class="detail-section-nav__item" data-target="s-results"><span class="detail-section-nav__dot"></span>Results</button>'
+        + (hasFindings ? '<button class="detail-section-nav__item" data-target="s-findings"><span class="detail-section-nav__dot"></span>Findings</button>' : '')
         + (galleryItems.length ? '<button class="detail-section-nav__item" data-target="s-gallery"><span class="detail-section-nav__dot"></span>Gallery</button>' : '')
         + '<button class="detail-section-nav__item" data-target="s-takeaways"><span class="detail-section-nav__dot"></span>Takeaways</button>'
       + '</nav>'
@@ -324,6 +358,7 @@
       + section('s-context',   '02', 'Context',   contextHTML,   true)
       + section('s-approach',  '03', 'Approach',  approachHTML,  true)
       + section('s-results',   '04', 'Results',   resultsHTML,   true)
+      + findingsHTML
       + gallerySection
       + section('s-takeaways', tkNum, 'Takeaways', takeawaysHTML, true)
     + '</div>'
@@ -379,9 +414,10 @@
     btn.addEventListener('click', function() {
       var target = document.getElementById(btn.dataset.target);
       if (!target) return;
-      if (!target.classList.contains('is-open')) {
+      if (target.classList.contains('detail-section-block') && !target.classList.contains('is-open')) {
         target.classList.add('is-open');
-        target.querySelector('.detail-section-header').setAttribute('aria-expanded', 'true');
+        var hdr = target.querySelector('.detail-section-header');
+        if (hdr) hdr.setAttribute('aria-expanded', 'true');
       }
       var navWrap = document.querySelector('.detail-section-nav-wrap');
       var offset  = navWrap ? navWrap.offsetHeight + 64 : 120;
@@ -403,10 +439,23 @@
     });
   }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
 
-  ['s-artifact','s-context','s-approach','s-results','s-gallery','s-takeaways'].forEach(function(sid) {
+  ['s-artifact','s-context','s-approach','s-results','s-findings','s-gallery','s-takeaways'].forEach(function(sid) {
     var el = document.getElementById(sid);
     if (el) spy.observe(el);
   });
+
+  /* ── Findings: scroll-triggered accent ── */
+  (function() {
+    var findings = root.querySelectorAll('.finding');
+    if (!findings.length) return;
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) entry.target.classList.add('finding--in-view');
+        else                      entry.target.classList.remove('finding--in-view');
+      });
+    }, { rootMargin: '-30% 0px -30% 0px', threshold: 0 });
+    findings.forEach(function(f) { obs.observe(f); });
+  })();
 
   /* ── Lightbox ── */
   if (!galleryItems.length) return;

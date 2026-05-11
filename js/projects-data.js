@@ -24,7 +24,7 @@ window.PROJECTS = [
     ],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Peleton%20Marketing%20Concept-compressed.pdf",
     "pdf_label": "Peloton Marketing Concept",
-    "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "Peloton's existing messaging leaned heavily on performance metrics and community features — impressive, but cold. The brief was to reposition the brand around a behavioral insight: people don't buy fitness products to exercise more, they buy them to feel like the kind of person who exercises. The copy needed to live in that gap — between who someone is and who they're working toward becoming."
     },
@@ -60,7 +60,7 @@ window.PROJECTS = [
     ],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Kenzo%20Product%20Elements%20Final%20Project-compressed.pdf",
     "pdf_label": "Kenzo Product Elements Final Project",
-    "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "Most brand analysis at FIT lived at the campaign and identity level. This project asked something harder: can you identify a brand's design philosophy purely from the product, without looking at its advertising? I wanted to build that analytical muscle — using physical construction as evidence rather than aesthetic as intuition."
     },
@@ -98,7 +98,7 @@ window.PROJECTS = [
     "pdf_label": "Fashion=Freedom Macro Trend Forecast",
     "figma": null, "sheets": null,
     "canva": "https://www.canva.com/design/DAExDRLnXhs/HC3jQIZs8NF4p8LtjCratQ/view?embed",
-    "github": null, "live": null,
+    "github": null, "live": null, "findings": null,
     "context": {
       "problem": "Most trend forecasting in 2021 was focused on the aesthetic shift toward comfort and casualness post-pandemic. I wanted to look at something structurally different: the behavioral shift toward individuality and autonomy. Why were young consumers investing in digital goods? Why were microtrends accelerating while macro trends fragmented? The answer, I thought, was in the psychology of control."
     },
@@ -140,7 +140,7 @@ window.PROJECTS = [
       { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-4.jpg" },
       { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-store-plan-5.jpg" }
     ],
-    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "Retail space is expensive, and every layout decision has a measurable impact on conversion, dwell time, and average transaction value. The challenge was to go beyond 'this looks good' and build a layout logic that could be defended with merchandising principles — why this category sits near the entrance, why the highest-margin items are at eye level, why the back wall anchors the floor plan.",
       "why": ["Tiffany's customer journey is highly intentional — every step from door to display case is choreographed", "The store plan had to communicate brand prestige without ever feeling transactional", "Conversion in luxury retail depends on comfort and time in store, not urgency"]
@@ -171,7 +171,7 @@ window.PROJECTS = [
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-ar-1.jpg",
     "gallery": ["https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-ar-1.jpg"],
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-ar-1.jpg" }],
-    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "The core tension in Tiffany's AR strategy was that the tools it used — Snapchat filters, blockchain tokens, social media distribution — are fundamentally democratizing. They extend reach to people who would never walk into a Fifth Avenue store. But Tiffany's brand equity lives in scarcity and prestige. The analysis question: could digital expansion grow the brand without diluting what made it valuable?"
     },
@@ -201,7 +201,7 @@ window.PROJECTS = [
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-lock-campaign-1.jpg",
     "gallery": ["https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-lock-campaign-1.jpg"],
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/tiffany-lock-campaign-1.jpg" }],
-    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "The analysis question was: what specifically made this campaign land where others hadn't? Was it the product design? The casting? The timing? The cross-platform execution? I broke it down into components to find out — because 'strong brand identity' is not an explanation, it's a label."
     },
@@ -233,7 +233,7 @@ window.PROJECTS = [
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/uniqlo-assortment-refresh-1.jpg" }],
     "pdf": null, "pdf_label": null, "figma": null,
     "sheets": "https://docs.google.com/presentation/d/1GFaZ6dN5ZGqY3qgU74TBj3fOUXO7cHbUVRJDHNT_Cxk/preview",
-    "canva": null, "github": null, "live": null,
+    "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "UNIQLO had under-indexed in three emerging categories: gender-neutral sizing systems, technical performance fabrics for urban commuters, and occasion-dressing crossover pieces. The assortment had held steady while consumer expectations shifted. The proposal needed to make that gap visible with evidence, not just intuition."
     },
@@ -269,7 +269,7 @@ window.PROJECTS = [
       { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/smiski-campaign-1.jpg" },
       { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/smiski-campaign-2.jpg" }
     ],
-    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "Blind box collectibles live and die on scarcity, ritual, and community. A campaign that pushed too hard toward mainstream would alienate the core. A campaign that stayed too niche would leave growth on the table. The brief required finding the tonal register that could hold both audiences simultaneously."
     },
@@ -299,7 +299,7 @@ window.PROJECTS = [
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/sos-save-our-society-1.jpg",
     "gallery": ["https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/sos-save-our-society-1.jpg"],
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/sos-save-our-society-1.jpg" }],
-    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "Most sustainability forecasting at the time focused on materials innovation or resale market growth. What I was more interested in was the accountability shift: the growing consumer expectation that brands be provably responsible for their supply chains, not just vocally committed. Sustainability was becoming less about what a brand made and more about what it could demonstrate."
     },
@@ -333,7 +333,7 @@ window.PROJECTS = [
     "pdf_label": "Race to Space Color Forecast",
     "figma": null,
     "sheets": "https://docs.google.com/presentation/d/1d2AuDGjMxD5UCVOA1GoauqRPMa3P-2g0wyPq1FMFT5g/preview",
-    "canva": null, "github": null, "live": null,
+    "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "Color forecasting is deceptively hard. The goal isn't to identify colors that look interesting right now — it's to identify the cultural and commercial forces that will make a specific palette feel current twelve to eighteen months from now. The challenge was distinguishing the signal from the noise in a space aesthetic that was simultaneously high-fashion and tech-bro."
     },
@@ -366,7 +366,7 @@ window.PROJECTS = [
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Incalculable%20Loss-compressed.pdf",
     "pdf_label": "Incalculable Loss - Accessibility Case Study",
     "figma": "https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/slides/xELHx8u7ImAM4NIzF2l5Q2/Digital-Accessibility---Deck",
-    "sheets": null, "canva": null, "github": null, "live": null,
+    "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "The original NYT piece was built as a continuous scroll with no semantic structure, making screen reader traversal disorienting and nonlinear. Custom links were largely non-functional, creating dead ends for keyboard users. Emotional and narrative content — obituary snippets, death counts, individual stories — was invisible to assistive technology. The Cooper Hewitt had no mechanism to surface the piece's meaning to users who couldn't see it, and no permission to touch the original code.",
       "constraints": ["Could not modify any code in the original NYT piece", "Solution had to be implementable as a non-destructive overlay layer", "Accessibility improvements had to preserve the intentional emotional weight and chaos of the piece"]
@@ -399,7 +399,7 @@ window.PROJECTS = [
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/cl-kpop-eye-candy-1.jpg" }],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/CL%20Influencer%20Report-compressed.pdf",
     "pdf_label": "CL Influencer Report",
-    "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "Standard influencer analysis focuses on follower counts and demographic match. This project pushed toward a harder question: what makes a brand partnership feel authentic rather than transactional? CL's collaborations consistently feel like the former, even when they cross significant cultural and commercial distances. I wanted to understand the mechanism behind that."
     },
@@ -431,7 +431,7 @@ window.PROJECTS = [
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/coca-cola-zero-1.jpg" }],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Coca%20Cola%20Zero%20Media%20AD%20Plan-compressed.pdf",
     "pdf_label": "Coca-Cola Zero Media AD Plan",
-    "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "Zero Sugar lives in a complicated brand position: it has the benefit of Coca-Cola's legacy trust but carries the liability of being the 'healthier' option — a label that can feel clinical in a category defined by pleasure. The media strategy needed to work with that positioning, leaning into what Zero Sugar actually is for its specific consumer rather than trying to be everything Coke Classic is to everyone."
     },
@@ -463,7 +463,7 @@ window.PROJECTS = [
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/premier-protein-muffin-1.jpg" }],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Premier%20Protein%20MUFFIN%20PPT-compressed.pdf",
     "pdf_label": "Premier Protein Muffin IMC Strategy",
-    "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "The core insight was about time scarcity and nutritional compromise — the moment where someone grabs something fast because there's no better option, not because they want to. That insight translated across markets, but the product communication couldn't be identical. The US execution needed to feel like self-care; the China execution needed to feel like performance fuel. Same product, same underlying need, different emotional register."
     },
@@ -497,7 +497,7 @@ window.PROJECTS = [
     "pdf_label": "Kensie Outerwear Buy Plan",
     "figma": null, "sheets": null,
     "canva": "https://www.canva.com/design/DAFRRksmzJ0/Mx33XwankOhmdQxxKlzEPw/view?embed",
-    "github": null, "live": null,
+    "github": null, "live": null, "findings": null,
     "context": {
       "problem": "The outerwear category was simultaneously Kensie's highest-margin opportunity and its most visibly dated segment. Competitors at the same price point had modernized silhouettes and introduced functional fabrics while Kensie's outerwear remained anchored in aesthetic trends from several seasons prior. The buy plan needed to make that gap visible with sales evidence, not just style judgment."
     },
@@ -537,7 +537,7 @@ window.PROJECTS = [
       { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/mccormick-mixology-3.jpg" },
       { "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/mccormick-mixology-4.jpg" }
     ],
-    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "The risk with any brand extension is dilution — new revenue but lost brand clarity. McCormick Mixology needed to feel like a logical evolution of the brand's authority, not a cynical pivot toward a trending category. The through-line between what McCormick represents (precision, flavor expertise, kitchen accessibility) and what the cocktail audience values had to be genuinely present, not just asserted."
     },
@@ -569,7 +569,7 @@ window.PROJECTS = [
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/work-pod-proposal-1.jpg" }],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/INFO-639%20FINAL%20Proposal-compressed.pdf",
     "pdf_label": "Work Pod Proposal",
-    "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "Research consistently shows that open offices reduce productivity for tasks requiring sustained concentration, despite remaining popular for their perceived collaboration benefits. The constraint I set for the proposal was meaningful: the solution had to exist within existing open floor plans without structural renovation. It had to communicate 'focus work happens here' through its own design language, without requiring anyone to change the room around it."
     },
@@ -599,7 +599,7 @@ window.PROJECTS = [
     "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/heinz-brand-loyalty-1.jpg",
     "gallery": ["https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/heinz-brand-loyalty-1.jpg"],
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/heinz-brand-loyalty-1.jpg" }],
-    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "pdf": null, "pdf_label": null, "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "The analytical puzzle: Heinz is in a commodity category where rational switching is easy and cheap. Yet switching rates are remarkably low. Behavioral economics gives us tools to understand non-switching — default bias, sensory memory, loss aversion — but applying those frameworks to a specific brand case requires identifying which mechanism is doing the most work."
     },
@@ -632,7 +632,7 @@ window.PROJECTS = [
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Poseidon%20project%20User%20Testing%20Report-compressed.pdf",
     "pdf_label": "Poseidon User Testing Report",
     "figma": "https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/slides/56F00c7dBQenYEccbioP8J/Poseidon-project-User-Testing-Report",
-    "sheets": null, "canva": null, "github": null, "live": null,
+    "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "The Poseidon Project is content-heavy and trying to do something genuinely difficult: make complex, politically charged environmental research accessible to a general audience that didn't seek it out. The interface needed to guide users through dense information without making them feel lectured. In practice, the navigation structure was actively working against that goal — written for subject-matter experts, tested by the people who built it."
     },
@@ -665,7 +665,7 @@ window.PROJECTS = [
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/Final%20Presentation%20-%20NYCTourism%20Communicating%20User%20Research.pdf",
     "pdf_label": "NYC Tourism Redesign - Final Presentation",
     "figma": "https://embed.figma.com/slides/ApwB2KG4pKoDg5tlS8Gr9v/Final-Presentation---NYCTourism-Communicating-User-Research?node-id=1-58&embed-host=share",
-    "sheets": null, "canva": null, "github": null, "live": null,
+    "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "NYCTourism.com has two meaningfully different user groups with conflicting mental models: tourists looking for things to do, and businesses looking to participate in the tourism ecosystem. The site's IA was built almost entirely for the former, leaving the latter to navigate a structure never designed for their goals. Business-related pathways were buried, inconsistently labeled, and written in language only internal teams used.",
       "why": ["Business owners represent a revenue-generating segment the tourism authority has direct interest in retaining", "Card sorting revealed that users grouped business-facing content under categories the site didn't have", "Tree testing showed sub-40% task success rates on key business-owner navigation paths"]
@@ -701,7 +701,7 @@ window.PROJECTS = [
     "pdf_label": "Amon Carter Museum Digital Analysis",
     "figma": "https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/slides/qAdfvqwVitl7kLyXTJ3EZK/Amon-Carter-Museum---Digital-Analysis",
     "sheets": "https://docs.google.com/presentation/d/1I5UVwKtHquX6FS57xzJl1zMliOr4kz781Xbgu0-nU3k/preview",
-    "canva": null, "github": null, "live": null,
+    "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "The Amon Carter's organic search performance was limited almost entirely to branded queries — people already looking for the museum by name. Non-branded discovery, the pathway for new audiences who don't yet know the museum exists, was essentially absent. The audit needed to diagnose the structural reasons for that gap: technical issues, content alignment failures, and backlink profile weaknesses all contributing."
     },
@@ -737,7 +737,7 @@ window.PROJECTS = [
     "sheets": "https://docs.google.com/presentation/d/1q4ruGfN-bCCI1i_v5cMW1qyRFMrZO2nFbQ2qWVwSDFg/preview",
     "canva": null, 
     "github": "https://github.com/cloonkie/Retail-R-Analytics/tree/main",
-    "live": null,
+    "live": null, "findings": null,
     "context": {
       "problem": "The raw sales data existed across multiple export formats with inconsistent field naming, duplicated entries, and non-standardized category codes that varied by account. Before any analysis was possible, the data needed normalization. But normalization isn't the interesting part — it's the cost of admission. The real question was about performance drivers: which product attributes predict sell-through? How does pricing interact with promotional activity? Where are the account-level patterns hiding in the aggregate numbers?"
     },
@@ -771,7 +771,7 @@ window.PROJECTS = [
     "pdf_label": "Data Visualization Literacy (Final)",
     "figma": null,
     "sheets": "https://docs.google.com/presentation/d/16FxaEJI7zm_iJC_9-h5A_JIzp7rK_LTYS7nQWYcpi98/preview",
-    "canva": null, "github": null, "live": null,
+    "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "Visualization literacy research shows a consistent pattern: people read simple charts at reasonable accuracy, but performance drops significantly with more complex forms — choropleth maps, scatter plots with encoded variables, dual axes, diverging scales. The research and policy visualizations that matter most tend to be the most complex. The audience that most needs to understand them tends to have the least training in reading them."
     },
@@ -804,7 +804,7 @@ window.PROJECTS = [
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/SEO%20Audit%20for%20Jif.com%20Guideline-compressed.pdf",
     "pdf_label": "SEO Audit for JIF.com",
     "figma": "https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/slides/1MLb8sAkRC3Tja9UHCcZqE/Jig-Assignment",
-    "sheets": null, "canva": null, "github": null, "live": null,
+    "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "JIF's search visibility was almost entirely brand-driven — people searching 'JIF peanut butter' found it easily. People searching 'peanut butter recipes,' 'best peanut butter for baking,' or 'how to store peanut butter' — all high-volume queries with direct JIF relevance — were landing on competitor and food media sites. The technical audit revealed specific crawlability and link equity issues. The content audit revealed a site not organized around how people actually search."
     },
@@ -836,7 +836,7 @@ window.PROJECTS = [
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/chipotle-ux-1.jpg" }],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/INFO%20644%20-%20CHIPOTLE%20HEURISTIC%20EVALUATION-compressed.pdf",
     "pdf_label": "Chipotle Heuristic Evaluation",
-    "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "Digital ordering for quick-service restaurants has a specific UX challenge: the flow needs to be fast, customizable, and error-tolerant simultaneously. Chipotle's menu has famously high customization complexity — over 65,000 possible burrito combinations — and the interface's job is to make that complexity feel manageable without slowing down the order. In practice, the interface was failing at that task in specific, diagnosable ways."
     },
@@ -871,7 +871,7 @@ window.PROJECTS = [
     "figma": "https://embed.figma.com/slides/4sktzXNoRfRS9Xn3GlDhZo/Eyewear-Database-Slides?node-id=3-29&embed-host=share",
     "sheets": null, "canva": null, 
     "github": "https://github.com/cloonkie/Database-Design", 
-    "live": null,
+    "live": null, "findings": null,
     "context": {
       "problem": "The source data was structured for export, not analysis. The same product could appear under three different naming conventions depending on which account it came from. Retailer codes weren't normalized across brands. Time dimensions were split across columns requiring transformation before any trend analysis was possible. The database design challenge: build the schema that makes this data reliably queryable without those transformations every time.",
       "constraints": ["Schema had to accommodate products across multiple brands with different attribute structures", "Needed to support both transactional reporting and time-series analysis without separate tables", "Inventory trigger logic had to work without a persistent connection to live POS data"]
@@ -906,7 +906,7 @@ window.PROJECTS = [
     "pdf_label": "Textile Dye Final Project",
     "figma": null,
     "sheets": "https://docs.google.com/presentation/d/1ox276aGzMoSRfiH56olQjwNA5_XcneleJCVaoZYInEg/preview",
-    "canva": null, "github": null, "live": null,
+    "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "Fashion's environmental impact is enormous and widely acknowledged, but usually discussed at a level of abstraction that makes accountability feel distant. This project tried to make one piece of it concrete: what specifically happens to water systems near textile dyeing facilities in major production regions, and who actually bears the health costs of those decisions?"
     },
@@ -938,7 +938,7 @@ window.PROJECTS = [
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/knit-wear-1.jpg" }],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/pdf/Knit%20and%20Wear%20-%20The%20Loop%20Towards%20Fashion%20Sustainability-compressed.pdf",
     "pdf_label": "Knit & Wear - The Loop Towards Fashion Sustainability",
-    "figma": null, "sheets": null, "canva": null, "github": null, "live": null,
+    "figma": null, "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "The deeper driver, I argued, was reclamation: in a period when agency felt genuinely limited, making something by hand represented a form of control. That's a behavioral insight with durability well beyond the pandemic context — it connects to the broader slow fashion movement, repair culture, and the growing consumer discomfort with disposable production."
     },
@@ -975,7 +975,7 @@ window.PROJECTS = [
   "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20IDP%20Final%20Report.pdf",
   "pdf_label": "UNDL Item Details Page Research",
   "figma": "https://embed.figma.com/slides/8s86dGE2V3ADDe9NAxOc1B/UNDL-IDP-Final-Report?node-id=1-391&embed-host=share",
-  "sheets": null, "canva": null, "github": null, "live": null,
+  "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
   "context": {
     "problem": "The Item Details Page was the UNDL's highest-traffic page — and the place users were leaving when they couldn't find what they came for. Download links sat in different positions across document types. Metadata fields were labeled for archivists, not researchers. The site's tracking layer compounded the problem: 82.5% of Matomo's recorded sessions were bot traffic, so the engagement metrics the UNDL was using to monitor the page weren't measuring real users. What looked like a design problem was also a measurement problem — and recovering a defensible behavioral picture was the first piece of work the study needed.",
     "why": [
@@ -1039,7 +1039,7 @@ window.PROJECTS = [
     "pdf": null,
     "pdf_label": "Rooted in Data Poster",
     "figma": "https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/design/INAECV26h3cHgS86pNJMry/Final-Portfolio-Poster",
-    "sheets": null, "canva": null, "github": null, "live": null,
+    "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
     "context": {
       "problem": "The NYC Parks Department tree census data is publicly available, detailed, and largely invisible to the public conversation about environmental equity. The challenge was translating it from a technical dataset into a visual argument that a general audience could engage with — without sacrificing the analytical rigor that makes the argument credible. That tension between accessibility and accuracy is the central design problem in data communication.",
       "why": ["NYC's urban heat island effect falls disproportionately on neighborhoods with lower canopy coverage", "The correlation between income and canopy density is statistically significant but rarely visualized clearly", "Existing coverage of tree equity was text-heavy and inaccessible to general audiences"]
@@ -1074,7 +1074,7 @@ window.PROJECTS = [
     "pdf_label": "Urban Retail Access - Project Proposal",
     "figma": null, "sheets": null, "canva": null, 
     "github": "https://github.com/cloonkie/cloonk.com/tree/main/projects/urban-retail-access",
-    "live": "https://cloonk.com/projects/urban-retail-access/index.html",
+    "live": "https://cloonk.com/projects/urban-retail-access/index.html", "findings": null,
     "context": {
       "problem": "Urban planning research on walkability exists but it's fragmented. Walk Score gives you a number without a breakdown. Census data gives you demographics without destinations. No unified, reproducible tool existed for comparing pedestrian retail accessibility across cities at the neighborhood level. The problem wasn't data availability — Census ACS, OpenStreetMap, and Foursquare OS Places are all public. The problem was the pipeline connecting them into something queryable and visual.",
       "why": ["Pedestrian accessibility is one of the most direct determinants of daily quality of life for non-car-owning residents", "The income-walkability correlation is documented in research but rarely visualized at the neighborhood level across multiple cities simultaneously", "Existing tools either lack geographic specificity or can't be reproduced or updated"]

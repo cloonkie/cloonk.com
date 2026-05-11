@@ -1,0 +1,106 @@
+/* ---------- container ---------- */
+.findings {
+  margin: 8rem 0;
+}
+
+.findings__heading {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 4rem;
+}
+
+/* ---------- finding row ---------- */
+.finding {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  margin-bottom: 8rem;
+  align-items: start;
+}
+
+.finding:nth-child(even) .finding__content { order: 2; }
+.finding:nth-child(even) .finding__media   { order: 1; }
+
+/* ---------- left column ---------- */
+.finding__content {
+  display: flex;
+  flex-direction: column;
+}
+
+.finding__number {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 6vw, 5rem);
+  font-weight: 500;
+  line-height: 1;
+  color: var(--fg);
+  opacity: 0.25;
+  margin-bottom: 1.5rem;
+  transition: color 0.5s ease, opacity 0.5s ease;
+}
+
+.finding--in-view .finding__number {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.finding__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  line-height: 1.2;
+  margin-bottom: 2.5rem;
+}
+
+.finding__block {
+  margin-bottom: 1.75rem;
+}
+
+.finding__label {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+  margin-bottom: 0.5rem;
+}
+
+.finding__block p {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ---------- right column (sticky image) ---------- */
+.finding__media {
+  position: sticky;
+  top: 6rem;
+  width: 100%;
+}
+
+.finding__media img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+}
+
+.finding__media--empty {
+  min-height: 1px;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 768px) {
+  .finding {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 5rem;
+  }
+
+  .finding:nth-child(even) .finding__content { order: initial; }
+  .finding:nth-child(even) .finding__media   { order: initial; }
+
+  .finding__media {
+    position: static;
+  }
+}
