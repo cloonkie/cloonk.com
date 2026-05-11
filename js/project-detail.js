@@ -51,13 +51,62 @@
         + '</div>' : '');
 
   /* ── Approach ── */
+  function renderApproachMoves(moves) {
+    return '<div class="approach-moves">'
+      + moves.map(function(m, i) {
+          var n = ('0' + (i + 1)).slice(-2);
+          return '<div class="approach-move">'
+            + '<div class="approach-move__num">' + n + '</div>'
+            + '<h4 class="approach-move__title">' + m.title + '</h4>'
+            + '<p class="approach-move__body">' + m.body + '</p>'
+            + '</div>';
+        }).join('')
+      + '</div>';
+  }
+
+  var approachBodyHTML;
+  if (p.approach && p.approach.moves && p.approach.moves.length) {
+    approachBodyHTML = renderApproachMoves(p.approach.moves);
+  } else if (p.approach && p.approach.summary) {
+    approachBodyHTML = '<div class="detail-prose"><p>' + p.approach.summary + '</p></div>';
+  } else if (typeof p.approach === 'string') {
+    approachBodyHTML = '<div class="detail-prose"><p>' + p.approach + '</p></div>';
+  } else {
+    approachBodyHTML = '<div class="detail-prose"><p>Detailed approach coming soon.</p></div>';
+  }
+
+  function escapeAttr(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function lookupTool(name) {
+    if (!window.TOOL_GLOSSARY) return null;
+    var key = String(name).toLowerCase().trim().replace(/\s+/g, ' ');
+    return window.TOOL_GLOSSARY[key] || null;
+  }
+  function toolChipHTML(name) {
+    var def = lookupTool(name);
+    var tipAttr = def ? ' data-tooltip="' + escapeAttr(def) + '"' : '';
+    var defClass = def ? '' : ' tool-chip--no-def';
+    return '<button type="button" class="tool-chip' + defClass + '"' + tipAttr + '>' + name + '</button>';
+  }
+
+  var toolsBlockHTML = (p.approach && p.approach.data && p.approach.data.length)
+    ? '<div class="tool-chips-wrap">'
+        + '<h4>Data &amp; tools</h4>'
+        + '<div class="tool-chips">' + p.approach.data.map(toolChipHTML).join('') + '</div>'
+      + '</div>'
+    : '';
+
+  var stepsBlockHTML = (p.approach && p.approach.steps && p.approach.steps.length)
+    ? '<div class="approach-steps"><h4>Steps</h4><ul>'
+        + p.approach.steps.map(function(x){return '<li>'+x+'</li>';}).join('')
+      + '</ul></div>'
+    : '';
+
   var approachHTML = '<span class="detail-label-tag">Methodology</span>'
-    + '<div class="detail-prose"><p>' + ((p.approach && p.approach.summary) ? p.approach.summary : (typeof p.approach === 'string' ? p.approach : 'Detailed approach coming soon.')) + '</p></div>'
-    + ((p.approach && (p.approach.data || p.approach.steps)) ?
-        '<div class="detail-two-col">'
-        + (p.approach.data ? '<div><h4>Data &amp; tools</h4><ul>' + p.approach.data.map(function(x){return '<li>'+x+'</li>';}).join('') + '</ul></div>' : '')
-        + (p.approach.steps ? '<div><h4>Steps</h4><ul>' + p.approach.steps.map(function(x){return '<li>'+x+'</li>';}).join('') + '</ul></div>' : '')
-        + '</div>' : '');
+    + approachBodyHTML
+    + toolsBlockHTML
+    + stepsBlockHTML;
 
   /* ── Results ── */
   var resultsHTML = '<span class="detail-label-tag">Quantified impact</span>'
@@ -229,9 +278,27 @@
     }
   }
 
-  /* ── Findings ── */
+  /* ── Quote (pull or inline) ── */
+  function renderQuote(quote, inline) {
+    var cls = 'quote' + (inline ? ' quote--inline' : '');
+    return '<figure class="' + cls + '">'
+      + '<blockquote class="quote__text">' + quote.text + '</blockquote>'
+      + '<figcaption class="quote__attribution">' + quote.attribution + '</figcaption>'
+      + '</figure>';
+  }
+
+  /* ── Findings (with inline paired quotes) ── */
   function renderFindings(project) {
     if (!project.findings || project.findings.length === 0) return '';
+
+    var quotesByFinding = {};
+    if (project.quotes && project.quotes.length) {
+      project.quotes.forEach(function(q) {
+        if (q.pairsWithFinding !== null && q.pairsWithFinding !== undefined) {
+          quotesByFinding[q.pairsWithFinding] = q;
+        }
+      });
+    }
 
     var findingItems = project.findings.map(function(f, i) {
       var num = ('0' + (i + 1)).slice(-2);
@@ -239,12 +306,15 @@
         ? '<div class="finding__media"><img src="' + f.image + '" alt="' + f.title + '" loading="lazy"/></div>'
         : '<div class="finding__media finding__media--empty"></div>';
 
+      var pairedQuoteHtml = quotesByFinding[i] ? renderQuote(quotesByFinding[i], true) : '';
+
       return '<article class="finding" data-finding-index="' + i + '">'
         + '<div class="finding__content">'
           + '<div class="finding__number">' + num + '</div>'
           + '<h3 class="finding__title">' + f.title + '</h3>'
           + '<div class="finding__block"><span class="finding__label">Observation</span><p>' + f.observation + '</p></div>'
           + '<div class="finding__block"><span class="finding__label">Evidence</span><p>' + f.evidence + '</p></div>'
+          + pairedQuoteHtml
           + '<div class="finding__block"><span class="finding__label">Impact</span><p>' + f.impact + '</p></div>'
           + '<div class="finding__block"><span class="finding__label">Recommendation</span><p>' + f.recommendation + '</p></div>'
         + '</div>'
@@ -258,8 +328,54 @@
       + '</section>';
   }
 
+  /* ── Stat moment (full-bleed editorial break) ── */
+  function renderStatMoment(m, i) {
+    return '<section class="stat-moment" data-moment-index="' + i + '">'
+      + '<div class="stat-moment__value">' + m.value + '</div>'
+      + '<p class="stat-moment__label">' + m.label + '</p>'
+      + '</section>';
+  }
+
+  /* ── Statement break (single-line editorial break) ── */
+  function renderStatement(text, i) {
+    return '<section class="statement-break" data-statement-index="' + i + '">'
+      + '<p class="statement-break__text">' + text + '</p>'
+      + '</section>';
+  }
+
+  /* ── Impact block ── */
+  function renderImpact(impactObj) {
+    if (!impactObj) return '';
+    var rows = Object.keys(impactObj).map(function(key) {
+      return '<div class="impact__row">'
+        + '<div class="impact__label">' + key + '</div>'
+        + '<p class="impact__text">' + impactObj[key] + '</p>'
+        + '</div>';
+    }).join('');
+    return '<section class="impact" id="s-impact">'
+      + '<h2 class="impact__heading">Impact</h2>'
+      + '<div class="impact__grid">' + rows + '</div>'
+      + '</section>';
+  }
+
+  /* ── Closing quote (unpaired) ── */
+  function renderClosingQuote(project) {
+    if (!project.quotes || !project.quotes.length) return '';
+    var closing = project.quotes.filter(function(q) {
+      return q.pairsWithFinding === null || q.pairsWithFinding === undefined;
+    });
+    if (!closing.length) return '';
+    return closing.map(function(q) { return renderQuote(q, false); }).join('');
+  }
+
   var findingsHTML = renderFindings(p);
   var hasFindings  = !!findingsHTML;
+  var impactHTML   = renderImpact(p.impact);
+  var hasImpact    = !!impactHTML;
+
+  var statMoments  = (p.statMoments && p.statMoments.length) ? p.statMoments : [];
+  var statements   = (p.statements  && p.statements.length)  ? p.statements  : [];
+  var closingQuote = renderClosingQuote(p);
 
   /* ── Gallery: images only, resolve URLs ── */
   var hasGallery   = p.gallery && p.gallery.length > 0;
@@ -309,9 +425,8 @@
         + '</a>'
     : '<a href="projects.html" class="detail-breadcrumb__next"><span>All Work →</span></a>';
 
-  var gNum           = hasFindings ? '06' : '05';
-  var gallerySection = galleryItems.length ? section('s-gallery', gNum, 'Gallery', galleryHTML, false) : '';
-  var tkNum          = String(4 + (hasFindings ? 1 : 0) + (galleryItems.length ? 1 : 0) + 1).padStart(2, '0');
+  var gallerySection = galleryItems.length ? section('s-gallery', '05', 'Gallery', galleryHTML, false) : '';
+  var tkNum          = galleryItems.length ? '06' : '05';
 
   /* ── Render ── */
   root.innerHTML =
@@ -348,6 +463,7 @@
         + '<button class="detail-section-nav__item" data-target="s-approach"><span class="detail-section-nav__dot"></span>Approach</button>'
         + '<button class="detail-section-nav__item" data-target="s-results"><span class="detail-section-nav__dot"></span>Results</button>'
         + (hasFindings ? '<button class="detail-section-nav__item" data-target="s-findings"><span class="detail-section-nav__dot"></span>Findings</button>' : '')
+        + (hasImpact ? '<button class="detail-section-nav__item" data-target="s-impact"><span class="detail-section-nav__dot"></span>Impact</button>' : '')
         + (galleryItems.length ? '<button class="detail-section-nav__item" data-target="s-gallery"><span class="detail-section-nav__dot"></span>Gallery</button>' : '')
         + '<button class="detail-section-nav__item" data-target="s-takeaways"><span class="detail-section-nav__dot"></span>Takeaways</button>'
       + '</nav>'
@@ -356,11 +472,19 @@
     + '<div class="detail-sections">'
       + section('s-artifact',  '01', 'Artifact',  artifactHTML,  true)
       + section('s-context',   '02', 'Context',   contextHTML,   true)
+      + (statMoments[0] ? renderStatMoment(statMoments[0], 0) : '')
       + section('s-approach',  '03', 'Approach',  approachHTML,  true)
+      + (statements[0]  ? renderStatement(statements[0], 0)   : '')
       + section('s-results',   '04', 'Results',   resultsHTML,   true)
       + findingsHTML
+      + (statMoments[1] ? renderStatMoment(statMoments[1], 1) : '')
+      + impactHTML
+      + (statMoments[2] ? renderStatMoment(statMoments[2], 2) : '')
+      + (statements[1]  ? renderStatement(statements[1], 1)   : '')
       + gallerySection
       + section('s-takeaways', tkNum, 'Takeaways', takeawaysHTML, true)
+      + (statements[2]  ? renderStatement(statements[2], 2)   : '')
+      + closingQuote
     + '</div>'
 
     + '<div class="lightbox" id="lightbox" role="dialog" aria-modal="true">'
@@ -372,15 +496,29 @@
     + '</div>';
 
   /* ── Collapsible sections ── */
+  function setInnerOverflow(block, open) {
+    var inner = block.querySelector('.detail-section-body__inner');
+    if (!inner) return;
+    if (open) {
+      setTimeout(function() {
+        if (block.classList.contains('is-open')) inner.style.overflow = 'visible';
+      }, 400);
+    } else {
+      inner.style.overflow = '';
+    }
+  }
+
   root.querySelectorAll('.detail-section-block').forEach(function(block) {
     var hdr = block.querySelector('.detail-section-header');
     hdr.addEventListener('click', function() {
       var open = block.classList.toggle('is-open');
       hdr.setAttribute('aria-expanded', open);
+      setInnerOverflow(block, open);
     });
     hdr.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hdr.click(); }
     });
+    if (block.classList.contains('is-open')) setInnerOverflow(block, true);
   });
 
   /* ── Artifact select switcher ── */
@@ -418,6 +556,7 @@
         target.classList.add('is-open');
         var hdr = target.querySelector('.detail-section-header');
         if (hdr) hdr.setAttribute('aria-expanded', 'true');
+        setInnerOverflow(target, true);
       }
       var navWrap = document.querySelector('.detail-section-nav-wrap');
       var offset  = navWrap ? navWrap.offsetHeight + 64 : 120;
@@ -439,22 +578,25 @@
     });
   }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
 
-  ['s-artifact','s-context','s-approach','s-results','s-findings','s-gallery','s-takeaways'].forEach(function(sid) {
+  ['s-artifact','s-context','s-approach','s-results','s-findings','s-impact','s-gallery','s-takeaways'].forEach(function(sid) {
     var el = document.getElementById(sid);
     if (el) spy.observe(el);
   });
 
-  /* ── Findings: scroll-triggered accent ── */
+  /* ── Editorial break: scroll-triggered accent ── */
   (function() {
-    var findings = root.querySelectorAll('.finding');
-    if (!findings.length) return;
+    var targets = root.querySelectorAll('.finding, .stat-moment, .statement-break');
+    if (!targets.length) return;
     var obs = new IntersectionObserver(function(entries) {
       entries.forEach(function(entry) {
-        if (entry.isIntersecting) entry.target.classList.add('finding--in-view');
-        else                      entry.target.classList.remove('finding--in-view');
+        var inViewClass = entry.target.classList.contains('finding') ? 'finding--in-view'
+                        : entry.target.classList.contains('stat-moment') ? 'stat-moment--in-view'
+                        : 'statement-break--in-view';
+        if (entry.isIntersecting) entry.target.classList.add(inViewClass);
+        else                      entry.target.classList.remove(inViewClass);
       });
     }, { rootMargin: '-30% 0px -30% 0px', threshold: 0 });
-    findings.forEach(function(f) { obs.observe(f); });
+    targets.forEach(function(t) { obs.observe(t); });
   })();
 
   /* ── Lightbox ── */
