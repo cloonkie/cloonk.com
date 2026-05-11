@@ -975,7 +975,41 @@ window.PROJECTS = [
   "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20IDP%20Final%20Report.pdf",
   "pdf_label": "UNDL Item Details Page Research",
   "figma": "https://embed.figma.com/slides/8s86dGE2V3ADDe9NAxOc1B/UNDL-IDP-Final-Report?node-id=1-391&embed-host=share",
-  "sheets": null, "canva": null, "github": null, "live": null, "findings": null,
+  "sheets": null, "canva": null, "github": null, "live": null,
+  "findings": [
+    {
+      "title": "Users expecting an author's name got a UN acronym instead",
+      "observation": "When asked to identify the author of an IDP, participants saw 'UNCTAD' and couldn't tell if they were looking at a person, an organization, or a typo.",
+      "evidence": "Opacity maps across eight participants show concentrated attention at the top of the page, followed by repeated dips into the Details section to verify authorship. Five of eight reported at the end of their session that they didn't know what the acronym meant.",
+      "impact": "'Who is the author?' is one of the UNDL's most frequent service desk inquiries. The interface itself is generating the question.",
+      "recommendation": "Where renaming isn't possible due to institutional taxonomy, add tooltips that expand acronyms in context. Where it is possible, lead with full names.",
+      "image": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl/opacity-map-author.png"
+    },
+    {
+      "title": "'Formats' meant something to users that it didn't mean to the UNDL",
+      "observation": "Participants opened the Formats section expecting to choose a download format — PDF, Word — and found bibliographic citation styles instead.",
+      "evidence": "Gaze maps show participants fixating on Formats for extended periods, opening multiple options, and reporting frustration. One participant: \"I don't even know what these mean. When I clicked on them, they're cut off so I don't think it worked.\"",
+      "impact": "Time spent in the wrong section is the most measurable form of the labels-as-access-barrier problem — and the most common one we observed.",
+      "recommendation": "Rename 'Formats' → 'Citation Formats.' Eliminates the ambiguity entirely without any structural change to the page.",
+      "image": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl/rec-formats-before-after.png"
+    },
+    {
+      "title": "Layout changes between record types had no visual explanation",
+      "observation": "Some IDPs have a Download button. Some don't — because the underlying record hasn't been digitized. Users hitting the second case didn't know why the button was missing.",
+      "evidence": "Heat maps show users scanning for the title and Download button on IDPs where neither exists, then giving up. P2: \"There's no title. I don't actually know what this page is — the last one had a title.\"",
+      "impact": "This is one reason nearly half of UNDL survey respondents listed 'finding records' as their top pain point.",
+      "recommendation": "Keep layout consistent across record types. Render the Download button in a disabled state with a tooltip routing users to a librarian for non-digitized records.",
+      "image": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl/rec-disabled-download.png"
+    },
+    {
+      "title": "The IDP didn't meet WCAG readability minimums",
+      "observation": "Half of participants flagged the IDP as hard to read because text was too small and too thin.",
+      "evidence": "Body text rendered at 12px / 200 weight — below WCAG minimums for both size (14px) and weight (400).",
+      "impact": "A readability failure on the most-visited page of a global public archive is also an accessibility compliance failure.",
+      "recommendation": "Increase body text to 14px / 400 weight with proportional header scaling. No layout change required.",
+      "image": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/undl/rec-font-wcag.png"
+    }
+  ],
   "context": {
     "problem": "The Item Details Page was the UNDL's highest-traffic page — and the place users were leaving when they couldn't find what they came for. Download links sat in different positions across document types. Metadata fields were labeled for archivists, not researchers. The site's tracking layer compounded the problem: 82.5% of Matomo's recorded sessions were bot traffic, so the engagement metrics the UNDL was using to monitor the page weren't measuring real users. What looked like a design problem was also a measurement problem — and recovering a defensible behavioral picture was the first piece of work the study needed.",
     "why": [
