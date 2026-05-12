@@ -382,13 +382,13 @@ body.mode-public .loader-bar{background:var(--accent-public)}
 __MOBILE_CITY_NAV__
 </div>
 <div id="side-panel">
-  <div class="panel-section open"><div class="section-header"><span class="section-title">Destinations</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div id="cat-btns"></div></div></div>
-  <div class="panel-section open"><div class="section-header"><span class="section-title">Transport</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div id="mode-btns">
+  <div class="panel-section open"><div class="section-header"><span class="section-title">Looking For</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div id="cat-btns"></div></div></div>
+  <div class="panel-section open"><div class="section-header"><span class="section-title">Travel By</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div id="mode-btns">
     <div class="mode-btn active" data-mode="pedestrian">Walk</div>
     <div class="mode-btn" data-mode="bicycle">Bike</div>
     <div class="mode-btn" data-mode="auto">Drive</div>
   </div></div></div>
-  <div class="panel-section open"><div class="section-header"><span class="section-title">Max Time</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div class="time-btns">
+  <div class="panel-section open"><div class="section-header"><span class="section-title">Travel Time</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div class="time-btns">
     <div class="time-btn" data-minutes="5">5m</div>
     <div class="time-btn" data-minutes="10">10m</div>
     <div class="time-btn active" data-minutes="20">20m</div>
@@ -415,7 +415,7 @@ __MOBILE_CITY_NAV__
     <div class="legend-labels"><span>$0</span><span>$160k+</span></div>
   </div>
   <div>
-    <div class="legend-label">Reachable Destinations</div>
+    <div class="legend-label">Reachable Destinations <span class="term" style="border-bottom:none;font-size:9px;color:var(--muted);opacity:.7;margin-left:2px;cursor:help" tabindex="0">ⓘ<span class="term-tip">Each hexagon is one H3 resolution-9 cell — about a city block, 105 m across. Color encodes how many destinations of your selected type are reachable from that hex's center within your chosen time and travel mode. Hexes, not census tracts, because tract boundaries lie. A single tract can span a freeway. Hexes ignore politics.</span></span></div>
     <div id="hex-score-label">pedestrian · 20 min · all</div>
     <div class="legend-gradient-wrap" id="hex-legend-bar"><div class="legend-gradient" style="background:linear-gradient(to right,#0a1628,#0d3b66,#1a8a8a,#3ec48c,#a8e06c,#f0f060)"></div><div class="legend-marker" id="hex-marker"><div class="legend-marker-label" id="hex-marker-label"></div></div></div>
     <div class="legend-labels"><span>0</span><span>50+</span></div>
@@ -454,9 +454,9 @@ __MOBILE_CITY_NAV__
       </div>
       <div class="info-modal-pane" id="modal-tab-analytics">
         <div class="modal-dropdowns">
-          <span class="modal-drop-label">Mode</span>
+          <span class="modal-drop-label">Travel By</span>
           <select class="modal-select" id="modal-mode-sel"><option value="pedestrian">Walk</option><option value="bicycle">Bike</option><option value="auto">Drive</option></select>
-          <span class="modal-drop-label">Time</span>
+          <span class="modal-drop-label">Travel Time</span>
           <select class="modal-select" id="modal-time-sel"><option value="5">5 min</option><option value="10">10 min</option><option value="20" selected>20 min</option></select>
         </div>
         <div id="modal-analytics-content"><p style="color:var(--muted)">Loading city analysis...</p></div>
@@ -903,21 +903,24 @@ document.getElementById('hex-detail-close').addEventListener('click',()=>{
 });
 
 // ── info modal ────────────────────────────────────────────────────────────
+function wireTermTips(){
+  document.querySelectorAll('.term:not([data-tip-bound])').forEach(t=>{
+    t.setAttribute('data-tip-bound','1');
+    t.addEventListener('mouseenter',()=>{
+      const tip=t.querySelector('.term-tip');if(!tip)return;
+      const rect=t.getBoundingClientRect();
+      tip.style.top=(rect.bottom+6)+'px';
+      tip.style.left=Math.min(rect.left,window.innerWidth-280)+'px';
+      tip.style.display='block';
+    });
+    t.addEventListener('mouseleave',()=>{const tip=t.querySelector('.term-tip');if(tip)tip.style.display='none'});
+  });
+}
+wireTermTips();
 function openInfoModal(){
   document.getElementById('info-modal-overlay').classList.add('open');
   loadModalAnalytics();
-  setTimeout(()=>{
-    document.querySelectorAll('.term').forEach(t=>{
-      t.addEventListener('mouseenter',()=>{
-        const tip=t.querySelector('.term-tip');if(!tip)return;
-        const rect=t.getBoundingClientRect();
-        tip.style.top=(rect.bottom+6)+'px';
-        tip.style.left=Math.min(rect.left,window.innerWidth-280)+'px';
-        tip.style.display='block';
-      });
-      t.addEventListener('mouseleave',()=>{const tip=t.querySelector('.term-tip');if(tip)tip.style.display='none'});
-    });
-  },100);
+  setTimeout(wireTermTips,100);
 }
 document.getElementById('wordmark-trigger').addEventListener('click',openInfoModal);
 document.getElementById('wordmark-trigger').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openInfoModal()}});
@@ -1053,7 +1056,7 @@ function renderModalAnalytics(){
 
   const giniCats=[{key:'Grocery & Food',label:'Grocery'},{key:'Restaurant',label:'Restaurant'},{key:'Pharmacy',label:'Pharmacy'},{key:'Parks & Outdoors',label:'Parks'},{key:'Education',label:'Education'},{key:'all',label:'All destinations'}];
   html+=sectionTitle('Access Inequality (Gini)','The Gini coefficient measures how evenly access is distributed across all hex cells. 0 = perfectly equal. 1 = maximally unequal.');
-  html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span class="modal-drop-label">Category</span><select class="modal-select" id="modal-gini-sel">';
+  html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span class="modal-drop-label">Looking For</span><select class="modal-select" id="modal-gini-sel">';
   giniCats.forEach(c=>html+='<option value="'+c.key+'"'+(selGiniCat===c.key?' selected':'')+'>'+c.label+'</option>');
   html+='</select></div>';
   const giniLookupKey=selGiniCat==='all'?'gini_'+selMode+'_'+selTime+'_all':'gini_'+selMode+'_'+selTime+'_'+selGiniCat;

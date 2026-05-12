@@ -19,6 +19,15 @@
 
   document.title = p.title + ' — Kevin Zhang';
 
+  // Storyline (stat moments + statement breaks) initial state.
+  // Order of precedence: reader's localStorage choice → author's hide flags → default on.
+  (function applyStorylineState() {
+    var lsVal = localStorage.getItem('cloonk-storyline');
+    var authorHides = !!(p.hideStatMoments || p.hideStatements);
+    var off = lsVal ? (lsVal === 'off') : authorHides;
+    document.body.classList.toggle('storyline-off', off);
+  })();
+
   const idx  = window.PROJECTS.indexOf(p);
   const next = window.PROJECTS[idx + 1] || null;
 
@@ -497,7 +506,16 @@
       + '<button class="lightbox__next"  id="lightbox-next">→</button>'
       + '<div class="lightbox__img-wrap"><img class="lightbox__img" id="lightbox-img" src="" alt=""/></div>'
       + '<p class="lightbox__counter" id="lightbox-counter"></p>'
-    + '</div>';
+    + '</div>'
+
+    + ((statMoments.length || statements.length)
+        ? '<button class="storyline-toggle" id="storyline-toggle" type="button" aria-pressed="'
+          + (document.body.classList.contains('storyline-off') ? 'true' : 'false')
+          + '" aria-label="Toggle storyline elements (stat moments and statement breaks)">'
+          + '<span class="storyline-toggle__dot" aria-hidden="true"></span>'
+          + '<span class="storyline-toggle__label">Storyline</span>'
+          + '</button>'
+        : '');
 
   /* ── Collapsible sections ── */
   function setInnerOverflow(block, open) {
@@ -602,6 +620,16 @@
     }, { rootMargin: '-30% 0px -30% 0px', threshold: 0 });
     targets.forEach(function(t) { obs.observe(t); });
   })();
+
+  /* ── Storyline toggle (stat moments + statement breaks) ── */
+  var storylineBtn = document.getElementById('storyline-toggle');
+  if (storylineBtn) {
+    storylineBtn.addEventListener('click', function() {
+      var off = document.body.classList.toggle('storyline-off');
+      storylineBtn.setAttribute('aria-pressed', off ? 'true' : 'false');
+      localStorage.setItem('cloonk-storyline', off ? 'off' : 'on');
+    });
+  }
 
   /* ── Lightbox ── */
   if (!galleryItems.length) return;

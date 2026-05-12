@@ -1166,9 +1166,9 @@ window.PROJECTS = [
   {
     "num": "32",
     "id": "urban-retail-access",
-    "title": "Urban Retail Access",
-    "short": "A GIS Pipeline for Pedestrian Equity",
-    "desc": "The most technically ambitious project I've built. Urban Retail Access is an interactive geospatial dashboard analyzing pedestrian access to retail and public destinations across ten major US cities — and layering that access data against Census median household income to surface the equity dimension of walkability. The question is simple: in any given neighborhood, how much can you actually reach on foot in 20 minutes? The answer varies enormously by income, and the pattern is consistent across every city in the dataset.\n\nThe project is a full-stack GIS application: Python and DuckDB for data processing and spatial joins, Valhalla routing engine for pedestrian isochrone generation, Tippecanoe for vector tile creation, Mapbox GL JS for the front-end, and Cloudflare R2 for asset hosting. It processes over 259,000 POIs across 8,878 census tracts, and the pipeline is fully reproducible — adding a new city is a parameter change, not a rebuild.",
+    "title": "Urban Access",
+    "short": "Walking access is twice as unequal as income.",
+    "desc": "Across 454,000 hexagons in ten US cities, the median Gini coefficient for 20-minute pedestrian destination counts is 0.90 — against a US household-income Gini of about 0.41. Walking access is roughly twice as unequally distributed as income itself. Income predicts walk access in every city tested; whether richer or poorer neighborhoods come out ahead depends on whether the metro was built around a dense core or a freeway grid.\n\nUrban Access is the GIS pipeline that surfaces this. A Python + DuckDB + Valhalla + Tippecanoe + Mapbox GL stack joins Foursquare OS Places, Census ACS income, and OpenStreetMap pedestrian routing across ten metros. The dashboard frames three reader-facing questions — how are you getting there, what are you looking for, and how long are you willing to travel — and repaints the city for every combination.",
     "topic": "data analysis",
     "type": "Data Engineering",
     "year": "2026",
@@ -1177,25 +1177,107 @@ window.PROJECTS = [
     "gallery": ["https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/urban-retail-access-1.jpg"],
     "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/urban-retail-access-1.jpg" }],
     "pdf": null,
-    "pdf_label": "Urban Retail Access - Project Proposal",
+    "pdf_label": "Urban Access - Project Proposal",
     "figma": null, "sheets": null, "canva": null, 
     "github": "https://github.com/cloonkie/cloonk.com/tree/main/projects/urban-retail-access",
-    "live": "https://cloonk.com/projects/urban-retail-access/index.html", "findings": null, "statMoments": null, "quotes": null, "impact": null, "statements": null,
+    "live": "https://cloonk.com/projects/urban-retail-access/index.html",
+    "hideStatMoments": true,
+    "hideStatements": true,
+    "quotes": null,
+    "findings": [
+      {
+        "title": "NYC: top-quartile tracts walk to 4.4× more than the bottom",
+        "observation": "In NYC's bottom-income-quartile tracts, an average 20-minute walk reaches 437 destinations. In top-quartile tracts, 1,911. The richest reach 4.4× as many destinations on foot as the poorest.",
+        "evidence": "Across 6,992 NYC hexagons, Spearman r between tract median household income and 20-min walk access is −0.177 (p < 0.001). The aggregate r is weak because density and income are decoupled at the city-edge level, but the Q1/Q4 ratio is the cleaner number: 4.4× more in Q4 across all destination categories.",
+        "impact": "The 'everything within walking distance' Manhattan stereotype is real — and bounded by income. Lower Manhattan and West Village tracts are mostly Q4. Outer-borough tracts away from subway lines are mostly Q1.",
+        "recommendation": "In the dashboard, switch from 'all destinations' to 'pharmacy.' Absolute counts drop everywhere; the Q4/Q1 ratio widens. Access to essential services is more income-segmented than the all-categories view suggests.",
+        "image": null
+      },
+      {
+        "title": "Phoenix: bottom-quartile tracts walk to 6.5× more than the top",
+        "observation": "In Phoenix Q1: 22 destinations reachable in a 20-min walk. In Q4: 3.4. The relationship is the *opposite* of NYC — and statistically significant in the same direction across six other sprawl-pattern metros.",
+        "evidence": "Spearman r = +0.011 (effectively zero), but the quartile breakdown reveals the structure: poorer tracts cluster in the old urban grid; wealthier tracts spread into the exurbs where there is nothing within a walk.",
+        "impact": "'Walkable' and 'wealthy' are not the same variable. In Phoenix they're anti-correlated at the quartile level. Suburbs are where wealth went; sidewalks are where everything else stayed.",
+        "recommendation": "Compare Phoenix Q4 to NYC Q4 at 20 minutes, same destination filter. Same income tier — 560× more destinations on foot in NYC. The variable doing the work is urban form, not income.",
+        "image": null
+      },
+      {
+        "title": "Walking access is twice as unequally distributed as income itself",
+        "observation": "The median Gini coefficient for 20-minute walk-access counts across the ten cities is 0.897. The US household-income Gini is 0.41. Walking access is roughly twice as concentrated as the income distribution it correlates with.",
+        "evidence": "Range across cities: Philadelphia 0.546 (the lowest, and the only sub-0.7 city) → Phoenix 0.973. NYC 0.925, LA 0.965, San Diego 0.969. Education-category Gini is consistently highest of all subcategories — schools are concentrated relative to other destinations in every metro measured.",
+        "impact": "A near-monopoly Gini means walking destinations are concentrated in a small share of neighborhoods. In Phoenix, a handful of hexes hold nearly all the walk-reachable destinations in the metro.",
+        "recommendation": "Open the analytics modal's Gini panel and sort by category. The lower the absolute count of destinations of that type in the city, the more concentrated they tend to be. Education is the canonical case across all ten cities.",
+        "image": null
+      },
+      {
+        "title": "When the map goes black, that's the answer",
+        "observation": "Filter to pharmacy + walking + 5 minutes anywhere in suburban Houston, Phoenix, or Fort Worth. Most of the map turns black — score zero, no destinations reachable. This is not missing data. This is the city.",
+        "evidence": "In NYC, 24.3% of Q1 hexes report zero destinations reachable in a 5-minute walk. In sprawl-pattern metros, that percentage runs higher across all income quartiles. The dashboard reports zero rather than hiding the hex, because the absence is the finding.",
+        "impact": "Five minutes on foot is not enough time to reach anything in places designed around the car. The empty state is a measurement, not a gap in the data.",
+        "recommendation": "When you see the black map, try widening to 10 or 20 minutes, or switching the mode to drive. The destination doesn't appear closer — but the gap between modes is the diagnostic. A wide walk-vs-drive gap is the visual signature of car dependence.",
+        "image": null
+      }
+    ],
+    "statMoments": [
+      {
+        "value": "0.897",
+        "label": "Median Gini coefficient for 20-minute walk access across the 10 cities. The US household-income Gini is 0.41. Walking access is roughly twice as unequally distributed as income itself."
+      },
+      {
+        "value": "10 / 10",
+        "label": "Cities where the income–walk-access correlation is statistically significant. Direction varies (negative in 7, positive in 3); magnitude is large enough to matter in every one of them."
+      },
+      {
+        "value": "454,000",
+        "label": "H3 resolution-9 hexagons in the dataset. Each is roughly the size of a city block. Each holds an answer to what's reachable from its center on foot at 5, 10, and 20 minutes."
+      }
+    ],
+    "impact": {
+      "analytical": "First reproducible cross-city study of pedestrian destination access vs. income at H3 resolution-9 across ten US metros. Surfaces the direction-varies pattern that single-city walkability studies systematically miss.",
+      "methodological": "Pipeline parameterized — adding a new city is a config entry, not a rebuild. ACS sentinel cleaning, Valhalla isochrone integration, DuckDB spatial join optimization, and Tippecanoe vector tile compression are documented and version-controlled.",
+      "discoverability": "Dashboard frames three reader-facing questions (mode, category, time) that translate directly into filter combinations. Hex-level resolution lets users zoom into the specific block they live on, not the tract they belong to.",
+      "reproducibility": "End-to-end open-source stack — Python, DuckDB, Valhalla, Tippecanoe, Mapbox GL — running on free or low-cost infrastructure (Cloudflare R2, GitHub Pages). Re-runnable against updated Census vintages or new cities with no proprietary dependencies.",
+      "scalability": "Processes 259K POIs and 454K hexagons across 10 cities in roughly an hour per city; the cost is dominated by Valhalla routing, not by storage or rendering. The hex-tile-PMTiles pattern handles datasets an order of magnitude larger without front-end changes.",
+      "policy": "Demonstrates that the income–walkability relationship is a function of urban form, not just household income. Policy interventions targeting walkability without accounting for built form will land differently in dense vs. sprawl-pattern metros."
+    },
+    "statements": [
+      "Walking access is more unevenly distributed than income.",
+      "Suburbs are where wealth went; sidewalks are where everything else stayed.",
+      "Same income variable. Different cities. Opposite signs."
+    ],
     "context": {
-      "problem": "Urban planning research on walkability exists but it's fragmented. Walk Score gives you a number without a breakdown. Census data gives you demographics without destinations. No unified, reproducible tool existed for comparing pedestrian retail accessibility across cities at the neighborhood level. The problem wasn't data availability — Census ACS, OpenStreetMap, and Foursquare OS Places are all public. The problem was the pipeline connecting them into something queryable and visual.",
-      "why": ["Pedestrian accessibility is one of the most direct determinants of daily quality of life for non-car-owning residents", "The income-walkability correlation is documented in research but rarely visualized at the neighborhood level across multiple cities simultaneously", "Existing tools either lack geographic specificity or can't be reproduced or updated"]
+      "problem": "Walking access in the average US city is roughly twice as unequally distributed as income itself. The median Gini coefficient for 20-minute pedestrian destination counts across the ten cities measured here is 0.897 — against a US household-income Gini of about 0.41. That gap is the access problem this project surfaces. Existing tools measure walkability or income but rarely both at the same scale. Walk Score gives you a number without a breakdown. Census data gives you demographics without destinations. The pipeline this project builds is the layer that joins them — at neighborhood resolution, across ten cities, reproducibly.",
+      "why": ["Pedestrian accessibility is one of the most direct determinants of daily quality of life for non-car-owning residents", "The income–walkability relationship varies by city structure — denser metros show richer-equals-more-access, sprawl-pattern metros show the reverse. Single-city studies miss this; a ten-city pipeline surfaces it.", "Existing tools either lack geographic specificity or can't be reproduced or updated"]
     },
     "approach": {
-      "summary": "Built the data pipeline from scratch: cleaned and normalized POI data from Foursquare OS Places across 10 cities, generated census tract-level pedestrian isochrones through Valhalla at 10 and 20-minute intervals, joined isochrone coverage to POI counts using DuckDB spatial queries, and aggregated to H3 resolution 9 hexagons for the front-end layer. Mapbox GL JS handles all rendering with city switching, mode switching (pedestrian/bicycle/auto), and destination category filtering. Equity analytics are computed city-by-city and surfaced in an in-dashboard analytics panel with Spearman correlation, Gini coefficients, and quartile breakdowns.",
-      "data": ["Python", "DuckDB", "Valhalla Routing Engine", "Tippecanoe", "Mapbox GL JS", "Cloudflare R2", "GeoJSON", "Census ACS", "Foursquare OS Places", "H3 Hexagonal Grid"]
+      "summary": "Built the data pipeline from scratch: cleaned and normalized POI data from Foursquare OS Places across 10 cities, generated census tract-level pedestrian isochrones through Valhalla at 5/10/20-minute intervals, joined isochrone coverage to POI counts using DuckDB spatial queries, and aggregated to H3 resolution 9 hexagons for the front-end layer. Mapbox GL JS handles all rendering. The dashboard frames three reader-facing questions — **how are you getting there** (walk, bike, drive), **what are you looking for** (pharmacy, grocery, park, transit, and more), and **how long are you willing to travel** (5, 10, or 20 minutes) — and repaints the city for every combination. Equity analytics are computed city-by-city and surfaced in an in-dashboard analytics panel with Spearman correlation, Gini coefficients, and quartile breakdowns.",
+      "data": ["Python", "DuckDB", "Valhalla Routing Engine", "Tippecanoe", "Mapbox GL JS", "Cloudflare R2", "GeoJSON", "Census ACS", "Foursquare OS Places", "H3 Hexagonal Grid"],
+      "moves": [
+        {
+          "title": "Cleaning and joining the data",
+          "body": "Foursquare OS Places for the destinations, Census ACS B19013_001E for median household income, OpenStreetMap network data for the walking and driving graph. DuckDB does the spatial join at scale — projecting POIs into census tract polygons, dropping the ACS sentinel value (−666,666,666) before any downstream math, and producing one tract-level POI count per category before any isochrone work begins."
+        },
+        {
+          "title": "Isochrones and hex aggregation",
+          "body": "Valhalla generates pedestrian, bicycle, and auto travel-distance contours from each H3 resolution-9 cell centroid at 5, 10, and 20 minutes. The hex grid was chosen over census tracts because tract boundaries lie — a single tract can span a freeway. Hexes are ~0.1 km², roughly the size of two city blocks. The mode × category × time combinatorics produce 18 access scores per hex; the dashboard surfaces one at a time."
+        },
+        {
+          "title": "Tile pipeline and front-end",
+          "body": "Tippecanoe compresses the hex layer into PMTiles, hosted on Cloudflare R2 for sub-second loads. Mapbox GL JS renders. Adding a new city is a parameter swap — same tile schema, different bucket prefix, same per-city stats JSON contract. The pipeline runs end-to-end in roughly an hour per city; the cost is dominated by Valhalla routing, not rendering."
+        },
+        {
+          "title": "Cross-city analytics",
+          "body": "Spearman correlation, Gini coefficient, and income-quartile breakdowns computed per city offline and served as static JSON. The analytics modal compares cities apples-to-apples — same hex grid, same isochrone assumptions, same category buckets. The all-10-cities statistical significance finding came out of this pass; so did the direction-varies pattern."
+        }
+      ]
     },
     "results": {
       "before": ["No unified tool for cross-city pedestrian accessibility comparison at neighborhood scale", "Walking isochrones and income data never joined into a single queryable analytical layer", "Raw data sources required significant processing before spatial joins were feasible — no existing pipeline handled this at scale", "Front-end needed to balance analytical depth with interpretability for non-GIS audiences"],
-      "after": ["End-to-end GIS pipeline processing 259K+ POIs across 10 cities with full reproducibility", "Pedestrian isochrones generated for all 10 cities using Valhalla routing at census tract level", "Statistically significant correlation between median household income and walk access confirmed in 8 of 10 cities", "Interactive dashboard deployed with city switching, mode switching, destination filtering, and in-dashboard equity analytics including Spearman r, Gini coefficient, and quartile breakdown", "Framework documented for extension to additional cities, transit modes, or updated Census vintages"]
+      "after": ["End-to-end GIS pipeline processing 259K+ POIs across 454,000 hexagons in 10 cities, fully reproducible", "Statistically significant income–walk-access correlation in all 10 cities — but the direction reverses: in 7 metros, lower-income tracts have more walk access; in 3 (NYC, LA, San Diego) it runs the other way", "Median Gini coefficient for 20-minute walk access across the dataset: 0.897 — roughly twice the US household-income Gini", "Interactive dashboard deployed with city switching plus the three reader-facing questions (mode, category, time-band), and in-dashboard equity analytics including Spearman r, Gini, and quartile breakdown", "Framework documented for extension to additional cities, transit modes, or updated Census vintages"]
     },
     "takeaways": [
       { "title": "Infrastructure is the analysis", "body": "The hardest part of this project wasn't the map — it was the pipeline that makes the map trustworthy. Projection alignment, DuckDB spatial query optimization, tile generation performance, Valhalla routing configuration: none of these are glamorous, but all of them determine whether the analysis is valid. You can't separate the infrastructure from the insight. Building it correctly is the research." },
-      { "title": "The equity story was in the data. The job was building the tool to surface it.", "body": "I didn't need to editorialize. The gap between walk access in high-income and low-income census tracts speaks for itself — it does so in every city in the dataset. The work was building something rigorous enough that the pattern couldn't be dismissed as a methodology artifact. The credibility of the infrastructure is what gives the finding its weight." }
+      { "title": "The story wasn't the gap. It was the direction.", "body": "An income–walkability gap shows up in every city in the dataset. The interesting finding was which way it ran. In dense metros (NYC, LA, San Diego), richer tracts walk to more. In sprawl-pattern metros (Phoenix, Fort Worth, Houston, Dallas), the relationship reverses — poorer, denser, older neighborhoods reach more on foot than the wealthier exurbs that surround them. A single-city study would have called this an artifact. Ten cities, same pipeline, makes it structural." }
     ]
   }
 ];

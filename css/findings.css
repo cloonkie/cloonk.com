@@ -78,6 +78,15 @@
   min-height: 1px;
 }
 
+/* Findings without a paired image: collapse to single column, constrain width */
+.finding:has(.finding__media--empty) {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 64ch;
+}
+.finding:has(.finding__media--empty) .finding__media--empty {
+  display: none;
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 768px) {
   .finding {
@@ -149,6 +158,94 @@
   .stat-moment {
     padding: 5rem 1rem;
     margin: 3rem 0;
+  }
+}
+
+/* ============================================================
+   STORYLINE TOGGLE — sticky pill, hides stats + statements
+   ============================================================ */
+.storyline-toggle {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px 8px 12px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .2s ease, opacity .2s ease, transform .15s ease;
+}
+
+.storyline-toggle:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.storyline-toggle:active {
+  transform: translateY(1px);
+}
+
+.storyline-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.storyline-toggle__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  transition: background .2s ease, box-shadow .2s ease;
+}
+
+.storyline-toggle[aria-pressed="true"] {
+  opacity: 0.55;
+}
+
+.storyline-toggle[aria-pressed="true"] .storyline-toggle__dot {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.stat-moment,
+.statement-break {
+  overflow: hidden;
+  max-height: 60rem;
+  transition: opacity .35s ease, max-height .45s ease, padding .35s ease, margin .35s ease;
+}
+
+body.storyline-off .stat-moment,
+body.storyline-off .statement-break {
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-moment,
+  .statement-break {
+    transition: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .storyline-toggle {
+    bottom: 16px;
+    left: 16px;
+    padding: 7px 13px 7px 10px;
+    font-size: 10px;
   }
 }
 
@@ -268,7 +365,7 @@
    ============================================================ */
 .approach-moves {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 2.5rem;
   margin-top: 1.5rem;
 }
