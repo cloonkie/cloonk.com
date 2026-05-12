@@ -991,7 +991,7 @@ window.PROJECTS = [
   "sheets": null, "canva": null, "github": null, "live": null,
   "findings": [
     {
-      "title": "Users expecting an author's name got a UN acronym instead",
+      "title": "Users looked for authors. The interface showed acronyms.",
       "observation": "When asked to identify the author of an IDP, participants saw 'UNCTAD' and couldn't tell if they were looking at a person, an organization, or a typo.",
       "evidence": "Opacity maps across eight participants show concentrated attention at the top of the page, followed by repeated dips into the Details section to verify authorship. Five of eight reported at the end of their session that they didn't know what the acronym meant.",
       "impact": "'Who is the author?' is one of the UNDL's most frequent service desk inquiries. The interface itself is generating the question.",
@@ -1025,16 +1025,18 @@ window.PROJECTS = [
   ],
   "statMoments": [
     {
-      "value": "82.5%",
-      "label": "of Matomo's recorded sessions were bots. The engagement metrics the UNDL was watching weren't measuring real users."
+      "value": "5 / 8",
+      "label": "participants couldn't tell whether the IDP author was a person or an organization. Eye-tracking showed them repeatedly defaulting to the Details section to verify."
     },
     {
       "value": "46.4",
-      "label": "SUS score against an industry benchmark of 68. Below every peer platform in the benchmark set."
+      "label": "SUS score against an industry benchmark of 68. Below every peer platform in the comparative benchmark set.",
+      "svg": "<svg viewBox=\"0 0 700 240\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-labelledby=\"sus-title\" aria-describedby=\"sus-desc\"><title id=\"sus-title\">SUS Score 46.4 out of 100</title><desc id=\"sus-desc\">A 0-to-100 System Usability Scale showing the score 46.4 in accent color, positioned 21.6 points below the industry benchmark of 68 which is marked with a dashed line.</desc><text x=\"350\" y=\"50\" text-anchor=\"middle\" style=\"font-family: var(--font-display), 'Cabinet Grotesk', sans-serif; font-size: 56px; font-weight: 500; fill: var(--accent);\">46.4</text><text x=\"350\" y=\"78\" text-anchor=\"middle\" style=\"font-family: var(--font-body), 'Satoshi', sans-serif; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; fill: var(--fg); opacity: 0.55;\">out of 100</text><line x1=\"100\" y1=\"140\" x2=\"600\" y2=\"140\" style=\"stroke: var(--fg)\" stroke-width=\"1\" opacity=\"0.25\"/><g style=\"stroke: var(--fg)\" stroke-width=\"1\" opacity=\"0.35\"><line x1=\"100\" y1=\"134\" x2=\"100\" y2=\"146\"/><line x1=\"225\" y1=\"134\" x2=\"225\" y2=\"146\"/><line x1=\"350\" y1=\"134\" x2=\"350\" y2=\"146\"/><line x1=\"475\" y1=\"134\" x2=\"475\" y2=\"146\"/><line x1=\"600\" y1=\"134\" x2=\"600\" y2=\"146\"/></g><g style=\"font-family: var(--font-body), 'Satoshi', sans-serif; font-size: 11px; fill: var(--fg); opacity: 0.5;\" text-anchor=\"middle\"><text x=\"100\" y=\"163\">0</text><text x=\"225\" y=\"163\">25</text><text x=\"350\" y=\"163\">50</text><text x=\"475\" y=\"163\">75</text><text x=\"600\" y=\"163\">100</text></g><line x1=\"440\" y1=\"105\" x2=\"440\" y2=\"150\" style=\"stroke: var(--fg)\" stroke-width=\"1\" opacity=\"0.6\" stroke-dasharray=\"3 3\"/><text x=\"440\" y=\"98\" text-anchor=\"middle\" style=\"font-family: var(--font-body), 'Satoshi', sans-serif; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; fill: var(--fg); opacity: 0.7;\">Industry benchmark · 68</text><circle cx=\"332\" cy=\"140\" r=\"14\" fill=\"none\" style=\"stroke: var(--accent)\" stroke-width=\"1\" opacity=\"0.3\"/><circle cx=\"332\" cy=\"140\" r=\"9\" style=\"fill: var(--accent)\"/><path d=\"M 332 168 L 332 178 L 440 178 L 440 168\" fill=\"none\" style=\"stroke: var(--fg)\" stroke-width=\"1\" opacity=\"0.4\"/><text x=\"386\" y=\"195\" text-anchor=\"middle\" style=\"font-family: var(--font-body), 'Satoshi', sans-serif; font-size: 11px; fill: var(--fg); opacity: 0.6;\">21.6 points below</text><text x=\"100\" y=\"220\" text-anchor=\"start\" style=\"font-family: var(--font-body), 'Satoshi', sans-serif; font-size: 12px; letter-spacing: 0.05em; fill: var(--fg); opacity: 0.7;\">Not acceptable</text><text x=\"600\" y=\"220\" text-anchor=\"end\" style=\"font-family: var(--font-body), 'Satoshi', sans-serif; font-size: 12px; letter-spacing: 0.05em; fill: var(--fg); opacity: 0.7;\">Excellent</text></svg>"
     },
     {
-      "value": "8 / 8",
-      "label": "participants reported low confidence — even on the tasks they completed successfully."
+      "value": "1.9 / 7",
+      "label": "average SEQ difficulty on the linked-record task. All eight participants reported low confidence — even the five who completed it correctly.",
+      "svg": "<svg viewBox=\"0 0 700 220\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-labelledby=\"seq-title\" aria-describedby=\"seq-desc\"><title id=\"seq-title\">SEQ Score 1.9 out of 7</title><desc id=\"seq-desc\">A 7-point ease scale labeled Very Difficult on the left and Very Easy on the right, with 1.9 marked near the Very Difficult end in accent color.</desc><text x=\"350\" y=\"50\" text-anchor=\"middle\" style=\"font-family: var(--font-display), 'Cabinet Grotesk', sans-serif; font-size: 56px; font-weight: 500; fill: var(--accent);\">1.9</text><text x=\"350\" y=\"78\" text-anchor=\"middle\" style=\"font-family: var(--font-body), 'Satoshi', sans-serif; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; fill: var(--fg); opacity: 0.55;\">out of 7</text><line x1=\"100\" y1=\"130\" x2=\"600\" y2=\"130\" style=\"stroke: var(--fg)\" stroke-width=\"1\" opacity=\"0.25\"/><g style=\"stroke: var(--fg)\" stroke-width=\"1\" opacity=\"0.35\"><line x1=\"100\" y1=\"124\" x2=\"100\" y2=\"136\"/><line x1=\"183.33\" y1=\"124\" x2=\"183.33\" y2=\"136\"/><line x1=\"266.67\" y1=\"124\" x2=\"266.67\" y2=\"136\"/><line x1=\"350\" y1=\"124\" x2=\"350\" y2=\"136\"/><line x1=\"433.33\" y1=\"124\" x2=\"433.33\" y2=\"136\"/><line x1=\"516.67\" y1=\"124\" x2=\"516.67\" y2=\"136\"/><line x1=\"600\" y1=\"124\" x2=\"600\" y2=\"136\"/></g><g style=\"font-family: var(--font-body), 'Satoshi', sans-serif; font-size: 11px; fill: var(--fg); opacity: 0.5;\" text-anchor=\"middle\"><text x=\"100\" y=\"153\">1</text><text x=\"183.33\" y=\"153\">2</text><text x=\"266.67\" y=\"153\">3</text><text x=\"350\" y=\"153\">4</text><text x=\"433.33\" y=\"153\">5</text><text x=\"516.67\" y=\"153\">6</text><text x=\"600\" y=\"153\">7</text></g><circle cx=\"175\" cy=\"130\" r=\"14\" fill=\"none\" style=\"stroke: var(--accent)\" stroke-width=\"1\" opacity=\"0.3\"/><circle cx=\"175\" cy=\"130\" r=\"9\" style=\"fill: var(--accent)\"/><text x=\"100\" y=\"185\" text-anchor=\"start\" style=\"font-family: var(--font-body), 'Satoshi', sans-serif; font-size: 12px; letter-spacing: 0.05em; fill: var(--fg); opacity: 0.7;\">Very Difficult</text><text x=\"600\" y=\"185\" text-anchor=\"end\" style=\"font-family: var(--font-body), 'Satoshi', sans-serif; font-size: 12px; letter-spacing: 0.05em; fill: var(--fg); opacity: 0.7;\">Very Easy</text></svg>"
     }
   ],
   "quotes": [
@@ -1068,20 +1070,21 @@ window.PROJECTS = [
     "institutional": "Delivered to the UNDL's Chief of Information Management Section, with a pending invitation to present findings to the broader library and tech department."
   },
   "statements": [
-    "The interface itself was generating the question.",
     "When the dataset is 82.5% noise, the cleaning is the analysis.",
+    "A successful task and a confident user aren't the same thing.",
     "Specialist language isn't neutral — it's an access barrier with traffic numbers attached."
   ],
   "context": {
-    "problem": "The Item Details Page was the UNDL's highest-traffic page — and the place users were leaving when they couldn't find what they came for. Download links sat in different positions across document types. Metadata fields were labeled for archivists, not researchers. The site's tracking layer compounded the problem: 82.5% of Matomo's recorded sessions were bot traffic, so the engagement metrics the UNDL was using to monitor the page weren't measuring real users. What looked like a design problem was also a measurement problem — and recovering a defensible behavioral picture was the first piece of work the study needed.",
+    "problem": "The United Nations Digital Library hosts one of the world’s largest institutional archives — but its most-visited page was quietly failing the people trying to use it. Researchers struggled to interpret specialist terminology, layouts shifted unpredictably across record types, and the platform’s analytics were so bot-saturated that the UNDL couldn’t reliably measure real user behavior. Before we could evaluate the interface itself, we first had to rebuild a trustworthy picture of how people were actually using it.",
     "why": [
       "The UNDL serves a global audience of researchers, journalists, diplomats, and students — even marginal usability improvements compound across an institutional audience",
       "The Item Details Page is the highest-traffic page on the site, and the platform had never undergone a formal usability study before this engagement",
       "Recommendations needed to be scoped for institutional constraints — implementable against an existing vendor relationship, not dependent on a full redesign"
-    ]
+    ],
+    "collaboration": "None of this happens without Sara Her, Shelly Guan, and Liwei Jiang.  The 36-issue rainbow sheet, the two key findings, and the final deck were collective work — what I owned was the data layer, the cross-stream join, and the SUS benchmark that anchored the recommendation list at delivery."
   },
   "approach": {
-    "summary": "My primary responsibility was the data layer — everything between raw collection and finished narrative. This work sat on the critical path: without structured behavioral data, the team's qualitative findings would not have translated into defensible recommendations. I cleaned and normalized Matomo's session exports — filtering bot traffic that accounted for 82.5% of recorded sessions, de-duplicating across document types, and reconstructing the IDP user funnel from what remained. I operationalized post-session SUS, SEQ, and open-ended survey responses into a structured dataset that made cross-method validation possible, then distributed results across the team to align on severity and prioritization before the 36-issue rainbow sheet was finalized. I also ran a comparative SUS benchmark against peer research platforms — contextualizing the UNDL's 46.4 score against scores from comparable institutional archives, and surfacing layout and labeling conventions those platforms had adopted that the UNDL had silently diverged from. Teammates led the eight moderated user sessions and Tobii hardware operation; I operationalized the raw session outputs into the structured dataset the analysis sat on.",
+    "summary": "I led the analytical layer of the study — cleaning and reconstructing behavioral data, operationalizing usability metrics, and translating raw session outputs into defensible findings.",
     "data": ["Pandas", "Tobii Pro Eye Tracking", "Retrospective Think-Aloud", "SUS Scoring", "SEQ Task Evaluation", "Matomo Analytics", "Comparative Benchmarking", "Figma", "Miro", "Survey Design", "Stakeholder Presentation"],
     "moves": [
       {
@@ -1089,46 +1092,39 @@ window.PROJECTS = [
         "body": "Matomo's session data was 82.5% bot traffic. Cleaning it wasn't preprocessing — it was the first finding of the study, and the precondition for trusting anything downstream. From there, I structured SUS, SEQ, and open-ended survey responses into a single dataset that made cross-method validation possible, and distributed results so the team could align on severity before the 36-issue rainbow sheet was finalized."
       },
       {
-        "title": "Benchmarking against peer archives",
-        "body": "The 46.4 SUS score landed differently when stakeholders could see it anchored against named peer platforms instead of a generic industry threshold. The benchmark was what made the recommendation list defensible at delivery."
-      },
-      {
         "title": "Conducting in-person eye-tracking study",
         "body": "Across eight moderated sessions, Tobii captured fixations, RTA captured what participants said, and SUS and SEQ captured confidence. None of those streams meant much alone. I built the join — so 'users defaulted to the Details section to verify authorship' is backed by gaze data, a quote, and a confidence score, not just one of them."
+      },
+      {
+        "title": "Benchmarking against peer archives",
+        "body": "The 46.4 SUS score landed differently when stakeholders could see it anchored against named peer platforms instead of a generic industry threshold. The benchmark was what made the recommendation list defensible at delivery."
       }
     ]
   },
   "results": {
     "before": [
-      "SUS score of 46.4 — 21.6 points below the 68-point industry benchmark, and below every peer platform in the comparative benchmark set",
-      "Matomo session data 82.5% bot-saturated — standard engagement metrics unusable until filtered and reconstructed",
-      "Across eight moderated sessions, all participants reported low confidence even on successfully completed tasks; the linked-record task averaged 1.9/7 on SEQ difficulty",
-      "Eye-tracking opacity maps showed users defaulting to the Details section to verify authorship when met with UN acronyms (UNCTAD) instead of recognizable names",
-      "IDP body text rendered at 12px / 200 weight — below WCAG accessibility minimums for both size and contrast",
-      "IDP layouts differed across document types without explanation — the missing 'Download' button on records without digitized files left users disoriented mid-task"
+      "Eye-tracking opacity maps and gaze plots showed users defaulting to the Details section to verify authorship — the interface's specialist labels were generating the very questions the UNDL service desk fielded most often",
+      "Across eight moderated sessions, no participant reported confidence in their results, even on the tasks they successfully completed — the linked-record task averaged 1.9 / 7 on SEQ difficulty",
+      "Cross-method validation surfaced 36 distinct usability issues, prioritized by severity and frequency across the participant pool"
     ],
     "after": [
-      "36 prioritized usability issues consolidated into two key findings — (1) specialist labels and terminology create access barriers; (2) inconsistent layouts and sub-WCAG typography compound them",
-      "Relabeling specification targeting highest-traffic fields, including 'Formats' → 'Citation Formats' to disambiguate from file-type expectations",
-      "Tooltip pattern for specialist terms (e.g., 'Symbol') that couldn't be renamed without breaking the UN's internal taxonomy",
-      "Disabled 'Download' state with directional tooltip for IDPs without digitized files — preserving layout consistency while signaling availability and routing users to a librarian",
-      "Typography update to 14px minimum at 400 weight with proportional header scaling — bringing IDP body content into WCAG compliance without altering overall layout",
-      "Comparative benchmark framing that gave the 46.4 SUS score institutional context — anchored against named peer platforms rather than the generic 68-point industry threshold",
+      "Two key findings consolidated from the 36-issue rainbow sheet — (1) specialist labels and terminology create access barriers; (2) inconsistent layouts and sub-WCAG typography compound them",
+      "Four implementation-ready recommendations scoped against the existing vendor relationship — 'Formats' → 'Citation Formats,' a tooltip pattern for terms locked to internal taxonomy, a disabled-state Download pattern for non-digitized records, and a 14px / 400-weight typography update for WCAG compliance",
       "Final report delivered to the UNDL's Chief of Information Management Section, with a pending invitation to present findings to the broader library and tech department"
     ]
   },
   "takeaways": [
     {
-      "title": "The data tells you what's broken. My job is making it legible enough that the why becomes obvious.",
+      "title": "Data reveals where users struggle. The real work is making the reason impossible to ignore.",
       "body": "Every heatmap gap is a specific, diagnosable failure — a visual hierarchy problem, a contrast issue, an affordance that doesn't communicate what it needs to. But that diagnosis only holds if the underlying data is clean, consistently structured, and contextualized against something real. The comparative benchmark didn't just add a slide to the presentation — it changed how stakeholders heard the SUS score. Numbers land differently when they're anchored. That's the work."
     },
     {
-      "title": "When the dataset is 82.5% noise, the cleaning is the analysis.",
-      "body": "Matomo's recorded sessions were almost entirely bots. The UNDL had been watching dashboards that weren't measuring real users. Filtering, de-duping, and reconstructing the funnel wasn't preprocessing — it was the first finding of the study, and it reshaped what the rest of the methodology could trust. The lesson holds outside this project: when an institution's measurement layer is broken, no design recommendation downstream is defensible until someone fixes the layer first."
+      "title": "A successful task and a confident user aren't the same thing.",
+      "body": "Five of eight participants completed the linked-record task correctly. Every one of them, including the five who succeeded, rated the task at 1.9 / 7 difficulty and reported they didn't trust they'd found the right thing. Task completion is a binary the interface measures easily. Confidence is the variable it actually changes. When eye-tracking and self-report tell different stories about the same moment, that gap is where the design work lives."
     },
     {
       "title": "Specialist language isn't neutral — it's an access barrier with traffic numbers attached.",
-      "body": "The UNDL's labels weren't wrong; they were internally consistent with a bibliographic system built by experts for experts. But every general-public user who left without finding a document was a measurable cost of that consistency. The recommendation — relabel where you can, tooltip where you can't — is small. The principle is bigger. Audit your interface for the words that assume your user already speaks your dialect."
+      "body": "The UNDL's labels weren't wrong; they were internally consistent with a bibliographic system built by experts for experts. But every general-public user who left without finding a document was a measurable cost of that consistency. The recommendation — relabel where you can, tooltip where you can't — is small. The principle is bigger. Every specialist label assumes the user already speaks the system’s language."
     }
   ]
 },

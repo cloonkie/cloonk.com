@@ -48,7 +48,8 @@
         '<div class="detail-two-col">'
         + (p.context.why ? '<div><h4>Why it mattered</h4><ul>' + p.context.why.map(function(x){return '<li>'+x+'</li>';}).join('') + '</ul></div>' : '')
         + (p.context.constraints ? '<div><h4>Constraints</h4><ul>' + p.context.constraints.map(function(x){return '<li>'+x+'</li>';}).join('') + '</ul></div>' : '')
-        + '</div>' : '');
+        + '</div>' : '')
+    + ((p.context && p.context.collaboration) ? '<div class="detail-collab"><p>' + p.context.collaboration + '</p></div>' : '');
 
   /* ── Approach ── */
   function renderApproachMoves(moves) {
@@ -327,8 +328,11 @@
 
   /* ── Stat moment (full-bleed editorial break) ── */
   function renderStatMoment(m, i) {
+    var headline = m.svg
+      ? '<div class="stat-moment__chart">' + m.svg + '</div>'
+      : '<div class="stat-moment__value">' + m.value + '</div>';
     return '<section class="stat-moment" data-moment-index="' + i + '">'
-      + '<div class="stat-moment__value">' + m.value + '</div>'
+      + headline
       + '<p class="stat-moment__label">' + m.label + '</p>'
       + '</section>';
   }

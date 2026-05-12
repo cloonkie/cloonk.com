@@ -119,6 +119,23 @@
   opacity: 1;
 }
 
+.stat-moment__chart {
+  max-width: min(700px, 90vw);
+  margin: 0 auto 1.5rem;
+  opacity: 0.25;
+  transition: opacity 0.5s ease;
+}
+
+.stat-moment__chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.stat-moment--in-view .stat-moment__chart {
+  opacity: 1;
+}
+
 .stat-moment__label {
   font-family: var(--font-body);
   font-size: clamp(1rem, 1.5vw, 1.25rem);

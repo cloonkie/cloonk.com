@@ -11,7 +11,12 @@
       "Bash(curl -sI \"https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Formatting.jpg\")",
       "Bash(curl -sI \"https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20Matomo%20Results.jpg\")",
       "Bash(curl -sI \"https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/UNDL%20SUS%20Result.jpg\")",
-      "Bash(curl -s -o /dev/null -w '%{http_code}' https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/__TRACKED_VAR__)"
+      "Bash(curl -s -o /dev/null -w '%{http_code}' https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/__TRACKED_VAR__)",
+      "Bash(node -e ' *)",
+      "Bash(command -v node)",
+      "Bash(command -v deno)",
+      "Bash(command -v python)",
+      "Bash(command -v python3)"
     ]
   }
 }
