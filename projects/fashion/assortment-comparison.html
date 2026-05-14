@@ -34,8 +34,8 @@
   --border: #2a2a26;
   --border-hover: #3a3a36;
   --text: #f5f2ec;
-  --text-muted: #aaa59a;
-  --text-dim: #7d786f;
+  --text-muted: #888882;
+  --text-dim: #5e5e58;
   --accent: #39ff14;
   --accent-hover: #5cff44;
   --accent-fg: #0a0a0a;
@@ -57,8 +57,8 @@
   --border: #d0ccc4;
   --border-hover: #b6b2aa;
   --text: #0a0a0a;
-  --text-muted: #3f3f3a;
-  --text-dim: #676760;
+  --text-muted: #5a5a54;
+  --text-dim: #8a8a82;
   --accent: #1b09bc;
   --accent-hover: #2e1cd6;
   --accent-fg: #f5f2ec;
@@ -115,7 +115,7 @@ button, input, select { font: inherit; }
 }
 .header-stats .stat-val { color: var(--accent); }
 .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
-.btn, .theme-toggle, .info-btn {
+.btn, .theme-toggle {
   min-height: 32px;
   display: inline-flex;
   align-items: center;
@@ -130,208 +130,15 @@ button, input, select { font: inherit; }
   transition: background var(--transition), border-color var(--transition), color var(--transition);
   white-space: nowrap;
 }
-.btn:hover, .theme-toggle:hover, .info-btn:hover { background: var(--surface-raised); border-color: var(--border-hover); }
+.btn:hover, .theme-toggle:hover { background: var(--surface-raised); border-color: var(--border-hover); }
 .btn-accent { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 700; }
 .btn-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--accent-fg); }
 .btn-danger { color: var(--danger); }
-.theme-toggle, .info-btn { width: 32px; padding: 0; color: var(--text-muted); }
-.theme-toggle svg, .info-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.theme-toggle { width: 32px; padding: 0; color: var(--text-muted); }
+.theme-toggle svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .theme-toggle .icon-moon { display: none; }
 [data-theme="light"] .theme-toggle .icon-sun { display: none; }
 [data-theme="light"] .theme-toggle .icon-moon { display: block; }
-.info-modal-overlay {
-  position: fixed; inset: 0;
-  display: none;
-  align-items: center; justify-content: center;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-.info-modal-overlay.open { display: flex; }
-.info-modal {
-  width: min(760px, 92vw);
-  max-height: 82vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
-}
-.info-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-}
-.info-modal-title {
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.info-modal-title span { color: var(--accent); }
-.info-modal-close {
-  padding: 4px 8px;
-  border: 0;
-  border-radius: var(--radius-xs);
-  background: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 1.1rem;
-}
-.info-modal-close:hover { color: var(--text); background: var(--surface-raised); }
-.info-modal-tabs {
-  display: flex;
-  padding: 0 20px;
-  border-bottom: 1px solid var(--border);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.info-modal-tabs::-webkit-scrollbar { display: none; }
-.info-modal-tab {
-  padding: 12px 14px;
-  margin-bottom: -1px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.info-modal-tab:hover { color: var(--text); }
-.info-modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-.info-modal-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 22px 24px 26px;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  line-height: 1.7;
-}
-.info-modal-pane { display: none; }
-.info-modal-pane.active { display: block; }
-.info-modal-body h3 {
-  margin: 18px 0 8px;
-  color: var(--text);
-  font-family: var(--font-display);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.info-modal-body h3:first-child { margin-top: 0; }
-.info-modal-body p { margin-bottom: 10px; }
-.info-modal-body strong { color: var(--text); font-weight: 600; }
-.info-modal-body code {
-  padding: 1px 6px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xs);
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 0.78em;
-}
-.info-modal-body table {
-  width: 100%;
-  margin-bottom: 14px;
-  border-collapse: collapse;
-  font-size: 0.78rem;
-}
-.info-modal-body th {
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-dim);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-align: left;
-  text-transform: uppercase;
-}
-.info-modal-body td {
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-muted);
-  vertical-align: top;
-}
-.info-modal-body td:first-child { color: var(--text); font-weight: 500; }
-.term {
-  position: relative;
-  display: inline-block;
-  border-bottom: 1px dashed var(--border-hover);
-  cursor: help;
-}
-.term-tip {
-  display: none;
-  position: absolute;
-  top: 100%; left: 0;
-  z-index: 3000;
-  width: 280px;
-  margin-top: 6px;
-  padding: 10px 12px;
-  background: var(--surface-raised);
-  border: 1px solid var(--border-hover);
-  border-radius: var(--radius-xs);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  color: var(--text);
-  font-size: 0.72rem;
-  font-weight: 400;
-  letter-spacing: 0;
-  line-height: 1.55;
-  pointer-events: none;
-  text-transform: none;
-}
-.term:hover .term-tip { display: block; }
-.info-link-group {
-  padding: 8px 0 4px;
-  color: var(--text-dim);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.info-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-xs);
-  color: var(--text);
-  font-size: 0.88rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
-}
-.info-link:hover, .info-link[aria-current="page"] {
-  background: var(--accent-dim);
-  border-color: color-mix(in oklab, var(--accent) 35%, transparent);
-  color: var(--accent);
-}
-.info-link-glyph {
-  width: 16px;
-  flex-shrink: 0;
-  color: var(--text-dim);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-}
-.info-link:hover .info-link-glyph,
-.info-link[aria-current="page"] .info-link-glyph { color: var(--accent); }
-.info-link-meta {
-  margin-left: auto;
-  color: var(--text-dim);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-}
 .toolbar {
   display: none;
   align-items: center;
@@ -361,84 +168,102 @@ select, .search-input {
 [data-theme="light"] select, [data-theme="light"] .search-input { background: #f4f2ee; }
 select:focus, .search-input:focus { border-color: var(--accent); }
 .search-input { width: min(280px, 48vw); }
-.multi-select {
-  position: relative;
-  min-width: 190px;
-}
-.multi-select-button {
+.ms-dropdown { position: relative; min-width: 180px; }
+.ms-trigger {
   width: 100%;
-  min-height: 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
+  min-height: 32px;
   padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   background: var(--bg);
   color: var(--text);
   cursor: pointer;
-  text-align: left;
+  font: inherit;
+  transition: border-color var(--transition);
 }
-[data-theme="light"] .multi-select-button { background: #f4f2ee; }
-.multi-select-button::after {
-  content: "▾";
-  color: var(--text-dim);
-  font-size: 0.72rem;
-}
-.multi-select.open .multi-select-button { border-color: var(--accent); }
-.multi-select-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 300;
-  width: min(320px, 82vw);
-  max-height: 280px;
-  overflow: auto;
-  padding: 6px;
-  border: 1px solid var(--border-hover);
-  border-radius: var(--radius-sm);
-  background: var(--surface-raised);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
-  display: none;
-}
-.multi-select.open .multi-select-menu { display: block; }
-.multi-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 9px;
-  border-radius: var(--radius-xs);
-  color: var(--text);
-  cursor: pointer;
-  font-size: 0.82rem;
-}
-.multi-option:hover { background: var(--accent-dim); }
-.multi-option input { accent-color: var(--accent); }
-.multi-option span {
+[data-theme="light"] .ms-trigger { background: #f4f2ee; }
+.ms-trigger:hover { border-color: var(--border-hover); }
+.ms-dropdown.open .ms-trigger,
+.ms-trigger:focus { border-color: var(--accent); outline: none; }
+.ms-label {
+  flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
+  font-size: 0.85rem;
 }
-.multi-actions {
+.ms-label.is-muted { color: var(--text-muted); }
+.ms-caret {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  transition: transform var(--transition);
+}
+.ms-dropdown.open .ms-caret { transform: rotate(180deg); }
+.ms-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  max-width: min(320px, 80vw);
+  display: none;
+  z-index: 30;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 6px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
+}
+[data-theme="light"] .ms-panel { box-shadow: 0 10px 24px rgba(20, 20, 20, 0.12); }
+.ms-dropdown.open .ms-panel { display: block; }
+.ms-actions {
   display: flex;
   gap: 6px;
   padding: 4px 4px 8px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 4px;
 }
-.multi-actions button {
-  padding: 4px 7px;
+.ms-actions button {
+  flex: 1;
+  font: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 5px 8px;
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
-  background: var(--surface);
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.68rem;
-  font-weight: 700;
+  transition: color var(--transition), border-color var(--transition);
 }
-.multi-actions button:hover { color: var(--text); border-color: var(--border-hover); }
+.ms-actions button:hover { color: var(--text); border-color: var(--border-hover); }
+.ms-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  font-size: 0.85rem;
+  user-select: none;
+}
+.ms-option:hover { background: var(--surface); }
+.ms-option input { accent-color: var(--accent); cursor: pointer; }
+.ms-option-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ms-empty {
+  padding: 12px 8px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
 .upload {
   display: grid;
   place-items: center;
@@ -528,17 +353,24 @@ select:focus, .search-input:focus { border-color: var(--accent); }
 .venn-circle:hover { opacity: 0.78; stroke-width: 3; }
 .venn-label {
   fill: var(--text);
+  stroke: var(--bg);
+  stroke-width: 4px;
+  paint-order: stroke;
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 800;
   text-anchor: middle;
   pointer-events: none;
 }
+[data-theme="light"] .venn-label { stroke: var(--surface); }
 .venn-count {
   fill: var(--text);
+  stroke: var(--bg);
+  stroke-width: 3.5px;
+  paint-order: stroke;
   font-family: var(--font-mono);
   font-size: 20px;
-  font-weight: 500;
+  font-weight: 700;
   text-anchor: middle;
   pointer-events: none;
 }
@@ -550,11 +382,18 @@ select:focus, .search-input:focus { border-color: var(--accent); }
 .venn-region.active + text { fill: var(--accent); }
 .region-label {
   fill: var(--text-muted);
+  stroke: var(--bg);
+  stroke-width: 3px;
+  paint-order: stroke;
   font-family: var(--font-mono);
   font-size: 12px;
+  font-weight: 600;
   text-anchor: middle;
   pointer-events: none;
+  transition: fill var(--transition), stroke var(--transition);
 }
+[data-theme="light"] .region-label,
+[data-theme="light"] .venn-count { stroke: var(--surface); }
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -651,7 +490,6 @@ td.mono { font-family: var(--font-mono); }
   .header-stats { flex-wrap: wrap; }
   .toolbar-group { width: 100%; justify-content: space-between; }
   select, .search-input { width: 65%; }
-  .multi-select { width: 65%; min-width: 0; }
 }
 </style>
 </head>
@@ -666,13 +504,6 @@ td.mono { font-family: var(--font-mono); }
     </div>
   </div>
   <div class="header-actions">
-    <button class="info-btn" id="infoBtn" aria-label="Open info & appendix" title="Info & Appendix">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="12" r="9"/>
-        <line x1="12" y1="11" x2="12" y2="16"/>
-        <circle cx="12" cy="8" r="0.6" fill="currentColor"/>
-      </svg>
-    </button>
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
       <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -687,25 +518,31 @@ td.mono { font-family: var(--font-mono); }
 
 <div class="toolbar" id="toolbar">
   <div class="toolbar-group">
-    <span class="toolbar-label">Compare</span>
-    <div class="multi-select" id="retailerMulti">
-      <button type="button" class="multi-select-button" data-multi-toggle="retailerMulti">Retailers</button>
-      <div class="multi-select-menu" id="retailerMenu"></div>
+    <span class="toolbar-label">Retailers</span>
+    <div class="ms-dropdown" id="retailerDropdown">
+      <button type="button" class="ms-trigger" id="retailerTrigger" aria-haspopup="listbox" aria-expanded="false">
+        <span class="ms-label" id="retailerLabel">All retailers</span>
+        <span class="ms-caret" aria-hidden="true">&#9662;</span>
+      </button>
+      <div class="ms-panel" id="retailerPanel" role="listbox"></div>
     </div>
   </div>
   <div class="toolbar-group">
     <span class="toolbar-label">Brands</span>
-    <div class="multi-select" id="brandMulti">
-      <button type="button" class="multi-select-button" data-multi-toggle="brandMulti">All Brands</button>
-      <div class="multi-select-menu" id="brandMenu"></div>
+    <div class="ms-dropdown" id="brandDropdown">
+      <button type="button" class="ms-trigger" id="brandTrigger" aria-haspopup="listbox" aria-expanded="false">
+        <span class="ms-label" id="brandLabel">All brands</span>
+        <span class="ms-caret" aria-hidden="true">&#9662;</span>
+      </button>
+      <div class="ms-panel" id="brandPanel" role="listbox"></div>
     </div>
   </div>
   <div class="toolbar-group">
     <span class="toolbar-label">Metric</span>
     <select id="metricMode" onchange="updateComparison()">
-      <option value="sold">Unit Sold</option>
       <option value="oh">Unit OH</option>
-      <option value="total">Sold + OH</option>
+      <option value="sold">Unit Sold</option>
+      <option value="both">Sold + OH</option>
     </select>
   </div>
   <div class="toolbar-group">
@@ -718,7 +555,7 @@ td.mono { font-family: var(--font-mono); }
     </select>
   </div>
   <div class="toolbar-group">
-    <input class="search-input" id="searchInput" type="text" placeholder="Search style, color, grid..." oninput="updateComparison()">
+    <input class="search-input" id="searchInput" type="text" placeholder="Search brand, release, style, grid..." oninput="updateComparison()">
   </div>
 </div>
 
@@ -726,11 +563,11 @@ td.mono { font-family: var(--font-mono); }
   <section class="upload" id="uploadView">
     <div class="upload-panel">
       <h1>Compare Retailer Assortments</h1>
-      <p>Upload a spreadsheet with columns like Brand, Release, Style, Grid, Retailer, Unit Sold, and Unit OH. The page builds local overlap sets, compares selected metrics, and restores your last session from this browser.</p>
+      <p>Upload a spreadsheet with columns like Brand, Release, Style, Grid, Retailer, Unit Sold, and Unit OH. The page builds local overlap sets, counts styles, sums units sold and on-hand, and restores your last session from this browser.</p>
       <div class="upload-zone" id="uploadZone">
         <input type="file" id="landingInput" accept=".xlsx,.xls,.csv">
         <div class="upload-title">Drop .xlsx or .csv here</div>
-        <div class="upload-hint">Recommended order: Brand, Release, Style, Grid, Retailer, Unit Sold, Unit OH.</div>
+        <div class="upload-hint">Required: retailer/account and a product identifier. Recommended: Brand, Release, Style, Grid, Unit Sold, Unit OH.</div>
       </div>
     </div>
   </section>
@@ -786,123 +623,6 @@ td.mono { font-family: var(--font-mono); }
   </section>
 </main>
 
-<div class="info-modal-overlay" id="infoModalOverlay" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
-  <div class="info-modal">
-    <div class="info-modal-header">
-      <span class="info-modal-title" id="infoModalTitle">Assortment Comparison <span>— Appendix</span></span>
-      <button class="info-modal-close" id="infoModalClose" aria-label="Close">&times;</button>
-    </div>
-
-    <div class="info-modal-tabs" role="tablist">
-      <button class="info-modal-tab active" data-tab="about" role="tab">About</button>
-      <button class="info-modal-tab" data-tab="schema" role="tab">Schema</button>
-      <button class="info-modal-tab" data-tab="appendix" role="tab">Appendix</button>
-      <button class="info-modal-tab" data-tab="resources" role="tab">Resources</button>
-    </div>
-
-    <div class="info-modal-body">
-      <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
-        <h3>What this is</h3>
-        <p>Assortment Comparison is a browser-based overlap tool for retailer assortments. Upload a workbook, choose the retailers to compare, switch the product key, and inspect which styles are shared or unique. The spreadsheet stays local to your browser.</p>
-
-        <h3>Quick start</h3>
-        <p>
-          <strong>1.</strong> Click <code>Template</code> for a starter workbook.<br>
-          <strong>2.</strong> Load a sheet with product and retailer/account columns.<br>
-          <strong>3.</strong> Select up to five retailers, choose one or more brands, and pick whether comparison metrics use <code>Unit Sold</code>, <code>Unit OH</code>, or <code>Sold + OH</code>.<br>
-          <strong>4.</strong> Click any Venn count or segment row to drill into that overlap, then <code>Export View</code>.
-        </p>
-
-        <h3>Autosave</h3>
-        <p>The latest uploaded comparison, selected retailers, selected brands, metric mode, filters, and active segment are saved in this browser with IndexedDB and restored when the page opens again.</p>
-      </div>
-
-      <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
-        <h3>Accepted columns</h3>
-        <p>The first worksheet is read. Header matching is flexible, so these common names work:</p>
-        <table>
-          <tr><th>Field</th><th>Accepted headers</th><th>Use</th></tr>
-          <tr><td>Retailer</td><td><code>Retailer</code>, <code>Retailer Selling</code>, <code>Account</code>, <code>KAC</code>, <code>Customer</code>, <code>Store</code>, <code>Banner</code></td><td>Builds the comparison sets.</td></tr>
-          <tr><td>Brand</td><td><code>Brand</code></td><td>Brand multi-select and table field.</td></tr>
-          <tr><td>Release</td><td><code>Release</code>, <code>Release Date</code>, <code>Season</code>, <code>Launch</code></td><td>Table field and search field.</td></tr>
-          <tr><td>Style</td><td><code>Style</code>, <code>Label</code>, <code>UPC</code>, <code>SKU</code>, <code>Product</code></td><td>Main product identifier.</td></tr>
-          <tr><td>Color</td><td><code>Color</code>, <code>Colour</code></td><td>Optional key component.</td></tr>
-          <tr><td>Grid</td><td><code>Grid</code>, <code>Material</code>, <code>Model</code></td><td>Optional key component.</td></tr>
-          <tr><td>Unit Sold</td><td><code>Unit Sold</code>, <code>Units Sold</code>, <code>Sold</code>, <code>YTD Sls U</code>, <code>Sales U</code></td><td>Sold metric totals.</td></tr>
-          <tr><td>Unit OH</td><td><code>Unit OH</code>, <code>Units OH</code>, <code>On Hand U</code>, <code>OH</code>, <code>Remain</code>, <code>Remaining</code>, <code>Qty</code>, <code>Quantity</code></td><td>On-hand metric totals.</td></tr>
-        </table>
-
-        <h3>Product key modes</h3>
-        <p><code>Style</code> is broadest. <code>Style + Color</code>, <code>Style + Color + Grid</code>, and <code>Brand + Style + Color + Grid</code> progressively treat variants as more distinct.</p>
-      </div>
-
-      <div class="info-modal-pane" id="modal-tab-appendix" role="tabpanel">
-        <h3>Glossary</h3>
-        <p>Hover any term for a plain-language explanation.</p>
-        <table>
-          <tr><th>Term</th><th>What it means</th></tr>
-          <tr>
-            <td><span class="term">Retailer<span class="term-tip">The account, customer, store group, or banner carrying the product. This is equivalent to KAC in the Power BI/R example.</span></span></td>
-            <td>The account whose assortment is being compared.</td>
-          </tr>
-          <tr>
-            <td><span class="term">Style<span class="term-tip">The product identifier counted as a style in the overlap. Depending on the selected key, a style can include color, grid, and brand.</span></span></td>
-            <td>The product-level count used in each overlap.</td>
-          </tr>
-          <tr>
-            <td><span class="term">Unit Sold<span class="term-tip">Units sold for that retailer/product row. Select Unit Sold as the metric when the overlap should be weighted by sales movement.</span></span></td>
-            <td>Sales quantity summed into the comparison.</td>
-          </tr>
-          <tr>
-            <td><span class="term">Unit OH<span class="term-tip">Current on-hand inventory for that retailer/product row. Select Unit OH when the overlap should be weighted by remaining inventory.</span></span></td>
-            <td>On-hand quantity summed into the comparison.</td>
-          </tr>
-          <tr>
-            <td><span class="term">Sold + OH<span class="term-tip">A combined metric that adds Unit Sold and Unit OH for each row before aggregating the overlap. Useful for total footprint comparisons.</span></span></td>
-            <td>Combined sales and on-hand footprint.</td>
-          </tr>
-          <tr>
-            <td><span class="term">Overlap<span class="term-tip">A product belongs to an overlap when the same product key appears under multiple selected retailers.</span></span></td>
-            <td>Products carried by more than one selected retailer.</td>
-          </tr>
-          <tr>
-            <td><span class="term">Unique<span class="term-tip">A product that appears under exactly one selected retailer for the current key and filters.</span></span></td>
-            <td>Products carried by only one selected retailer.</td>
-          </tr>
-        </table>
-      </div>
-
-      <div class="info-modal-pane" id="modal-tab-resources" role="tabpanel">
-        <div class="info-link-group">Fashion Tools</div>
-        <a class="info-link" href="replenishment-linesheet.html">
-          <span class="info-link-glyph">▤</span> RP Line Sheet
-          <span class="info-link-meta">Replenishment Review</span>
-        </a>
-        <a class="info-link" href="assortment-comparison.html">
-          <span class="info-link-glyph">◎</span> Assortment Comparison
-          <span class="info-link-meta">Retailer Overlap</span>
-        </a>
-
-        <div class="info-link-group" style="margin-top:10px">Docs</div>
-        <a class="info-link" href="README.md">
-          <span class="info-link-glyph">?</span> README
-          <span class="info-link-meta">.md</span>
-        </a>
-
-        <div class="info-link-group" style="margin-top:10px">cloonk.com</div>
-        <a class="info-link" href="/projects.html">
-          <span class="info-link-glyph">↗</span> Work
-          <span class="info-link-meta">Selected Projects</span>
-        </a>
-        <a class="info-link" href="/">
-          <span class="info-link-glyph">↗</span> Home
-          <span class="info-link-meta">cloonk.com</span>
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -919,8 +639,6 @@ let hydrating = false;
 
 document.getElementById('fileInput').addEventListener('change', handleFile);
 document.getElementById('landingInput').addEventListener('change', handleFile);
-document.addEventListener('click', handleMultiSelectClick);
-document.addEventListener('change', handleMultiSelectChange);
 
 const uploadZone = document.getElementById('uploadZone');
 uploadZone.addEventListener('click', () => document.getElementById('landingInput').click());
@@ -933,43 +651,6 @@ uploadZone.addEventListener('drop', e => {
 });
 
 restoreSnapshot();
-
-(function setupInfoModal() {
-  const overlay = document.getElementById('infoModalOverlay');
-  const btn = document.getElementById('infoBtn');
-  const closeBtn = document.getElementById('infoModalClose');
-  if (!overlay || !btn) return;
-
-  function openModal(tab) {
-    overlay.classList.add('open');
-    if (tab) showTab(tab);
-  }
-  function closeModal() { overlay.classList.remove('open'); }
-  function showTab(name) {
-    document.querySelectorAll('.info-modal-tab').forEach(tab =>
-      tab.classList.toggle('active', tab.dataset.tab === name));
-    document.querySelectorAll('.info-modal-pane').forEach(pane =>
-      pane.classList.toggle('active', pane.id === 'modal-tab-' + name));
-  }
-
-  btn.addEventListener('click', () => openModal());
-  closeBtn.addEventListener('click', closeModal);
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) closeModal();
-  });
-  document.querySelectorAll('.info-modal-tab').forEach(tab => {
-    tab.addEventListener('click', () => showTab(tab.dataset.tab));
-  });
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
-  });
-
-  const here = location.pathname.split('/').pop() || 'index.html';
-  overlay.querySelectorAll('.info-link').forEach(link => {
-    const target = link.getAttribute('href').split('/').pop();
-    if (target && target === here) link.setAttribute('aria-current', 'page');
-  });
-})();
 
 function handleFile(e) {
   if (e.target.files.length) processFile(e.target.files[0]);
@@ -1016,12 +697,12 @@ function normalizeRows(rows) {
     };
     const retailer = str(get(['Retailer', 'Retailer Selling', 'Account', 'KAC', 'Customer', 'Store', 'Banner']));
     const brand = str(get(['Brand']));
-    const release = str(get(['Release', 'Release Date', 'Season', 'Launch']));
+    const release = str(get(['Release', 'Release Date', 'Launch', 'Launch Date', 'Drop', 'Drop Date', 'Season']));
     const style = str(get(['Style', 'Label', 'UPC', 'SKU', 'Product']));
     const color = str(get(['Color', 'Colour']));
     const grid = str(get(['Grid', 'Material', 'Model']));
-    const unitSold = num(get(['Unit Sold', 'Units Sold', 'Sold', 'YTD Sls U', 'Sales U', 'Sls U']));
-    const unitOh = num(get(['Unit OH', 'Units OH', 'On Hand U', 'On Hand', 'OH', 'Remain', 'Remaining', 'Qty', 'Quantity']));
+    const unitSold = num(get(['Unit Sold', 'Units Sold', 'Sold', 'U Sold', 'Sold U', 'Sold Units', 'Sales Units']));
+    const unitOh = num(get(['Unit OH', 'Units OH', 'On Hand', 'On Hand U', 'OH', 'OH Units', 'Remain', 'Remaining', 'Stock', 'Inventory', 'Qty', 'Quantity', 'Units']));
     const fallback = str(get(['Label', 'UPC', 'SKU', 'Product']));
     return {
       rowId: index,
@@ -1048,26 +729,180 @@ function showApp() {
 
 function populateControls(filters = {}) {
   const retailers = unique(normalizedRows.map(r => r.retailer)).sort();
-  const selectedRetailers = filters.retailers && filters.retailers.length ? filters.retailers : retailers.slice(0, 3);
-  populateMultiSelect('retailerMulti', retailers, selectedRetailers.slice(0, 5), 'Retailers');
+  const requestedRetailers = filters.retailers && filters.retailers.length ? filters.retailers : retailers.slice(0, 3);
+  const selectedRetailers = requestedRetailers.filter(name => retailers.includes(name));
+  setupMultiSelect('retailer', retailers, selectedRetailers.length ? selectedRetailers : retailers.slice(0, 3), {
+    allLabel: 'All retailers',
+    singularLabel: 'retailer',
+    pluralLabel: 'retailers',
+    maxSelectable: 5,
+    requireOne: true,
+  });
 
   const brands = unique(normalizedRows.map(r => r.brand).filter(Boolean)).sort();
-  const selectedBrands = filters.brands || (filters.brand ? [filters.brand] : []);
-  populateMultiSelect('brandMulti', brands, selectedBrands, 'All Brands', { allowEmpty: true });
+  const requestedBrands = filters.brands && filters.brands.length ? filters.brands : (filters.brand ? [filters.brand] : []);
+  const selectedBrands = requestedBrands.filter(name => brands.includes(name));
+  setupMultiSelect('brand', brands, selectedBrands, {
+    allLabel: 'All brands',
+    singularLabel: 'brand',
+    pluralLabel: 'brands',
+    requireOne: false,
+  });
+
   document.getElementById('keyMode').value = filters.keyMode || 'style';
-  document.getElementById('metricMode').value = filters.metricMode || 'sold';
+  document.getElementById('metricMode').value = ['sold', 'oh', 'both'].includes(filters.metricMode) ? filters.metricMode : 'oh';
   document.getElementById('searchInput').value = filters.search || '';
 }
 
+const MS_STATE = {};
+
+function setupMultiSelect(key, options, selected, config) {
+  MS_STATE[key] = { options: options.slice(), selected: new Set(selected), config };
+  const panel = document.getElementById(`${key}Panel`);
+  const trigger = document.getElementById(`${key}Trigger`);
+  const dropdown = document.getElementById(`${key}Dropdown`);
+  if (!panel || !trigger || !dropdown) return;
+  if (!options.length) {
+    panel.innerHTML = '<div class="ms-empty">No options available.</div>';
+  } else {
+    const actions = `
+      <div class="ms-actions">
+        <button type="button" onclick="msSelectAll('${key}')">Select all</button>
+        <button type="button" onclick="msClear('${key}')">Clear</button>
+      </div>`;
+    const items = options.map(name => `
+      <label class="ms-option">
+        <input type="checkbox" value="${escAttr(name)}" ${MS_STATE[key].selected.has(name) ? 'checked' : ''} onchange="msToggle('${key}', this)">
+        <span class="ms-option-label">${escHtml(name)}</span>
+      </label>`).join('');
+    panel.innerHTML = actions + items;
+  }
+  trigger.onclick = e => { e.stopPropagation(); msToggleOpen(key); };
+  panel.onclick = e => e.stopPropagation();
+  msUpdateLabel(key);
+}
+
+function msToggleOpen(key) {
+  const dropdown = document.getElementById(`${key}Dropdown`);
+  const trigger = document.getElementById(`${key}Trigger`);
+  if (!dropdown) return;
+  const willOpen = !dropdown.classList.contains('open');
+  document.querySelectorAll('.ms-dropdown.open').forEach(el => {
+    el.classList.remove('open');
+    const t = el.querySelector('.ms-trigger');
+    if (t) t.setAttribute('aria-expanded', 'false');
+  });
+  if (willOpen) {
+    dropdown.classList.add('open');
+    if (trigger) trigger.setAttribute('aria-expanded', 'true');
+  }
+}
+
+function msToggle(key, input) {
+  const state = MS_STATE[key];
+  if (!state) return;
+  const value = input.value;
+  const cfg = state.config || {};
+  if (input.checked) {
+    if (cfg.maxSelectable && state.selected.size >= cfg.maxSelectable) {
+      input.checked = false;
+      showToast(`Up to ${cfg.maxSelectable} ${cfg.pluralLabel || 'items'} can be compared at once.`);
+      return;
+    }
+    state.selected.add(value);
+  } else {
+    if (cfg.requireOne && state.selected.size <= 1) {
+      input.checked = true;
+      return;
+    }
+    state.selected.delete(value);
+  }
+  msUpdateLabel(key);
+  updateComparison();
+}
+
+function msSelectAll(key) {
+  const state = MS_STATE[key];
+  if (!state) return;
+  const cfg = state.config || {};
+  const limit = cfg.maxSelectable || state.options.length;
+  state.selected = new Set(state.options.slice(0, limit));
+  msSyncCheckboxes(key);
+  msUpdateLabel(key);
+  if (cfg.maxSelectable && state.options.length > cfg.maxSelectable) {
+    showToast(`Selected the first ${cfg.maxSelectable} of ${state.options.length} ${cfg.pluralLabel || 'items'}.`);
+  }
+  updateComparison();
+}
+
+function msClear(key) {
+  const state = MS_STATE[key];
+  if (!state) return;
+  const cfg = state.config || {};
+  if (cfg.requireOne) {
+    const first = state.options[0];
+    state.selected = new Set(first ? [first] : []);
+  } else {
+    state.selected = new Set();
+  }
+  msSyncCheckboxes(key);
+  msUpdateLabel(key);
+  updateComparison();
+}
+
+function msSyncCheckboxes(key) {
+  const state = MS_STATE[key];
+  const panel = document.getElementById(`${key}Panel`);
+  if (!state || !panel) return;
+  panel.querySelectorAll('input[type=checkbox]').forEach(input => {
+    input.checked = state.selected.has(input.value);
+  });
+}
+
+function msUpdateLabel(key) {
+  const state = MS_STATE[key];
+  const label = document.getElementById(`${key}Label`);
+  if (!state || !label) return;
+  const cfg = state.config || {};
+  const count = state.selected.size;
+  const total = state.options.length;
+  if (count === 0) {
+    label.textContent = cfg.allLabel || 'All';
+    label.classList.add('is-muted');
+  } else if (count === total) {
+    label.textContent = cfg.allLabel || 'All';
+    label.classList.remove('is-muted');
+  } else if (count === 1) {
+    label.textContent = Array.from(state.selected)[0];
+    label.classList.remove('is-muted');
+  } else {
+    label.textContent = `${count} ${cfg.pluralLabel || 'selected'}`;
+    label.classList.remove('is-muted');
+  }
+}
+
+function msGetSelected(key) {
+  const state = MS_STATE[key];
+  if (!state) return [];
+  return state.options.filter(name => state.selected.has(name));
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ms-dropdown')) {
+    document.querySelectorAll('.ms-dropdown.open').forEach(el => {
+      el.classList.remove('open');
+      const t = el.querySelector('.ms-trigger');
+      if (t) t.setAttribute('aria-expanded', 'false');
+    });
+  }
+});
+
 function updateComparison(options = {}) {
-  const selectedRetailers = getSelectedRetailers();
+  const selectedRetailers = getSelectedRetailers().slice(0, 5);
   const filteredRows = getFilteredRows(selectedRetailers);
   const productMap = buildProductMap(filteredRows);
   const products = Array.from(productMap.values());
   const segments = buildSegments(products, selectedRetailers);
-  if (activeSegment !== 'all' && !segments.some(s => s.key === activeSegment)) {
-    activeSegment = 'all';
-  }
   const visibleProducts = activeSegment === 'all' ? products : (segments.find(s => s.key === activeSegment)?.products || []);
 
   document.getElementById('statRows').textContent = normalizedRows.length.toLocaleString();
@@ -1084,97 +919,20 @@ function updateComparison(options = {}) {
 }
 
 function getSelectedRetailers() {
-  return getMultiValues('retailerMulti').slice(0, 5);
+  return msGetSelected('retailer');
 }
 
 function getSelectedBrands() {
-  return getMultiValues('brandMulti');
-}
-
-function populateMultiSelect(id, values, selectedValues, fallbackLabel, options = {}) {
-  const root = document.getElementById(id);
-  const menu = root.querySelector('.multi-select-menu');
-  const selected = new Set((selectedValues || []).filter(v => values.includes(v)));
-  const safeSelected = options.allowEmpty ? selected : new Set(selected.size ? selected : values.slice(0, 3));
-  menu.innerHTML = `
-    <div class="multi-actions">
-      <button type="button" data-multi-action="all">All</button>
-      <button type="button" data-multi-action="none">None</button>
-    </div>
-    ${values.map(value => `
-      <label class="multi-option">
-        <input type="checkbox" value="${escAttr(value)}"${safeSelected.has(value) ? ' checked' : ''}>
-        <span>${escHtml(value)}</span>
-      </label>
-    `).join('') || '<div class="empty" style="padding:18px 10px">No values found.</div>'}
-  `;
-  updateMultiLabel(id, fallbackLabel);
-}
-
-function handleMultiSelectClick(e) {
-  const toggle = e.target.closest('[data-multi-toggle]');
-  if (toggle) {
-    const id = toggle.dataset.multiToggle;
-    document.querySelectorAll('.multi-select').forEach(el => {
-      if (el.id !== id) el.classList.remove('open');
-    });
-    document.getElementById(id).classList.toggle('open');
-    return;
-  }
-
-  const action = e.target.closest('[data-multi-action]');
-  if (action) {
-    const root = action.closest('.multi-select');
-    const checked = action.dataset.multiAction === 'all';
-    root.querySelectorAll('input[type="checkbox"]').forEach((input, index) => {
-      input.checked = checked && (root.id !== 'retailerMulti' || index < 5);
-    });
-    if (checked && root.id === 'retailerMulti' && root.querySelectorAll('input[type="checkbox"]').length > 5) {
-      showToast('Selected the first five retailers.');
-    }
-    updateMultiLabel(root.id);
-    activeSegment = 'all';
-    updateComparison();
-    return;
-  }
-
-  if (!e.target.closest('.multi-select')) {
-    document.querySelectorAll('.multi-select').forEach(el => el.classList.remove('open'));
-  }
-}
-
-function handleMultiSelectChange(e) {
-  const checkbox = e.target.closest('.multi-option input');
-  if (!checkbox) return;
-  const root = checkbox.closest('.multi-select');
-  if (root.id === 'retailerMulti' && getMultiValues(root.id).length > 5) {
-    checkbox.checked = false;
-    showToast('Compare up to five retailers at a time.');
-  }
-  updateMultiLabel(root.id);
-  activeSegment = 'all';
-  updateComparison();
-}
-
-function getMultiValues(id) {
-  return Array.from(document.querySelectorAll(`#${id} input[type="checkbox"]:checked`)).map(input => input.value);
-}
-
-function updateMultiLabel(id, fallbackLabel) {
-  const root = document.getElementById(id);
-  const values = getMultiValues(id);
-  const label = fallbackLabel || (id === 'brandMulti' ? 'All Brands' : 'Retailers');
-  root.querySelector('.multi-select-button').textContent = values.length
-    ? values.length === 1 ? values[0] : `${values.length} selected`
-    : label;
+  return msGetSelected('brand');
 }
 
 function getFilteredRows(selectedRetailers) {
   const brands = getSelectedBrands();
+  const brandSet = brands.length ? new Set(brands) : null;
   const search = document.getElementById('searchInput').value.toLowerCase().trim();
   return normalizedRows.filter(row => {
     if (selectedRetailers.length && !selectedRetailers.includes(row.retailer)) return false;
-    if (brands.length && !brands.includes(row.brand)) return false;
+    if (brandSet && !brandSet.has(row.brand)) return false;
     if (search) {
       const haystack = `${row.brand} ${row.release} ${row.style} ${row.color} ${row.grid} ${row.retailer}`.toLowerCase();
       if (!haystack.includes(search)) return false;
@@ -1198,37 +956,19 @@ function buildProductMap(rows) {
         retailers: new Set(),
         soldByRetailer: {},
         ohByRetailer: {},
-        metricByRetailer: {},
-        unitSold: 0,
-        unitOh: 0,
-        metric: 0,
+        sold: 0,
+        oh: 0,
       });
     }
     const item = map.get(key);
-    const metric = metricValue(row);
     item.retailers.add(row.retailer);
     item.soldByRetailer[row.retailer] = (item.soldByRetailer[row.retailer] || 0) + row.unitSold;
     item.ohByRetailer[row.retailer] = (item.ohByRetailer[row.retailer] || 0) + row.unitOh;
-    item.metricByRetailer[row.retailer] = (item.metricByRetailer[row.retailer] || 0) + metric;
-    item.unitSold += row.unitSold;
-    item.unitOh += row.unitOh;
-    item.metric += metric;
+    item.sold += row.unitSold;
+    item.oh += row.unitOh;
+    if (!item.release && row.release) item.release = row.release;
   });
   return map;
-}
-
-function metricValue(row) {
-  const mode = document.getElementById('metricMode').value;
-  if (mode === 'oh') return row.unitOh;
-  if (mode === 'total') return row.unitSold + row.unitOh;
-  return row.unitSold;
-}
-
-function metricLabel() {
-  const mode = document.getElementById('metricMode').value;
-  if (mode === 'oh') return 'Unit OH';
-  if (mode === 'total') return 'Sold + OH';
-  return 'Unit Sold';
 }
 
 function productKey(row) {
@@ -1250,26 +990,58 @@ function buildSegments(products, selectedRetailers) {
     if (!present.length) return;
     const key = present.join('|');
     if (!segmentMap.has(key)) {
-      segmentMap.set(key, { key, names: present, products: [], metric: 0 });
+      segmentMap.set(key, { key, names: present, products: [], sold: 0, oh: 0 });
     }
     const segment = segmentMap.get(key);
     segment.products.push(product);
-    segment.metric += product.metric;
+    segment.sold += product.sold;
+    segment.oh += product.oh;
   });
   return Array.from(segmentMap.values()).sort((a, b) => b.products.length - a.products.length || a.key.localeCompare(b.key));
 }
 
+function getMetricMode() {
+  const el = document.getElementById('metricMode');
+  const value = el ? el.value : 'oh';
+  return value === 'sold' || value === 'both' ? value : 'oh';
+}
+function metricLabel() {
+  const mode = getMetricMode();
+  return mode === 'sold' ? 'Unit Sold' : mode === 'both' ? 'Sold + OH' : 'Unit OH';
+}
+function metricLabelShort() {
+  const mode = getMetricMode();
+  return mode === 'sold' ? 'sold' : mode === 'both' ? 'sold + OH' : 'OH';
+}
+function metricValue(obj) {
+  if (!obj) return 0;
+  const mode = getMetricMode();
+  const sold = obj.sold || 0;
+  const oh = obj.oh || 0;
+  return mode === 'sold' ? sold : mode === 'both' ? sold + oh : oh;
+}
+function metricFromRetailerMaps(product, retailer) {
+  const mode = getMetricMode();
+  const sold = (product.soldByRetailer && product.soldByRetailer[retailer]) || 0;
+  const oh = (product.ohByRetailer && product.ohByRetailer[retailer]) || 0;
+  return mode === 'sold' ? sold : mode === 'both' ? sold + oh : oh;
+}
+
 function renderSummary(rows, selectedRetailers) {
+  const label = metricLabel();
   const html = selectedRetailers.map((name, i) => {
     const retailerRows = rows.filter(row => row.retailer === name);
     const styles = buildProductMap(retailerRows).size;
-    const metric = retailerRows.reduce((sum, row) => sum + metricValue(row), 0);
+    const metric = metricValue({
+      sold: retailerRows.reduce((sum, row) => sum + row.unitSold, 0),
+      oh: retailerRows.reduce((sum, row) => sum + row.unitOh, 0),
+    });
     return `
       <div class="retailer-card">
         <div class="retailer-name"><span class="swatch" style="background:${COLORS[i % COLORS.length]}"></span>${escHtml(name)}</div>
         <div class="retailer-metrics">
           <div><div class="metric-label">Styles</div><div class="metric-value">${styles.toLocaleString()}</div></div>
-          <div><div class="metric-label">${escHtml(metricLabel())}</div><div class="metric-value">${metric.toLocaleString()}</div></div>
+          <div><div class="metric-label">${escHtml(label)}</div><div class="metric-value">${metric.toLocaleString()}</div></div>
         </div>
       </div>`;
   }).join('');
@@ -1278,13 +1050,14 @@ function renderSummary(rows, selectedRetailers) {
 
 function renderSegments(segments) {
   const allCount = segments.reduce((sum, s) => sum + s.products.length, 0);
+  const label = metricLabel();
   const rows = [
     `<button class="segment-btn ${activeSegment === 'all' ? 'active' : ''}" onclick="setSegmentEncoded('${encodeURIComponent('all')}')"><span class="segment-name">All Compared</span><span class="segment-meta">${allCount.toLocaleString()} styles</span><span class="segment-meta"></span></button>`,
     ...segments.map(segment => `
       <button class="segment-btn ${activeSegment === segment.key ? 'active' : ''}" onclick="setSegmentEncoded('${encodeURIComponent(segment.key)}')">
         <span class="segment-name">${escHtml(segment.names.join(' + '))}</span>
         <span class="segment-meta">${segment.products.length.toLocaleString()} styles</span>
-        <span class="segment-meta">${segment.metric.toLocaleString()} ${escHtml(metricLabel())}</span>
+        <span class="segment-meta">${metricValue(segment).toLocaleString()} ${escHtml(metricLabelShort())}</span>
       </button>`)
   ];
   document.getElementById('segmentList').innerHTML = rows.join('');
@@ -1331,47 +1104,123 @@ function renderVenn(retailers, segments) {
 }
 
 function getCirclePositions(count, width, height) {
-  if (count === 1) return [{ x: width / 2, y: height / 2, r: 175, labelX: width / 2, labelY: 95 }];
+  if (count === 1) return [{ x: width / 2, y: height / 2, r: 168, labelX: width / 2, labelY: 60 }];
   if (count === 2) return [
-    { x: 295, y: 290, r: 180, labelX: 210, labelY: 95 },
-    { x: 425, y: 290, r: 180, labelX: 510, labelY: 95 },
+    { x: 295, y: 300, r: 172, labelX: 210, labelY: 60 },
+    { x: 425, y: 300, r: 172, labelX: 510, labelY: 60 },
   ];
   if (count === 3) return [
-    { x: 285, y: 245, r: 170, labelX: 170, labelY: 90 },
-    { x: 435, y: 245, r: 170, labelX: 550, labelY: 90 },
-    { x: 360, y: 365, r: 170, labelX: 360, labelY: 520 },
+    { x: 285, y: 260, r: 158, labelX: 170, labelY: 60 },
+    { x: 435, y: 260, r: 158, labelX: 550, labelY: 60 },
+    { x: 360, y: 365, r: 158, labelX: 360, labelY: 540 },
   ];
   const base = [
-    { x: 285, y: 230, r: 150, labelX: 140, labelY: 80 },
-    { x: 435, y: 230, r: 150, labelX: 580, labelY: 80 },
-    { x: 285, y: 360, r: 150, labelX: 140, labelY: 515 },
-    { x: 435, y: 360, r: 150, labelX: 580, labelY: 515 },
-    { x: 360, y: 295, r: 150, labelX: 360, labelY: 50 },
+    { x: 285, y: 240, r: 138, labelX: 140, labelY: 55 },
+    { x: 435, y: 240, r: 138, labelX: 580, labelY: 55 },
+    { x: 285, y: 360, r: 138, labelX: 140, labelY: 540 },
+    { x: 435, y: 360, r: 138, labelX: 580, labelY: 540 },
+    { x: 360, y: 300, r: 138, labelX: 360, labelY: 35 },
   ];
   return base.slice(0, count);
 }
 
 function buildRegionLabels(retailers, segmentByKey, positions) {
   const combos = Object.values(segmentByKey);
+  const unitsLabel = metricLabelShort();
   return combos.map(segment => {
-    const pts = segment.names.map(name => positions[retailers.indexOf(name)]).filter(Boolean);
-    const x = pts.reduce((sum, p) => sum + p.x, 0) / pts.length;
-    const y = pts.reduce((sum, p) => sum + p.y, 0) / pts.length + (pts.length === 1 ? 55 : 0);
+    const { x, y } = getRegionLabelPosition(segment, retailers, positions);
     return `
       <circle class="venn-region ${activeSegment === segment.key ? 'active' : ''}" cx="${x}" cy="${y - 7}" r="34" onclick="setSegmentEncoded('${encodeURIComponent(segment.key)}')"></circle>
       <text class="region-label ${activeSegment === segment.key ? 'active' : ''}" x="${x}" y="${y}">
         <tspan class="venn-count" x="${x}" dy="0">${segment.products.length}</tspan>
-        <tspan x="${x}" dy="18">${segment.metric.toLocaleString()} ${escHtml(metricLabel())}</tspan>
+        <tspan x="${x}" dy="18">${metricValue(segment).toLocaleString()} ${escHtml(unitsLabel)}</tspan>
       </text>`;
   }).join('');
 }
 
+function getRegionLabelPosition(segment, retailers, positions) {
+  const indexes = segment.names
+    .map(name => retailers.indexOf(name))
+    .filter(index => index >= 0)
+    .sort((a, b) => a - b);
+  const signature = indexes.join('');
+
+  if (retailers.length === 1) return { x: positions[0].x, y: positions[0].y };
+
+  if (retailers.length === 2) {
+    const map = {
+      '0': { x: positions[0].x - 70, y: positions[0].y },
+      '1': { x: positions[1].x + 70, y: positions[1].y },
+      '01': { x: (positions[0].x + positions[1].x) / 2, y: positions[0].y },
+    };
+    return map[signature] || centroidForIndexes(indexes, positions);
+  }
+
+  if (retailers.length === 3) {
+    const map = {
+      '0': { x: positions[0].x - 58, y: positions[0].y - 28 },
+      '1': { x: positions[1].x + 58, y: positions[1].y - 28 },
+      '2': { x: positions[2].x, y: positions[2].y + 70 },
+      '01': { x: (positions[0].x + positions[1].x) / 2, y: positions[0].y - 10 },
+      '02': { x: 315, y: 330 },
+      '12': { x: 405, y: 330 },
+      '012': { x: 360, y: 300 },
+    };
+    return map[signature] || centroidForIndexes(indexes, positions);
+  }
+
+  if (retailers.length === 4) {
+    const map = {
+      '0': { x: positions[0].x, y: positions[0].y - 60 },
+      '1': { x: positions[1].x, y: positions[1].y - 60 },
+      '2': { x: positions[2].x, y: positions[2].y + 60 },
+      '3': { x: positions[3].x, y: positions[3].y + 60 },
+      '01': midpointForIndexes([0, 1], positions),
+      '02': midpointForIndexes([0, 2], positions),
+      '13': midpointForIndexes([1, 3], positions),
+      '23': midpointForIndexes([2, 3], positions),
+      '03': { x: 340, y: 300 },
+      '12': { x: 380, y: 300 },
+      '012': midpointForIndexes([0, 1, 2], positions),
+      '013': midpointForIndexes([0, 1, 3], positions),
+      '023': midpointForIndexes([0, 2, 3], positions),
+      '123': midpointForIndexes([1, 2, 3], positions),
+      '0123': midpointForIndexes([0, 1, 2, 3], positions),
+    };
+    return map[signature] || centroidForIndexes(indexes, positions);
+  }
+
+  const point = centroidForIndexes(indexes, positions);
+  if (indexes.length === 1) {
+    const center = centroidForIndexes(positions.map((_, index) => index), positions);
+    const dx = point.x - center.x;
+    const dy = point.y - center.y;
+    const mag = Math.max(Math.hypot(dx, dy), 1);
+    return { x: point.x + (dx / mag) * 45, y: point.y + (dy / mag) * 45 };
+  }
+  return point;
+}
+
+function centroidForIndexes(indexes, positions) {
+  const pts = indexes.map(index => positions[index]).filter(Boolean);
+  if (!pts.length) return { x: 360, y: 280 };
+  return {
+    x: pts.reduce((sum, p) => sum + p.x, 0) / pts.length,
+    y: pts.reduce((sum, p) => sum + p.y, 0) / pts.length,
+  };
+}
+
+function midpointForIndexes(indexes, positions) {
+  return centroidForIndexes(indexes, positions);
+}
+
 function buildRetailerStatsFromSegments(retailers, segments) {
-  const stats = Object.fromEntries(retailers.map(name => [name, { styles: 0, metric: 0 }]));
+  const stats = Object.fromEntries(retailers.map(name => [name, { styles: 0, sold: 0, oh: 0 }]));
   segments.forEach(segment => {
     segment.names.forEach(name => {
       stats[name].styles += segment.products.length;
-      stats[name].metric += segment.products.reduce((sum, item) => sum + (item.metricByRetailer[name] || 0), 0);
+      stats[name].sold += segment.products.reduce((sum, item) => sum + ((item.soldByRetailer && item.soldByRetailer[name]) || 0), 0);
+      stats[name].oh += segment.products.reduce((sum, item) => sum + ((item.ohByRetailer && item.ohByRetailer[name]) || 0), 0);
     });
   });
   return stats;
@@ -1379,7 +1228,7 @@ function buildRetailerStatsFromSegments(retailers, segments) {
 
 function retailerHeader(stats) {
   const styles = stats ? stats.styles : 0;
-  const metric = stats ? stats.metric : 0;
+  const metric = metricValue(stats);
   return `(${styles} Styles, ${metric} ${metricLabel()})`;
 }
 
@@ -1395,15 +1244,15 @@ function renderTable(products) {
         <td class="mono">${escHtml(item.style) || '-'}</td>
         <td class="mono">${escHtml(item.grid) || '-'}</td>
         <td>${escHtml(Array.from(item.retailers).sort().join(', '))}</td>
-        <td class="mono">${item.unitSold.toLocaleString()}</td>
-        <td class="mono">${item.unitOh.toLocaleString()}</td>
+        <td class="mono">${(item.sold || 0).toLocaleString()}</td>
+        <td class="mono">${(item.oh || 0).toLocaleString()}</td>
       </tr>`);
   document.getElementById('productRows').innerHTML = rows.join('') || '<tr><td colspan="7" class="empty">No products match the current view.</td></tr>';
 }
 
 function exportSegment() {
   if (!isSheetJsReady()) return;
-  const selectedRetailers = getSelectedRetailers();
+  const selectedRetailers = getSelectedRetailers().slice(0, 5);
   const products = Array.from(buildProductMap(getFilteredRows(selectedRetailers)).values());
   const segments = buildSegments(products, selectedRetailers);
   const visibleProducts = activeSegment === 'all' ? products : (segments.find(s => s.key === activeSegment)?.products || []);
@@ -1413,9 +1262,8 @@ function exportSegment() {
     Style: item.style,
     Grid: item.grid,
     Retailer: Array.from(item.retailers).sort().join(', '),
-    'Unit Sold': item.unitSold,
-    'Unit OH': item.unitOh,
-    [metricLabel()]: item.metric,
+    'Unit Sold': item.sold || 0,
+    'Unit OH': item.oh || 0,
   }));
   if (!rows.length) { showToast('No rows to export.'); return; }
   const ws = XLSX.utils.json_to_sheet(rows);
@@ -1428,9 +1276,9 @@ function exportSegment() {
 function downloadTemplate() {
   if (!isSheetJsReady()) return;
   const rows = [
-    { Brand: 'Ray-Ban', Release: 'Core', Style: 'RB2140', Grid: '901/58', Retailer: 'Retailer A', 'Unit Sold': 120, 'Unit OH': 42 },
-    { Brand: 'Ray-Ban', Release: 'Core', Style: 'RB2140', Grid: '901/58', Retailer: 'Retailer B', 'Unit Sold': 98, 'Unit OH': 18 },
-    { Brand: 'Oakley', Release: '2026 R1', Style: 'OO9208', Grid: '920846', Retailer: 'Retailer C', 'Unit Sold': 76, 'Unit OH': 25 },
+    { Brand: 'Ray-Ban', Release: 'SS24', Style: 'RB2140', Grid: '901/58', Retailer: 'Retailer A', 'Unit Sold': 120, 'Unit OH': 42 },
+    { Brand: 'Ray-Ban', Release: 'SS24', Style: 'RB2140', Grid: '901/58', Retailer: 'Retailer B', 'Unit Sold': 64, 'Unit OH': 18 },
+    { Brand: 'Oakley', Release: 'FW24', Style: 'OO9208', Grid: '920846', Retailer: 'Retailer C', 'Unit Sold': 88, 'Unit OH': 25 },
   ];
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
@@ -1453,8 +1301,8 @@ function saveSnapshot() {
     filters: {
       retailers: getSelectedRetailers(),
       brands: getSelectedBrands(),
-      metricMode: document.getElementById('metricMode').value,
       keyMode: document.getElementById('keyMode').value,
+      metricMode: getMetricMode(),
       search: document.getElementById('searchInput').value,
     },
   };
