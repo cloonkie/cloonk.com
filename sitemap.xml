@@ -60,6 +60,13 @@
   <url><loc>https://cloonk.com/project.html?id=rooted-in-data</loc><priority>0.6</priority></url>
   <url><loc>https://cloonk.com/project.html?id=urban-retail-access</loc><priority>0.7</priority></url>
 
+  <!-- Fashion tools -->
+  <url>
+    <loc>https://cloonk.com/projects/fashion/replenishment-linesheet.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
   <!-- Urban Retail Access standalone pages -->
   <url><loc>https://cloonk.com/projects/urban-retail-access/</loc><priority>0.7</priority></url>
   <url><loc>https://cloonk.com/projects/urban-retail-access/chicago.html</loc><priority>0.5</priority></url>
