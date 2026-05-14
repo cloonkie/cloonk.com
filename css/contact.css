@@ -85,7 +85,10 @@ body.contact-body footer {
   aspect-ratio: 1;
   object-fit: contain;
   pointer-events: none;
-  transition: transform 0.3s cubic-bezier(0.25, 0, 0, 1);
+  outline: 0 solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+  transition: transform 0.3s cubic-bezier(0.25, 0, 0, 1), outline-width 0.2s ease;
 }
 
 .contact-sticker__label {
@@ -103,23 +106,12 @@ body.contact-body footer {
 
 .contact-sticker:hover:not(.is-dragging) .contact-sticker__img {
   transform: scale(1.08);
+  outline-width: 2px;
 }
 
 .contact-sticker:hover:not(.is-dragging) .contact-sticker__label {
   color: var(--accent);
 }
-
-.contact-sticker::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 4px;
-  border: 2px solid var(--accent);
-  opacity: 0;
-  transition: opacity 0.2s;
-  pointer-events: none;
-}
-.contact-sticker:hover:not(.is-dragging)::after { opacity: 1; }
 
 /* ── Footnote ── */
 .contact-footnote {
