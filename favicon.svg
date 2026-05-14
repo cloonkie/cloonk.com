@@ -1,4 +1,56 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="6" fill="#0a0a0a"/>
-  <text x="16" y="22" text-anchor="middle" font-family="Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif" font-size="18">ʕ·ᴥ·ʔ</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .bg { animation: bgSwap 16s steps(1,end) infinite; }
+
+    text {
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      font-weight: 900;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      letter-spacing: -1.4px;
+    }
+
+    .face {
+      opacity: 0;
+      animation: faceSwap 16s steps(1,end) infinite;
+    }
+
+    .f1 { animation-delay: 0s; fill: #000000; }
+    .f2 { animation-delay: 2s; fill: #E8FF4F; }
+    .f3 { animation-delay: 4s; fill: #000000; }
+    .f4 { animation-delay: 6s; fill: #FFFFFF; }
+    .f5 { animation-delay: 8s; fill: #000000; }
+    .f6 { animation-delay: 10s; fill: #FFFFFF; }
+    .f7 { animation-delay: 12s; fill: #000000; }
+    .f8 { animation-delay: 14s; fill: #E8FF4F; }
+
+    @keyframes faceSwap {
+      0%, 12.49% { opacity: 1; }
+      12.5%, 100% { opacity: 0; }
+    }
+
+    @keyframes bgSwap {
+      0% { fill: #E8FF4F; }
+      12.5% { fill: #000000; }
+      25% { fill: #FF7AD9; }
+      37.5% { fill: #2A2AFF; }
+      50% { fill: #00F5A0; }
+      62.5% { fill: #000000; }
+      75% { fill: #FFFFFF; }
+      87.5% { fill: #000000; }
+      100% { fill: #E8FF4F; }
+    }
+  </style>
+
+  <rect class="bg" width="64" height="64" rx="14"/>
+
+  <text class="face f1" x="32" y="34">ʕ·ᴥ·ʔ⭐</text>
+  <text class="face f2" x="32" y="34">ʕง•ᴥ•ʔง</text>
+  <text class="face f3" x="32" y="34">ʕ༼ƈل͜ƈ༽ʔ</text>
+  <text class="face f4" x="32" y="34">ʕ⊙ᴥ⊙ʔ</text>
+  <text class="face f5" x="32" y="34">ʕ´•㈨•`ʔ</text>
+  <text class="face f6" x="32" y="34">ʕ◉ᴥ◉ʔ</text>
+  <text class="face f7" x="32" y="34">ʕっ•ᴥ•ʔっ</text>
+  <text class="face f8" x="32" y="34">ʕ´•ᴥ•`ʔ</text>
 </svg>

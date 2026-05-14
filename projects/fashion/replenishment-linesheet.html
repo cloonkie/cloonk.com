@@ -126,115 +126,248 @@
   background: #f4f2ee;
 }
 
-/* ─── Header nav popover ─── */
-.nav-pop {
-  position: relative;
-}
-.nav-pop[open] > summary .nav-pop-caret {
-  transform: rotate(225deg) translate(1px, 1px);
-}
-.nav-pop > summary {
-  list-style: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 32px;
-  padding: 0 12px;
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+/* ─── Info button (opens appendix modal) ─── */
+.info-btn {
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 0;
+  color: var(--text-muted);
+  transition: color 0.2s, background var(--transition), border-color var(--transition);
+}
+.info-btn:hover {
+  border-color: var(--border-hover);
+  background: var(--surface-raised);
+  color: var(--text);
+}
+.info-btn svg {
+  width: 14px; height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ─── Info / Appendix modal (URA pattern) ─── */
+.info-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: none;
+  align-items: center; justify-content: center;
+  cursor: default;
+}
+.info-modal-overlay.open { display: flex; }
+.info-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: min(760px, 92vw);
+  max-height: 82vh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  cursor: default;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.info-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.info-modal-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.info-modal-title span { color: var(--accent); }
+.info-modal-close {
+  font-size: 1.1rem;
   color: var(--text-muted);
   cursor: pointer;
-  transition: color 0.2s, background var(--transition), border-color var(--transition);
-  user-select: none;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  background: none;
+  border: none;
 }
-.nav-pop > summary::-webkit-details-marker { display: none; }
-.nav-pop > summary:hover {
-  border-color: var(--border-hover);
-  background: var(--surface-raised);
+.info-modal-close:hover { color: var(--text); background: var(--surface-raised); }
+.info-modal-tabs {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.info-modal-tabs::-webkit-scrollbar { display: none; }
+.info-modal-tab {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 12px 14px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: var(--font-body);
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+.info-modal-tab:hover { color: var(--text); }
+.info-modal-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.info-modal-body {
+  padding: 22px 24px 26px;
+  overflow-y: auto;
+  flex: 1;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+.info-modal-pane { display: none; }
+.info-modal-pane.active { display: block; }
+.info-modal-body h3 {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--text);
+  margin: 18px 0 8px;
 }
-.nav-pop[open] > summary {
-  border-color: var(--border-hover);
-  background: var(--surface-raised);
-  color: var(--text);
-}
-.nav-pop-caret {
-  width: 7px; height: 7px;
-  display: inline-block;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: rotate(45deg) translate(-1px, -1px);
-  transition: transform 0.2s ease;
-}
-.nav-pop-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 260px;
-  background: var(--surface);
+.info-modal-body h3:first-child { margin-top: 0; }
+.info-modal-body p { margin-bottom: 10px; color: var(--text-muted); }
+.info-modal-body strong { color: var(--text); font-weight: 600; }
+.info-modal-body code {
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 8px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
-  z-index: 150;
-  animation: nav-pop-in 0.16s ease;
+  border-radius: var(--radius-xs);
+  padding: 1px 6px;
+  color: var(--text);
 }
-@keyframes nav-pop-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+.info-modal-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+  font-size: 0.78rem;
 }
-.nav-pop-group {
-  padding: 8px 8px 4px;
+.info-modal-body th {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+}
+.info-modal-body td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  vertical-align: top;
+}
+.info-modal-body td:first-child { color: var(--text); font-weight: 500; }
+
+/* Hoverable term — appendix glossary affordance */
+.term {
+  border-bottom: 1px dashed var(--border-hover);
+  cursor: help;
+  position: relative;
+  display: inline-block;
+}
+.term-tip {
+  display: none;
+  position: absolute;
+  top: 100%; left: 0;
+  margin-top: 6px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-xs);
+  padding: 10px 12px;
+  font-size: 0.72rem;
+  color: var(--text);
+  white-space: normal;
+  width: 280px;
+  z-index: 3000;
+  pointer-events: none;
+  line-height: 1.55;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.term:hover .term-tip { display: block; }
+
+/* Resources tab — link list */
+.info-link-group {
+  padding: 8px 0 4px;
   font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--text-dim);
   font-weight: 700;
 }
-.nav-pop-link {
+.info-link {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: var(--radius-xs);
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 500;
   color: var(--text);
   text-decoration: none;
-  transition: background var(--transition), color var(--transition);
+  border: 1px solid transparent;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
 }
-.nav-pop-link:hover {
+.info-link:hover {
   background: var(--accent-dim);
   color: var(--accent);
+  border-color: var(--accent-mid);
 }
-.nav-pop-link[aria-current="page"] {
+.info-link[aria-current="page"] {
   color: var(--accent);
   background: var(--accent-dim);
+  border-color: var(--accent-mid);
 }
-.nav-pop-link .nav-pop-glyph {
+.info-link-glyph {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   color: var(--text-dim);
-  width: 14px;
+  width: 16px;
   flex-shrink: 0;
 }
-.nav-pop-link:hover .nav-pop-glyph,
-.nav-pop-link[aria-current="page"] .nav-pop-glyph { color: var(--accent); }
-.nav-pop-link .nav-pop-ext {
+.info-link:hover .info-link-glyph,
+.info-link[aria-current="page"] .info-link-glyph { color: var(--accent); }
+.info-link-meta {
   margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   color: var(--text-dim);
 }
-.nav-pop-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 6px 4px;
+
+@media (max-width: 860px) {
+  .info-modal-tabs { padding: 0 12px; }
+  .info-modal-tab { font-size: 0.58rem; padding: 10px 10px; }
+  .info-modal-body { padding: 16px; }
 }
 
 /* ─── Theme toggle button (matches cloonk.com nav toggle) ─── */
@@ -781,42 +914,14 @@ select:focus, .search-input:focus { border-color: var(--accent); }
   </div>
   <div class="header-actions">
 
-    <!-- Header nav popover. Add new sibling tools by dropping another
-         <a class="nav-pop-link" href="…">…</a> into the "Fashion Tools"
-         group below. The aria-current="page" attribute is set dynamically. -->
-    <details class="nav-pop" id="navPop">
-      <summary aria-haspopup="menu" aria-label="Open navigation menu">
-        Menu
-        <span class="nav-pop-caret" aria-hidden="true"></span>
-      </summary>
-      <div class="nav-pop-panel" role="menu">
-
-        <div class="nav-pop-group">Fashion Tools</div>
-        <a class="nav-pop-link" href="replenishment-linesheet.html" role="menuitem">
-          <span class="nav-pop-glyph">▤</span> RP Line Sheet
-        </a>
-        <!-- Future tools go here. -->
-
-        <div class="nav-pop-divider"></div>
-
-        <div class="nav-pop-group">Docs</div>
-        <a class="nav-pop-link" href="README.md" role="menuitem">
-          <span class="nav-pop-glyph">?</span> README
-          <span class="nav-pop-ext">.md</span>
-        </a>
-
-        <div class="nav-pop-divider"></div>
-
-        <div class="nav-pop-group">cloonk.com</div>
-        <a class="nav-pop-link" href="/projects.html" role="menuitem">
-          <span class="nav-pop-glyph">↗</span> Work
-        </a>
-        <a class="nav-pop-link" href="/" role="menuitem">
-          <span class="nav-pop-glyph">↗</span> Home
-        </a>
-
-      </div>
-    </details>
+    <!-- Info button — opens the appendix/resources modal -->
+    <button class="info-btn" id="infoBtn" aria-label="Open info & appendix" title="Info & Appendix">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/>
+        <line x1="12" y1="11" x2="12" y2="16"/>
+        <circle cx="12" cy="8" r="0.6" fill="currentColor"/>
+      </svg>
+    </button>
 
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
       <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -925,6 +1030,173 @@ select:focus, .search-input:focus { border-color: var(--accent); }
   <button class="lightbox-close" onclick="closeLightbox(event)">✕</button>
   <img id="lightboxImg" src="" alt="Product image">
   <div class="lightbox-caption" id="lightboxCaption"></div>
+</div>
+
+<!-- Info / Appendix Modal -->
+<div class="info-modal-overlay" id="infoModalOverlay" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
+  <div class="info-modal">
+    <div class="info-modal-header">
+      <span class="info-modal-title" id="infoModalTitle">RP Line Sheet <span>— Appendix</span></span>
+      <button class="info-modal-close" id="infoModalClose" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="info-modal-tabs" role="tablist">
+      <button class="info-modal-tab active" data-tab="about"     role="tab">About</button>
+      <button class="info-modal-tab"        data-tab="schema"    role="tab">Schema</button>
+      <button class="info-modal-tab"        data-tab="appendix"  role="tab">Appendix</button>
+      <button class="info-modal-tab"        data-tab="resources" role="tab">Resources</button>
+    </div>
+
+    <div class="info-modal-body">
+
+      <!-- About -->
+      <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
+        <h3>What this is</h3>
+        <p>RP Line Sheet is a browser-based replenishment review tool. Upload a line sheet, attach product photos, filter and sort the assortment, write notes, select the SKUs you want to keep, and export the selection back to <code>.xlsx</code>. The file never leaves your browser.</p>
+
+        <h3>Quick start</h3>
+        <p>
+          <strong>1.</strong> Click <code>↓ Template</code> to download a blank workbook with the expected columns.<br>
+          <strong>2.</strong> Fill it in, then load it via <code>↑ Load Sheet</code> or by dropping it on the landing zone.<br>
+          <strong>3.</strong> Optionally click <code>↑ Images</code> to bulk-attach product photos by filename.<br>
+          <strong>4.</strong> Filter / sort / search / select, write notes, then <code>↓ Export Selects</code>.
+        </p>
+
+        <h3>Privacy</h3>
+        <p>Everything runs locally. The spreadsheet is parsed in the browser via SheetJS; embedded images are extracted via JSZip. No upload, no server, no analytics on the data itself.</p>
+      </div>
+
+      <!-- Schema -->
+      <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
+        <h3>Expected columns</h3>
+        <p>The first sheet of the workbook is read. Header names must match exactly.</p>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Use</th></tr>
+          <tr><td>Brand</td><td>text</td><td>Populates the brand filter</td></tr>
+          <tr><td>SKU</td><td>text</td><td>Internal style code</td></tr>
+          <tr><td>UPC</td><td>text</td><td>Matches embedded <code>.xlsx</code> images by UPC</td></tr>
+          <tr><td>Image</td><td>text</td><td>URL or <code>=IMAGE("…")</code> — card photo if present</td></tr>
+          <tr><td>Rank</td><td>number</td><td>Default sort field</td></tr>
+          <tr><td>Status</td><td>text</td><td>Active / Discontinued / EOL — color-coded</td></tr>
+          <tr><td>Style</td><td>text</td><td>Style name on the card</td></tr>
+          <tr><td>Material</td><td>text</td><td>Search + image filename match</td></tr>
+          <tr><td>Grid</td><td>text</td><td>Search + image filename match</td></tr>
+          <tr><td>Color</td><td>text</td><td>Drives the swatch dot</td></tr>
+          <tr><td>Polarized</td><td>boolean</td><td><code>true/yes/1</code> or <code>false/no/0</code></td></tr>
+          <tr><td>Size</td><td>text</td><td>Free text</td></tr>
+          <tr><td>MSRP</td><td>number</td><td>Rendered as currency</td></tr>
+          <tr><td>EOL Date</td><td>date</td><td>Excel date or text</td></tr>
+          <tr><td>Release</td><td>text</td><td>Free text</td></tr>
+          <tr><td>YTD Sls U</td><td>number</td><td>KPI on the card</td></tr>
+          <tr><td>Order Level</td><td>number</td><td>—</td></tr>
+          <tr><td>On Hand U</td><td>number</td><td>—</td></tr>
+          <tr><td>5-Wk Avg S/T %</td><td>number</td><td>Sell-thru. Both <code>0.04</code> and <code>4%</code> work</td></tr>
+          <tr><td>Notes</td><td>text</td><td>Pre-fills the card's note field</td></tr>
+        </table>
+
+        <h3>Image resolution order</h3>
+        <p>
+          <strong>1.</strong> <code>Image</code> column URL or <code>=IMAGE("…")</code> formula.<br>
+          <strong>2.</strong> Images embedded inside the <code>.xlsx</code>, matched by UPC or row index.<br>
+          <strong>3.</strong> Files loaded via <code>↑ Images</code>, matched by filename against SKU / Style / Grid / Material.
+        </p>
+      </div>
+
+      <!-- Appendix -->
+      <div class="info-modal-pane" id="modal-tab-appendix" role="tabpanel">
+        <h3>Glossary</h3>
+        <p>Hover any term for a plain-language explanation.</p>
+        <table>
+          <tr><th>Term</th><th>What it means</th></tr>
+          <tr>
+            <td><span class="term">SKU<span class="term-tip">Stock Keeping Unit — the unique internal code for a single product variant. In this tool it's the primary identifier for each row.</span></span></td>
+            <td>Unique code for one product variant (style + color + size).</td>
+          </tr>
+          <tr>
+            <td><span class="term">UPC<span class="term-tip">Universal Product Code — the 12-digit barcode on retail packaging. Used here as a fallback key to match embedded xlsx images that don't have row anchoring.</span></span></td>
+            <td>The 12-digit retail barcode. Used to match embedded images.</td>
+          </tr>
+          <tr>
+            <td><span class="term">MSRP<span class="term-tip">Manufacturer's Suggested Retail Price — the published list price before discounting. Stored as a number; rendered as $XXX on the card.</span></span></td>
+            <td>List price before any discount.</td>
+          </tr>
+          <tr>
+            <td><span class="term">Sell-Thru %<span class="term-tip">The fraction of received inventory that's been sold over a given window — here a rolling 5-week average. High = the SKU is moving fast and likely worth keeping.</span></span></td>
+            <td>5-week rolling % of inventory sold. High = strong mover.</td>
+          </tr>
+          <tr>
+            <td><span class="term">YTD Sales (U)<span class="term-tip">Year-to-date units sold, summed across all locations. "U" is units; a separate dollar metric isn't tracked in this view.</span></span></td>
+            <td>Year-to-date units sold across all locations.</td>
+          </tr>
+          <tr>
+            <td><span class="term">On Hand (U)<span class="term-tip">Total units currently in inventory across stores and DC — the denominator for sell-thru and the trigger for replenishment decisions.</span></span></td>
+            <td>Current units in inventory (stores + DC).</td>
+          </tr>
+          <tr>
+            <td><span class="term">Order Level<span class="term-tip">The target on-hand quantity for this SKU. When actual On Hand drops below this number, a replenishment order is generated.</span></span></td>
+            <td>Target stock level that triggers replenishment.</td>
+          </tr>
+          <tr>
+            <td><span class="term">Rank<span class="term-tip">Internal ranking from the buyer or planner — lower is better. Used to break ties when sell-thru numbers are similar and as the default sort.</span></span></td>
+            <td>Buyer's priority rank. Lower = higher priority.</td>
+          </tr>
+          <tr>
+            <td><span class="term">EOL<span class="term-tip">End of Life — the date this SKU is scheduled to be discontinued. SKUs past or near their EOL are typically not replenished.</span></span></td>
+            <td>End-of-life date for the SKU.</td>
+          </tr>
+          <tr>
+            <td><span class="term">Grid<span class="term-tip">The skeleton/frame/mold the eyewear is built on — multiple SKUs (colors, materials, finishes) often share a single grid. Used here as one of the keys for matching uploaded photos.</span></span></td>
+            <td>Frame skeleton shared across SKU variants.</td>
+          </tr>
+          <tr>
+            <td><span class="term">Polarized<span class="term-tip">A lens treatment that blocks horizontally-reflected glare. A category filter because customers actively shop for it.</span></span></td>
+            <td>Lens treatment that filters reflective glare.</td>
+          </tr>
+        </table>
+
+        <h3>Status colors</h3>
+        <table>
+          <tr><th>Value</th><th>Meaning</th></tr>
+          <tr><td><span class="status-active">Active</span></td><td>Currently in assortment, eligible for replenishment.</td></tr>
+          <tr><td><span class="status-discontinued">Discontinued</span></td><td>Not being replenished. Existing stock sells through.</td></tr>
+          <tr><td><span class="status-eol">EOL</span></td><td>Past end-of-life date — flagged for review.</td></tr>
+          <tr><td><span class="status-inactive">Inactive</span></td><td>Temporarily not in the replenishment cycle.</td></tr>
+        </table>
+
+        <h3>Export format</h3>
+        <p>The exported file is a single-sheet <code>.xlsx</code> with the same columns as the input plus a trailing <code>Selected: YES</code> marker and your notes inline. Filename is <code>RP_Selects_YYYY-MM-DD.xlsx</code>.</p>
+      </div>
+
+      <!-- Resources / Menu -->
+      <div class="info-modal-pane" id="modal-tab-resources" role="tabpanel">
+
+        <div class="info-link-group">Fashion Tools</div>
+        <a class="info-link" href="replenishment-linesheet.html">
+          <span class="info-link-glyph">▤</span> RP Line Sheet
+          <span class="info-link-meta">Replenishment Review</span>
+        </a>
+        <!-- Future fashion tools go here. -->
+
+        <div class="info-link-group" style="margin-top:10px">Docs</div>
+        <a class="info-link" href="README.md">
+          <span class="info-link-glyph">?</span> README
+          <span class="info-link-meta">.md</span>
+        </a>
+
+        <div class="info-link-group" style="margin-top:10px">cloonk.com</div>
+        <a class="info-link" href="/projects.html">
+          <span class="info-link-glyph">↗</span> Work
+          <span class="info-link-meta">Selected Projects</span>
+        </a>
+        <a class="info-link" href="/">
+          <span class="info-link-glyph">↗</span> Home
+          <span class="info-link-meta">cloonk.com</span>
+        </a>
+
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <!-- Toast -->
@@ -1657,28 +1929,50 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeLightbox();
 });
 
-// ─── Header nav popover ───
-(function setupNavPop() {
-  const pop = document.getElementById('navPop');
-  if (!pop) return;
+// ─── Info / Appendix modal ───
+(function setupInfoModal() {
+  const overlay = document.getElementById('infoModalOverlay');
+  const btn     = document.getElementById('infoBtn');
+  const closeBtn = document.getElementById('infoModalClose');
+  if (!overlay || !btn) return;
 
-  // Mark the link to the current page so it reads as the active item.
+  function openModal(tab) {
+    overlay.classList.add('open');
+    if (tab) showTab(tab);
+  }
+  function closeModal() { overlay.classList.remove('open'); }
+
+  function showTab(name) {
+    document.querySelectorAll('.info-modal-tab').forEach(t =>
+      t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('.info-modal-pane').forEach(p =>
+      p.classList.toggle('active', p.id === 'modal-tab-' + name));
+  }
+
+  btn.addEventListener('click', () => openModal());
+  closeBtn.addEventListener('click', closeModal);
+
+  // Click outside the modal closes it.
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal();
+  });
+
+  // Tab switching.
+  document.querySelectorAll('.info-modal-tab').forEach(tab => {
+    tab.addEventListener('click', () => showTab(tab.dataset.tab));
+  });
+
+  // Escape closes modal (handled before the lightbox Escape since lightbox is
+  // separate; this also no-ops if the modal isn't open).
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
+  });
+
+  // Mark the link to the current page so the Resources tab highlights it.
   const here = location.pathname.split('/').pop() || 'index.html';
-  pop.querySelectorAll('.nav-pop-link').forEach(a => {
+  overlay.querySelectorAll('.info-link').forEach(a => {
     const target = a.getAttribute('href').split('/').pop();
     if (target && target === here) a.setAttribute('aria-current', 'page');
-  });
-
-  // Close on outside click.
-  document.addEventListener('click', (e) => {
-    if (!pop.open) return;
-    if (pop.contains(e.target)) return;
-    pop.open = false;
-  });
-
-  // Close on Escape.
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && pop.open) pop.open = false;
   });
 })();
 
