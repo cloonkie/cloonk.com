@@ -1,8 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
   <url>
     <loc>https://cloonk.com/</loc>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
+  <url>
+    <loc>https://cloonk.com/projects.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://cloonk.com/info.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cloonk.com/resume.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cloonk.com/contact.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Project case studies (dynamic shell: project.html?id=…) -->
+  <url><loc>https://cloonk.com/project.html?id=peleton-ad-campaign</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=kenzo-product-elements</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=fashion-freedom</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=tiffany-store-plan</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=tiffany-ar</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=tiffany-lock-campaign</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=uniqlo-assortment-refresh</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=smiski-campaign</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=sos-save-our-society</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=race-to-space</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=incalculable-loss</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=cl-kpop-eye-candy</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=coca-cola-zero</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=premier-protein-muffin</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=kensie-merchandising</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=mccormick-mixology</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=work-pod-proposal</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=heinz-brand-loyalty</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=poseidon-user-testing</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=nyc-tourism-final</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=amon-carter-analytics</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=eyewear-sales-analysis</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=data-viz-literacy</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=jif-site-audit</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=chipotle-ux</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=eyewear-db</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=textile-dyes</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=knit-wear</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=undl-idp</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=rooted-in-data</loc><priority>0.6</priority></url>
+  <url><loc>https://cloonk.com/project.html?id=urban-retail-access</loc><priority>0.7</priority></url>
+
+  <!-- Urban Retail Access standalone pages -->
+  <url><loc>https://cloonk.com/projects/urban-retail-access/</loc><priority>0.7</priority></url>
+  <url><loc>https://cloonk.com/projects/urban-retail-access/chicago.html</loc><priority>0.5</priority></url>
+  <url><loc>https://cloonk.com/projects/urban-retail-access/dallas.html</loc><priority>0.5</priority></url>
+  <url><loc>https://cloonk.com/projects/urban-retail-access/fort-worth.html</loc><priority>0.5</priority></url>
+  <url><loc>https://cloonk.com/projects/urban-retail-access/houston.html</loc><priority>0.5</priority></url>
+  <url><loc>https://cloonk.com/projects/urban-retail-access/los-angeles.html</loc><priority>0.5</priority></url>
+  <url><loc>https://cloonk.com/projects/urban-retail-access/philadelphia.html</loc><priority>0.5</priority></url>
+  <url><loc>https://cloonk.com/projects/urban-retail-access/phoenix.html</loc><priority>0.5</priority></url>
+  <url><loc>https://cloonk.com/projects/urban-retail-access/san-antonio.html</loc><priority>0.5</priority></url>
+  <url><loc>https://cloonk.com/projects/urban-retail-access/san-diego.html</loc><priority>0.5</priority></url>
+
 </urlset>

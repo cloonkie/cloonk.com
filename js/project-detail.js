@@ -14,10 +14,82 @@
         <h1 class="detail-title">Project not found</h1>
         <a href="projects.html" class="detail-back">← Back to Work</a>
       </div>`;
+    // Prevent indexing of empty/invalid project URLs
+    var robotsMeta = document.querySelector('meta[name="robots"]');
+    if (!robotsMeta) {
+      robotsMeta = document.createElement('meta');
+      robotsMeta.setAttribute('name', 'robots');
+      document.head.appendChild(robotsMeta);
+    }
+    robotsMeta.setAttribute('content', 'noindex, follow');
     return;
   }
 
   document.title = p.title + ' — Kevin Zhang';
+
+  /* ── SEO metadata: keep title, description, canonical, and OG/Twitter
+        tags in sync with the active project so crawlers and link
+        unfurlers see per-project content. ── */
+  (function applySEO() {
+    var canonical = 'https://cloonk.com/project.html?id=' + encodeURIComponent(p.id);
+    var rawDesc   = (p.context && p.context.problem) ? p.context.problem : (p.desc || '');
+    var desc      = rawDesc.replace(/\s+/g, ' ').trim();
+    if (desc.length > 300) desc = desc.slice(0, 297).replace(/\s+\S*$/, '') + '…';
+    var image     = p.img || 'https://cloonk.com/images/hero.jpg';
+    var title     = p.title + ' — Kevin Zhang';
+
+    function setMeta(selector, attr, key, value) {
+      var el = document.head.querySelector(selector);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', value);
+    }
+
+    setMeta('meta[name="description"]',      'name',     'description',      desc);
+    setMeta('meta[property="og:title"]',     'property', 'og:title',         title);
+    setMeta('meta[property="og:description"]','property','og:description',   desc);
+    setMeta('meta[property="og:image"]',     'property', 'og:image',         image);
+    setMeta('meta[property="og:url"]',       'property', 'og:url',           canonical);
+    setMeta('meta[property="og:type"]',      'property', 'og:type',          'article');
+    setMeta('meta[name="twitter:title"]',    'name',     'twitter:title',    title);
+    setMeta('meta[name="twitter:description"]','name',   'twitter:description', desc);
+    setMeta('meta[name="twitter:image"]',    'name',     'twitter:image',    image);
+
+    var link = document.head.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      document.head.appendChild(link);
+    }
+    link.setAttribute('href', canonical);
+
+    // JSON-LD CreativeWork for the project
+    var existing = document.getElementById('ld-project');
+    if (existing) existing.remove();
+    var ld = document.createElement('script');
+    ld.type = 'application/ld+json';
+    ld.id   = 'ld-project';
+    ld.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'CreativeWork',
+      'name': p.title,
+      'headline': p.title,
+      'description': desc,
+      'image': image,
+      'url': canonical,
+      'author': {
+        '@type': 'Person',
+        'name': 'Kevin Zhang',
+        'url': 'https://cloonk.com/'
+      },
+      'datePublished': p.year || undefined,
+      'keywords': [p.topic, p.type, p.affiliation].filter(Boolean).join(', ')
+    });
+    document.head.appendChild(ld);
+  })();
 
   // Storyline (stat moments + statement breaks) initial state.
   // Order of precedence: reader's localStorage choice → author's hide flags → default on.
