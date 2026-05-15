@@ -179,6 +179,7 @@
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 20px;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 .info-modal-title {
   font-family: var(--font-display);
@@ -206,6 +207,7 @@
   padding: 0 20px;
   overflow-x: auto;
   scrollbar-width: none;
+  flex-shrink: 0;
 }
 .info-modal-tabs::-webkit-scrollbar { display: none; }
 .info-modal-tab {
@@ -217,7 +219,6 @@
   padding: 12px 14px;
   cursor: pointer;
   border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
   background: none;
   border-top: none;
   border-left: none;
@@ -229,12 +230,13 @@
 .info-modal-tab:hover { color: var(--text); }
 .info-modal-tab.active {
   color: var(--accent);
-  border-bottom-color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
 }
 .info-modal-body {
   padding: 22px 24px 26px;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
   font-size: 0.85rem;
   line-height: 1.7;
   color: var(--text-muted);

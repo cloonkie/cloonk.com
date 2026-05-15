@@ -380,6 +380,12 @@ select:focus, .search-input:focus { border-color: var(--accent); }
 }
 .venn-region:hover + text,
 .venn-region.active + text { fill: var(--accent); }
+/* The count is a .venn-count tspan whose own `fill: var(--text)`
+   out-specifies the inherited accent above, so the loudest element
+   stayed neutral and the active state looked faint. Re-assert the
+   accent on it directly, with enough specificity to win. */
+.venn-region:hover + text .venn-count,
+.venn-region.active + text .venn-count { fill: var(--accent); }
 .region-label {
   fill: var(--text-muted);
   stroke: var(--bg);
