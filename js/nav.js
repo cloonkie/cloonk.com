@@ -14,14 +14,45 @@
   const saved = localStorage.getItem(STORAGE_KEY);
   applyTheme(saved === 'light' ? 'light' : 'dark');
 
+  /* Swap the theme as ONE unified page event.
+     - Per-element hover transitions are suppressed for the duration
+       (via the `theme-switching` class) so nothing re-tweens on its
+       own clock — that was the staggered "each box flips alone" look.
+     - Where supported, the whole viewport cross-fades as a single
+       layer via the View Transitions API; everywhere else (Firefox,
+       reduced-motion) it's an instant, uniform flip. */
+  let pending = 0;
+  function switchTheme() {
+    const root = document.documentElement;
+    const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    root.classList.add('theme-switching');
+    pending++;
+    /* Only lift the suppression once the LAST in-flight swap settles,
+       so a rapid double-toggle can't strip it mid-transition. */
+    function settle() {
+      if (--pending <= 0) {
+        pending = 0;
+        root.classList.remove('theme-switching');
+      }
+    }
+
+    if (typeof document.startViewTransition === 'function' && !reduce) {
+      document.startViewTransition(() => applyTheme(next)).finished.finally(settle);
+    } else {
+      applyTheme(next);
+      /* Two frames: let the instant repaint land, then re-enable
+         the hover transitions. */
+      requestAnimationFrame(() => requestAnimationFrame(settle));
+    }
+  }
+
   /* Wire toggle — runs at script parse time, after the DOM node exists */
   function wireToggle() {
     const toggle = document.getElementById('nav-theme-toggle');
     if (!toggle) return;
-    toggle.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme');
-      applyTheme(current === 'light' ? 'dark' : 'light');
-    });
+    toggle.addEventListener('click', switchTheme);
   }
 
   /* If DOM already ready (script at bottom of body), wire now.

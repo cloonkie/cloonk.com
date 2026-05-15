@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fashion Toolbox — Kevin Zhang | cloonk.com</title>
+  <meta name="description" content="A drawer of browser-based merchandising tools — replenishment review and assortment comparison. Drop in a spreadsheet, work locally, export. Nothing leaves your machine." />
+  <meta name="author" content="Kevin Zhang" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <link rel="canonical" href="https://cloonk.com/projects/fashion/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="cloonk — Kevin Zhang" />
+  <meta property="og:title" content="Fashion Toolbox — Kevin Zhang" />
+  <meta property="og:description" content="Browser-based merchandising tools. Drop in a spreadsheet, work locally, export." />
+  <meta property="og:image" content="https://cloonk.com/images/hero.jpg" />
+  <meta property="og:url" content="https://cloonk.com/projects/fashion/" />
+
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="fashion.css" />
+  <script>
+    try {
+      document.documentElement.setAttribute(
+        'data-theme',
+        localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark'
+      );
+    } catch (e) {}
+  </script>
+</head>
+<body class="fashion fashion--cabinet">
+
+  <nav>
+    <div class="nav__left">
+      <a class="nav__logo" id="nav-logo" href="../../index.html">cloonk ʕ·ᴥ·ʔ</a>
+      <a class="nav__section" href="index.html">Fashion Toolbox</a>
+    </div>
+    <div class="nav__right">
+      <button class="nav__theme-toggle" id="nav-theme-toggle" aria-label="Toggle light/dark mode">
+        <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <main>
+    <section class="cabinet-stage">
+      <p class="label">Merchandising Toolbox</p>
+      <p class="cabinet-note">
+        Browser-based tools for assortment and replenishment work. Drop in a
+        spreadsheet, work locally, export the result. <strong>Nothing leaves
+        your machine.</strong>
+      </p>
+
+      <section class="cabinet is-closed" id="cabinet">
+        <div class="cabinet__body">
+          <ul class="files" id="files" aria-label="Tools"></ul>
+        </div>
+        <button class="cabinet__face" id="cabinetFace" data-cursor="pull"
+                aria-expanded="false" aria-controls="files">
+          <span class="cabinet__stencil">FILE — MERCH</span>
+          <span class="cabinet__handle" aria-hidden="true"></span>
+          <span class="cabinet__hint" id="cabinetHint">Pull to open ↓</span>
+        </button>
+      </section>
+
+      <noscript>
+        <ul class="files files--fallback" aria-label="Tools">
+          <li><a class="file" href="replenishment-linesheet.html"><span class="file__name">RP Line Sheet<span class="file__sub">Replenishment Review</span></span><span class="file__purpose">Annotate and export selected replenishment SKUs.</span></a></li>
+          <li><a class="file" href="assortment-comparison.html"><span class="file__name">Assortment Comparison<span class="file__sub">Retailer Overlap</span></span><span class="file__purpose">Compare retailer assortments by style, color, grid, brand, and units.</span></a></li>
+        </ul>
+      </noscript>
+    </section>
+  </main>
+
+  <footer class="index-footer">
+    <div class="footer__left">
+      <div class="footer__socials">
+        <a href="../../index.html">cloonk.com</a>
+        <a href="../../projects.html">Work</a>
+        <a href="https://linkedin.com/in/cloonk/" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+    <div class="footer__right">
+      <a href="https://cloonk.com">&copy; 2025 Kevin Zhang</a>
+    </div>
+  </footer>
+
+  <script src="../../js/nav.js"></script>
+  <script src="../../js/logo.js"></script>
+  <script src="../../js/cursor.js"></script>
+  <script src="fashion.js"></script>
+</body>
+</html>

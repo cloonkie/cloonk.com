@@ -1,0 +1,385 @@
+/* ============================================================
+   projects/fashion — shared design system
+   Layers a merchandising-tool token ramp + components on top of
+   the global cloonk.com system. One source of truth for every
+   page under projects/fashion/.
+
+   Load order on a fashion page:
+     <link rel="stylesheet" href="fashion.css">   (this file)
+   This file pulls in the root cloonk system itself.
+   ============================================================ */
+
+@import url("../../css/style.css");
+
+/* ─── Fashion token ramp ─────────────────────────────────────
+   Extends cloonk's --bg/--fg/--accent/--muted/--border with the
+   richer surface scale the tools need. Values match what the
+   tools previously declared inline, so retrofitting them onto
+   this file is a no-op visually. --text aliases --fg on purpose
+   so tool code that references --text keeps working.
+   ──────────────────────────────────────────────────────────── */
+:root {
+  --surface:        #141412;
+  --surface-raised: #1c1c19;
+  --surface-card:   #1f1f1c;
+  --border-hover:   #3a3a36;
+  --text:           var(--fg);
+  --text-muted:     #888882;
+  --text-dim:       #5e5e58;
+  --accent-hover:   #5cff44;
+  --accent-fg:      #0a0a0a;
+  --accent-dim:     rgba(57, 255, 20, 0.1);
+  --danger:         #ff5b4a;
+  --radius:    12px;
+  --radius-sm: 8px;
+  --radius-xs: 4px;
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --spring:     0.7s cubic-bezier(0.16, 1.1, 0.3, 1);
+}
+[data-theme="light"] {
+  --surface:        #ede9e1;
+  --surface-raised: #e4dfd4;
+  --surface-card:   #eae6dc;
+  --border-hover:   #b6b2aa;
+  --text-muted:     #5a5a54;
+  --text-dim:       #8a8a82;
+  --accent-hover:   #2e1cd6;
+  --accent-fg:      #f5f2ec;
+  --accent-dim:     rgba(27, 9, 188, 0.08);
+  --danger:         #b03020;
+  --font-mono:      'DM Mono', 'Courier New', monospace;
+}
+:root { --font-mono: 'DM Mono', 'Courier New', monospace; }
+
+/* ─── Header: keep the cloonk nav, swap the right side ────────
+   cloonk wordmark stays left. The site links are dropped on
+   fashion pages; a "Fashion Toolbox" section wordmark sits at
+   the far right, across from the logo.
+   ──────────────────────────────────────────────────────────── */
+.fashion .nav__links,
+.fashion .nav__clock,
+.fashion .nav__hamburger { display: none; }
+
+.fashion .nav__right { gap: 18px; }
+
+/* Logo + section sit together on the left, side by side */
+.fashion .nav__left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.nav__section {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg);
+  transition: color 0.2s;
+}
+.nav__section::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin-right: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.nav__section:hover { color: var(--accent); }
+
+/* ─── Page shell ─────────────────────────────────────────────  */
+.cabinet-stage {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: clamp(40px, 9vh, 96px) var(--page-pad) clamp(48px, 9vh, 96px);
+}
+.cabinet-stage .label { margin-bottom: 14px; }
+.cabinet-note {
+  max-width: 46ch;
+  margin-bottom: clamp(36px, 6vh, 64px);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.cabinet-note strong { color: var(--fg); font-weight: 600; }
+
+/* ─── The cabinet ────────────────────────────────────────────
+   A stylized drawer. Closed: only the face + handle show.
+   Open: the body springs up and the files cascade out.
+   ──────────────────────────────────────────────────────────── */
+.cabinet {
+  max-width: 680px;
+  perspective: 1500px;
+}
+
+.cabinet__body {
+  position: relative;
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background:
+    linear-gradient(180deg, var(--surface-raised), var(--surface));
+  transition: grid-template-rows var(--spring), opacity 0.4s ease;
+}
+.cabinet.is-open .cabinet__body {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+/* The grid-row reveal needs the single child to clip its own
+   overflow — no magic max-height, the drawer fits any count. */
+.cabinet__body > .files {
+  overflow: hidden;
+  min-height: 0;
+}
+/* The drawer rail — the metal lip you'd hang folders from */
+.cabinet__body::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--border-hover);
+}
+
+.files {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 38px 26px 32px;
+  transform-style: preserve-3d;
+}
+.files li { position: relative; }
+
+/* No-JS fallback: a plain, always-visible list of the same files */
+.files--fallback {
+  margin-top: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+/* Each file = a hanging folder = one tool */
+.file {
+  position: relative;
+  display: block;
+  padding: 24px 24px 22px;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  transition:
+    transform var(--transition),
+    border-color var(--transition),
+    background var(--transition),
+    box-shadow var(--transition);
+}
+.cabinet.is-open .file {
+  animation: fileRise 0.62s cubic-bezier(0.16, 1.1, 0.3, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 95ms + 0.18s);
+}
+@keyframes fileRise {
+  from { opacity: 0; transform: translateY(48px) rotateX(-9deg); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* The folder tab — staggered left/right like a real drawer */
+.file__tab {
+  position: absolute;
+  top: -13px;
+  left: var(--tab-x, 22px);
+  padding: 5px 15px;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 7px 7px 0 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color var(--transition), border-color var(--transition);
+}
+
+.file__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.file__name {
+  font-family: var(--font-display);
+  font-size: 1.32rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.file__sub {
+  margin-left: 10px;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.file__status {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.file__status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.file__purpose {
+  display: block;
+  margin: 12px 0 18px;
+  max-width: 52ch;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+.file__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.file__io {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+.file__io b { color: var(--text-muted); font-weight: 500; }
+.file__io .arrow { color: var(--accent); margin: 0 8px; }
+.file__open {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color var(--transition), gap var(--transition);
+}
+
+/* Pull the file out of the drawer on hover / keyboard focus */
+.file:hover,
+.file:focus-visible {
+  transform: translateY(-7px) translateX(5px);
+  background: var(--surface-raised);
+  border-color: var(--border-hover);
+  box-shadow: -5px 0 0 -1px var(--accent);
+  outline: none;
+}
+.file:hover .file__tab,
+.file:focus-visible .file__tab {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.file:hover .file__open,
+.file:focus-visible .file__open {
+  color: var(--accent);
+  gap: 12px;
+}
+
+/* ─── The drawer face + handle (the click target to open) ──── */
+.cabinet__face {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  padding: 22px 26px;
+  background: linear-gradient(180deg, var(--surface-raised), var(--surface));
+  border: 1px solid var(--border);
+  border-radius: 0 0 var(--radius) var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.cabinet.is-closed .cabinet__face { border-radius: var(--radius); }
+.cabinet__face:hover { background: var(--surface-raised); border-color: var(--border-hover); }
+.cabinet__face:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.cabinet__stencil {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.cabinet__handle {
+  width: 72px;
+  height: 9px;
+  border-radius: 99px;
+  background: var(--border-hover);
+  transition: background var(--transition);
+}
+.cabinet__face:hover .cabinet__handle { background: var(--accent); }
+.cabinet__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+/* Gentle bob to advertise that the closed drawer is interactive */
+.cabinet.is-closed .cabinet__handle { animation: handleBob 2.4s ease-in-out infinite; }
+@keyframes handleBob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(3px); }
+}
+
+/* ─── Reduced motion: no spring, no bob, instant reveal ─────── */
+@media (prefers-reduced-motion: reduce) {
+  .cabinet__body { transition: opacity 0.2s ease; }
+  .cabinet.is-open .file { animation: none; }
+  .cabinet.is-closed .cabinet__handle { animation: none; }
+}
+
+/* ─── Small screens ──────────────────────────────────────────  */
+@media (max-width: 560px) {
+  .file__top { flex-direction: column; gap: 8px; }
+  .file__foot { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .cabinet__stencil { display: none; }
+}
+
+/* ─── Toast (shared with the tools after retrofit) ─────────── */
+.fashion-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%) translateY(20px);
+  z-index: 200;
+  padding: 12px 20px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition), transform var(--transition);
+}
+.fashion-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }

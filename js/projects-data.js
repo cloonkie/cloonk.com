@@ -1279,5 +1279,42 @@ window.PROJECTS = [
       { "title": "Infrastructure is the analysis", "body": "The hardest part of this project wasn't the map — it was the pipeline that makes the map trustworthy. Projection alignment, DuckDB spatial query optimization, tile generation performance, Valhalla routing configuration: none of these are glamorous, but all of them determine whether the analysis is valid. You can't separate the infrastructure from the insight. Building it correctly is the research." },
       { "title": "The story wasn't the gap. It was the direction.", "body": "An income–walkability gap shows up in every city in the dataset. The interesting finding was which way it ran. In dense metros (NYC, LA, San Diego), richer tracts walk to more. In sprawl-pattern metros (Phoenix, Fort Worth, Houston, Dallas), the relationship reverses — poorer, denser, older neighborhoods reach more on foot than the wealthier exurbs that surround them. A single-city study would have called this an artifact. Ten cities, same pipeline, makes it structural." }
     ]
+  },
+
+  {
+    "num": "33",
+    "id": "fashion-toolbox",
+    "title": "Fashion Toolbox",
+    "short": "Enterprise-style merchandising analysis, in the browser.",
+    "desc": "A growing set of single-purpose, browser-based tools for assortment and replenishment work — built so the kind of analysis usually locked behind enterprise software runs locally, for free, with no login and nothing uploaded.\n\nThe toolbox is a filing-cabinet hub that springs open to the available tools: RP Line Sheet for replenishment review and Assortment Comparison for retailer overlap, with more to come. Every tool shares one design system and the cloonk theme.",
+    "topic": "data analysis",
+    "type": "Tools",
+    "year": "2026",
+    "affiliation": null,
+    "img": null,
+    "gallery": [],
+    "media": [],
+    "pdf": null,
+    "pdf_label": null,
+    "figma": null, "sheets": null, "canva": null,
+    "github": "https://github.com/cloonkie/cloonk.com/tree/main/projects/fashion",
+    "live": "https://cloonk.com/projects/fashion/",
+    "hideStatMoments": true,
+    "hideStatements": true,
+    "quotes": null, "findings": null, "statMoments": null, "impact": null, "statements": null,
+    "context": {
+      "problem": "Merchandising analysis — replenishment review, assortment overlap — usually means enterprise BI seats or manual spreadsheet grinding. Both are slow, gated, and hard to share. The goal was to make that work accessible: open a page, drop in a sheet, get the answer, with no install, no login, and nothing leaving the machine."
+    },
+    "approach": {
+      "summary": "Each tool is a focused, client-side app that reads a spreadsheet in the browser and never uploads it. They share one design system (fashion.css / fashion.js) and the cloonk light/dark theme, surfaced through a filing-cabinet hub that springs open to reveal the available tools.",
+      "data": ["JavaScript", "SheetJS", "Client-side processing", "Shared design system", "GitHub Pages"]
+    },
+    "results": {
+      "before": ["Assortment and replenishment analysis required enterprise software or manual spreadsheet work", "Nothing shareable or self-serve", "Tool styling duplicated per file"],
+      "after": ["Free, login-free, browser-only tools — data never leaves the machine", "A shared fashion design system and a toolbox hub that scales as tools are added", "Two tools live: RP Line Sheet and Assortment Comparison"]
+    },
+    "takeaways": [
+      { "title": "Accessible beats powerful when the power is gated", "body": "Most merchandising analysis isn't hard math — it's locked behind tools people can't reach. A small browser tool that runs locally and asks for nothing democratizes the work more than a more capable system nobody can open." }
+    ]
   }
 ];
