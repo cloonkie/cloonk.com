@@ -777,14 +777,14 @@ td.mono { font-family: var(--font-mono); }
   <div class="toolbar-group">
     <span class="toolbar-label">Key</span>
     <select id="keyMode" onchange="updateComparison()">
-      <option value="style">Style</option>
-      <option value="styleColor">Style + Color</option>
-      <option value="styleColorGrid">Style + Color + Grid</option>
-      <option value="brandStyleColorGrid">Brand + Style + Color + Grid</option>
+      <option value="style">UPC</option>
+      <option value="styleColor">UPC + Color</option>
+      <option value="styleColorGrid">UPC + Color + Grid</option>
+      <option value="brandStyleColorGrid">Brand + UPC + Color + Grid</option>
     </select>
   </div>
   <div class="toolbar-group">
-    <input class="search-input" id="searchInput" type="text" placeholder="Search brand, release, style, grid..." oninput="updateComparison()">
+    <input class="search-input" id="searchInput" type="text" placeholder="Search brand, release, style, UPC, grid..." oninput="updateComparison()">
   </div>
 </div>
 
@@ -792,11 +792,11 @@ td.mono { font-family: var(--font-mono); }
   <section class="upload" id="uploadView">
     <div class="upload-panel">
       <h1>Compare Retailer Assortments</h1>
-      <p>Upload a spreadsheet with columns like Brand, Release, Style, Grid, Retailer, Unit Sold, and Unit OH. The page builds local overlap sets, counts styles, sums units sold and on-hand, and restores your last session from this browser.</p>
+      <p>Upload a spreadsheet with columns like Brand, Release, Style, Grid, UPC, Retailer, Unit Sold, and Unit OH. The page builds local overlap sets on UPC, counts products, sums units sold and on-hand, and restores your last session from this browser.</p>
       <div class="upload-zone" id="uploadZone">
         <input type="file" id="landingInput" accept=".xlsx,.xls,.csv">
         <div class="upload-title">Drop .xlsx or .csv here</div>
-        <div class="upload-hint">Required: retailer/account and a product identifier. Recommended: Brand, Release, Style, Grid, Unit Sold, Unit OH.</div>
+        <div class="upload-hint">Required: retailer/account and a product identifier (UPC preferred). Recommended: Brand, Release, Style, Grid, UPC, Unit Sold, Unit OH.</div>
       </div>
     </div>
   </section>
@@ -838,6 +838,7 @@ td.mono { font-family: var(--font-mono); }
                   <th>Release</th>
                   <th>Style</th>
                   <th>Grid</th>
+                  <th>UPC</th>
                   <th>Retailer</th>
                   <th>Unit Sold</th>
                   <th>Unit OH</th>
@@ -884,9 +885,10 @@ td.mono { font-family: var(--font-mono); }
           <tr><td>Retailer</td><td>Required account/banner name used to build overlap sets.</td></tr>
           <tr><td>Brand</td><td>Optional brand filter and product table field.</td></tr>
           <tr><td>Release</td><td>Optional release/season field.</td></tr>
-          <tr><td>Style</td><td>Main product identifier.</td></tr>
-          <tr><td>Color</td><td>Used by Style + Color comparison modes.</td></tr>
-          <tr><td>Grid</td><td>Used by Style + Color + Grid comparison modes.</td></tr>
+          <tr><td>Style</td><td>Optional style/model number shown alongside UPC in the table.</td></tr>
+          <tr><td>UPC</td><td>Main product identifier used for overlap comparison (falls back to Style).</td></tr>
+          <tr><td>Color</td><td>Used by UPC + Color comparison modes.</td></tr>
+          <tr><td>Grid</td><td>Used by UPC + Color + Grid comparison modes.</td></tr>
           <tr><td>Unit Sold</td><td>Sales unit metric.</td></tr>
           <tr><td>Unit OH</td><td>On-hand inventory metric.</td></tr>
         </table>
@@ -901,7 +903,7 @@ td.mono { font-family: var(--font-mono); }
             <td>Shared products across selected retailers.</td>
           </tr>
           <tr>
-            <td><span class="term">Key<span class="term-tip">The fields used to decide whether rows represent the same product, such as Style alone or Brand + Style + Color + Grid.</span></span></td>
+            <td><span class="term">Key<span class="term-tip">The fields used to decide whether rows represent the same product, such as UPC alone or Brand + UPC + Color + Grid.</span></span></td>
             <td>The matching logic for product comparison.</td>
           </tr>
           <tr>
@@ -1039,24 +1041,26 @@ function normalizeRows(rows) {
     const retailer = str(get(['Retailer', 'Retailer Selling', 'Account', 'KAC', 'Customer', 'Store', 'Banner']));
     const brand = str(get(['Brand']));
     const release = str(get(['Release', 'Release Date', 'Launch', 'Launch Date', 'Drop', 'Drop Date', 'Season']));
-    const style = str(get(['Style', 'Label', 'UPC', 'SKU', 'Product']));
+    const style = str(get(['Style', 'Label', 'SKU', 'Product']));
+    const upc = str(get(['UPC', 'GTIN', 'EAN', 'Barcode']));
     const color = str(get(['Color', 'Colour']));
     const grid = str(get(['Grid', 'Material', 'Model']));
     const unitSold = num(get(['Unit Sold', 'Units Sold', 'Sold', 'U Sold', 'Sold U', 'Sold Units', 'Sales Units']));
     const unitOh = num(get(['Unit OH', 'Units OH', 'On Hand', 'On Hand U', 'OH', 'OH Units', 'Remain', 'Remaining', 'Stock', 'Inventory', 'Qty', 'Quantity', 'Units']));
-    const fallback = str(get(['Label', 'UPC', 'SKU', 'Product']));
+    const fallback = str(get(['Label', 'SKU', 'Product']));
     return {
       rowId: index,
       retailer,
       brand,
       release,
       style: style || fallback,
+      upc,
       color,
       grid,
       unitSold,
       unitOh,
     };
-  }).filter(row => row.retailer && (row.style || row.grid || row.color || row.brand));
+  }).filter(row => row.retailer && (row.upc || row.style || row.grid || row.color || row.brand));
 }
 
 function showApp() {
@@ -1275,7 +1279,7 @@ function getFilteredRows(selectedRetailers) {
     if (selectedRetailers.length && !selectedRetailers.includes(row.retailer)) return false;
     if (brandSet && !brandSet.has(row.brand)) return false;
     if (search) {
-      const haystack = `${row.brand} ${row.release} ${row.style} ${row.color} ${row.grid} ${row.retailer}`.toLowerCase();
+      const haystack = `${row.brand} ${row.release} ${row.style} ${row.upc} ${row.color} ${row.grid} ${row.retailer}`.toLowerCase();
       if (!haystack.includes(search)) return false;
     }
     return true;
@@ -1292,6 +1296,7 @@ function buildProductMap(rows) {
         brand: row.brand,
         release: row.release,
         style: row.style,
+        upc: row.upc,
         color: row.color,
         grid: row.grid,
         retailers: new Set(),
@@ -1308,19 +1313,22 @@ function buildProductMap(rows) {
     item.sold += row.unitSold;
     item.oh += row.unitOh;
     if (!item.release && row.release) item.release = row.release;
+    if (!item.upc && row.upc) item.upc = row.upc;
+    if (!item.style && row.style) item.style = row.style;
   });
   return map;
 }
 
 function productKey(row) {
   const mode = document.getElementById('keyMode').value;
+  const primary = row.upc || row.style;
   const parts = mode === 'brandStyleColorGrid'
-    ? [row.brand, row.style, row.color, row.grid]
+    ? [row.brand, primary, row.color, row.grid]
     : mode === 'styleColorGrid'
-      ? [row.style, row.color, row.grid]
+      ? [primary, row.color, row.grid]
       : mode === 'styleColor'
-        ? [row.style, row.color]
-        : [row.style || row.grid || row.color || row.brand];
+        ? [primary, row.color]
+        : [primary || row.grid || row.color || row.brand];
   return parts.map(v => str(v).toLowerCase()).join('|');
 }
 
@@ -1369,20 +1377,21 @@ function metricFromRetailerMaps(product, retailer) {
 }
 
 function renderSummary(rows, selectedRetailers) {
-  const label = metricLabel();
   const html = selectedRetailers.map((name, i) => {
     const retailerRows = rows.filter(row => row.retailer === name);
     const styles = buildProductMap(retailerRows).size;
-    const metric = metricValue({
-      sold: retailerRows.reduce((sum, row) => sum + row.unitSold, 0),
-      oh: retailerRows.reduce((sum, row) => sum + row.unitOh, 0),
-    });
+    const sold = retailerRows.reduce((sum, row) => sum + row.unitSold, 0);
+    const oh = retailerRows.reduce((sum, row) => sum + row.unitOh, 0);
+    const denom = sold + oh;
+    const sellThru = denom > 0 ? (sold / denom) * 100 : 0;
     return `
       <div class="retailer-card">
         <div class="retailer-name"><span class="swatch" style="background:${COLORS[i % COLORS.length]}"></span>${escHtml(name)}</div>
         <div class="retailer-metrics">
           <div><div class="metric-label">Styles</div><div class="metric-value">${styles.toLocaleString()}</div></div>
-          <div><div class="metric-label">${escHtml(label)}</div><div class="metric-value">${metric.toLocaleString()}</div></div>
+          <div><div class="metric-label">Unit Sold</div><div class="metric-value">${sold.toLocaleString()}</div></div>
+          <div><div class="metric-label">Unit OH</div><div class="metric-value">${oh.toLocaleString()}</div></div>
+          <div><div class="metric-label">Sell-Thru</div><div class="metric-value">${sellThru.toFixed(1)}%</div></div>
         </div>
       </div>`;
   }).join('');
@@ -1584,11 +1593,12 @@ function renderTable(products) {
         <td>${escHtml(item.release) || '-'}</td>
         <td class="mono">${escHtml(item.style) || '-'}</td>
         <td class="mono">${escHtml(item.grid) || '-'}</td>
+        <td class="mono">${escHtml(item.upc) || '-'}</td>
         <td>${escHtml(Array.from(item.retailers).sort().join(', '))}</td>
         <td class="mono">${(item.sold || 0).toLocaleString()}</td>
         <td class="mono">${(item.oh || 0).toLocaleString()}</td>
       </tr>`);
-  document.getElementById('productRows').innerHTML = rows.join('') || '<tr><td colspan="7" class="empty">No products match the current view.</td></tr>';
+  document.getElementById('productRows').innerHTML = rows.join('') || '<tr><td colspan="8" class="empty">No products match the current view.</td></tr>';
 }
 
 function exportSegment() {
@@ -1602,6 +1612,7 @@ function exportSegment() {
     Release: item.release,
     Style: item.style,
     Grid: item.grid,
+    UPC: item.upc,
     Retailer: Array.from(item.retailers).sort().join(', '),
     'Unit Sold': item.sold || 0,
     'Unit OH': item.oh || 0,
@@ -1617,9 +1628,9 @@ function exportSegment() {
 function downloadTemplate() {
   if (!isSheetJsReady()) return;
   const rows = [
-    { Brand: 'Ray-Ban', Release: 'SS24', Style: 'RB2140', Grid: '901/58', Retailer: 'Retailer A', 'Unit Sold': 120, 'Unit OH': 42 },
-    { Brand: 'Ray-Ban', Release: 'SS24', Style: 'RB2140', Grid: '901/58', Retailer: 'Retailer B', 'Unit Sold': 64, 'Unit OH': 18 },
-    { Brand: 'Oakley', Release: 'FW24', Style: 'OO9208', Grid: '920846', Retailer: 'Retailer C', 'Unit Sold': 88, 'Unit OH': 25 },
+    { Brand: 'Ray-Ban', Release: 'SS24', Style: 'RB2140', Grid: '901/58', UPC: '8053672611472', Retailer: 'Retailer A', 'Unit Sold': 120, 'Unit OH': 42 },
+    { Brand: 'Ray-Ban', Release: 'SS24', Style: 'RB2140', Grid: '901/58', UPC: '8053672611472', Retailer: 'Retailer B', 'Unit Sold': 64, 'Unit OH': 18 },
+    { Brand: 'Oakley', Release: 'FW24', Style: 'OO9208', Grid: '920846', UPC: '888392304582', Retailer: 'Retailer C', 'Unit Sold': 88, 'Unit OH': 25 },
   ];
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
