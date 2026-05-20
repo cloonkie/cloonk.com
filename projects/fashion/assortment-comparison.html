@@ -775,12 +775,10 @@ td.mono { font-family: var(--font-mono); }
     </select>
   </div>
   <div class="toolbar-group">
-    <span class="toolbar-label">Key</span>
+    <span class="toolbar-label">Compare by</span>
     <select id="keyMode" onchange="updateComparison()">
-      <option value="style">UPC</option>
-      <option value="styleColor">UPC + Color</option>
-      <option value="styleColorGrid">UPC + Color + Grid</option>
-      <option value="brandStyleColorGrid">Brand + UPC + Color + Grid</option>
+      <option value="upc">UPC</option>
+      <option value="style">Style</option>
     </select>
   </div>
   <div class="toolbar-group">
@@ -885,10 +883,10 @@ td.mono { font-family: var(--font-mono); }
           <tr><td>Retailer</td><td>Required account/banner name used to build overlap sets.</td></tr>
           <tr><td>Brand</td><td>Optional brand filter and product table field.</td></tr>
           <tr><td>Release</td><td>Optional release/season field.</td></tr>
-          <tr><td>Style</td><td>Optional style/model number shown alongside UPC in the table.</td></tr>
-          <tr><td>UPC</td><td>Main product identifier used for overlap comparison (falls back to Style).</td></tr>
-          <tr><td>Color</td><td>Used by UPC + Color comparison modes.</td></tr>
-          <tr><td>Grid</td><td>Used by UPC + Color + Grid comparison modes.</td></tr>
+          <tr><td>Style</td><td>Product style/model number. Selectable as the comparison key.</td></tr>
+          <tr><td>UPC</td><td>Product UPC/GTIN. Default comparison key; falls back to Style if blank.</td></tr>
+          <tr><td>Color</td><td>Optional color field shown in product details.</td></tr>
+          <tr><td>Grid</td><td>Optional grid/size field shown in product details.</td></tr>
           <tr><td>Unit Sold</td><td>Sales unit metric.</td></tr>
           <tr><td>Unit OH</td><td>On-hand inventory metric.</td></tr>
         </table>
@@ -903,7 +901,7 @@ td.mono { font-family: var(--font-mono); }
             <td>Shared products across selected retailers.</td>
           </tr>
           <tr>
-            <td><span class="term">Key<span class="term-tip">The fields used to decide whether rows represent the same product, such as UPC alone or Brand + UPC + Color + Grid.</span></span></td>
+            <td><span class="term">Key<span class="term-tip">The field used to decide whether rows represent the same product — either UPC or Style.</span></span></td>
             <td>The matching logic for product comparison.</td>
           </tr>
           <tr>
@@ -1094,7 +1092,7 @@ function populateControls(filters = {}) {
     requireOne: false,
   });
 
-  document.getElementById('keyMode').value = filters.keyMode || 'style';
+  document.getElementById('keyMode').value = ['upc', 'style'].includes(filters.keyMode) ? filters.keyMode : 'upc';
   document.getElementById('metricMode').value = ['sold', 'oh', 'both'].includes(filters.metricMode) ? filters.metricMode : 'oh';
   document.getElementById('searchInput').value = filters.search || '';
 }
@@ -1321,15 +1319,10 @@ function buildProductMap(rows) {
 
 function productKey(row) {
   const mode = document.getElementById('keyMode').value;
-  const primary = row.upc || row.style;
-  const parts = mode === 'brandStyleColorGrid'
-    ? [row.brand, primary, row.color, row.grid]
-    : mode === 'styleColorGrid'
-      ? [primary, row.color, row.grid]
-      : mode === 'styleColor'
-        ? [primary, row.color]
-        : [primary || row.grid || row.color || row.brand];
-  return parts.map(v => str(v).toLowerCase()).join('|');
+  const primary = mode === 'style'
+    ? (row.style || row.upc)
+    : (row.upc || row.style);
+  return str(primary || row.grid || row.color || row.brand).toLowerCase();
 }
 
 function buildSegments(products, selectedRetailers) {
