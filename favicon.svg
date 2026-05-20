@@ -17,10 +17,10 @@
     }
 
     .f1 { animation-delay: 0s; fill: #000000; }
-    .f2 { animation-delay: 2s; fill: #E8FF4F; }
+    .f2 { animation-delay: 2s; fill: #000000; }
     .f3 { animation-delay: 4s; fill: #000000; }
-    .f4 { animation-delay: 6s; fill: #FFFFFF; }
-    .f5 { animation-delay: 8s; fill: #000000; }
+    .f4 { animation-delay: 6s; fill: #000000; }
+    .f5 { animation-delay: 8s; fill: #FFFFFF; }
     .f6 { animation-delay: 10s; fill: #FFFFFF; }
     .f7 { animation-delay: 12s; fill: #000000; }
     .f8 { animation-delay: 14s; fill: #E8FF4F; }
@@ -31,26 +31,26 @@
     }
 
     @keyframes bgSwap {
-      0% { fill: #E8FF4F; }
-      12.5% { fill: #000000; }
-      25% { fill: #FF7AD9; }
-      37.5% { fill: #2A2AFF; }
-      50% { fill: #00F5A0; }
+      0% { fill: #FFFFFF; }
+      12.5% { fill: #E8FF4F; }
+      25% { fill: #000000; }
+      37.5% { fill: #FF7AD9; }
+      50% { fill: #2A2AFF; }
       62.5% { fill: #000000; }
-      75% { fill: #FFFFFF; }
+      75% { fill: #00F5A0; }
       87.5% { fill: #000000; }
-      100% { fill: #E8FF4F; }
+      100% { fill: #FFFFFF; }
     }
   </style>
 
   <rect class="bg" width="64" height="64" rx="14"/>
 
-  <text class="face f1" x="32" y="34">ʕ·ᴥ·ʔ⭐</text>
-  <text class="face f2" x="32" y="34">ʕง•ᴥ•ʔง</text>
-  <text class="face f3" x="32" y="34">ʕ༼ƈل͜ƈ༽ʔ</text>
-  <text class="face f4" x="32" y="34">ʕ⊙ᴥ⊙ʔ</text>
-  <text class="face f5" x="32" y="34">ʕ´•㈨•`ʔ</text>
-  <text class="face f6" x="32" y="34">ʕ◉ᴥ◉ʔ</text>
-  <text class="face f7" x="32" y="34">ʕっ•ᴥ•ʔっ</text>
+  <text class="face f1" x="32" y="34">ʕっ•ᴥ•ʔっ</text>
+  <text class="face f2" x="32" y="34">ʕ·ᴥ·ʔ⭐</text>
+  <text class="face f3" x="32" y="34">ʕง•ᴥ•ʔง</text>
+  <text class="face f4" x="32" y="34">ʕ༼ƈل͜ƈ༽ʔ</text>
+  <text class="face f5" x="32" y="34">ʕ⊙ᴥ⊙ʔ</text>
+  <text class="face f6" x="32" y="34">ʕ´•㈨•`ʔ</text>
+  <text class="face f7" x="32" y="34">ʕ◉ᴥ◉ʔ</text>
   <text class="face f8" x="32" y="34">ʕ´•ᴥ•`ʔ</text>
 </svg>

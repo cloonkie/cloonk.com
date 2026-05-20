@@ -16,15 +16,16 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:title" content="RP Line Sheet — Replenishment Review">
 <meta property="og:description" content="Upload replenishment data, annotate SKUs, and export selected styles. A browser-based merchandising tool.">
-<meta property="og:image" content="https://cloonk.com/images/hero.jpg">
+<meta property="og:image" content="https://cloonk.com/favicon.svg">
 <meta property="og:url" content="https://cloonk.com/projects/fashion/replenishment-linesheet.html">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="RP Line Sheet — Replenishment Review">
 <meta name="twitter:description" content="Upload replenishment data, annotate SKUs, and export selected styles.">
-<meta name="twitter:image" content="https://cloonk.com/images/hero.jpg">
+<meta name="twitter:image" content="https://cloonk.com/favicon.svg">
 
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script src="/js/favicon-rotator.js" defer></script>
 
 <link rel="preconnect" href="https://api.fontshare.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -434,13 +435,18 @@ body {
 }
 .header-left { display: flex; align-items: center; gap: 20px; }
 .logo {
+  display: inline-flex;
+  align-items: baseline;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.4rem;
   color: var(--text);
   letter-spacing: -0.01em;
   white-space: nowrap;
+  text-decoration: none;
+  transition: color var(--transition);
 }
+.logo:hover { color: var(--accent); }
 .logo span { color: var(--text-muted); font-style: normal; font-weight: 400; font-size: 0.85rem; margin-left: 10px; letter-spacing: 0.04em; text-transform: uppercase; }
 .header-actions { display: flex; align-items: center; gap: 10px; }
 .header-stats {
@@ -907,7 +913,7 @@ select:focus, .search-input:focus { border-color: var(--accent); }
 <!-- Header -->
 <header class="header">
   <div class="header-left">
-    <div class="logo">RP Line Sheet <span>Replenishment Review</span></div>
+    <a class="logo" href="index.html">RP Line Sheet <span>Replenishment Review</span></a>
     <div class="header-stats" id="headerStats" style="display:none">
       <span>Total <span class="stat-val" id="statTotal">0</span></span>
       <span>Selected <span class="stat-val" id="statSelected">0</span></span>
@@ -1093,6 +1099,8 @@ select:focus, .search-input:focus { border-color: var(--accent); }
           <tr><td>Order Level</td><td>number</td><td>—</td></tr>
           <tr><td>On Hand U</td><td>number</td><td>—</td></tr>
           <tr><td>5-Wk Avg S/T %</td><td>number</td><td>Sell-thru. Both <code>0.04</code> and <code>4%</code> work</td></tr>
+          <tr><td>Custom 1</td><td>text</td><td>Optional extra attribute — rename the column header and that name becomes the card label</td></tr>
+          <tr><td>Custom 2</td><td>text</td><td>Optional extra attribute — rename the column header and that name becomes the card label</td></tr>
           <tr><td>Notes</td><td>text</td><td>Pre-fills the card's note field</td></tr>
         </table>
 
@@ -1535,8 +1543,23 @@ function loadScript(src) {
   });
 }
 
+const STANDARD_HEADERS = new Set([
+  'Brand','SKU','UPC','Image','Rank','Status','Style','Material','Grid','Color',
+  'Polarized','Size','MSRP','EOL Date','Release','YTD Sls U','Order Level',
+  'On Hand U','5-Wk Avg S/T %','Notes','Selected'
+]);
+
+function detectCustomHeaders(json) {
+  if (!json.length) return [];
+  return Object.keys(json[0]).filter(h => !STANDARD_HEADERS.has(h)).slice(0, 2);
+}
+
 function loadData(json, embeddedImages = {}, options = {}) {
   imageMap = options.imageMap || {};
+
+  const customHeaders = options.preparedItems
+    ? (json[0] ? [json[0].custom1Label, json[0].custom2Label].filter(Boolean) : [])
+    : detectCustomHeaders(json);
 
   allItems = options.preparedItems ? json : json.map((row, i) => ({
     id: i,
@@ -1560,6 +1583,10 @@ function loadData(json, embeddedImages = {}, options = {}) {
     onHand: num(row['On Hand U']),
     sellThru: pctNum(row['5-Wk Avg S/T %']),
     notes: str(row['Notes']),
+    custom1Label: customHeaders[0] || '',
+    custom1: customHeaders[0] ? str(row[customHeaders[0]]) : '',
+    custom2Label: customHeaders[1] || '',
+    custom2: customHeaders[1] ? str(row[customHeaders[1]]) : '',
   }));
 
   if (!options.imageMap) {
@@ -1875,6 +1902,16 @@ function renderCards() {
           <span class="card-stat-label">Grid</span>
           <span class="card-stat-value">${escHtml(it.grid) || '—'}</span>
         </div>
+        ${it.custom1Label ? `
+        <div class="card-stat">
+          <span class="card-stat-label">${escHtml(it.custom1Label)}</span>
+          <span class="card-stat-value">${escHtml(it.custom1) || '—'}</span>
+        </div>` : ''}
+        ${it.custom2Label ? `
+        <div class="card-stat">
+          <span class="card-stat-label">${escHtml(it.custom2Label)}</span>
+          <span class="card-stat-value">${escHtml(it.custom2) || '—'}</span>
+        </div>` : ''}
       </div>
       <div class="card-ids">
       <span><strong>SKU:</strong> ${escHtml(it.sku)}</span>
@@ -2040,28 +2077,33 @@ function exportSelects() {
   const selected = allItems.filter(it => selectedSet.has(it.id));
   if (!selected.length) { showToast('Select at least one SKU to export.'); return; }
 
-  const rows = selected.map(it => ({
-    'Brand': it.brand,
-    'SKU': it.sku,
-    'UPC': it.upc,
-    'Image': it.image || '',
-    'Rank': it.rank,
-    'Style': it.style,
-    'Material': it.material,
-    'Grid': it.grid,
-    'Color': it.color,
-    'Polarized': it.polarized,
-    'Size': it.size,
-    'MSRP': it.msrp,
-    'EOL Date': it.eol,
-    'Release': it.release,
-    'YTD Sls U': it.ytdSales,
-    'Order Level': it.orderLevel,
-    'On Hand U': it.onHand,
-    '5-Wk Avg S/T %': it.sellThru,
-    'Notes': notesMap[it.id] || '',
-    'Selected': 'YES',
-  }));
+  const rows = selected.map(it => {
+    const row = {
+      'Brand': it.brand,
+      'SKU': it.sku,
+      'UPC': it.upc,
+      'Image': it.image || '',
+      'Rank': it.rank,
+      'Style': it.style,
+      'Material': it.material,
+      'Grid': it.grid,
+      'Color': it.color,
+      'Polarized': it.polarized,
+      'Size': it.size,
+      'MSRP': it.msrp,
+      'EOL Date': it.eol,
+      'Release': it.release,
+      'YTD Sls U': it.ytdSales,
+      'Order Level': it.orderLevel,
+      'On Hand U': it.onHand,
+      '5-Wk Avg S/T %': it.sellThru,
+    };
+    if (it.custom1Label) row[it.custom1Label] = it.custom1;
+    if (it.custom2Label) row[it.custom2Label] = it.custom2;
+    row['Notes'] = notesMap[it.id] || '';
+    row['Selected'] = 'YES';
+    return row;
+  });
 
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
@@ -2077,8 +2119,8 @@ function exportSelects() {
 // ─── Template download ───
 function downloadTemplate() {
   if (!isSheetJsReady()) return;
-  const headers = ['Brand','SKU','UPC','Image','Rank','Status','Style','Material','Grid','Color','Polarized','Size','MSRP','EOL Date','Release','YTD Sls U','Order Level','On Hand U','5-Wk Avg S/T %','Notes'];
-  const sample = ['Oakley','2751331','888392325914','https://pub-f8ea8c9907004ea4a7c47342c902da2b.r2.dev/888392325914.jpg',1,'Active','OO4129-0258','0OO4129','41290258','PURPLE',false,58,193,'2026-11-22','2018 R1',341,244,194,0.04,''];
+  const headers = ['Brand','SKU','UPC','Image','Rank','Status','Style','Material','Grid','Color','Polarized','Size','MSRP','EOL Date','Release','YTD Sls U','Order Level','On Hand U','5-Wk Avg S/T %','Custom 1','Custom 2','Notes'];
+  const sample = ['Oakley','2751331','888392325914','https://pub-f8ea8c9907004ea4a7c47342c902da2b.r2.dev/888392325914.jpg',1,'Active','OO4129-0258','0OO4129','41290258','PURPLE',false,58,193,'2026-11-22','2018 R1',341,244,194,0.04,'','',''];
   const ws = XLSX.utils.aoa_to_sheet([headers, sample]);
   ws['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 2, 14) }));
   const wb = XLSX.utils.book_new();
