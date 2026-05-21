@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sell-Out Standardizer | Kevin Zhang</title>
+<meta name="description" content="A local browser tool for normalizing weekly sell-out reports into one analytics-ready format.">
+<meta name="author" content="Kevin Zhang">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="canonical" href="https://cloonk.com/projects/fashion/sellout-standardizer.html">
+<meta property="og:image" content="https://cloonk.com/favicon.svg">
+<meta name="twitter:image" content="https://cloonk.com/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script src="/js/favicon-rotator.js" defer></script>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700,800&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  try {
+    document.documentElement.setAttribute(
+      'data-theme',
+      localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark'
+    );
+  } catch (e) {}
+</script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0a0a;
+  --surface: #141412;
+  --surface-raised: #1c1c19;
+  --surface-card: #1f1f1c;
+  --border: #2a2a26;
+  --border-hover: #3a3a36;
+  --text: #f5f2ec;
+  --text-muted: #aaa59a;
+  --text-dim: #7d786f;
+  --accent: #39ff14;
+  --accent-hover: #5cff44;
+  --accent-fg: #0a0a0a;
+  --accent-dim: rgba(57, 255, 20, 0.10);
+  --accent-mid: rgba(57, 255, 20, 0.22);
+  --danger: #ff5b4a;
+  --success: #39ff14;
+  --warn: #e8b931;
+  --font-display: 'Cabinet Grotesk', sans-serif;
+  --font-body: 'Satoshi', sans-serif;
+  --font-mono: 'DM Mono', 'Courier New', monospace;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 4px;
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+[data-theme="light"] {
+  --bg: #f5f2ec;
+  --surface: #ede9e1;
+  --surface-raised: #e4dfd4;
+  --surface-card: #eae6dc;
+  --border: #d0ccc4;
+  --border-hover: #b6b2aa;
+  --text: #0a0a0a;
+  --text-muted: #3f3f3a;
+  --text-dim: #676760;
+  --accent: #1b09bc;
+  --accent-hover: #2e1cd6;
+  --accent-fg: #f5f2ec;
+  --accent-dim: rgba(27, 9, 188, 0.08);
+  --accent-mid: rgba(27, 9, 188, 0.20);
+  --danger: #b03020;
+  --success: #1e8a4a;
+  --warn: #b86d00;
+}
+html { font-size: 15px; }
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; }
+button { color: inherit; }
+a { color: inherit; text-decoration: none; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 32px;
+  background: color-mix(in oklab, var(--bg) 86%, transparent);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+}
+[data-theme="light"] .header { background: rgba(245, 242, 236, 0.88); }
+.header-left { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.logo {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.3rem;
+  white-space: nowrap;
+  transition: color var(--transition);
+}
+.logo:hover { color: var(--accent); }
+.logo span {
+  margin-left: 10px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.header-stats {
+  display: flex;
+  gap: 14px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+.header-stats .stat-val { color: var(--accent); }
+.header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.btn, .theme-toggle {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition), opacity var(--transition);
+  white-space: nowrap;
+}
+.btn:hover, .theme-toggle:hover { background: var(--surface-raised); border-color: var(--border-hover); }
+.btn:disabled { cursor: not-allowed; opacity: 0.45; }
+.btn-accent { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 700; }
+.btn-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--accent-fg); }
+.btn-danger { color: var(--danger); }
+.btn-sm { min-height: 28px; padding: 5px 10px; font-size: 0.78rem; }
+.theme-toggle { width: 32px; padding: 0; color: var(--text-muted); }
+.theme-toggle svg, .info-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.theme-toggle .icon-moon { display: none; }
+[data-theme="light"] .theme-toggle .icon-sun { display: none; }
+[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+.info-btn { width: 32px; min-height: 32px; padding: 0; color: var(--text-muted); }
+.shell { padding: 22px 24px 72px; }
+.intro {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(420px, 1.6fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.intro-copy {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.eyebrow {
+  margin-bottom: 14px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+h1 {
+  margin-bottom: 12px;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 3.3rem);
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+.intro-copy p { color: var(--text-muted); line-height: 1.6; }
+.dropzone {
+  position: relative;
+  min-height: 232px;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  border: 1px dashed var(--border-hover);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, var(--accent-dim), transparent 44%),
+    var(--surface-card);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.dropzone:hover, .dropzone.dragging { border-color: var(--accent); background: var(--surface-raised); }
+.dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.drop-inner { text-align: center; pointer-events: none; }
+.drop-icon {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 16px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  color: var(--accent);
+}
+.drop-title {
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.drop-sub { color: var(--text-muted); font-size: 0.9rem; }
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(330px, 390px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-raised);
+}
+.panel-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+}
+.panel-sub {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+.panel-body { padding: 14px; }
+.control-stack { display: grid; gap: 12px; }
+.field { display: grid; gap: 7px; }
+.field label {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.field input, .field select, .field textarea {
+  width: 100%;
+  min-height: 34px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+[data-theme="light"] .field input,
+[data-theme="light"] .field select,
+[data-theme="light"] .field textarea { background: #f4f2ee; }
+.field textarea {
+  min-height: 132px;
+  resize: vertical;
+  line-height: 1.4;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+.inline-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.segmented {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+.segmented button {
+  flex: 1;
+  min-height: 32px;
+  border: 0;
+  border-right: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.segmented button:last-child { border-right: 0; }
+.segmented button.active { background: var(--accent); color: var(--accent-fg); }
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+}
+.check-row input {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+.check-row strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.84rem;
+}
+.check-row span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+.chip.good { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.chip.warn { border-color: var(--warn); color: var(--warn); }
+.file-list {
+  display: grid;
+  gap: 8px;
+  max-height: 176px;
+  overflow: auto;
+}
+.file-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+}
+.file-row strong { display: block; font-size: 0.86rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-row span { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.68rem; }
+.mapping-grid { display: grid; gap: 8px; }
+.map-row {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+.map-row label {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.map-row select {
+  width: 100%;
+  min-height: 30px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+}
+[data-theme="light"] .map-row select { background: #f4f2ee; }
+.data-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.view-tabs { display: flex; gap: 0; }
+.view-tab {
+  min-height: 32px;
+  padding: 6px 13px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 700;
+}
+.view-tab:first-child { border-radius: var(--radius-xs) 0 0 var(--radius-xs); }
+.view-tab:last-child { border-radius: 0 var(--radius-xs) var(--radius-xs) 0; border-left: 0; }
+.view-tab.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.table-shell {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: auto;
+  max-height: 66vh;
+  background: var(--bg);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+th, td {
+  max-width: 240px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+td { color: var(--text); }
+tr:hover td { background: var(--accent-dim); }
+.empty-state {
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  padding: 36px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.empty-state strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+.info-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.info-modal-overlay.open { display: flex; }
+.info-modal {
+  width: min(760px, 92vw);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.info-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.info-modal-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.info-modal-title span { color: var(--accent); }
+.info-modal-close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.3rem;
+}
+.info-modal-close:hover { color: var(--text); background: var(--surface-raised); }
+.info-modal-body {
+  overflow: auto;
+  padding: 20px 22px 24px;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+.info-modal-body h3 {
+  margin: 18px 0 8px;
+  color: var(--text);
+  font-family: var(--font-display);
+}
+.info-modal-body h3:first-child { margin-top: 0; }
+.info-modal-body code {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+.toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1100;
+  max-width: min(360px, calc(100vw - 40px));
+  padding: 11px 14px;
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity var(--transition), transform var(--transition);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+@media (max-width: 1040px) {
+  .intro, .workspace { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .header { padding: 12px 16px; align-items: flex-start; flex-direction: column; }
+  .header-actions { justify-content: flex-start; }
+  .header-stats { flex-wrap: wrap; }
+  .shell { padding: 16px 14px 54px; }
+  .inline-fields { grid-template-columns: 1fr; }
+  .map-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-left">
+    <a class="logo" href="index.html">Sell-Out Standardizer <span>Fashion Toolbox</span></a>
+    <div class="header-stats" id="headerStats">
+      <span><span class="stat-val" id="statSources">0</span> sources</span>
+      <span><span class="stat-val" id="statRows">0</span> rows</span>
+      <span><span class="stat-val" id="statPreview">0</span> preview</span>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn info-btn" id="infoBtn" aria-label="Open info and appendix" title="Info and appendix">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg>
+    </button>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
+      <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="btn" id="importConfigBtn">Import Config</button>
+    <button class="btn" id="exportConfigBtn">Export Config</button>
+    <button class="btn btn-accent" id="exportBtn" disabled>Export Output</button>
+    <input type="file" id="configInput" accept=".json" style="display:none">
+  </div>
+</header>
+
+<main class="shell">
+  <section class="intro">
+    <div class="intro-copy">
+      <p class="eyebrow">Weekly sell-out reports</p>
+      <h1>Normalize wide retailer reports into one analytics-ready table.</h1>
+      <p>Upload recurring reports or paste an Excel range. The tool flattens stacked headers like WTD / MTD / YTD above duplicated metrics, lets you map product fields once, previews the final rows, and saves the configuration for repeat use.</p>
+    </div>
+    <label class="dropzone" id="dropzone">
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple>
+      <span class="drop-inner">
+        <span class="drop-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+        </span>
+        <span class="drop-title">Drop weekly files here</span>
+        <span class="drop-sub">.xlsx, .xls, or .csv - local browser parsing</span>
+      </span>
+    </label>
+  </section>
+
+  <section class="workspace">
+    <aside class="control-stack">
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Input</div>
+            <div class="panel-sub">Files and pasted grids</div>
+          </div>
+          <button class="btn btn-sm btn-danger" id="clearBtn">Clear</button>
+        </div>
+        <div class="panel-body control-stack">
+          <div class="segmented" role="tablist" aria-label="Input mode">
+            <button class="active" id="fileModeBtn" type="button">Files</button>
+            <button id="pasteModeBtn" type="button">Paste</button>
+          </div>
+          <div id="fileMode">
+            <div class="file-list" id="fileList">
+              <div class="empty-state" style="min-height:120px;padding:18px;"><strong>No sources yet</strong><span>Upload files or switch to Paste.</span></div>
+            </div>
+          </div>
+          <div id="pasteMode" style="display:none">
+            <div class="field">
+              <label for="pasteName">Source Name</label>
+              <input id="pasteName" value="Pasted Excel Report">
+            </div>
+            <div class="field">
+              <label for="pasteBox">Excel Range</label>
+              <textarea id="pasteBox" placeholder="Paste cells copied from Excel here. Tabs and new lines are preserved."></textarea>
+            </div>
+            <button class="btn btn-accent" id="addPasteBtn">Add Pasted Report</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Header Detection</div>
+            <div class="panel-sub">Cadence row + metric row</div>
+          </div>
+          <button class="btn btn-sm" id="autoDetectBtn">Auto</button>
+        </div>
+        <div class="panel-body control-stack">
+          <div class="inline-fields">
+            <div class="field">
+              <label for="cadenceRow">Cadence Row</label>
+              <input type="number" id="cadenceRow" min="0" value="1">
+            </div>
+            <div class="field">
+              <label for="headerRow">Metric Header Row</label>
+              <input type="number" id="headerRow" min="1" value="2">
+            </div>
+          </div>
+          <div class="field">
+            <label for="reportPeriod">Report Period</label>
+            <input id="reportPeriod" placeholder="Optional, ex: 2026 W21">
+          </div>
+          <div class="field">
+            <label for="defaultCadence">Default Cadence</label>
+            <select id="defaultCadence">
+              <option value="">Blank when missing</option>
+              <option value="WTD">WTD</option>
+              <option value="MTD">MTD</option>
+              <option value="QTD">QTD</option>
+              <option value="YTD">YTD</option>
+            </select>
+          </div>
+          <label class="check-row" for="includeLy">
+            <input type="checkbox" id="includeLy">
+            <span>
+              <strong>Map LY values</strong>
+              <span>Add a <code>year_basis</code> field and preserve LY columns next to each cadence.</span>
+            </span>
+          </label>
+          <label class="check-row" for="calculateSt">
+            <input type="checkbox" id="calculateSt">
+            <span>
+              <strong>Calculate ST%</strong>
+              <span>Add calculated sell-through from <code>Sale U / (Sale U + On Hand U)</code>.</span>
+            </span>
+          </label>
+          <div class="chips" id="detectedChips"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Field Mapping</div>
+            <div class="panel-sub">Dimensions stay wide</div>
+          </div>
+          <button class="btn btn-sm" id="remapBtn">Remap</button>
+        </div>
+        <div class="panel-body">
+          <div class="mapping-grid" id="mappingGrid"></div>
+        </div>
+      </section>
+    </aside>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Preview</div>
+          <div class="panel-sub" id="previewSub">Final standardized output</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-sm" id="downloadCsvBtn" disabled>CSV</button>
+          <button class="btn btn-sm" id="downloadJsonBtn" disabled>JSON</button>
+          <button class="btn btn-sm btn-accent" id="downloadXlsxBtn" disabled>XLSX</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="data-tools">
+          <div class="view-tabs">
+            <button class="view-tab active" data-view="output">Output</button>
+            <button class="view-tab" data-view="headers">Headers</button>
+            <button class="view-tab" data-view="raw">Raw</button>
+          </div>
+          <div class="chips">
+            <span class="chip" id="metricChip">0 metrics</span>
+            <span class="chip" id="dimChip">0 dimensions</span>
+          </div>
+        </div>
+        <div class="table-shell" id="tableShell">
+          <div class="empty-state">
+            <div>
+              <strong>Ready when the spreadsheet is.</strong>
+              <span>Load a report to see the standardized preview before export.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </section>
+</main>
+
+<div class="info-modal-overlay" id="infoModalOverlay" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
+  <div class="info-modal">
+    <div class="info-modal-header">
+      <span class="info-modal-title" id="infoModalTitle">Sell-Out Standardizer <span>- Appendix</span></span>
+      <button class="info-modal-close" id="infoModalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="info-modal-body">
+      <h3>Standard Output</h3>
+      <p>Each metric column becomes one row with <code>source_file</code>, <code>source_sheet</code>, <code>source_row</code>, <code>report_period</code>, <code>cadence</code>, <code>year_basis</code>, <code>metric</code>, and <code>value</code>. Product fields such as retailer, brand, style, color, SKU, UPC, size, and description remain as dimensions.</p>
+      <h3>Stacked Headers</h3>
+      <p>When a row above the metric headers contains timing labels such as <code>WTD</code>, <code>MTD</code>, <code>QTD</code>, or <code>YTD</code>, the app carries that cadence across repeated columns like <code>Sale U</code> and <code>Sale $</code>.</p>
+      <h3>LY and ST%</h3>
+      <p>The LY toggle treats <code>LY</code> and <code>Last Year</code> labels as comparison values instead of cadences. The ST% toggle adds calculated sell-through rows when <code>Sale U</code> and an on-hand unit column are available for the same cadence and year basis.</p>
+      <h3>Configurations</h3>
+      <p>Exporting a config saves the detected rows, report period, default cadence, and current field mapping. Import it next week and the same retailer report shape can be normalized quickly.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+"use strict";
+
+const STANDARD_FIELDS = [
+  { key: "retailer", label: "Retailer", aliases: ["retailer", "account", "customer", "banner", "door"] },
+  { key: "brand", label: "Brand", aliases: ["brand", "vendor", "label"] },
+  { key: "style", label: "Style", aliases: ["style", "style no", "style number", "style #", "model"] },
+  { key: "color", label: "Color", aliases: ["color", "colour", "colorway", "clr"] },
+  { key: "sku", label: "SKU", aliases: ["sku", "item", "item no", "item number", "item #"] },
+  { key: "upc", label: "UPC", aliases: ["upc", "ean", "barcode"] },
+  { key: "size", label: "Size", aliases: ["size", "sz"] },
+  { key: "description", label: "Description", aliases: ["description", "desc", "product name", "item description"] },
+  { key: "product_type", label: "Product Type", aliases: ["product type", "prod type", "category", "class", "classification"] },
+  { key: "channel", label: "Channel", aliases: ["channel", "sales channel", "business channel", "marketplace"] },
+  { key: "material", label: "Material", aliases: ["material", "fabric", "fabrication", "composition"] },
+  { key: "release", label: "Release", aliases: ["release", "drop", "launch", "launch date", "release date"] },
+  { key: "seasonality", label: "Seasonality", aliases: ["seasonality", "season", "season code", "season name"] },
+  { key: "sale_status", label: "Sale Status", aliases: ["sale status", "status", "selling status", "markdown status"] },
+  { key: "location_type", label: "Location Type", aliases: ["location type", "store type", "door type", "location format"] },
+  { key: "store_name", label: "Store Name", aliases: ["store name", "store", "door name", "location name", "retail location"] }
+];
+const CADENCES = ["WTD", "MTD", "QTD", "YTD"];
+const CADENCE_RE = /\b(WTD|MTD|QTD|YTD)\b/i;
+const YEAR_BASIS_RE = /\b(LY|LAST\s+YEAR|TY|THIS\s+YEAR)\b/i;
+const KNOWN_METRICS = [
+  ["sell_through_pct", ["sell through", "sell thru", "st%", "sell-through", "sell thru %"]],
+  ["sale_dollars", ["$", "sale $", "sales $", "retail $", "net sales", "gross sales", "sales dollars", "dollars"]],
+  ["sale_units", ["sale u", "sale units", "sales u", "sales units", "units sold", "sold units", "qty sold", "quantity sold"]],
+  ["on_hand_units", ["oh", "on hand", "on-hand", "on hand u", "oh u", "inventory", "stock"]],
+  ["receipt_units", ["receipts", "received", "receipt units"]],
+  ["margin_pct", ["margin %", "gm%", "gross margin %"]],
+  ["aur", ["aur", "avg unit retail", "average unit retail"]]
+];
+
+const state = {
+  sources: [],
+  config: {
+    cadenceRow: 1,
+    headerRow: 2,
+    reportPeriod: "",
+    defaultCadence: "",
+    includeLy: false,
+    calculateSt: false,
+    mappings: {}
+  },
+  headers: [],
+  output: [],
+  view: "output"
+};
+
+const els = {
+  fileInput: document.getElementById("fileInput"),
+  dropzone: document.getElementById("dropzone"),
+  fileList: document.getElementById("fileList"),
+  fileModeBtn: document.getElementById("fileModeBtn"),
+  pasteModeBtn: document.getElementById("pasteModeBtn"),
+  fileMode: document.getElementById("fileMode"),
+  pasteMode: document.getElementById("pasteMode"),
+  pasteName: document.getElementById("pasteName"),
+  pasteBox: document.getElementById("pasteBox"),
+  addPasteBtn: document.getElementById("addPasteBtn"),
+  cadenceRow: document.getElementById("cadenceRow"),
+  headerRow: document.getElementById("headerRow"),
+  reportPeriod: document.getElementById("reportPeriod"),
+  defaultCadence: document.getElementById("defaultCadence"),
+  includeLy: document.getElementById("includeLy"),
+  calculateSt: document.getElementById("calculateSt"),
+  detectedChips: document.getElementById("detectedChips"),
+  mappingGrid: document.getElementById("mappingGrid"),
+  tableShell: document.getElementById("tableShell"),
+  statSources: document.getElementById("statSources"),
+  statRows: document.getElementById("statRows"),
+  statPreview: document.getElementById("statPreview"),
+  metricChip: document.getElementById("metricChip"),
+  dimChip: document.getElementById("dimChip"),
+  previewSub: document.getElementById("previewSub"),
+  exportBtn: document.getElementById("exportBtn"),
+  downloadCsvBtn: document.getElementById("downloadCsvBtn"),
+  downloadJsonBtn: document.getElementById("downloadJsonBtn"),
+  downloadXlsxBtn: document.getElementById("downloadXlsxBtn"),
+  configInput: document.getElementById("configInput"),
+  toast: document.getElementById("toast")
+};
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function normalize(value) {
+  return String(value ?? "")
+    .toLowerCase()
+    .replace(/[%$#]/g, m => ({ "%": " percent ", "$": " dollars ", "#": " number " }[m]))
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function cleanHeader(value) {
+  return String(value ?? "").replace(/\s+/g, " ").trim();
+}
+
+function stripMetaLabels(label) {
+  return cleanHeader(label)
+    .replace(CADENCE_RE, " ")
+    .replace(YEAR_BASIS_RE, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getYearBasis(label) {
+  const match = cleanHeader(label).match(YEAR_BASIS_RE);
+  if (!match) return "TY";
+  return /^L/i.test(match[1]) ? "LY" : "TY";
+}
+
+function toMetricName(label) {
+  const cleaned = stripMetaLabels(label);
+  const normalized = normalize(cleaned);
+  for (const [metric, aliases] of KNOWN_METRICS) {
+    if (aliases.some(alias => normalized === normalize(alias) || normalized.includes(normalize(alias)))) return metric;
+  }
+  return normalized.replace(/\s+/g, "_") || "metric";
+}
+
+function parseDelimited(text) {
+  const rows = [];
+  let row = [], cell = "", quoted = false;
+  const delimiter = text.includes("\t") ? "\t" : ",";
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i], next = text[i + 1];
+    if (ch === '"' && quoted && next === '"') { cell += '"'; i++; continue; }
+    if (ch === '"') { quoted = !quoted; continue; }
+    if (!quoted && ch === delimiter) { row.push(cell); cell = ""; continue; }
+    if (!quoted && (ch === "\n" || ch === "\r")) {
+      if (ch === "\r" && next === "\n") i++;
+      row.push(cell); rows.push(row); row = []; cell = "";
+      continue;
+    }
+    cell += ch;
+  }
+  row.push(cell);
+  if (row.some(v => String(v).trim())) rows.push(row);
+  return rows;
+}
+
+function normalizeRows(rows) {
+  const width = rows.reduce((max, row) => Math.max(max, row.length), 0);
+  return rows
+    .filter(row => row.some(cell => cleanHeader(cell)))
+    .map(row => Array.from({ length: width }, (_, i) => row[i] ?? ""));
+}
+
+async function handleFiles(files) {
+  const list = Array.from(files || []);
+  if (!list.length) return;
+  if (!window.XLSX) {
+    toast("Spreadsheet library did not load. CSV and pasted ranges still work.");
+  }
+  for (const file of list) {
+    try {
+      const lower = file.name.toLowerCase();
+      if (lower.endsWith(".csv")) {
+        const text = await file.text();
+        addSource(file.name, "CSV", parseDelimited(text));
+      } else {
+        if (!window.XLSX) throw new Error("XLSX library unavailable");
+        const data = await file.arrayBuffer();
+        const wb = XLSX.read(data, { type: "array", cellDates: true });
+        wb.SheetNames.forEach(sheetName => {
+          const ws = wb.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
+          addSource(file.name, sheetName, rows);
+        });
+      }
+    } catch (error) {
+      toast(`Could not read ${file.name}: ${error.message}`);
+    }
+  }
+  autoDetect();
+  rebuild();
+}
+
+function addSource(name, sheet, rows) {
+  const cleanRows = normalizeRows(rows);
+  if (!cleanRows.length) return;
+  state.sources.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    name,
+    sheet,
+    rows: cleanRows
+  });
+}
+
+function autoDetect() {
+  const source = state.sources[0];
+  if (!source) return;
+  const rowScores = source.rows.slice(0, 12).map((row, idx) => {
+    const filled = row.filter(v => cleanHeader(v)).length;
+    const cadenceHits = row.filter(v => CADENCE_RE.test(cleanHeader(v))).length;
+    const metricHits = row.filter(v => toMetricName(v) !== normalize(v).replace(/\s+/g, "_")).length;
+    return { idx, filled, cadenceHits, metricHits };
+  });
+  const header = rowScores
+    .filter(r => r.filled >= 2)
+    .sort((a, b) => (b.metricHits + b.filled / 10) - (a.metricHits + a.filled / 10))[0];
+  const cadence = rowScores
+    .filter(r => header && r.idx < header.idx)
+    .sort((a, b) => b.cadenceHits - a.cadenceHits)[0];
+  if (header) state.config.headerRow = header.idx + 1;
+  if (cadence && cadence.cadenceHits) state.config.cadenceRow = cadence.idx + 1;
+  els.headerRow.value = state.config.headerRow;
+  els.cadenceRow.value = state.config.cadenceRow;
+}
+
+function syncConfigFromControls() {
+  state.config.cadenceRow = Math.max(0, Number(els.cadenceRow.value) || 0);
+  state.config.headerRow = Math.max(1, Number(els.headerRow.value) || 1);
+  state.config.reportPeriod = els.reportPeriod.value.trim();
+  state.config.defaultCadence = els.defaultCadence.value;
+  state.config.includeLy = els.includeLy.checked;
+  state.config.calculateSt = els.calculateSt.checked;
+}
+
+function buildHeaders() {
+  syncConfigFromControls();
+  const source = state.sources[0];
+  if (!source) {
+    state.headers = [];
+    return;
+  }
+  const headerIdx = state.config.headerRow - 1;
+  const cadenceIdx = state.config.cadenceRow ? state.config.cadenceRow - 1 : -1;
+  const headerRow = source.rows[headerIdx] || [];
+  const cadenceRow = cadenceIdx >= 0 ? (source.rows[cadenceIdx] || []) : [];
+  let carryCadence = "";
+  let carryYearBasis = "TY";
+  state.headers = headerRow.map((label, idx) => {
+    const cadenceRaw = cleanHeader(cadenceRow[idx]);
+    if (CADENCE_RE.test(cadenceRaw)) carryCadence = cadenceRaw.match(CADENCE_RE)[1].toUpperCase();
+    if (state.config.includeLy && YEAR_BASIS_RE.test(cadenceRaw)) carryYearBasis = getYearBasis(cadenceRaw);
+    const header = cleanHeader(label) || cleanHeader(cadenceRaw) || `Column ${idx + 1}`;
+    const directCadence = CADENCE_RE.test(header) ? header.match(CADENCE_RE)[1].toUpperCase() : "";
+    const directYearBasis = state.config.includeLy && YEAR_BASIS_RE.test(header) ? getYearBasis(header) : "";
+    const cadence = directCadence || carryCadence || state.config.defaultCadence;
+    const yearBasis = state.config.includeLy ? (directYearBasis || carryYearBasis || "TY") : "TY";
+    const mappedField = findMappedField(header);
+    const metric = mappedField ? "" : toMetricName(header);
+    return {
+      index: idx,
+      raw: header,
+      cadence,
+      yearBasis,
+      metric,
+      mappedField,
+      combined: `${cadence && !CADENCE_RE.test(header) ? `${cadence} ` : ""}${state.config.includeLy && yearBasis === "LY" && !YEAR_BASIS_RE.test(header) ? "LY " : ""}${header}`.trim()
+    };
+  });
+  autoMap();
+}
+
+function findMappedField(header) {
+  const n = normalize(header);
+  const explicit = Object.entries(state.config.mappings).find(([, idx]) => state.headers[idx]?.raw === header);
+  if (explicit) return explicit[0];
+  const field = STANDARD_FIELDS.find(f => f.aliases.some(alias => n === normalize(alias) || n.includes(normalize(alias))));
+  return field ? field.key : "";
+}
+
+function autoMap() {
+  const taken = new Set(Object.values(state.config.mappings).map(Number).filter(n => Number.isFinite(n)));
+  STANDARD_FIELDS.forEach(field => {
+    if (state.config.mappings[field.key] !== undefined) return;
+    const found = state.headers.find(h => !taken.has(h.index) && field.aliases.some(alias => {
+      const n = normalize(h.raw);
+      return n === normalize(alias) || n.includes(normalize(alias));
+    }));
+    if (found) {
+      state.config.mappings[field.key] = found.index;
+      taken.add(found.index);
+    }
+  });
+}
+
+function isDimensionColumn(header) {
+  return Object.values(state.config.mappings).map(Number).includes(header.index);
+}
+
+function parseNumber(value) {
+  const raw = cleanHeader(value);
+  if (!raw) return NaN;
+  const isParenNegative = /^\(.*\)$/.test(raw);
+  const number = Number(raw.replace(/[(),$%]/g, ""));
+  return Number.isFinite(number) ? (isParenNegative ? -number : number) : NaN;
+}
+
+function buildOutput() {
+  const headerIdx = state.config.headerRow - 1;
+  const outputs = [];
+  const metricHeaders = state.headers.filter(h => !isDimensionColumn(h) && h.raw && h.metric && !/^column_\d+$/i.test(h.metric));
+  state.sources.forEach(source => {
+    source.rows.slice(headerIdx + 1).forEach((row, offset) => {
+      if (!row.some(cell => cleanHeader(cell))) return;
+      const dims = {};
+      STANDARD_FIELDS.forEach(field => {
+        const col = Number(state.config.mappings[field.key]);
+        dims[field.key] = Number.isFinite(col) ? cleanHeader(row[col]) : "";
+      });
+      const rowMetrics = new Map();
+      metricHeaders.forEach(header => {
+        const rawValue = row[header.index];
+        if (rawValue === undefined || cleanHeader(rawValue) === "") return;
+        const cadence = header.cadence || state.config.defaultCadence;
+        const yearBasis = state.config.includeLy ? header.yearBasis : "TY";
+        const metricKey = `${cadence}|${yearBasis}|${header.metric}`;
+        rowMetrics.set(metricKey, rawValue);
+        outputs.push({
+          source_file: source.name,
+          source_sheet: source.sheet,
+          source_row: headerIdx + 2 + offset,
+          report_period: state.config.reportPeriod,
+          cadence,
+          year_basis: yearBasis,
+          metric: header.metric,
+          value: cleanHeader(rawValue),
+          value_source: "imported",
+          ...dims
+        });
+      });
+      if (state.config.calculateSt) {
+        CADENCES.forEach(cadence => {
+          const bases = state.config.includeLy ? ["TY", "LY"] : ["TY"];
+          bases.forEach(yearBasis => {
+            const sold = parseNumber(rowMetrics.get(`${cadence}|${yearBasis}|sale_units`));
+            const onHand = parseNumber(rowMetrics.get(`${cadence}|${yearBasis}|on_hand_units`));
+            const denominator = sold + onHand;
+            if (!Number.isFinite(sold) || !Number.isFinite(onHand) || denominator <= 0) return;
+            outputs.push({
+              source_file: source.name,
+              source_sheet: source.sheet,
+              source_row: headerIdx + 2 + offset,
+              report_period: state.config.reportPeriod,
+              cadence,
+              year_basis: yearBasis,
+              metric: "sell_through_pct",
+              value: `${((sold / denominator) * 100).toFixed(2)}%`,
+              value_source: "calculated",
+              ...dims
+            });
+          });
+        });
+      }
+    });
+  });
+  state.output = outputs;
+}
+
+function renderFileList() {
+  if (!state.sources.length) {
+    els.fileList.innerHTML = '<div class="empty-state" style="min-height:120px;padding:18px;"><strong>No sources yet</strong><span>Upload files or switch to Paste.</span></div>';
+    return;
+  }
+  els.fileList.innerHTML = state.sources.map(source => `
+    <div class="file-row">
+      <div><strong title="${esc(source.name)}">${esc(source.name)}</strong><span>${esc(source.sheet)} - ${source.rows.length} rows</span></div>
+      <button class="btn btn-sm btn-danger" data-remove="${esc(source.id)}">Remove</button>
+    </div>
+  `).join("");
+}
+
+function renderMappings() {
+  if (!state.headers.length) {
+    els.mappingGrid.innerHTML = '<div class="empty-state" style="min-height:140px;padding:18px;"><strong>No headers yet</strong><span>Load data to map fields.</span></div>';
+    return;
+  }
+  const options = ['<option value="">Unmapped</option>'].concat(
+    state.headers.map(h => `<option value="${h.index}">${esc(h.combined)}</option>`)
+  ).join("");
+  els.mappingGrid.innerHTML = STANDARD_FIELDS.map(field => `
+    <div class="map-row">
+      <label for="map-${field.key}">${esc(field.label)}</label>
+      <select id="map-${field.key}" data-map="${field.key}">${options}</select>
+    </div>
+  `).join("");
+  STANDARD_FIELDS.forEach(field => {
+    const select = document.getElementById(`map-${field.key}`);
+    if (select && state.config.mappings[field.key] !== undefined) select.value = String(state.config.mappings[field.key]);
+  });
+}
+
+function renderChips() {
+  const metricHeaders = state.headers.filter(h => !isDimensionColumn(h) && h.metric);
+  const mappedCount = Object.values(state.config.mappings).filter(v => v !== "" && v !== undefined).length;
+  const cadences = Array.from(new Set(metricHeaders.map(h => h.cadence).filter(Boolean)));
+  const missingCore = [];
+  CADENCES.forEach(cadence => {
+    const hasSaleU = metricHeaders.some(h => h.cadence === cadence && h.metric === "sale_units");
+    const hasSaleDollars = metricHeaders.some(h => h.cadence === cadence && h.metric === "sale_dollars");
+    if (cadences.includes(cadence) && (!hasSaleU || !hasSaleDollars)) {
+      missingCore.push(`${cadence}: ${!hasSaleU ? "Sale U" : ""}${!hasSaleU && !hasSaleDollars ? " + " : ""}${!hasSaleDollars ? "Sale $" : ""}`);
+    }
+  });
+  els.detectedChips.innerHTML = [
+    `<span class="chip good">${metricHeaders.length} metric columns</span>`,
+    `<span class="chip">${mappedCount} mapped dimensions</span>`,
+    cadences.length ? `<span class="chip good">${esc(cadences.join(", "))}</span>` : `<span class="chip warn">No cadence detected</span>`,
+    state.config.includeLy ? `<span class="chip good">LY mapping on</span>` : `<span class="chip">TY only</span>`,
+    state.config.calculateSt ? `<span class="chip good">ST% calc on</span>` : `<span class="chip">ST% calc off</span>`,
+    !cadences.length ? `<span class="chip warn">Awaiting Sale U + Sale $</span>` :
+      missingCore.length ? `<span class="chip warn">Missing ${esc(missingCore.join("; "))}</span>` : `<span class="chip good">Sale U + Sale $ detected</span>`
+  ].join("");
+  els.metricChip.textContent = `${metricHeaders.length} metrics`;
+  els.dimChip.textContent = `${mappedCount} dimensions`;
+}
+
+function renderTable() {
+  const rows = state.view === "output" ? state.output :
+    state.view === "headers" ? state.headers.map(h => ({
+      index: h.index + 1,
+      raw_header: h.raw,
+      combined_header: h.combined,
+      cadence: h.cadence,
+      year_basis: h.yearBasis,
+      metric: h.metric,
+      mapped_dimension: Object.entries(state.config.mappings).find(([, idx]) => Number(idx) === h.index)?.[0] || ""
+    })) :
+    (state.sources[0]?.rows || []).slice(0, 80).map((row, i) => Object.fromEntries([["row", i + 1]].concat(row.map((cell, idx) => [`col_${idx + 1}`, cell]))));
+  if (!rows.length) {
+    els.tableShell.innerHTML = '<div class="empty-state"><div><strong>No preview rows yet.</strong><span>Load a report, then adjust the header and mapping controls.</span></div></div>';
+    return;
+  }
+  const cols = Object.keys(rows[0]);
+  els.tableShell.innerHTML = `
+    <table>
+      <thead><tr>${cols.map(col => `<th>${esc(col)}</th>`).join("")}</tr></thead>
+      <tbody>${rows.slice(0, 500).map(row => `<tr>${cols.map(col => `<td title="${esc(row[col])}">${esc(row[col])}</td>`).join("")}</tr>`).join("")}</tbody>
+    </table>
+  `;
+}
+
+function renderStats() {
+  els.statSources.textContent = state.sources.length;
+  els.statRows.textContent = state.sources.reduce((sum, s) => sum + Math.max(0, s.rows.length - state.config.headerRow), 0);
+  els.statPreview.textContent = state.output.length;
+  els.previewSub.textContent = state.output.length ? `${state.output.length.toLocaleString()} standardized rows, preview capped at 500` : "Final standardized output";
+  const canExport = state.output.length > 0;
+  [els.exportBtn, els.downloadCsvBtn, els.downloadJsonBtn, els.downloadXlsxBtn].forEach(btn => { btn.disabled = !canExport; });
+}
+
+function rebuild() {
+  buildHeaders();
+  buildOutput();
+  renderFileList();
+  renderMappings();
+  renderChips();
+  renderTable();
+  renderStats();
+}
+
+function makeCsv(rows) {
+  if (!rows.length) return "";
+  const cols = Object.keys(rows[0]);
+  const quote = value => `"${String(value ?? "").replace(/"/g, '""')}"`;
+  return [cols.map(quote).join(","), ...rows.map(row => cols.map(col => quote(row[col])).join(","))].join("\n");
+}
+
+function downloadBlob(name, type, body) {
+  const blob = new Blob([body], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function exportXlsx() {
+  if (!state.output.length) return;
+  if (!window.XLSX) {
+    downloadBlob(`Sellout_Standardized_${today()}.csv`, "text/csv", makeCsv(state.output));
+    toast("XLSX library unavailable, exported CSV instead.");
+    return;
+  }
+  const ws = XLSX.utils.json_to_sheet(state.output);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Standardized Sell-Out");
+  XLSX.writeFile(wb, `Sellout_Standardized_${today()}.xlsx`);
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function exportConfig() {
+  syncConfigFromControls();
+  const config = {
+    name: "Sell-Out Standardizer Config",
+    version: 1,
+    exported_at: new Date().toISOString(),
+    config: state.config
+  };
+  downloadBlob(`Sellout_Standardizer_Config_${today()}.json`, "application/json", JSON.stringify(config, null, 2));
+}
+
+async function importConfig(file) {
+  try {
+    const parsed = JSON.parse(await file.text());
+    state.config = { ...state.config, ...(parsed.config || parsed) };
+    els.cadenceRow.value = state.config.cadenceRow;
+    els.headerRow.value = state.config.headerRow;
+    els.reportPeriod.value = state.config.reportPeriod || "";
+    els.defaultCadence.value = state.config.defaultCadence || "";
+    els.includeLy.checked = !!state.config.includeLy;
+    els.calculateSt.checked = !!state.config.calculateSt;
+    rebuild();
+    toast("Configuration imported.");
+  } catch (error) {
+    toast(`Could not import config: ${error.message}`);
+  }
+}
+
+function toast(message) {
+  els.toast.textContent = message;
+  els.toast.classList.add("show");
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => els.toast.classList.remove("show"), 3200);
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.getAttribute("data-theme") === "light" ? "dark" : "light";
+  html.setAttribute("data-theme", next);
+  try { localStorage.setItem("cloonk-theme", next); } catch (e) {}
+}
+
+function initInfoModal() {
+  const overlay = document.getElementById("infoModalOverlay");
+  const openBtn = document.getElementById("infoBtn");
+  const closeBtn = document.getElementById("infoModalClose");
+  const close = () => overlay.classList.remove("open");
+  openBtn.addEventListener("click", () => overlay.classList.add("open"));
+  closeBtn.addEventListener("click", close);
+  overlay.addEventListener("click", e => { if (e.target === overlay) close(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+}
+
+els.fileInput.addEventListener("change", e => handleFiles(e.target.files));
+els.dropzone.addEventListener("dragover", e => { e.preventDefault(); els.dropzone.classList.add("dragging"); });
+els.dropzone.addEventListener("dragleave", () => els.dropzone.classList.remove("dragging"));
+els.dropzone.addEventListener("drop", e => {
+  e.preventDefault();
+  els.dropzone.classList.remove("dragging");
+  handleFiles(e.dataTransfer.files);
+});
+els.fileModeBtn.addEventListener("click", () => {
+  els.fileModeBtn.classList.add("active"); els.pasteModeBtn.classList.remove("active");
+  els.fileMode.style.display = ""; els.pasteMode.style.display = "none";
+});
+els.pasteModeBtn.addEventListener("click", () => {
+  els.pasteModeBtn.classList.add("active"); els.fileModeBtn.classList.remove("active");
+  els.pasteMode.style.display = ""; els.fileMode.style.display = "none";
+});
+els.addPasteBtn.addEventListener("click", () => {
+  const rows = parseDelimited(els.pasteBox.value);
+  if (!rows.length) return toast("Paste a copied Excel range first.");
+  addSource(els.pasteName.value || "Pasted Excel Report", "Pasted Range", rows);
+  els.pasteBox.value = "";
+  autoDetect();
+  rebuild();
+  toast("Pasted report added.");
+});
+els.fileList.addEventListener("click", e => {
+  const btn = e.target.closest("[data-remove]");
+  if (!btn) return;
+  state.sources = state.sources.filter(source => source.id !== btn.dataset.remove);
+  rebuild();
+});
+["change", "input"].forEach(evt => {
+  [els.cadenceRow, els.headerRow, els.reportPeriod, els.defaultCadence, els.includeLy, els.calculateSt].forEach(el => el.addEventListener(evt, rebuild));
+});
+document.getElementById("autoDetectBtn").addEventListener("click", () => { autoDetect(); rebuild(); toast("Header rows detected."); });
+document.getElementById("remapBtn").addEventListener("click", () => {
+  state.config.mappings = {};
+  buildHeaders();
+  rebuild();
+  toast("Mappings refreshed.");
+});
+document.getElementById("clearBtn").addEventListener("click", () => {
+  state.sources = [];
+  state.headers = [];
+  state.output = [];
+  rebuild();
+});
+els.mappingGrid.addEventListener("change", e => {
+  const select = e.target.closest("[data-map]");
+  if (!select) return;
+  if (select.value === "") delete state.config.mappings[select.dataset.map];
+  else state.config.mappings[select.dataset.map] = Number(select.value);
+  rebuild();
+});
+document.querySelectorAll(".view-tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".view-tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    state.view = btn.dataset.view;
+    renderTable();
+  });
+});
+els.downloadCsvBtn.addEventListener("click", () => downloadBlob(`Sellout_Standardized_${today()}.csv`, "text/csv", makeCsv(state.output)));
+els.downloadJsonBtn.addEventListener("click", () => downloadBlob(`Sellout_Standardized_${today()}.json`, "application/json", JSON.stringify(state.output, null, 2)));
+els.downloadXlsxBtn.addEventListener("click", exportXlsx);
+els.exportBtn.addEventListener("click", exportXlsx);
+document.getElementById("exportConfigBtn").addEventListener("click", exportConfig);
+document.getElementById("importConfigBtn").addEventListener("click", () => els.configInput.click());
+els.configInput.addEventListener("change", e => { if (e.target.files[0]) importConfig(e.target.files[0]); });
+initInfoModal();
+rebuild();
+</script>
+</body>
+</html>

@@ -38,6 +38,30 @@
       outputs: "live view",
       status: "Ready",
     },
+    {
+      file: "retailer-door-tracker.html",
+      code: "DT-03",
+      name: "Door Tracker",
+      sub: "DS Distribution",
+      purpose:
+        "Track brand × retailer door distribution. Manage per-door assignments and " +
+        "drafts, browse stores on a live map, and review change history with restore points.",
+      eats: ".xlsx / .csv / .json",
+      outputs: ".xlsx / .json",
+      status: "Ready",
+    },
+    {
+      file: "sellout-standardizer.html",
+      code: "SO-04",
+      name: "Sell-Out Standardizer",
+      sub: "Weekly Analytics",
+      purpose:
+        "Normalize weekly sell-out reports into one analytics-ready format. " +
+        "Flatten WTD, MTD, YTD headers, map dimensions, preview, and export saved configs.",
+      eats: ".xlsx / .csv / paste",
+      outputs: ".xlsx / .csv / .json",
+      status: "Ready",
+    },
   ];
 
   /* Tab offsets, so the folder tabs stagger across the drawer

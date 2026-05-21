@@ -11,6 +11,8 @@ All tools share the cloonk.com theme (palette + fonts) and the same `cloonk-them
 | File | Purpose |
 | --- | --- |
 | [`replenishment-linesheet.html`](replenishment-linesheet.html) | Upload a replenishment line sheet, annotate SKUs, and export selected styles. |
+| [`assortment-comparison.html`](assortment-comparison.html) | Compare retailer assortments by UPC/style + color + grid; visualize overlap. |
+| [`retailer-door-tracker.html`](retailer-door-tracker.html) | Track brand × retailer door distribution. Map reveal, change history, restore points. |
 
 More tools land here over time. The header popover in each tool links to its siblings.
 
@@ -106,3 +108,41 @@ Toggle via the sun/moon button in the header. The chosen theme is shared with `c
 ### Browser support
 
 Anything that supports `FileReader`, `URL.createObjectURL`, and `color-mix(in oklab, …)` — Chrome / Edge / Firefox / Safari from roughly mid-2023 onward.
+
+---
+
+## Door Tracker — DS Distribution
+
+### What it does
+Tracks brand × retailer door distribution at the physical-store level. The matrix view shows confirmed door counts per (retailer, brand); drill into a cell to see which specific doors carry the brand, edit status (Confirmed / TBD / N/A / Closed), assign tier grades, and write per-door notes. Door Research browses every door on a Mapbox map with fly-in transitions.
+
+### Persistence model
+- **Autosave** is backed by IndexedDB (`door-tracker-autosave` DB → `snapshots` store, key `latest`) — every edit is debounced at 250 ms and written to a single keyed row. Legacy `localStorage['doorTrackerAutosave']` is migrated forward on first load and then deleted.
+- **Restore points** live in the `restorePoints` store of the same DB. The app captures one automatically every 5 minutes (last 10 kept) and you can capture named ones on demand from the **📌 Snapshots** header button. Restoring a snapshot first creates a `before restore` auto-snapshot so the action is itself undoable.
+- **Save / Load** still produce a `door-data.json` file for offline / shared-drive distribution.
+
+### Change history
+Every mutation calls `recordHistory(retailer, brand, entry)` which appends to a `history{}` object keyed by `retailer|brand`. The header **⟳ History** button opens a chronological feed of every change across every pair (latest 400 shown, click any row to jump to that pair's drawer). Per-pair history is still reachable from the cell drawer's "⟳ History" button. The author is the currently signed-in user (see Auth wall below).
+
+### Auth wall and attribution
+The page is gated by a client-side sign-in modal. **This is not real security** — anyone with browser dev tools can read the user roster and bypass it. It exists for two things: (1) keeping casual viewers out, and (2) attaching a name to every history entry. For confidential data, host the file behind real auth (Cloudflare Access, Netlify Identity, etc.).
+
+The roster is the `USER_ROSTER` object near the bottom of the main script. Each entry maps a lowercase username to `{ hash, name }`, where `hash` is the SHA-256 hex of the password. To add a user, compute the hash in any browser console:
+
+```js
+crypto.subtle.digest('SHA-256', new TextEncoder().encode('your-password'))
+  .then(b => console.log([...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('')))
+```
+
+…and append `'username': { hash: '<hex>', name: 'Display Name' }`. The seeded placeholder is `kevin / admin` — replace it.
+
+Session persists across reloads in `localStorage['cloonk-doortracker-user']`. The header shows a chip with the user's name and a **Sign out** action; signing out clears the session and re-prompts.
+
+### Guest mode
+The login modal also has a **Continue as guest** button. Guests get a blank anonymized template (`GUEST_SEED` — three generic retailers, three generic brands, five demo doors) and a sandboxed autosave key (`guest:latest` in the same IDB), so guest activity never touches the signed-in user's data. Restore points are tagged with `mode: 'guest' | 'user'` and filtered in the Snapshots list, so the two modes don't see each other's snapshots. Signing out as a guest wipes the sandbox so the next guest sees a fresh template. The user chip shows in the draft-orange color while in guest mode to make the state obvious.
+
+### Map
+[Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/) renders door details. The access token is a public `pk.*` token URL-restricted to `cloonk.com` in the Mapbox dashboard. The map style follows the cloonk theme (`light-v11` / `dark-v11`) and re-styles live when the theme is toggled.
+
+### Theme
+Same `cloonk-theme` localStorage key as the rest of the toolbox — toggling in any tool flips them all (and the main site).
