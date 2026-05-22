@@ -571,13 +571,51 @@ tr.data-row:hover td { background: var(--accent-dim); }
   background: transparent; color: var(--text-muted); cursor: pointer; font-size: 1.3rem;
 }
 .modal-close:hover { color: var(--text); background: var(--surface-raised); }
+.info-modal-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+.info-modal-tab {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 12px 10px 10px;
+  text-transform: uppercase;
+}
+.info-modal-tab:hover { color: var(--text); }
+.info-modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .modal-body { overflow: auto; padding: 18px 20px 24px; color: var(--text-muted); line-height: 1.6; }
+.info-modal-pane { display: none; }
+.info-modal-pane.active { display: block; }
 .modal-body h3 { margin: 16px 0 6px; color: var(--text); font-family: var(--font-display); }
 .modal-body h3:first-child { margin-top: 0; }
 .modal-body code { color: var(--accent); font-family: var(--font-mono); font-size: 0.86em; }
 .modal-body table { font-size: 0.78rem; margin: 8px 0; }
 .modal-body th, .modal-body td { white-space: normal; max-width: none; color: var(--text-muted); }
 .modal-body ul { margin: 6px 0 6px 20px; }
+.info-link-list { display: grid; gap: 10px; margin-top: 12px; }
+.info-link {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text);
+  text-decoration: none;
+  background: var(--bg);
+}
+.info-link:hover { border-color: var(--accent); background: var(--accent-dim); }
+.info-link-meta { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.72rem; }
 
 /* ── Toast ── */
 .toast {
@@ -721,9 +759,9 @@ tr.data-row:hover td { background: var(--accent-dim); }
 
 <main class="shell">
   <section class="intro">
-    <p class="eyebrow">Schema-mapping &amp; concatenation engine</p>
-    <h1>Map product data across files into one canonical schema.</h1>
-    <p>Register source files, define a canonical field vocabulary, map each field to one or more <code>{file, sheet, column}</code> sources with priority, then resolve concatenated descriptions. Identity fields stitch the same SKU across files even when each file names it differently. Everything runs locally — nothing leaves your machine.</p>
+    <p class="eyebrow">Schema mapping</p>
+    <h1>UPC Concat</h1>
+    <p>Register files, map fields, and run resolution.</p>
   </section>
 
   <div class="warn-list" id="warnList"></div>
@@ -893,39 +931,62 @@ tr.data-row:hover td { background: var(--accent-dim); }
 <div class="modal-overlay" id="infoModal" role="dialog" aria-modal="true">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title">UPC Concat <span>— reference</span></span>
+      <span class="modal-title">UPC Concat <span>— Appendix</span></span>
       <button class="modal-close" data-close-modal>&times;</button>
     </div>
+    <div class="info-modal-tabs" role="tablist">
+      <button class="info-modal-tab active" data-tab="about" role="tab">About</button>
+      <button class="info-modal-tab" data-tab="schema" role="tab">Schema</button>
+      <button class="info-modal-tab" data-tab="appendix" role="tab">Appendix</button>
+      <button class="info-modal-tab" data-tab="resources" role="tab">Resources</button>
+    </div>
     <div class="modal-body">
-      <h3>Three layers</h3>
-      <p><strong>Sources</strong> are registered files (sheet + header row + declared key columns). <strong>Canonical schema</strong> is your standard field vocabulary. <strong>Field mappings</strong> connect each canonical field to <code>{file, column}</code> sources, walked in priority order — first non-blank wins.</p>
-      <h3>Identity &amp; clusters</h3>
-      <p>Fields flagged ★ identity are used to join rows. On run, the tool builds a cluster index: rows across files that share any identity value describe the same SKU. Paste a UPC, CPID, Grid, Art Base — anything mapped to an identity field — and the tool finds the cluster.</p>
-      <h3>Expression language</h3>
-      <p>Derived fields and templates use a safe Excel-like language (no <code>eval</code>).</p>
-      <ul>
-        <li><code>{field}</code> — reference another canonical field</li>
-        <li><code>&amp;</code> concat · <code>+ - * /</code> numeric · <code>= &lt;&gt; &lt; &lt;= &gt; &gt;=</code> comparison</li>
-        <li>Literals: <code>"text"</code>, <code>42</code>, <code>TRUE</code>, <code>FALSE</code>, <code>BLANK</code></li>
-      </ul>
-      <table>
-        <tr><th>Function</th><th>Meaning</th></tr>
-        <tr><td><code>CONCAT(a,b,…)</code></td><td>join args, blanks dropped</td></tr>
-        <tr><td><code>JOIN(delim,a,b,…)</code></td><td>join with delimiter, blanks dropped</td></tr>
-        <tr><td><code>IF(cond,then,else)</code></td><td>conditional</td></tr>
-        <tr><td><code>IFBLANK(v,fallback)</code></td><td>fallback if v is blank</td></tr>
-        <tr><td><code>COALESCE(a,b,…)</code></td><td>first non-blank</td></tr>
-        <tr><td><code>UPPER LOWER TRIM LEN</code></td><td>string ops</td></tr>
-        <tr><td><code>LEFT RIGHT MID</code></td><td>substrings, 1-indexed</td></tr>
-        <tr><td><code>PAD(s,len,char)</code></td><td>left-pad (UPC normalization)</td></tr>
-        <tr><td><code>REPLACE SUBSTR</code></td><td>string replace</td></tr>
-        <tr><td><code>CONTAINS STARTSWITH ENDSWITH</code></td><td>boolean tests</td></tr>
-        <tr><td><code>NUMBER(s) TEXT(n)</code></td><td>type coercion</td></tr>
-      </table>
-      <h3>Profiles</h3>
-      <p>A profile stores schema, mappings, priority, and templates — not the file data. Save to browser storage, export/import as JSON to share with teammates. Reset reloads the bundled eyewear profile.</p>
-      <h3>Edge cases handled</h3>
-      <p>Leading-zero UPCs are indexed in raw and zero-padded forms. Columns can be referenced by letter when the header is blank. Circular formula references are rejected. Broken mappings (missing column after reload) are flagged, not fatal.</p>
+      <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
+        <h3>What this is</h3>
+        <p>Map product data across files into one canonical schema. Register source files, define a standard field vocabulary, map each field to one or more source columns, then resolve concatenated outputs from the clean schema.</p>
+        <h3>Quick start</h3>
+        <p>Attach source files, confirm key columns, map canonical fields, paste identity keys, and run resolution. Save or export the profile when the mapping is ready to reuse.</p>
+        <h3>Privacy</h3>
+        <p>Everything runs locally in your browser. Profiles store schema and mapping rules, not workbook contents.</p>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
+        <h3>Three layers</h3>
+        <p><strong>Sources</strong> are registered files with sheet, header row, and declared key columns. <strong>Canonical schema</strong> is your standard field vocabulary. <strong>Field mappings</strong> connect each canonical field to <code>{file, column}</code> sources, walked in priority order so first non-blank wins.</p>
+        <h3>Identity &amp; clusters</h3>
+        <p>Fields flagged as identity are used to join rows. On run, rows across files that share any identity value become one SKU cluster.</p>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-appendix" role="tabpanel">
+        <h3>Expression language</h3>
+        <p>Derived fields and templates use a safe Excel-like language.</p>
+        <ul>
+          <li><code>{field}</code> references another canonical field</li>
+          <li><code>&amp;</code> concat, <code>+ - * /</code> numeric, and standard comparison operators are supported</li>
+          <li>Literals include <code>"text"</code>, <code>42</code>, <code>TRUE</code>, <code>FALSE</code>, and <code>BLANK</code></li>
+        </ul>
+        <table>
+          <tr><th>Function</th><th>Meaning</th></tr>
+          <tr><td><code>CONCAT(a,b,...)</code></td><td>Join args, blanks dropped</td></tr>
+          <tr><td><code>JOIN(delim,a,b,...)</code></td><td>Join with delimiter, blanks dropped</td></tr>
+          <tr><td><code>IF(cond,then,else)</code></td><td>Conditional</td></tr>
+          <tr><td><code>IFBLANK(v,fallback)</code></td><td>Fallback if v is blank</td></tr>
+          <tr><td><code>COALESCE(a,b,...)</code></td><td>First non-blank</td></tr>
+          <tr><td><code>UPPER LOWER TRIM LEN</code></td><td>String operations</td></tr>
+          <tr><td><code>LEFT RIGHT MID</code></td><td>Substrings, 1-indexed</td></tr>
+          <tr><td><code>PAD(s,len,char)</code></td><td>Left-pad for UPC normalization</td></tr>
+        </table>
+        <h3>Edge cases handled</h3>
+        <p>Leading-zero UPCs are indexed in raw and zero-padded forms. Columns can be referenced by letter when the header is blank. Circular formula references are rejected.</p>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-resources" role="tabpanel">
+        <h3>Fashion Toolbox</h3>
+        <div class="info-link-list">
+          <a class="info-link" href="index.html"><strong>Fashion Toolbox</strong><span class="info-link-meta">Index</span></a>
+          <a class="info-link" href="replenishment-linesheet.html"><strong>RP Line Sheet</strong><span class="info-link-meta">Replenishment Review</span></a>
+          <a class="info-link" href="assortment-comparison.html"><strong>Assortment Comparison</strong><span class="info-link-meta">Retailer Overlap</span></a>
+          <a class="info-link" href="retailer-door-tracker.html"><strong>Door Tracker</strong><span class="info-link-meta">Door Distribution</span></a>
+          <a class="info-link" href="sellout-standardizer.html"><strong>Sell-Out Standardizer</strong><span class="info-link-meta">Weekly Sell-Out</span></a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2335,6 +2396,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeModals(); });
   document.getElementById("infoBtn").addEventListener("click", () =>
     document.getElementById("infoModal").classList.add("open"));
+  document.querySelectorAll(".info-modal-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".info-modal-tab").forEach(t => t.classList.toggle("active", t === tab));
+      document.querySelectorAll(".info-modal-pane").forEach(p => p.classList.toggle("active", p.id === "modal-tab-" + tab.dataset.tab));
+    });
+  });
 
   /* ── dropzone + file input ── */
   const dz = document.getElementById("dropzone");

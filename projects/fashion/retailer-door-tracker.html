@@ -218,6 +218,7 @@ body.locked { overflow: hidden; }
 select { font-family: var(--font-body); font-size: 0.82rem; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-xs); color: var(--text); outline: none; }
 select:focus { border-color: var(--accent); }
 body.light select { background: #f4f2ee; }
+.refine-panel select[multiple] { min-height: 92px; padding: 6px; }
 
 /* ─── MODE TOGGLE (Data | Map) ─── */
 .mode-toggle { display: flex; gap: 0; border: 1px solid var(--border); border-radius: var(--radius-xs); overflow: hidden; flex-shrink: 0; }
@@ -317,9 +318,10 @@ body.light .toggle-pill[data-layer="heat"]   { color: #b54514; }
 }
 .toggle-pill:not(.inactive) .toggle-dot { background: currentColor; }
 #resMap { height: calc(100vh - 320px); min-height: 380px; width: 100%; border: 1px solid var(--border); border-radius: var(--radius-xs); margin-bottom: 14px; overflow: hidden; position: relative; }
-body.mode-map #resMap { height: calc(100vh - 280px); }
-body.mode-map .door-list { max-height: 220px; }
-body.mode-map .door-detail { max-height: 300px; overflow-y: auto; }
+body.mode-map #resMap { height: calc(100vh - 235px); min-height: 520px; margin-bottom: 0; }
+body.mode-map .research-map-shell { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 14px; align-items: stretch; }
+body.mode-map .door-list { max-height: 260px; margin-top: 12px; }
+body.mode-map .door-detail { max-height: calc(100vh - 235px); overflow-y: auto; }
 #resMap .mapboxgl-popup-content { background: var(--surface-card); color: var(--text); border-radius: var(--radius-xs); padding: 8px 10px; font-family: var(--font-body); font-size: 0.74rem; }
 #resMap .mapboxgl-popup-tip { border-top-color: var(--surface-card); border-bottom-color: var(--surface-card); }
 .research-grid { display: grid; grid-template-columns: 320px 1fr; gap: 18px; align-items: start; }
@@ -339,6 +341,7 @@ body.mode-map .door-detail { max-height: 300px; overflow-y: auto; }
 .door-warn-callout .door-warn-msg { flex: 1; min-width: 200px; }
 .door-warn-callout .door-warn-msg strong { color: var(--draft); display: block; margin-bottom: 2px; }
 @media (max-width: 860px) { .research-grid { grid-template-columns: 1fr; } .door-list { max-height: 320px; } }
+@media (max-width: 980px) { body.mode-map .research-map-shell { grid-template-columns: 1fr; } body.mode-map #resMap { min-height: 420px; } }
 .door-item { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 0.75rem; cursor: pointer; transition: background var(--transition); display: flex; justify-content: space-between; align-items: center; }
 .door-item:hover { background: var(--accent-dim); }
 .door-item.active { background: var(--accent-mid); border-left: 3px solid var(--accent); }
@@ -371,6 +374,73 @@ body.mode-map .door-detail { max-height: 300px; overflow-y: auto; }
 .info-section { margin-bottom: 14px; }
 .info-section h4 { font-family: var(--font-display); font-size: 0.95rem; color: var(--accent); margin-bottom: 4px; }
 .info-section p { color: var(--text-muted); font-size: 0.75rem; line-height: 1.5; margin: 0; }
+.info-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.info-modal-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.info-modal-title span { color: var(--accent); }
+.info-modal-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  margin: 0 -24px 14px;
+  padding: 0 20px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.info-modal-tab {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 12px 10px 10px;
+  text-transform: uppercase;
+}
+.info-modal-tab:hover { color: var(--text); }
+.info-modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.info-modal-pane { display: none; }
+.info-modal-pane.active { display: block; }
+.info-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 0.74rem;
+}
+.info-modal-table th,
+.info-modal-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 7px 6px;
+  text-align: left;
+  vertical-align: top;
+}
+.info-modal-table th { color: var(--text); font-family: var(--font-mono); }
+.info-link-list { display: grid; gap: 10px; margin-top: 10px; }
+.info-link {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+  background: var(--bg);
+}
+.info-link:hover { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 12%, transparent); }
+.info-link-meta { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.7rem; }
 
 /* ─── DRAWER ─── */
 .drawer { position: fixed; top: 0; right: -440px; z-index: 1001; width: 400px; max-width: 90vw; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 24px 20px; overflow-y: auto; transition: right 0.3s ease; }
@@ -613,23 +683,23 @@ body.light .data-cell-note { background: #f4f2ee; }
     <div class="refine-panel" id="refinePanel">
       <div class="toolbar-group">
         <span class="toolbar-label">Retailer</span>
-        <select id="fRet" onchange="render()"><option value="">All</option></select>
+        <select id="fRet" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple retailers"><option value="">All</option></select>
       </div>
       <div class="toolbar-group">
         <span class="toolbar-label">Category</span>
-        <select id="fCat" onchange="render()"><option value="">All</option></select>
+        <select id="fCat" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple categories"><option value="">All</option></select>
       </div>
       <div class="toolbar-group">
         <span class="toolbar-label">Brand</span>
-        <select id="fBrand" onchange="render()"><option value="">All</option></select>
+        <select id="fBrand" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple brands"><option value="">All</option></select>
       </div>
       <div class="toolbar-group" id="statusFilterGroup" style="display:none">
         <span class="toolbar-label">Status</span>
-        <select id="fStatus" onchange="render()"><option value="">All</option><option value="confirmed">Confirmed</option><option value="tbd">TBD</option><option value="na">N/A</option><option value="closed">Closed</option></select>
+        <select id="fStatus" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple statuses"><option value="">All</option><option value="confirmed">Confirmed</option><option value="tbd">TBD</option><option value="na">N/A</option><option value="closed">Closed</option></select>
       </div>
       <div class="toolbar-group" id="gradeFilterGroup" style="display:none">
         <span class="toolbar-label">Grade</span>
-        <select id="fGrade" onchange="render()"><option value="">All</option></select>
+        <select id="fGrade" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple grades"><option value="">All</option></select>
       </div>
       <div class="toolbar-group" id="opportunityFilterGroup" style="display:none">
         <span class="toolbar-label">Opportunities</span>
@@ -738,7 +808,7 @@ body.light .data-cell-note { background: #f4f2ee; }
   </div>
 
   <label>Matrix data</label>
-  <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code></div>
+  <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>. Optional door-brand selling fields: <code>Door Number</code>, <code>Status</code>, <code>Grade</code>, <code>metric_1</code>, <code>metric_2</code>, <code>Notes</code>.</div>
   <div class="import-zone" onclick="document.getElementById('impFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
     <p>Drop matrix file or click to browse</p>
     <input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="handleImpFile(event)">
@@ -757,56 +827,81 @@ body.light .data-cell-note { background: #f4f2ee; }
 <!-- Info Modal -->
 <div class="overlay" id="ovInfo" onclick="closeInfo()"></div>
 <div class="modal" id="mInfo" style="max-width:600px">
-  <h3>How to Use Door Tracker</h3>
-  <p>A quick guide to all features and views.</p>
-  <div class="info-section">
-    <h4>＋ Modify Door</h4>
-    <p>Assign brands to specific physical doors only. You can add one door to many brands, or one brand to many doors, in a single action. New entries start as Drafts and must be published to count toward matrix totals.</p>
+  <div class="info-modal-header">
+    <span class="info-modal-title">Door Tracker <span>— Appendix</span></span>
   </div>
-  <div class="info-section">
-    <h4>Import</h4>
-    <p>Two separate intakes, both .xlsx or .csv:<br>
-    <strong>Matrix data</strong> — columns <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>. Loads retailer-brand totals.<br>
-    <strong>Door locations</strong> — columns <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Tier</code>. Matching (Retailer + Door Number) updates the existing record; new pairs are appended.</p>
+  <div class="info-modal-tabs" role="tablist">
+    <button class="info-modal-tab active" data-tab="about" role="tab">About</button>
+    <button class="info-modal-tab" data-tab="schema" role="tab">Schema</button>
+    <button class="info-modal-tab" data-tab="appendix" role="tab">Appendix</button>
+    <button class="info-modal-tab" data-tab="resources" role="tab">Resources</button>
   </div>
-  <div class="info-section">
-    <h4>Export</h4>
-    <p>Downloads what's on screen as an Excel file. Each view exports the shape that fits it — Matrix as a pivoted grid, Tabular/Data as flat rows, and the new <strong>Research</strong> view as a door-locations list (respecting your retailer + brand + search filters), in the same column shape the Import accepts. Round-trip safe.</p>
+  <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
+    <div class="info-section">
+      <h4>What this is</h4>
+      <p>Track brand by retailer door distribution, compare matrix totals against physical door locations, and manage pending changes before they count in verified-door totals.</p>
+    </div>
+    <div class="info-section">
+      <h4>Quick start</h4>
+      <p>Sign in or try demo data, import matrix and door-location files, refine the view, then open a cell or door drawer to inspect placement, map reveal, notes, drafts, and history.</p>
+    </div>
+    <div class="info-section">
+      <h4>Privacy</h4>
+      <p>Spreadsheet parsing and save files run locally in your browser. Use exported JSON save files for offline persistence or shared-drive handoff.</p>
+    </div>
   </div>
-  <div class="info-section">
-    <h4>💾 Save / 📂 Load</h4>
-    <p>Save downloads all data (matrix, door assignments, drafts, notes, history) as a JSON file. Load restores a previously saved state. Use this for offline persistence — files can live on a shared drive.</p>
+  <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
+    <div class="info-section">
+      <h4>Matrix data</h4>
+      <p>Columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>. Optional per door-brand fields include <code>Door Number</code>, <code>Status</code>, <code>Grade</code>, <code>metric_1</code>, <code>metric_2</code>, and <code>Notes</code> for selling analysis.</p>
+    </div>
+    <div class="info-section">
+      <h4>Door locations</h4>
+      <p>Columns: <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Tier</code>. Matching retailer and door number updates the existing record; new pairs are appended.</p>
+    </div>
+    <table class="info-modal-table">
+      <tr><th>View</th><th>Shape</th></tr>
+      <tr><td>Matrix</td><td>Brand x retailer grid with confirmed door counts.</td></tr>
+      <tr><td>Compact</td><td>Brand, category, and per-retailer counts.</td></tr>
+      <tr><td>Tabular</td><td>Flat retailer x brand rows with penetration.</td></tr>
+      <tr><td>Data</td><td>Retailer, door, brand, status, grade, metric_1, metric_2, notes, and key rows.</td></tr>
+      <tr><td>Research</td><td>Doors-first location list with placement detail and map reveal.</td></tr>
+    </table>
   </div>
-  <div class="info-section">
-    <h4>⟳ History &amp; 📌 Snapshots</h4>
-    <p><strong>History</strong> opens a chronological feed of every change made — across every retailer and brand — with old → new values and who made the change. Click any entry to jump to that pair's drawer.</p>
-    <p style="margin-top:6px"><strong>Snapshots</strong> are full restore points. The app captures one automatically every 5 minutes (last 10 kept) and you can create named snapshots on demand. Restoring replaces the current state, so a "before-restore" snapshot is auto-created so you can roll back the rollback.</p>
+  <div class="info-modal-pane" id="modal-tab-appendix" role="tabpanel">
+    <div class="info-section">
+      <h4>Modify Door</h4>
+      <p>Assign brands to specific physical doors only. Add one door to many brands, or one brand to many doors, in a single action. New entries start as drafts and must be published to count toward matrix totals.</p>
+    </div>
+    <div class="info-section">
+      <h4>Export, Save, Load</h4>
+      <p>Export downloads the current view as Excel. Save downloads all matrix data, door assignments, drafts, notes, history, and snapshots as JSON. Load restores a previous saved state.</p>
+    </div>
+    <div class="info-section">
+      <h4>History &amp; Snapshots</h4>
+      <p>History opens a chronological feed of changes. Snapshots are full restore points captured every 5 minutes, with manual named snapshots available when needed.</p>
+    </div>
+    <div class="info-section">
+      <h4>Map reveal</h4>
+      <p>Door details include a Mapbox map. Picking a door zooms in; selecting a retailer fits the map to that retailer's doors, or all doors when retailer All is selected.</p>
+    </div>
+    <div class="info-section">
+      <h4>Retailer Coverage &amp; Max Doors</h4>
+      <p>Live counts from your current data, refreshed when the modal opens.</p>
+      <div id="infoRetailerCoverage" style="margin-top:8px;font-family:var(--font-mono);font-size:0.78rem;line-height:1.6"></div>
+    </div>
   </div>
-  <div class="info-section">
-    <h4>🗺️ Map reveal</h4>
-    <p>Door details include a Mapbox map. Picking a door zooms in with a fly-in; selecting a retailer fits the map to all its doors.</p>
-  </div>
-  <div class="info-section">
-    <h4>Views</h4>
-    <p><strong>Matrix</strong> — brand × retailer grid showing confirmed door counts. Click any cell for details.<br>
-    <strong>Compact</strong> — simplified table with brand, category, and per-retailer counts.<br>
-    <strong>Tabular</strong> — flat list of retailer × brand pairs with penetration %.<br>
-    <strong>Data</strong> — flat dump of retailer, door, brand, location, status; for granular per-cell edits.<br>
-    <strong>Research</strong> — sister view to Data: doors-first instead of cells-first. Pick a retailer, pick a door, see its brand placements on a Mapbox map.<br>
-    <strong>Drafts</strong> — pending entries awaiting publish. Publish to promote to confirmed and count toward matrix totals.</p>
-  </div>
-  <div class="info-section">
-    <h4>Retailer Coverage &amp; Max Doors</h4>
-    <p>Live counts from your current data — refresh by re-opening this modal after imports or edits.</p>
-    <div id="infoRetailerCoverage" style="margin-top:8px;font-family:var(--font-mono);font-size:0.78rem;line-height:1.6"></div>
-  </div>
-  <div class="info-section">
-    <h4>Other tools in the Fashion Toolbox</h4>
-    <p>
-      <a href="index.html" style="color:var(--accent)">▦ Fashion Toolbox index</a><br>
-      <a href="replenishment-linesheet.html" style="color:var(--accent)">▤ RP Line Sheet</a> — Replenishment Review<br>
-      <a href="assortment-comparison.html" style="color:var(--accent)">◎ Assortment Comparison</a> — Retailer Overlap
-    </p>
+  <div class="info-modal-pane" id="modal-tab-resources" role="tabpanel">
+    <div class="info-section">
+      <h4>Fashion Toolbox</h4>
+      <div class="info-link-list">
+        <a class="info-link" href="index.html"><strong>Fashion Toolbox</strong><span class="info-link-meta">Index</span></a>
+        <a class="info-link" href="replenishment-linesheet.html"><strong>RP Line Sheet</strong><span class="info-link-meta">Replenishment Review</span></a>
+        <a class="info-link" href="assortment-comparison.html"><strong>Assortment Comparison</strong><span class="info-link-meta">Retailer Overlap</span></a>
+        <a class="info-link" href="sellout-standardizer.html"><strong>Sell-Out Standardizer</strong><span class="info-link-meta">Weekly Sell-Out</span></a>
+        <a class="info-link" href="upc-concat.html"><strong>UPC Concat</strong><span class="info-link-meta">Schema Mapping</span></a>
+      </div>
+    </div>
   </div>
   <div class="modal-actions"><button class="btn btn-accent" onclick="closeInfo()">Got it</button></div>
 </div>
@@ -855,7 +950,7 @@ body.light .data-cell-note { background: #f4f2ee; }
         <h4 style="margin-bottom:0">Matrix Data</h4>
         <button class="btn btn-sm" type="button" onclick="downloadTemplate()">Template</button>
       </div>
-      <p>Retailer, Brand, Category, Doors. Use this to load brand x retailer totals.</p>
+      <p>Retailer, Brand, Category, Doors. Add Door Number, Status, Grade, metric_1, metric_2, and Notes when you want per door-brand selling analysis.</p>
       <div class="login-upload-zone" onclick="document.getElementById('loginMatrixFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleLoginMatrixDrop(event)">
         <input type="file" id="loginMatrixFile" accept=".xlsx,.xls,.csv" onchange="handleLoginMatrixFile(event)">
         <div class="login-upload-title">Drop matrix file or browse</div>
@@ -1234,7 +1329,7 @@ function ensureAllSlots(){
       brands.forEach(brand=>{
         const key=buildDataKey(ret,door.doorNumber,brand);
         if(!dataKeyState[key]){
-          dataKeyState[key]={status:'na',grade:door.tier||'-',note:'',retailer:ret,doorNumber:door.doorNumber,brand:brand};
+          dataKeyState[key]={status:'na',grade:door.tier||'-',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:door.doorNumber,brand:brand};
         }
       });
     });
@@ -1328,26 +1423,47 @@ function populateFilters(){
   const grades=['-','A','B','C'];
   fillSel('fCat',cats); fillSel('fBrand',brands); fillSel('fGrade',grades);
   const el=document.getElementById('fRet');
-  const cv=el.value;
-  el.innerHTML='<option value="">All</option>'+retailers.map(r=>`<option>${esc(r)}</option>`).join('');
-  el.value=cv||'';
+  const cv=getSelectValues(el);
+  el.innerHTML='<option value="">All</option>'+retailers.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  setSelectValues(el,cv);
   populateStatusGradeFilters();
 }
-function fillSel(id,vals){const el=document.getElementById(id);const cv=el.value;el.innerHTML='<option value="">All</option>'+vals.map(v=>`<option>${esc(v)}</option>`).join('');el.value=cv||'';}
+function getSelectValues(elOrId){
+  const el=typeof elOrId==='string'?document.getElementById(elOrId):elOrId;
+  if(!el) return [];
+  if(el.multiple){
+    const vals=Array.from(el.selectedOptions).map(o=>o.value).filter(Boolean);
+    return vals;
+  }
+  return el.value ? [el.value] : [];
+}
+function setSelectValues(elOrId,vals){
+  const el=typeof elOrId==='string'?document.getElementById(elOrId):elOrId;
+  if(!el) return;
+  const set=new Set((vals||[]).filter(Boolean));
+  Array.from(el.options).forEach(opt=>{ opt.selected=set.size?set.has(opt.value):opt.value===''; });
+}
+function hasFilterValue(vals,value){ return !vals.length || vals.includes(value); }
+function fillSel(id,vals){
+  const el=document.getElementById(id);
+  const cv=getSelectValues(el);
+  el.innerHTML='<option value="">All</option>'+vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  setSelectValues(el,cv);
+}
 
 function getFiltered(){
   let items=matrixData;
-  const fc=document.getElementById('fCat').value;
-  const fb=document.getElementById('fBrand').value;
+  const fc=getSelectValues('fCat');
+  const fb=getSelectValues('fBrand');
   const sq=(document.getElementById('searchBox').value||'').toLowerCase();
-  if(fc) items=items.filter(d=>d.category===fc);
-  if(fb) items=items.filter(d=>d.brand===fb);
+  if(fc.length) items=items.filter(d=>fc.includes(d.category));
+  if(fb.length) items=items.filter(d=>fb.includes(d.brand));
   if(sq) items=items.filter(d=>String(d.brand||'').toLowerCase().includes(sq)||(brandCodes[d.brand]&&String(brandCodes[d.brand].name||'').toLowerCase().includes(sq)));
   return items;
 }
 function getVisibleRetailers(){
-  const fr=document.getElementById('fRet').value;
-  return fr?[fr]:retailers;
+  const fr=getSelectValues('fRet');
+  return fr.length?fr:retailers;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1514,10 +1630,10 @@ function renderTabular(items,visR){
 function renderUnpivoted(items,visR){
   const wrap=document.getElementById('mainView');
   let rows=[];
-  const fc=document.getElementById('fCat').value;
-  const fb=document.getElementById('fBrand').value;
-  const fs=(document.getElementById('fStatus')||{}).value||'';
-  const fg=(document.getElementById('fGrade')||{}).value||'';
+  const fc=getSelectValues('fCat');
+  const fb=getSelectValues('fBrand');
+  const fs=getSelectValues('fStatus');
+  const fg=getSelectValues('fGrade');
   const opportunitiesOnly=!!document.getElementById('fOpportunities')?.checked;
   const sq=(document.getElementById('searchBox').value||'').toLowerCase();
   const brands=getAllBrands();
@@ -1527,8 +1643,8 @@ function renderUnpivoted(items,visR){
       brands.forEach(brand=>{
         const category=getBrandCategory(brand);
         const brandName=(brandCodes[brand]&&brandCodes[brand].name)||'';
-        if(fc && category!==fc) return;
-        if(fb && brand!==fb) return;
+        if(!hasFilterValue(fc,category)) return;
+        if(!hasFilterValue(fb,brand)) return;
         if(sq && !brand.toLowerCase().includes(sq) && !brandName.toLowerCase().includes(sq)) return;
         const state=getDataKeyState(ret,door.doorNumber,brand) || {};
         const row={
@@ -1541,11 +1657,13 @@ function renderUnpivoted(items,visR){
           status:normalizeStatus(state.status || 'na'),
           grade:state.grade || door.tier || '-',
           note:state.note || '',
+          metric_1:state.metric_1 ?? '',
+          metric_2:state.metric_2 ?? '',
           key:buildDataKey(ret,door.doorNumber,brand)
         };
         if(opportunitiesOnly && row.status!=='na') return;
-        if(fs && row.status!==fs) return;
-        if(fg && row.grade!==fg) return;
+        if(!hasFilterValue(fs,row.status)) return;
+        if(!hasFilterValue(fg,row.grade)) return;
         rows.push(row);
       });
     });
@@ -1556,8 +1674,8 @@ function renderUnpivoted(items,visR){
     if(!visR.includes(ret)) continue;
     const category=getBrandCategory(brand);
     const brandName=(brandCodes[brand]&&brandCodes[brand].name)||'';
-    if(fc && category!==fc) continue;
-    if(fb && brand!==fb) continue;
+    if(!hasFilterValue(fc,category)) continue;
+    if(!hasFilterValue(fb,brand)) continue;
     if(sq && !brand.toLowerCase().includes(sq) && !brandName.toLowerCase().includes(sq)) continue;
     assigns.forEach(a=>{
       const rawDoor=a.doorNumber;
@@ -1574,19 +1692,21 @@ function renderUnpivoted(items,visR){
         status:normalizeStatus(state.status || 'na'),
         grade:state.grade || '-',
         note:state.note || '',
+        metric_1:state.metric_1 ?? '',
+        metric_2:state.metric_2 ?? '',
         key:buildDataKey(ret,'-',brand)
       };
       if(opportunitiesOnly && row.status!=='na') return;
-      if(fs && row.status!==fs) return;
-      if(fg && row.grade!==fg) return;
+      if(!hasFilterValue(fs,row.status)) return;
+      if(!hasFilterValue(fg,row.grade)) return;
       rows.push(row);
     });
   }
 
   rows.sort((a,b)=>a.retailer.localeCompare(b.retailer)||((a.doorNumber==='-'?Number.MAX_SAFE_INTEGER:Number(a.doorNumber))-(b.doorNumber==='-'?Number.MAX_SAFE_INTEGER:Number(b.doorNumber)))||a.brand.localeCompare(b.brand));
-  let h='<table class="compact-table"><thead><tr><th>Retailer</th><th>Door Number</th><th>Brand</th><th>Location</th><th>Status</th><th>Category</th><th>Grade</th><th>Notes</th><th>Key</th></tr></thead><tbody>';
+  let h='<table class="compact-table"><thead><tr><th>Retailer</th><th>Door Number</th><th>Brand</th><th>Location</th><th>Status</th><th>Category</th><th>Grade</th><th>Metric 1</th><th>Metric 2</th><th>Notes</th><th>Key</th></tr></thead><tbody>';
   if(!rows.length){
-    h+=`<tr><td colspan="9" style="text-align:center;color:var(--text-dim);padding:40px">${opportunitiesOnly?'No open brand-door opportunities matched the current filters.':'No door-brand slots matched the current filters.'}</td></tr>`;
+    h+=`<tr><td colspan="11" style="text-align:center;color:var(--text-dim);padding:40px">${opportunitiesOnly?'No open brand-door opportunities matched the current filters.':'No door-brand slots matched the current filters.'}</td></tr>`;
   }
   rows.forEach(r=>{
     const statusPillCls = r.status==='confirmed'?'status-confirmed': r.status==='tbd'?'status-tbd': r.status==='closed'?'status-closed':'status-na';
@@ -1607,6 +1727,8 @@ function renderUnpivoted(items,visR){
           ${['-','A','B','C'].map(v=>`<option value="${v}" ${String(r.grade)===v?'selected':''}>${v}</option>`).join('')}
         </select>
       </td>
+      <td><input class="data-cell-note" type="number" step="any" value="${esc(r.metric_1)}" oninput='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"metric_1",this.value,this)' title="metric_1: first selling metric for this retailer-door-brand row"></td>
+      <td><input class="data-cell-note" type="number" step="any" value="${esc(r.metric_2)}" oninput='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"metric_2",this.value,this)' title="metric_2: second selling metric for this retailer-door-brand row"></td>
       <td><textarea class="data-cell-note" rows="1" oninput='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"note",this.value,this)'>${esc(r.note)}</textarea></td>
       <td style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim)">${esc(r.key)}</td>
     </tr>`;
@@ -1760,15 +1882,15 @@ let _resSearchTimer=null;
 
 function renderResearch(){
   const wrap=document.getElementById('mainView');
-  const ret=document.getElementById('fRet').value || '';
-  const retLabel=ret || 'All retailers';
+  const retVals=getSelectValues('fRet');
+  const retLabel=retVals.length ? retVals.join(', ') : 'All retailers';
   const shellExists=!!document.getElementById('resMap');
   if(!shellExists){
     const prevSearch=(document.getElementById('resSearch')||{}).value||'';
     const listCollapsed=window._doorListCollapsed===true;
     wrap.innerHTML=`
       <div class="research-view-header">
-        <h3>Brand–Door Research <span id="resRetailerLabel" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim);font-weight:400;margin-left:8px">${esc(retLabel)}</span></h3>
+        <h3>Map <span id="resRetailerLabel" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim);font-weight:400;margin-left:8px">${esc(retLabel)}</span></h3>
         <input type="text" class="search-box" id="resSearch" placeholder="Search door name, city, state, number…" oninput="onResSearchInput()" style="width:280px" value="${esc(prevSearch)}">
       </div>
       <div class="research-map-bar">
@@ -1779,10 +1901,12 @@ function renderResearch(){
         </div>
         <button class="btn btn-sm" id="doorListToggleBtn" onclick="toggleDoorListCollapse()" title="Show or hide the matching doors list below the map">${listCollapsed?'▾ Show list':'▴ Hide list'}</button>
       </div>
-      <div id="resMap"></div>
-      <div class="research-grid" id="researchGrid" style="${listCollapsed?'grid-template-columns:1fr':''}">
-        <div class="door-list" id="doorList" style="${listCollapsed?'display:none':''}"></div>
+      <div class="research-map-shell">
+        <div id="resMap"></div>
         <div class="door-detail" id="doorDetail"><p style="color:var(--text-dim)">Click a door on the map or pick one from the list to see brand placements at that store.</p></div>
+      </div>
+      <div class="research-grid" id="researchGrid">
+        <div class="door-list" id="doorList" style="${listCollapsed?'display:none':''}"></div>
       </div>
     `;
     /* Map was destroyed when the shell got nuked by another view; create fresh. */
@@ -1802,10 +1926,8 @@ function renderResearch(){
 function toggleDoorListCollapse(){
   window._doorListCollapsed=!window._doorListCollapsed;
   const list=document.getElementById('doorList');
-  const grid=document.getElementById('researchGrid');
   const btn=document.getElementById('doorListToggleBtn');
   if(list)  list.style.display=window._doorListCollapsed?'none':'';
-  if(grid)  grid.style.gridTemplateColumns=window._doorListCollapsed?'1fr':'320px 1fr';
   if(btn)   btn.textContent=window._doorListCollapsed?'▾ Show list':'▴ Hide list';
 }
 
@@ -1815,18 +1937,20 @@ function onResSearchInput(){
 }
 
 function renderResearchList(){
-  const ret=document.getElementById('fRet').value || '';
-  const brand=document.getElementById('fBrand').value||'';
+  const retVals=getSelectValues('fRet');
+  const brandVals=getSelectValues('fBrand');
   const sq=(document.getElementById('resSearch')?.value||'').toLowerCase();
-  const allRetailers=!ret;
-  let doors=doorLocations.filter(d=>allRetailers || normalizeRetailer(d.retailer)===normalizeRetailer(ret));
-  if(brand){
+  const allRetailers=!retVals.length;
+  let doors=doorLocations.filter(d=>allRetailers || retVals.includes(normalizeRetailer(d.retailer)));
+  if(brandVals.length){
     doors=doors.filter(d=>{
       const doorRet=normalizeRetailer(d.retailer);
-      const assignments=doorAssignments[k(doorRet,brand)]||[];
-      const assignedNums=new Set(assignments.map(a=>String(a.doorNumber)));
-      const retailerHasBrand=getMatrixVal(doorRet,brand)>0;
-      return assignedNums.has(String(d.doorNumber)) || retailerHasBrand;
+      return brandVals.some(brand=>{
+        const assignments=doorAssignments[k(doorRet,brand)]||[];
+        const assignedNums=new Set(assignments.map(a=>String(a.doorNumber)));
+        const retailerHasBrand=getMatrixVal(doorRet,brand)>0;
+        return assignedNums.has(String(d.doorNumber)) || retailerHasBrand;
+      });
     });
   }
   if(sq) doors=doors.filter(d=>(d.name||'').toLowerCase().includes(sq)||(d.city||'').toLowerCase().includes(sq)||(d.state||'').toLowerCase().includes(sq)||String(d.doorNumber).includes(sq));
@@ -1839,7 +1963,7 @@ function renderResearchList(){
   const items=visible.map((d,i)=>{
     const cls=['door-item']; if(isDoorIncomplete(d)) cls.push('incomplete');
     const doorRet=normalizeRetailer(d.retailer);
-    return `<div class="${cls.join(' ')}" onclick="${jsAttr(`selectDoor(${i},${jsq(doorRet)},${jsq(brand)})`)}" data-idx="${i}"><div><div class="door-name">#${esc(String(d.doorNumber))} — ${esc(d.name||'(no name)')}</div><div class="door-meta">${allRetailers?esc(doorRet)+' · ':''}${esc(d.city||'')}${d.state?', '+esc(d.state):''}${!d.city && !d.state ? '(no location)' : ''}</div></div><div>${d.tier?`<span class="tier-badge ${d.tier}">${d.tier}</span>`:''}</div></div>`;
+    return `<div class="${cls.join(' ')}" onclick="${jsAttr(`selectDoor(${i},${jsq(doorRet)})`)}" data-idx="${i}"><div><div class="door-name">#${esc(String(d.doorNumber))} — ${esc(d.name||'(no name)')}</div><div class="door-meta">${allRetailers?esc(doorRet)+' · ':''}${esc(d.city||'')}${d.state?', '+esc(d.state):''}${!d.city && !d.state ? '(no location)' : ''}</div></div><div>${d.tier?`<span class="tier-badge ${d.tier}">${d.tier}</span>`:''}</div></div>`;
   }).join('');
   const more=doors.length-visible.length;
   const footer=more>0
@@ -1857,13 +1981,18 @@ function isDoorIncomplete(d){
   const noCoords=d.lat==null || d.lng==null;
   return placeholder || (noLocation && noCoords);
 }
-function selectDoor(idx,ret,brandFilter=''){
+function selectDoor(idx,ret){
   const d=window._resDoors[idx];
   if(!d) return;
   document.querySelectorAll('.door-item').forEach(el=>el.classList.remove('active'));
   document.querySelector(`.door-item[data-idx="${idx}"]`)?.classList.add('active');
+  renderDoorDetail(d,ret);
+}
+
+function renderDoorDetail(d,ret){
   const norm=normalizeRetailer(ret);
   const doorNum=d.doorNumber;
+  const brandFilters=getSelectValues('fBrand');
 
   const brandsAtDoor=[];
   const brandsAtRetailer=[];
@@ -1873,14 +2002,18 @@ function selectDoor(idx,ret,brandFilter=''){
       const hasConfirmed=assigns.some(a=>a.status==='confirmed');
       if(hasConfirmed) brandsAtRetailer.push(b);
       assigns.forEach(a=>{
-        if(a.doorNumber==doorNum){ brandsAtDoor.push({brand:b,status:a.status}); }
+        if(a.doorNumber==doorNum){
+          const state=getDataKeyState(norm,doorNum,b) || {};
+          brandsAtDoor.push({brand:b,status:a.status,metric_1:state.metric_1 ?? '',metric_2:state.metric_2 ?? ''});
+        }
       });
     }
   }
   matrixData.forEach(m=>{ if((m[norm]||0)>0 && !brandsAtRetailer.includes(m.brand)){ brandsAtRetailer.push(m.brand); } });
 
-  const allBrands=(brandFilter? matrixData.map(m=>m.brand).filter(b=>b===brandFilter) : matrixData.map(m=>m.brand));
+  const allBrands=(brandFilters.length ? matrixData.map(m=>m.brand).filter(b=>brandFilters.includes(b)) : matrixData.map(m=>m.brand));
   const det=document.getElementById('doorDetail');
+  if(!det) return;
   const incomplete=isDoorIncomplete(d);
   const addrParts=[d.address, d.city, d.state, d.zip].filter(Boolean).join(', ');
   const hasCoords=d.lat!=null && d.lng!=null && !Number.isNaN(Number(d.lat)) && !Number.isNaN(Number(d.lng));
@@ -1903,13 +2036,14 @@ function selectDoor(idx,ret,brandFilter=''){
     </div>`;
   }
 
-  const visibleBrandsAtDoor=brandFilter ? brandsAtDoor.filter(x=>x.brand===brandFilter) : brandsAtDoor;
+  const visibleBrandsAtDoor=brandFilters.length ? brandsAtDoor.filter(x=>brandFilters.includes(x.brand)) : brandsAtDoor;
   if(visibleBrandsAtDoor.length){
     html+=`<div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px">Brands at This Door</div>`;
-    html+=`<div class="brand-pills">${visibleBrandsAtDoor.map(({brand,status})=>{
+    html+=`<div class="brand-pills">${visibleBrandsAtDoor.map(({brand,status,metric_1,metric_2})=>{
       const bName=brandCodes[brand]?brandCodes[brand].name:'';
       const isDraft=status==='draft';
-      return `<div class="brand-pill${isDraft?' draft':''}" style="${isDraft?'border-color:var(--draft);color:var(--draft)':''}" title="${bName} — ${status}">${brand}${isDraft?' (draft)':''}</div>`;
+      const metricText=(metric_1!==''||metric_2!=='')?` · m1: ${metric_1||'-'} · m2: ${metric_2||'-'}`:'';
+      return `<div class="brand-pill${isDraft?' draft':''}" style="${isDraft?'border-color:var(--draft);color:var(--draft)':''}" title="${bName} — ${status}${metricText}">${brand}${isDraft?' (draft)':''}${metricText?` <span style="opacity:.75">${esc(metricText)}</span>`:''}</div>`;
     }).join('')}</div>`;
   } else {
     html+=`<div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:8px;font-style:italic">No brands specifically assigned to this door yet.</div>`;
@@ -2118,9 +2252,9 @@ function addResearchMapLayers(){
     const idx=(window._resDoors||[]).findIndex(d=>String(d.doorNumber)===String(doorNumber) && normalizeRetailer(d.retailer)===ret);
     if(idx>=0){ selectDoor(idx,ret); }
     else {
-      /* Door isn't in the currently filtered list (e.g., the user typed a
-         search that hides it). Still respond by jumping to it on the map. */
-      highlightDoorOnMap(doorNumber,ret);
+      const door=doorLocations.find(d=>String(d.doorNumber)===String(doorNumber) && normalizeRetailer(d.retailer)===ret);
+      if(door) renderDoorDetail(door,ret);
+      else highlightDoorOnMap(doorNumber,ret);
     }
   };
   ['doors-circle','doors-brands'].forEach(id=>{
@@ -2133,11 +2267,20 @@ function addResearchMapLayers(){
 
 function updateResearchMapData(){
   if(!_resMap || !_resMapStyleReady) return;
-  const ret=document.getElementById('fRet')?.value || '';
-  const allRetailers=!ret;
-  const norm=allRetailers?'__all__':normalizeRetailer(ret);
+  const retVals=getSelectValues('fRet');
+  const brandVals=getSelectValues('fBrand');
+  const allRetailers=!retVals.length;
+  const norm=allRetailers?'__all__':retVals.join('|');
   const doors=doorLocations.filter(d=>{
-    if(!allRetailers && normalizeRetailer(d.retailer)!==norm) return false;
+    const doorRet=normalizeRetailer(d.retailer);
+    if(!allRetailers && !retVals.includes(doorRet)) return false;
+    if(brandVals.length){
+      const hasBrand=brandVals.some(brand=>{
+        const assignments=doorAssignments[k(doorRet,brand)]||[];
+        return assignments.some(a=>String(a.doorNumber)===String(d.doorNumber)) || getMatrixVal(doorRet,brand)>0;
+      });
+      if(!hasBrand) return false;
+    }
     const lat=Number(d.lat), lng=Number(d.lng);
     return d.lat!=null && d.lng!=null && !Number.isNaN(lat) && !Number.isNaN(lng);
   });
@@ -2145,8 +2288,9 @@ function updateResearchMapData(){
      doorAssignments — beats O(doors × brands) lookups. */
   const brandCountByDoor=new Map();
   for(const [key,assigns] of Object.entries(doorAssignments)){
-    const [r]=key.split('|');
-    if(!allRetailers && r!==norm) continue;
+    const [r,b]=key.split('|');
+    if(!allRetailers && !retVals.includes(r)) continue;
+    if(brandVals.length && !brandVals.includes(b)) continue;
     const seen=new Set();
     for(const a of assigns){
       const dn=String(a.doorNumber);
@@ -2256,7 +2400,7 @@ function ensureDataKeyState(ret,doorNumber,brand){
   const key=buildDataKey(ret,doorNumber,brand);
   if(!dataKeyState[key]){
     const doorInfo=(String(doorNumber)==='-'?null:getDoorInfo(ret,doorNumber));
-    dataKeyState[key]={status:'na',grade:(doorInfo&&doorInfo.tier)||'-',note:'',retailer:ret,doorNumber:doorNumber,brand:brand};
+    dataKeyState[key]={status:'na',grade:(doorInfo&&doorInfo.tier)||'-',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:doorNumber,brand:brand};
   }
   return dataKeyState[key];
 }
@@ -2283,6 +2427,8 @@ function updateDataKeyField(ret,doorNumber,brand,field,value,el){
   if(field==='status') state.status=normalizeStatus(value);
   else if(field==='grade') state.grade=value||'-';
   else if(field==='note') state.note=value||'';
+  else if(field==='metric_1' || field==='metric_2') state[field]=value===''?'':Number(value);
+  else state[field]=value;
   syncAssignmentFromDataKey(ret,doorNumber,brand);
   if(el && (field==='status' || field==='grade')) syncDataCellClass(el,field);
   recordHistory(ret,brand,{scope:'data',action:`${field} updated`,oldVal:oldVal,newVal:state[field],doorNumber:doorNumber});
@@ -2910,6 +3056,12 @@ function openInfoModal(){
   document.getElementById('mInfo').classList.add('open');
 }
 function closeInfo(){document.getElementById('ovInfo').classList.remove('open');document.getElementById('mInfo').classList.remove('open');}
+document.querySelectorAll('#mInfo .info-modal-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('#mInfo .info-modal-tab').forEach(t=>t.classList.toggle('active', t===tab));
+    document.querySelectorAll('#mInfo .info-modal-pane').forEach(p=>p.classList.toggle('active', p.id==='modal-tab-'+tab.dataset.tab));
+  });
+});
 
 /* Populate the Info modal's coverage table from live state. Lists every
    retailer that has either brand activity or door records, sorted by total
@@ -2994,11 +3146,13 @@ function isSheetJsReady(){
 function getTemplateDemoRows(){
   return {
     matrixRows:[
-      {Retailer:'Retailer A',Brand:'BR-A',Category:'LIFESTYLE',Doors:2},
-      {Retailer:'Retailer B',Brand:'BR-A',Category:'LIFESTYLE',Doors:1},
-      {Retailer:'Retailer A',Brand:'BR-B',Category:'PREMIUM',Doors:1},
-      {Retailer:'Retailer C',Brand:'BR-C',Category:'SPORT',Doors:2},
-      {Retailer:'Retailer B',Brand:'BR-C',Category:'SPORT',Doors:1}
+      {Retailer:'Retailer A',Brand:'BR-A',Category:'LIFESTYLE',Doors:2,'Door Number':101,Status:'confirmed',Grade:'A',metric_1:128,metric_2:0.62,Notes:'Example: units and sell-through'},
+      {Retailer:'Retailer A',Brand:'BR-A',Category:'LIFESTYLE',Doors:2,'Door Number':102,Status:'confirmed',Grade:'B',metric_1:74,metric_2:0.48,Notes:'Example: units and sell-through'},
+      {Retailer:'Retailer B',Brand:'BR-A',Category:'LIFESTYLE',Doors:1,'Door Number':201,Status:'confirmed',Grade:'A',metric_1:92,metric_2:0.55,Notes:'Example: units and sell-through'},
+      {Retailer:'Retailer A',Brand:'BR-B',Category:'PREMIUM',Doors:1,'Door Number':101,Status:'confirmed',Grade:'A',metric_1:43,metric_2:0.34,Notes:'Example: units and sell-through'},
+      {Retailer:'Retailer C',Brand:'BR-C',Category:'SPORT',Doors:2,'Door Number':301,Status:'confirmed',Grade:'A',metric_1:156,metric_2:0.71,Notes:'Example: units and sell-through'},
+      {Retailer:'Retailer C',Brand:'BR-C',Category:'SPORT',Doors:2,'Door Number':302,Status:'confirmed',Grade:'B',metric_1:88,metric_2:0.53,Notes:'Example: units and sell-through'},
+      {Retailer:'Retailer B',Brand:'BR-C',Category:'SPORT',Doors:1,'Door Number':202,Status:'confirmed',Grade:'B',metric_1:67,metric_2:0.41,Notes:'Example: units and sell-through'}
     ],
     doorRows:[
       {Retailer:'Retailer A','Door Number':101,Name:'Example Store 101',Address:'100 Main St',City:'New York',State:'NY',ZIP:'10001',Lat:40.7505,Lng:-73.9965,Tier:'A'},
@@ -3018,6 +3172,11 @@ function reconcileMatrixTotalsFromDoors(){
     retailers.forEach(ret=>{
       const target=parseInt(row[ret]||0,10)||0;
       if(target<=0) return;
+      const hasExplicitDoorMetrics=Object.keys(dataKeyState).some(key=>{
+        const s=dataKeyState[key];
+        return s && normalizeRetailer(s.retailer)===normalizeRetailer(ret) && s.brand===brand && (s.metric_1!==undefined || s.metric_2!==undefined || s.note);
+      });
+      if(hasExplicitDoorMetrics) return;
       const doors=getRetailerDoors(ret);
       let confirmed=getConfirmedCount(ret,brand);
       for(const door of doors){
@@ -3067,6 +3226,17 @@ function importMatrixRows(rows){
     if(!brandCodes[brand]) brandCodes[brand]={name:row['Brand Name']||row.brandName||brand,ds_active:true};
     d[ret]=parseInt(row.Doors||row.doors||0)||0;
     if(!retailers.includes(ret))retailers.push(ret);
+    const doorRaw=row['Door Number']||row.door_number||row.DoorNumber||row.Door||'';
+    if(doorRaw!=='' && doorRaw!==null && doorRaw!==undefined){
+      const state=ensureDataKeyState(ret,doorRaw,brand);
+      const status=row.Status||row.status;
+      if(status) state.status=normalizeStatus(status);
+      if(row.Grade||row.grade) state.grade=row.Grade||row.grade;
+      if(row.Note||row.Notes||row.note) state.note=row.Note||row.Notes||row.note;
+      if(row.metric_1!==undefined || row.Metric_1!==undefined || row['Metric 1']!==undefined) state.metric_1=row.metric_1 ?? row.Metric_1 ?? row['Metric 1'] ?? '';
+      if(row.metric_2!==undefined || row.Metric_2!==undefined || row['Metric 2']!==undefined) state.metric_2=row.metric_2 ?? row.Metric_2 ?? row['Metric 2'] ?? '';
+      syncAssignmentFromDataKey(ret,doorRaw,brand);
+    }
     n++;
   });
   return n;
@@ -3181,7 +3351,7 @@ function downloadTemplate(){
   if(!isSheetJsReady()) return;
   const demo=getTemplateDemoRows();
   const matrixRows=[
-    {Retailer:'',Brand:'',Category:'',Doors:''},
+    {Retailer:'',Brand:'',Category:'',Doors:'','Door Number':'',Status:'',Grade:'',metric_1:'',metric_2:'',Notes:''},
     ...demo.matrixRows
   ];
   const doorRows=[
@@ -3215,11 +3385,11 @@ function downloadDemoData(){
 function populateStatusGradeFilters(){
   const gradeSel=document.getElementById('fGrade');
   if(!gradeSel) return;
-  const current=gradeSel.value;
+  const current=getSelectValues(gradeSel);
   const grades=new Set();
   doorLocations.forEach(d=>{ if(d.tier) grades.add(String(d.tier)); });
   gradeSel.innerHTML='<option value="">All</option>'+Array.from(grades).sort().map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');
-  if(Array.from(grades).includes(current)) gradeSel.value=current;
+  setSelectValues(gradeSel,current);
 }
 
 function updateViewSpecificControls(){
@@ -3320,8 +3490,8 @@ function setView(v){
   document.getElementById('tBtn').style.display=v==='matrix'?'inline-flex':'none';
   if(v==='unpivoted'){
     const fs=document.getElementById('fStatus');
-    if(fs && (!dataStatusPrimed || !fs.value)){
-      fs.value='confirmed';
+    if(fs && (!dataStatusPrimed || !getSelectValues(fs).length)){
+      setSelectValues(fs,['confirmed']);
       dataStatusPrimed=true;
     }
   }

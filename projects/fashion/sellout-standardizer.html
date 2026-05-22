@@ -520,23 +520,75 @@ tr:hover td { background: var(--accent-dim); }
   font-size: 1.3rem;
 }
 .info-modal-close:hover { color: var(--text); background: var(--surface-raised); }
+.info-modal-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--border);
+}
+.info-modal-tab {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 12px 10px 10px;
+  text-transform: uppercase;
+}
+.info-modal-tab:hover { color: var(--text); }
+.info-modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .info-modal-body {
   overflow: auto;
   padding: 20px 22px 24px;
   color: var(--text-muted);
   line-height: 1.65;
 }
+.info-modal-pane { display: none; }
+.info-modal-pane.active { display: block; }
 .info-modal-body h3 {
   margin: 18px 0 8px;
   color: var(--text);
   font-family: var(--font-display);
 }
 .info-modal-body h3:first-child { margin-top: 0; }
+.info-modal-body p { margin-bottom: 10px; }
 .info-modal-body code {
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 0.86em;
 }
+.info-modal-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0 16px;
+  font-size: 0.78rem;
+}
+.info-modal-body th, .info-modal-body td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+.info-modal-body th { color: var(--text); font-family: var(--font-mono); }
+.info-link-list { display: grid; gap: 10px; margin-top: 12px; }
+.info-link {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text);
+  text-decoration: none;
+  background: var(--bg);
+}
+.info-link:hover { border-color: var(--accent); background: var(--accent-dim); }
+.info-link-meta { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.72rem; }
 .toast {
   position: fixed;
   right: 20px;
@@ -597,8 +649,8 @@ tr:hover td { background: var(--accent-dim); }
   <section class="intro">
     <div class="intro-copy">
       <p class="eyebrow">Weekly sell-out reports</p>
-      <h1>Normalize wide retailer reports into one analytics-ready table.</h1>
-      <p>Upload recurring reports or paste an Excel range. The tool flattens stacked headers like WTD / MTD / YTD above duplicated metrics, lets you map product fields once, previews the final rows, and saves the configuration for repeat use.</p>
+      <h1>Sell-Out Standardizer</h1>
+      <p>Upload files or paste an Excel range to begin.</p>
     </div>
     <label class="dropzone" id="dropzone">
       <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple>
@@ -759,20 +811,54 @@ tr:hover td { background: var(--accent-dim); }
 <div class="info-modal-overlay" id="infoModalOverlay" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
   <div class="info-modal">
     <div class="info-modal-header">
-      <span class="info-modal-title" id="infoModalTitle">Sell-Out Standardizer <span>- Appendix</span></span>
+      <span class="info-modal-title" id="infoModalTitle">Sell-Out Standardizer <span>— Appendix</span></span>
       <button class="info-modal-close" id="infoModalClose" aria-label="Close">&times;</button>
     </div>
+    <div class="info-modal-tabs" role="tablist">
+      <button class="info-modal-tab active" data-tab="about" role="tab">About</button>
+      <button class="info-modal-tab" data-tab="schema" role="tab">Schema</button>
+      <button class="info-modal-tab" data-tab="appendix" role="tab">Appendix</button>
+      <button class="info-modal-tab" data-tab="resources" role="tab">Resources</button>
+    </div>
     <div class="info-modal-body">
-      <h3>Standard Output</h3>
-      <p>Each metric column becomes one row with <code>source_file</code>, <code>source_sheet</code>, <code>source_row</code>, <code>report_period</code>, <code>cadence</code>, <code>year_basis</code>, <code>metric</code>, and <code>value</code>. Product fields such as retailer, brand, style, color, SKU, UPC, size, and description remain as dimensions.</p>
-      <h3>Stacked Headers</h3>
-      <p>When a row above the metric headers contains timing labels such as <code>WTD</code>, <code>MTD</code>, <code>QTD</code>, or <code>YTD</code>, the app carries that cadence across repeated columns like <code>Sale U</code> and <code>Sale $</code>.</p>
-      <h3>LY and ST%</h3>
-      <p>The LY toggle treats <code>LY</code> and <code>Last Year</code> labels as comparison values instead of cadences. The ST% toggle adds calculated sell-through rows when <code>Sale U</code> and an on-hand unit column are available for the same cadence and year basis.</p>
-      <h3>Sheets and Rows</h3>
-      <p>Use the sheet checkboxes to include only the workbook tabs that belong in the combined output. <code>Delete Rows</code> removes 1-based Excel row numbers before parsing, so header positions shift. <code>Ignore Rows</code> keeps the sheet structure intact but skips those original row numbers in the final output.</p>
-      <h3>Configurations</h3>
-      <p>Exporting a config saves the detected rows, report period, default cadence, and current field mapping. Import it next week and the same retailer report shape can be normalized quickly.</p>
+      <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
+        <h3>What this is</h3>
+        <p>Normalize wide retailer sell-out reports into one analytics-ready table. The tool flattens stacked headers such as WTD / MTD / YTD over duplicated metrics, keeps product fields as dimensions, and saves repeatable mappings.</p>
+        <h3>Quick start</h3>
+        <p>Upload recurring reports or paste an Excel range, confirm the cadence and metric header rows, map product fields, then preview and export the standardized output.</p>
+        <h3>Privacy</h3>
+        <p>All parsing happens locally in your browser. Imported spreadsheets are not uploaded to a server.</p>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
+        <h3>Standard Output</h3>
+        <p>Each metric column becomes one row with <code>source_file</code>, <code>source_sheet</code>, <code>source_row</code>, <code>report_period</code>, <code>cadence</code>, <code>year_basis</code>, <code>metric</code>, and <code>value</code>.</p>
+        <table>
+          <tr><th>Dimension type</th><th>Examples</th></tr>
+          <tr><td>Product</td><td><code>brand</code>, <code>style</code>, <code>color</code>, <code>sku</code>, <code>upc</code>, <code>size</code>, <code>description</code></td></tr>
+          <tr><td>Retail context</td><td><code>retailer</code>, <code>channel</code>, <code>store_name</code>, <code>location_type</code></td></tr>
+          <tr><td>Metric rows</td><td><code>sale_units</code>, <code>sale_dollars</code>, <code>on_hand_units</code>, <code>sell_through_pct</code></td></tr>
+        </table>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-appendix" role="tabpanel">
+        <h3>Stacked Headers</h3>
+        <p>When a row above the metric headers contains timing labels such as <code>WTD</code>, <code>MTD</code>, <code>QTD</code>, or <code>YTD</code>, the app carries that cadence across repeated columns like <code>Sale U</code> and <code>Sale $</code>.</p>
+        <h3>LY and ST%</h3>
+        <p>The LY toggle treats <code>LY</code> and <code>Last Year</code> labels as comparison values instead of cadences. The ST% toggle adds calculated sell-through rows when <code>Sale U</code> and an on-hand unit column are available for the same cadence and year basis.</p>
+        <h3>Sheets and Rows</h3>
+        <p>Use sheet checkboxes to include workbook tabs. <code>Delete Rows</code> removes 1-based Excel row numbers before parsing. <code>Ignore Rows</code> keeps the sheet structure intact but skips those original row numbers in the final output.</p>
+        <h3>Configurations</h3>
+        <p>Exporting a config saves detected rows, report period, default cadence, and field mapping so the same retailer report shape can be normalized again.</p>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-resources" role="tabpanel">
+        <h3>Fashion Toolbox</h3>
+        <div class="info-link-list">
+          <a class="info-link" href="index.html"><strong>Fashion Toolbox</strong><span class="info-link-meta">Index</span></a>
+          <a class="info-link" href="replenishment-linesheet.html"><strong>RP Line Sheet</strong><span class="info-link-meta">Replenishment Review</span></a>
+          <a class="info-link" href="assortment-comparison.html"><strong>Assortment Comparison</strong><span class="info-link-meta">Retailer Overlap</span></a>
+          <a class="info-link" href="retailer-door-tracker.html"><strong>Door Tracker</strong><span class="info-link-meta">Door Distribution</span></a>
+          <a class="info-link" href="upc-concat.html"><strong>UPC Concat</strong><span class="info-link-meta">Schema Mapping</span></a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1407,6 +1493,12 @@ function initInfoModal() {
   closeBtn.addEventListener("click", close);
   overlay.addEventListener("click", e => { if (e.target === overlay) close(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+  document.querySelectorAll(".info-modal-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".info-modal-tab").forEach(t => t.classList.toggle("active", t === tab));
+      document.querySelectorAll(".info-modal-pane").forEach(p => p.classList.toggle("active", p.id === "modal-tab-" + tab.dataset.tab));
+    });
+  });
 }
 
 els.fileInput.addEventListener("change", e => handleFiles(e.target.files));
