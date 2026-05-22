@@ -363,13 +363,18 @@ h1 {
 }
 .file-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto 1fr auto;
   gap: 8px;
   align-items: center;
   padding: 9px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   background: var(--surface-card);
+}
+.file-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
 }
 .file-row strong { display: block; font-size: 0.86rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file-row span { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.68rem; }
@@ -665,6 +670,14 @@ tr:hover td { background: var(--accent-dim); }
             <input id="reportPeriod" placeholder="Optional, ex: 2026 W21">
           </div>
           <div class="field">
+            <label for="deleteRows">Delete Rows</label>
+            <input id="deleteRows" placeholder="Before parsing, ex: 1, 3-5">
+          </div>
+          <div class="field">
+            <label for="ignoreRows">Ignore Rows</label>
+            <input id="ignoreRows" placeholder="Skip output only, ex: 8, 20-24">
+          </div>
+          <div class="field">
             <label for="defaultCadence">Default Cadence</label>
             <select id="defaultCadence">
               <option value="">Blank when missing</option>
@@ -756,6 +769,8 @@ tr:hover td { background: var(--accent-dim); }
       <p>When a row above the metric headers contains timing labels such as <code>WTD</code>, <code>MTD</code>, <code>QTD</code>, or <code>YTD</code>, the app carries that cadence across repeated columns like <code>Sale U</code> and <code>Sale $</code>.</p>
       <h3>LY and ST%</h3>
       <p>The LY toggle treats <code>LY</code> and <code>Last Year</code> labels as comparison values instead of cadences. The ST% toggle adds calculated sell-through rows when <code>Sale U</code> and an on-hand unit column are available for the same cadence and year basis.</p>
+      <h3>Sheets and Rows</h3>
+      <p>Use the sheet checkboxes to include only the workbook tabs that belong in the combined output. <code>Delete Rows</code> removes 1-based Excel row numbers before parsing, so header positions shift. <code>Ignore Rows</code> keeps the sheet structure intact but skips those original row numbers in the final output.</p>
       <h3>Configurations</h3>
       <p>Exporting a config saves the detected rows, report period, default cadence, and current field mapping. Import it next week and the same retailer report shape can be normalized quickly.</p>
     </div>
@@ -805,9 +820,12 @@ const state = {
     cadenceRow: 1,
     headerRow: 2,
     reportPeriod: "",
+    deleteRows: "",
+    ignoreRows: "",
     defaultCadence: "",
     includeLy: false,
     calculateSt: false,
+    sheetIncludes: {},
     mappings: {}
   },
   headers: [],
@@ -829,6 +847,8 @@ const els = {
   cadenceRow: document.getElementById("cadenceRow"),
   headerRow: document.getElementById("headerRow"),
   reportPeriod: document.getElementById("reportPeriod"),
+  deleteRows: document.getElementById("deleteRows"),
+  ignoreRows: document.getElementById("ignoreRows"),
   defaultCadence: document.getElementById("defaultCadence"),
   includeLy: document.getElementById("includeLy"),
   calculateSt: document.getElementById("calculateSt"),
@@ -863,6 +883,58 @@ function normalize(value) {
 
 function cleanHeader(value) {
   return String(value ?? "").replace(/\s+/g, " ").trim();
+}
+
+function sheetKey(name, sheet) {
+  return `${name}::${sheet}`;
+}
+
+function getSheetIncluded(source) {
+  state.config.sheetIncludes = state.config.sheetIncludes || {};
+  const exact = state.config.sheetIncludes[sheetKey(source.name, source.sheet)];
+  if (exact !== undefined) return !!exact;
+  const bySheet = state.config.sheetIncludes[source.sheet];
+  if (bySheet !== undefined) return !!bySheet;
+  return source.included !== false;
+}
+
+function parseRowSpec(spec) {
+  const rows = new Set();
+  String(spec || "").split(",").forEach(part => {
+    const trimmed = part.trim();
+    if (!trimmed) return;
+    const range = trimmed.match(/^(\d+)\s*-\s*(\d+)$/);
+    if (range) {
+      const start = Math.min(Number(range[1]), Number(range[2]));
+      const end = Math.max(Number(range[1]), Number(range[2]));
+      for (let row = start; row <= end; row++) rows.add(row);
+      return;
+    }
+    const row = Number(trimmed);
+    if (Number.isInteger(row) && row > 0) rows.add(row);
+  });
+  return rows;
+}
+
+function getDeletedRows() {
+  return parseRowSpec(state.config.deleteRows);
+}
+
+function getIgnoredRows() {
+  return parseRowSpec(state.config.ignoreRows);
+}
+
+function getRowsForSource(source, options = {}) {
+  const deleted = getDeletedRows();
+  const ignored = options.ignoreOutput ? getIgnoredRows() : new Set();
+  return source.rows
+    .map((row, idx) => ({ row, originalRow: idx + 1 }))
+    .filter(item => !deleted.has(item.originalRow))
+    .filter(item => !ignored.has(item.originalRow));
+}
+
+function getIncludedSources() {
+  return state.sources.filter(getSheetIncluded);
 }
 
 function stripMetaLabels(label) {
@@ -949,18 +1021,23 @@ async function handleFiles(files) {
 function addSource(name, sheet, rows) {
   const cleanRows = normalizeRows(rows);
   if (!cleanRows.length) return;
+  state.config.sheetIncludes = state.config.sheetIncludes || {};
+  const exactKey = sheetKey(name, sheet);
+  const included = state.config.sheetIncludes[exactKey] ?? state.config.sheetIncludes[sheet] ?? true;
   state.sources.push({
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     name,
     sheet,
+    included,
     rows: cleanRows
   });
 }
 
 function autoDetect() {
-  const source = state.sources[0];
+  const source = getIncludedSources()[0];
   if (!source) return;
-  const rowScores = source.rows.slice(0, 12).map((row, idx) => {
+  const workingRows = getRowsForSource(source).map(item => item.row);
+  const rowScores = workingRows.slice(0, 12).map((row, idx) => {
     const filled = row.filter(v => cleanHeader(v)).length;
     const cadenceHits = row.filter(v => CADENCE_RE.test(cleanHeader(v))).length;
     const metricHits = row.filter(v => toMetricName(v) !== normalize(v).replace(/\s+/g, "_")).length;
@@ -979,9 +1056,12 @@ function autoDetect() {
 }
 
 function syncConfigFromControls() {
+  state.config.sheetIncludes = state.config.sheetIncludes || {};
   state.config.cadenceRow = Math.max(0, Number(els.cadenceRow.value) || 0);
   state.config.headerRow = Math.max(1, Number(els.headerRow.value) || 1);
   state.config.reportPeriod = els.reportPeriod.value.trim();
+  state.config.deleteRows = els.deleteRows.value.trim();
+  state.config.ignoreRows = els.ignoreRows.value.trim();
   state.config.defaultCadence = els.defaultCadence.value;
   state.config.includeLy = els.includeLy.checked;
   state.config.calculateSt = els.calculateSt.checked;
@@ -989,15 +1069,16 @@ function syncConfigFromControls() {
 
 function buildHeaders() {
   syncConfigFromControls();
-  const source = state.sources[0];
+  const source = getIncludedSources()[0];
   if (!source) {
     state.headers = [];
     return;
   }
+  const workingRows = getRowsForSource(source).map(item => item.row);
   const headerIdx = state.config.headerRow - 1;
   const cadenceIdx = state.config.cadenceRow ? state.config.cadenceRow - 1 : -1;
-  const headerRow = source.rows[headerIdx] || [];
-  const cadenceRow = cadenceIdx >= 0 ? (source.rows[cadenceIdx] || []) : [];
+  const headerRow = workingRows[headerIdx] || [];
+  const cadenceRow = cadenceIdx >= 0 ? (workingRows[cadenceIdx] || []) : [];
   let carryCadence = "";
   let carryYearBasis = "TY";
   state.headers = headerRow.map((label, idx) => {
@@ -1063,8 +1144,12 @@ function buildOutput() {
   const headerIdx = state.config.headerRow - 1;
   const outputs = [];
   const metricHeaders = state.headers.filter(h => !isDimensionColumn(h) && h.raw && h.metric && !/^column_\d+$/i.test(h.metric));
-  state.sources.forEach(source => {
-    source.rows.slice(headerIdx + 1).forEach((row, offset) => {
+  getIncludedSources().forEach(source => {
+    const ignoredRows = getIgnoredRows();
+    const workingRows = getRowsForSource(source);
+    workingRows.slice(headerIdx + 1).forEach(item => {
+      if (ignoredRows.has(item.originalRow)) return;
+      const row = item.row;
       if (!row.some(cell => cleanHeader(cell))) return;
       const dims = {};
       STANDARD_FIELDS.forEach(field => {
@@ -1082,7 +1167,7 @@ function buildOutput() {
         outputs.push({
           source_file: source.name,
           source_sheet: source.sheet,
-          source_row: headerIdx + 2 + offset,
+          source_row: item.originalRow,
           report_period: state.config.reportPeriod,
           cadence,
           year_basis: yearBasis,
@@ -1103,7 +1188,7 @@ function buildOutput() {
             outputs.push({
               source_file: source.name,
               source_sheet: source.sheet,
-              source_row: headerIdx + 2 + offset,
+              source_row: item.originalRow,
               report_period: state.config.reportPeriod,
               cadence,
               year_basis: yearBasis,
@@ -1127,6 +1212,7 @@ function renderFileList() {
   }
   els.fileList.innerHTML = state.sources.map(source => `
     <div class="file-row">
+      <input type="checkbox" data-include="${esc(source.id)}" ${getSheetIncluded(source) ? "checked" : ""} aria-label="Include ${esc(source.sheet)}">
       <div><strong title="${esc(source.name)}">${esc(source.name)}</strong><span>${esc(source.sheet)} - ${source.rows.length} rows</span></div>
       <button class="btn btn-sm btn-danger" data-remove="${esc(source.id)}">Remove</button>
     </div>
@@ -1157,6 +1243,9 @@ function renderChips() {
   const metricHeaders = state.headers.filter(h => !isDimensionColumn(h) && h.metric);
   const mappedCount = Object.values(state.config.mappings).filter(v => v !== "" && v !== undefined).length;
   const cadences = Array.from(new Set(metricHeaders.map(h => h.cadence).filter(Boolean)));
+  const includedCount = getIncludedSources().length;
+  const deletedCount = getDeletedRows().size;
+  const ignoredCount = getIgnoredRows().size;
   const missingCore = [];
   CADENCES.forEach(cadence => {
     const hasSaleU = metricHeaders.some(h => h.cadence === cadence && h.metric === "sale_units");
@@ -1166,8 +1255,11 @@ function renderChips() {
     }
   });
   els.detectedChips.innerHTML = [
+    `<span class="chip ${includedCount ? "good" : "warn"}">${includedCount} included sheets</span>`,
     `<span class="chip good">${metricHeaders.length} metric columns</span>`,
     `<span class="chip">${mappedCount} mapped dimensions</span>`,
+    deletedCount ? `<span class="chip warn">${deletedCount} deleted rows</span>` : `<span class="chip">No deleted rows</span>`,
+    ignoredCount ? `<span class="chip warn">${ignoredCount} ignored rows</span>` : `<span class="chip">No ignored rows</span>`,
     cadences.length ? `<span class="chip good">${esc(cadences.join(", "))}</span>` : `<span class="chip warn">No cadence detected</span>`,
     state.config.includeLy ? `<span class="chip good">LY mapping on</span>` : `<span class="chip">TY only</span>`,
     state.config.calculateSt ? `<span class="chip good">ST% calc on</span>` : `<span class="chip">ST% calc off</span>`,
@@ -1189,7 +1281,7 @@ function renderTable() {
       metric: h.metric,
       mapped_dimension: Object.entries(state.config.mappings).find(([, idx]) => Number(idx) === h.index)?.[0] || ""
     })) :
-    (state.sources[0]?.rows || []).slice(0, 80).map((row, i) => Object.fromEntries([["row", i + 1]].concat(row.map((cell, idx) => [`col_${idx + 1}`, cell]))));
+    (getIncludedSources()[0] ? getRowsForSource(getIncludedSources()[0]).slice(0, 80).map(item => Object.fromEntries([["row", item.originalRow]].concat(item.row.map((cell, idx) => [`col_${idx + 1}`, cell])))) : []);
   if (!rows.length) {
     els.tableShell.innerHTML = '<div class="empty-state"><div><strong>No preview rows yet.</strong><span>Load a report, then adjust the header and mapping controls.</span></div></div>';
     return;
@@ -1204,8 +1296,9 @@ function renderTable() {
 }
 
 function renderStats() {
-  els.statSources.textContent = state.sources.length;
-  els.statRows.textContent = state.sources.reduce((sum, s) => sum + Math.max(0, s.rows.length - state.config.headerRow), 0);
+  const included = getIncludedSources();
+  els.statSources.textContent = included.length;
+  els.statRows.textContent = included.reduce((sum, s) => sum + Math.max(0, getRowsForSource(s, { ignoreOutput: true }).length - state.config.headerRow), 0);
   els.statPreview.textContent = state.output.length;
   els.previewSub.textContent = state.output.length ? `${state.output.length.toLocaleString()} standardized rows, preview capped at 500` : "Final standardized output";
   const canExport = state.output.length > 0;
@@ -1273,9 +1366,14 @@ async function importConfig(file) {
   try {
     const parsed = JSON.parse(await file.text());
     state.config = { ...state.config, ...(parsed.config || parsed) };
+    state.config.sheetIncludes = state.config.sheetIncludes || {};
+    state.config.deleteRows = state.config.deleteRows || "";
+    state.config.ignoreRows = state.config.ignoreRows || "";
     els.cadenceRow.value = state.config.cadenceRow;
     els.headerRow.value = state.config.headerRow;
     els.reportPeriod.value = state.config.reportPeriod || "";
+    els.deleteRows.value = state.config.deleteRows || "";
+    els.ignoreRows.value = state.config.ignoreRows || "";
     els.defaultCadence.value = state.config.defaultCadence || "";
     els.includeLy.checked = !!state.config.includeLy;
     els.calculateSt.checked = !!state.config.calculateSt;
@@ -1342,8 +1440,18 @@ els.fileList.addEventListener("click", e => {
   state.sources = state.sources.filter(source => source.id !== btn.dataset.remove);
   rebuild();
 });
+els.fileList.addEventListener("change", e => {
+  const input = e.target.closest("[data-include]");
+  if (!input) return;
+  const source = state.sources.find(item => item.id === input.dataset.include);
+  if (!source) return;
+  source.included = input.checked;
+  state.config.sheetIncludes[sheetKey(source.name, source.sheet)] = input.checked;
+  state.config.sheetIncludes[source.sheet] = input.checked;
+  rebuild();
+});
 ["change", "input"].forEach(evt => {
-  [els.cadenceRow, els.headerRow, els.reportPeriod, els.defaultCadence, els.includeLy, els.calculateSt].forEach(el => el.addEventListener(evt, rebuild));
+  [els.cadenceRow, els.headerRow, els.reportPeriod, els.deleteRows, els.ignoreRows, els.defaultCadence, els.includeLy, els.calculateSt].forEach(el => el.addEventListener(evt, rebuild));
 });
 document.getElementById("autoDetectBtn").addEventListener("click", () => { autoDetect(); rebuild(); toast("Header rows detected."); });
 document.getElementById("remapBtn").addEventListener("click", () => {

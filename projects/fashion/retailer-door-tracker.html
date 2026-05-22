@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Door Tracker — DS Distribution | cloonk.com</title>
+<title>Door Tracker — Door Distribution | cloonk.com</title>
 <meta name="description" content="Track brand × retailer door distribution. Map reveal, change history, and restore points.">
 <meta name="author" content="Kevin Zhang">
 <meta name="theme-color" content="#0a0a0a">
@@ -91,6 +91,41 @@ a.logo:hover { color: var(--accent); }
 .header-stats { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); display: flex; gap: 14px; }
 .header-stats .sv { color: var(--accent); font-weight: 500; }
 .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.header-menu { position: relative; }
+.menu-trigger::after { content: '▾'; font-size: 0.62rem; color: var(--text-muted); margin-left: 2px; }
+.header-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 500;
+  min-width: 210px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.32);
+  display: none;
+}
+.header-menu.open .header-menu-panel { display: block; }
+.menu-item {
+  width: 100%;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: left;
+}
+.menu-item:hover { background: var(--accent-dim); color: var(--accent); }
+.menu-sep { height: 1px; background: var(--border); margin: 5px; }
 
 /* ─── BUTTONS ─── */
 .btn, .theme-toggle {
@@ -157,10 +192,29 @@ body.light .theme-toggle .icon-moon { display: block; }
 body.locked { overflow: hidden; }
 
 /* ─── TOOLBAR ─── */
-.toolbar { padding: 8px 24px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
+.toolbar { position: relative; padding: 8px 24px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
 .toolbar-group { display: flex; align-items: center; gap: 5px; }
 .toolbar-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); font-weight: 700; }
 .toolbar-divider { width: 1px; height: 20px; background: var(--border); margin: 0 3px; }
+.toolbar-spacer { flex: 1 1 auto; }
+.refine-wrap { position: relative; margin-left: auto; }
+.refine-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 300;
+  display: none;
+  min-width: min(360px, calc(100vw - 32px));
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.32);
+}
+.refine-wrap.open .refine-panel { display: grid; gap: 10px; }
+.refine-panel .toolbar-divider { display: none !important; }
+.refine-panel .toolbar-group { justify-content: space-between; gap: 12px; }
+.refine-panel select, .refine-panel .search-box { width: 210px; max-width: 100%; }
 select { font-family: var(--font-body); font-size: 0.82rem; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-xs); color: var(--text); outline: none; }
 select:focus { border-color: var(--accent); }
 body.light select { background: #f4f2ee; }
@@ -338,6 +392,18 @@ body.mode-map .door-detail { max-height: 300px; overflow-y: auto; }
 .import-zone:hover { border-color: var(--accent); background: var(--accent-dim); }
 .import-zone input { display: none; }
 .import-zone p { color: var(--text-muted); font-size: 0.78rem; }
+.login-start-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+.login-start-card { border:1px solid var(--border); border-radius:var(--radius-xs); padding:12px; background:var(--surface-raised); }
+.login-start-card h4 { font-family:var(--font-display); font-size:0.95rem; margin-bottom:4px; color:var(--text); }
+.login-start-card p { margin:0 0 10px; font-size:0.72rem; line-height:1.45; }
+.login-upload-zone { border:2px dashed var(--border); border-radius:var(--radius-xs); padding:16px 12px; text-align:center; cursor:pointer; transition:all var(--transition); }
+.login-upload-zone:hover, .login-upload-zone.dragover { border-color:var(--accent); background:var(--accent-dim); }
+.login-upload-zone input { display:none; }
+.login-upload-title { color:var(--accent); font-weight:800; font-size:0.76rem; }
+.login-upload-hint { color:var(--text-dim); font-size:0.68rem; margin-top:3px; line-height:1.35; }
+.login-divider { display:flex; align-items:center; gap:10px; margin:16px 0 10px; color:var(--text-dim); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; }
+.login-divider::before, .login-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+@media (max-width: 680px) { .login-start-grid { grid-template-columns:1fr; } }
 
 .search-box { padding: 7px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-xs); font-family: var(--font-body); font-size: 0.82rem; color: var(--text); outline: none; width: 160px; }
 .search-box:focus { border-color: var(--accent); }
@@ -492,7 +558,7 @@ body.light .data-cell-note { background: #f4f2ee; }
 </script>
 <header class="header">
   <div class="header-left">
-    <a class="logo" href="index.html" title="Back to Fashion Toolbox">Door Tracker <span>DS Distribution</span></a>
+    <a class="logo" href="index.html" title="Back to Fashion Toolbox">Door Tracker <span>Door Distribution</span></a>
     <span class="user-chip" id="userChip">
       <span class="signed-as">Signed in as</span>
       <span class="user-name" id="userChipName">—</span>
@@ -501,12 +567,21 @@ body.light .data-cell-note { background: #f4f2ee; }
   </div>
   <div class="header-actions">
     <button class="btn" onclick="openAddModal()" title="Modify verified door assignments by adding or removing specific retailer-door-brand records">Modify Door</button>
-    <button class="btn" onclick="openImportModal()" title="Upload .xlsx/.csv with Retailer, Brand, Category, Doors columns">Import</button>
-    <button class="btn btn-accent" onclick="exportCurrentView()" title="Download exactly what is showing on screen as an Excel sheet">Export</button>
+    <div class="header-menu" id="dataMenu">
+      <button class="btn menu-trigger" type="button" onclick="toggleHeaderMenu('dataMenu')" aria-haspopup="menu" aria-expanded="false" title="Import, export, templates, and file save/load">Data</button>
+      <div class="header-menu-panel" role="menu">
+        <button class="menu-item" type="button" onclick="openImportModal();closeHeaderMenus()" role="menuitem">Import Sheets</button>
+        <button class="menu-item" type="button" onclick="exportCurrentView();closeHeaderMenus()" role="menuitem">Export View</button>
+        <div class="menu-sep"></div>
+        <button class="menu-item" type="button" onclick="downloadTemplate();closeHeaderMenus()" role="menuitem">Blank Template</button>
+        <button class="menu-item" type="button" onclick="downloadDemoData();closeHeaderMenus()" role="menuitem">Demo Data</button>
+        <div class="menu-sep"></div>
+        <button class="menu-item" type="button" onclick="openSnapshotsModal();closeHeaderMenus()" role="menuitem">Restore Points</button>
+        <button class="menu-item" type="button" onclick="downloadJSON();closeHeaderMenus()" role="menuitem">Save JSON</button>
+        <button class="menu-item" type="button" onclick="document.getElementById('jsonUp').click();closeHeaderMenus()" role="menuitem">Load JSON</button>
+      </div>
+    </div>
     <button class="btn" onclick="openGlobalHistory()" title="View every change made across all retailers and brands">History</button>
-    <button class="btn" onclick="openSnapshotsModal()" title="Create and restore named save points">Snapshots</button>
-    <button class="btn" onclick="downloadJSON()" title="Save all data (matrix, assignments, notes) as a JSON file">Save</button>
-    <button class="btn" onclick="document.getElementById('jsonUp').click()" title="Load a previously saved JSON file to restore state">Load</button>
     <input type="file" id="jsonUp" accept=".json" style="display:none" onchange="loadJSON(event)">
     <button class="btn info-btn" onclick="openInfoModal()" aria-label="Open info" title="Learn what each feature does">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.6" fill="currentColor"/></svg>
@@ -524,32 +599,6 @@ body.light .data-cell-note { background: #f4f2ee; }
     <button type="button" class="mode-btn" data-mode="map" onclick="setMode('map')" title="Spatial view: Brand–Door Research map">Map</button>
   </div>
   <div class="toolbar-divider"></div>
-  <div class="toolbar-group">
-    <span class="toolbar-label">Retailer</span>
-    <select id="fRet" onchange="render()"><option value="">All</option></select>
-  </div>
-  <div class="toolbar-divider"></div>
-  <div class="toolbar-group">
-    <span class="toolbar-label">Category</span>
-    <select id="fCat" onchange="render()"><option value="">All</option></select>
-  </div>
-  <div class="toolbar-divider"></div>
-  <div class="toolbar-group">
-    <span class="toolbar-label">Brand</span>
-    <select id="fBrand" onchange="render()"><option value="">All</option></select>
-  </div>
-  <div class="toolbar-divider"></div>
-  <div class="toolbar-group" id="statusFilterGroup" style="display:none">
-    <span class="toolbar-label">Status</span>
-    <select id="fStatus" onchange="render()"><option value="">All</option><option value="confirmed">Confirmed</option><option value="tbd">TBD</option><option value="na">N/A</option><option value="closed">Closed</option></select>
-  </div>
-  <div class="toolbar-group" id="gradeFilterGroup" style="display:none">
-    <span class="toolbar-label">Grade</span>
-    <select id="fGrade" onchange="render()"><option value="">All</option></select>
-  </div>
-  <div class="toolbar-divider" id="statusGradeDivider" style="display:none"></div>
-  <input type="text" class="search-box" id="searchBox" placeholder="Search brand…" oninput="debouncedRender()">
-  <div class="toolbar-divider"></div>
   <div class="view-tabs" id="viewTabs">
     <button class="view-tab active" data-v="matrix" onclick="setView('matrix')">Matrix</button>
     <button class="view-tab" data-v="compact" onclick="setView('compact')">Compact</button>
@@ -558,6 +607,41 @@ body.light .data-cell-note { background: #f4f2ee; }
     <button class="view-tab draft-tab" data-v="drafts" onclick="setView('drafts')">Drafts <span class="draft-badge" id="draftCount">0</span></button>
   </div>
   <button class="btn btn-sm" id="tBtn" onclick="toggleTranspose()" title="Swap rows/columns in Matrix view">⇄ Transpose</button>
+  <div class="toolbar-spacer"></div>
+  <div class="refine-wrap" id="refineWrap">
+    <button class="btn btn-sm menu-trigger" type="button" onclick="toggleRefinePanel()" aria-expanded="false" title="Show filters and search">Refine</button>
+    <div class="refine-panel" id="refinePanel">
+      <div class="toolbar-group">
+        <span class="toolbar-label">Retailer</span>
+        <select id="fRet" onchange="render()"><option value="">All</option></select>
+      </div>
+      <div class="toolbar-group">
+        <span class="toolbar-label">Category</span>
+        <select id="fCat" onchange="render()"><option value="">All</option></select>
+      </div>
+      <div class="toolbar-group">
+        <span class="toolbar-label">Brand</span>
+        <select id="fBrand" onchange="render()"><option value="">All</option></select>
+      </div>
+      <div class="toolbar-group" id="statusFilterGroup" style="display:none">
+        <span class="toolbar-label">Status</span>
+        <select id="fStatus" onchange="render()"><option value="">All</option><option value="confirmed">Confirmed</option><option value="tbd">TBD</option><option value="na">N/A</option><option value="closed">Closed</option></select>
+      </div>
+      <div class="toolbar-group" id="gradeFilterGroup" style="display:none">
+        <span class="toolbar-label">Grade</span>
+        <select id="fGrade" onchange="render()"><option value="">All</option></select>
+      </div>
+      <div class="toolbar-group" id="opportunityFilterGroup" style="display:none">
+        <span class="toolbar-label">Opportunities</span>
+        <label class="toggle-pill" style="text-transform:none;letter-spacing:0;font-family:var(--font-body);font-size:0.76rem;color:var(--text-muted)">
+          <input type="checkbox" id="fOpportunities" onchange="render()" style="width:auto">
+          Brand can be at door
+        </label>
+      </div>
+      <div class="toolbar-divider" id="statusGradeDivider" style="display:none"></div>
+      <input type="text" class="search-box" id="searchBox" placeholder="Search brand…" oninput="debouncedRender()">
+    </div>
+  </div>
 </div>
 
 <div class="summary-bar" id="summaryBar" style="display:none"></div>
@@ -648,6 +732,10 @@ body.light .data-cell-note { background: #f4f2ee; }
 <div class="modal" id="mImport" style="max-width:560px">
   <h3>Import</h3>
   <p>Two intakes — matrix totals and physical door locations. Each accepts a separate spreadsheet.</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px">
+    <button class="btn btn-sm" type="button" onclick="downloadTemplate()">Blank Template</button>
+    <button class="btn btn-sm" type="button" onclick="downloadDemoData()">Demo Data</button>
+  </div>
 
   <label>Matrix data</label>
   <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code></div>
@@ -755,8 +843,39 @@ body.light .data-cell-note { background: #f4f2ee; }
 
 <!-- Login wall — blocking, dismissable only by successful sign-in. -->
 <div class="overlay" id="ovLogin"></div>
-<div class="modal" id="mLogin" style="max-width:380px">
-  <h3>Door Tracker</h3>
+<div class="modal" id="mLogin" style="max-width:720px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <h3 style="margin-bottom:0">Door Tracker</h3>
+    <button class="btn" type="button" id="guestBtn" onclick="enterGuestMode()" title="Try a small anonymized sample dataset">Try Demo Data</button>
+  </div>
+  <p>Start with your own retailer-door files, or sign in to use the shared workspace. Everything runs locally in this browser.</p>
+  <div class="login-start-grid">
+    <div class="login-start-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
+        <h4 style="margin-bottom:0">Matrix Data</h4>
+        <button class="btn btn-sm" type="button" onclick="downloadTemplate()">Template</button>
+      </div>
+      <p>Retailer, Brand, Category, Doors. Use this to load brand x retailer totals.</p>
+      <div class="login-upload-zone" onclick="document.getElementById('loginMatrixFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleLoginMatrixDrop(event)">
+        <input type="file" id="loginMatrixFile" accept=".xlsx,.xls,.csv" onchange="handleLoginMatrixFile(event)">
+        <div class="login-upload-title">Drop matrix file or browse</div>
+        <div class="login-upload-hint">First sheet or CSV</div>
+      </div>
+    </div>
+    <div class="login-start-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
+        <h4 style="margin-bottom:0">Door Locations</h4>
+        <button class="btn btn-sm" type="button" onclick="downloadTemplate()">Template</button>
+      </div>
+      <p>Retailer, Door Number, Name, Address, City, State, ZIP, Lat, Lng, Tier.</p>
+      <div class="login-upload-zone" onclick="document.getElementById('loginDoorFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleLoginDoorDrop(event)">
+        <input type="file" id="loginDoorFile" accept=".xlsx,.xls,.csv" onchange="handleLoginDoorFile(event)">
+        <div class="login-upload-title">Drop locations file or browse</div>
+        <div class="login-upload-hint">Import after or before matrix</div>
+      </div>
+    </div>
+  </div>
+  <div class="login-divider">Sign In</div>
   <p>Sign in to record who's making changes. Every edit is attributed in the change history.</p>
   <label for="loginUser">Username</label>
   <input type="text" id="loginUser" autocomplete="username" autocapitalize="off" spellcheck="false">
@@ -766,8 +885,7 @@ body.light .data-cell-note { background: #f4f2ee; }
   <p style="margin-top:14px;font-size:0.68rem;color:var(--text-dim);line-height:1.5">
     This gate runs entirely in your browser — it's for identification, not confidentiality. For sensitive data, host behind real auth (Cloudflare Access, Netlify Identity, etc.).
   </p>
-  <div class="modal-actions" style="justify-content:space-between">
-    <button class="btn" type="button" id="guestBtn" onclick="enterGuestMode()" title="Skip the wall and try a blank anonymized template">Continue as guest</button>
+  <div class="modal-actions">
     <button class="btn btn-accent" id="loginBtn" onclick="handleLogin()">Sign in</button>
   </div>
 </div>
@@ -858,7 +976,7 @@ const STORE_RESTORE='restorePoints';
 const SAVE_KEY='latest';
 const GUEST_SAVE_KEY='guest:latest';
 function currentSaveKey(){ return (currentUser && currentUser.isGuest) ? GUEST_SAVE_KEY : SAVE_KEY; }
-function currentMode(){ return (currentUser && currentUser.isGuest) ? 'guest' : 'user'; }
+function currentSaveMode(){ return (currentUser && currentUser.isGuest) ? 'guest' : 'user'; }
 const AUTOSNAP_INTERVAL_MS=5*60*1000;
 const AUTOSNAP_MAX=10;
 let _autosaveQueued=false, _legacyMigrated=false, _autoSnapTimer=null;
@@ -941,13 +1059,13 @@ function migrateLegacyLocalStorage(){
 
 /* ── Restore points ─────────────────────────────────────── */
 function createRestorePoint(label,auto){
-  const mode=currentMode();
+  const mode=currentSaveMode();
   const id=mode+':'+(auto?'auto-':'snap-')+Date.now()+'-'+Math.random().toString(36).slice(2,7);
   const row=Object.assign({id,mode,label:label||(auto?'Auto':'Snapshot'),auto:!!auto,savedAt:new Date().toISOString()},snapshotPayload());
   return withStore(STORE_RESTORE,'readwrite',s=>reqAsPromise(s.put(row))).then(()=>id);
 }
 function listRestorePoints(){
-  const mode=currentMode();
+  const mode=currentSaveMode();
   return withStore(STORE_RESTORE,'readonly',s=>reqAsPromise(s.getAll()))
     .then(rows=>(rows||[]).filter(r=>(r.mode||'user')===mode).sort((a,b)=>String(b.savedAt).localeCompare(String(a.savedAt))));
 }
@@ -1036,6 +1154,9 @@ if(!window._storeNotes) window._storeNotes={};
 function k(r,b){return r+'|'+b}
 function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'):''}
 function jsq(s){return JSON.stringify(String(s==null?'':s));}
+function jsAttr(code){return esc(code);}
+function callAttr(fn,...args){return jsAttr(`${fn}(${args.map(jsq).join(',')})`);}
+function ctxAttr(r,b){return jsAttr(`cellCtx(event,${jsq(r)},${jsq(b)})`);}
 
 /* Anonymized demo dataset for the guest sandbox — no real merchant info.
    Small enough to feel empty, big enough to demonstrate every view. */
@@ -1064,6 +1185,12 @@ const GUEST_SEED={
     'Retailer Three':{brm:1,ecom:1}
   }
 };
+const EXTERNAL_BLANK_SEED={
+  brandCodes:{},
+  doorLocations:[],
+  matrixData:[],
+  retailers:[]
+};
 const GUEST_DOOR_KEY_SEED=[
   ['Retailer One','BR-A',101,'New York','confirmed','Example assignment'],
   ['Retailer One','BR-B',102,'Los Angeles','confirmed',''],
@@ -1074,8 +1201,9 @@ const GUEST_DOOR_KEY_SEED=[
 function initFromSeed(){
   const guest=currentUser && currentUser.isGuest;
   const data=window.DOOR_TRACKER_DATA||{};
-  const srcSeed=guest?GUEST_SEED:(data.seed||(typeof SEED!=='undefined'?SEED:{}));
-  const srcKeys=guest?GUEST_DOOR_KEY_SEED:(data.dataKeySeed||(typeof DOOR_KEY_SEED!=='undefined'?DOOR_KEY_SEED:[]));
+  const blankGuest=guest && window._doorTrackerBlankGuest;
+  const srcSeed=blankGuest?EXTERNAL_BLANK_SEED:(guest?GUEST_SEED:(data.seed||(typeof SEED!=='undefined'?SEED:{})));
+  const srcKeys=blankGuest?[]:(guest?GUEST_DOOR_KEY_SEED:(data.dataKeySeed||(typeof DOOR_KEY_SEED!=='undefined'?DOOR_KEY_SEED:[])));
   brandCodes=srcSeed.brandCodes||{};
   doorLocations=srcSeed.doorLocations||[];
   matrixData=guest?(srcSeed.matrixData||[]):((data.matrixData&&data.matrixData.length?data.matrixData:srcSeed.matrixData)||[]);
@@ -1303,7 +1431,7 @@ function renderMatrix(items,visR){
           if(atCap) cls.push('at-cap');
           rowTot+=val;
           const draftIndicator=drafts>0?` <span style="color:var(--draft);font-size:0.55rem">+${drafts}d</span>`:'';
-          h+=`<td class="${cls.join(' ')}" data-r="${esc(r)}" data-b="${esc(brand)}" onclick='cellClick(${jsq(r)},${jsq(brand)})' oncontextmenu='cellCtx(event,${jsq(r)},${jsq(brand)})' title="${esc(r)} × ${esc(brand)}: ${val} confirmed${drafts?' + '+drafts+' drafts':''}">${val||'–'}${draftIndicator}</td>`;
+          h+=`<td class="${cls.join(' ')}" data-r="${esc(r)}" data-b="${esc(brand)}" onclick="${callAttr('cellClick',r,brand)}" oncontextmenu="${ctxAttr(r,brand)}" title="${esc(r)} × ${esc(brand)}: ${val} confirmed${drafts?' + '+drafts+' drafts':''}">${val||'–'}${draftIndicator}</td>`;
         });
         h+=`<td class="ret-total">${rowTot||'–'}</td></tr>`;
       });
@@ -1332,7 +1460,7 @@ function renderMatrix(items,visR){
         const val=getMatrixVal(r,brand);
         const atCap=maxDoors>0 && val>0 && val>=maxDoors;
         const cls=['cell'];if(!val)cls.push('empty');if(atCap)cls.push('at-cap');
-        h+=`<td class="${cls.join(' ')}" onclick='cellClick(${jsq(r)},${jsq(brand)})' oncontextmenu='cellCtx(event,${jsq(r)},${jsq(brand)})'>${val||'–'}</td>`;
+        h+=`<td class="${cls.join(' ')}" onclick="${callAttr('cellClick',r,brand)}" oncontextmenu="${ctxAttr(r,brand)}">${val||'–'}</td>`;
       });
       h+=`<td class="ret-total">${maxDoors||'–'}</td></tr>`;
     });
@@ -1352,7 +1480,7 @@ function renderCompact(items,visR){
     const bName=brandCodes[d.brand]?brandCodes[d.brand].name:'';
     let tot=0;
     h+=`<tr><td style="font-family:var(--font-mono);font-weight:700">${esc(d.brand)}</td><td>${esc(bName)}</td><td><span class="cat-badge">${esc(d.category)}</span></td>`;
-    visR.forEach(r=>{const v=getMatrixVal(r,d.brand);tot+=v;h+=`<td class="cell" style="font-family:var(--font-mono);text-align:center;cursor:pointer;${v?'':'color:var(--text-dim)'}" onclick='openStoreDrawer(${jsq(r)},${jsq(d.brand)})'>${v||'–'}</td>`;});
+    visR.forEach(r=>{const v=getMatrixVal(r,d.brand);tot+=v;h+=`<td class="cell" style="font-family:var(--font-mono);text-align:center;cursor:pointer;${v?'':'color:var(--text-dim)'}" onclick="${callAttr('openStoreDrawer',r,d.brand)}">${v||'–'}</td>`;});
     h+=`<td style="font-family:var(--font-mono);font-weight:700;text-align:center;color:var(--accent)">${tot}</td></tr>`;
   });
   h+='</tbody></table>';
@@ -1374,7 +1502,7 @@ function renderTabular(items,visR){
   rows.sort((a,b)=>a.retailer.localeCompare(b.retailer)||a.category.localeCompare(b.category)||a.brand.localeCompare(b.brand));
   let h='<table class="compact-table"><thead><tr><th>Retailer</th><th>Code</th><th>Brand</th><th>Category</th><th>Doors</th><th>Retailer B&M</th><th>Penetration</th></tr></thead><tbody>';
   rows.forEach(r=>{
-    h+=`<tr><td>${esc(r.retailer)}</td><td style="font-family:var(--font-mono);font-weight:700">${esc(r.brand)}</td><td>${esc(r.name)}</td><td><span class="cat-badge">${esc(r.category)}</span></td><td class="cell" style="font-family:var(--font-mono);text-align:center;cursor:pointer" onclick='openStoreDrawer(${jsq(r.retailer)},${jsq(r.brand)})'>${r.doors}</td><td style="font-family:var(--font-mono);text-align:center;color:var(--text-muted)">${r.bm}</td><td style="font-family:var(--font-mono);text-align:center">${r.pct}</td></tr>`;
+    h+=`<tr><td>${esc(r.retailer)}</td><td style="font-family:var(--font-mono);font-weight:700">${esc(r.brand)}</td><td>${esc(r.name)}</td><td><span class="cat-badge">${esc(r.category)}</span></td><td class="cell" style="font-family:var(--font-mono);text-align:center;cursor:pointer" onclick="${callAttr('openStoreDrawer',r.retailer,r.brand)}">${r.doors}</td><td style="font-family:var(--font-mono);text-align:center;color:var(--text-muted)">${r.bm}</td><td style="font-family:var(--font-mono);text-align:center">${r.pct}</td></tr>`;
   });
   h+='</tbody></table>';
   wrap.innerHTML=h;
@@ -1390,6 +1518,7 @@ function renderUnpivoted(items,visR){
   const fb=document.getElementById('fBrand').value;
   const fs=(document.getElementById('fStatus')||{}).value||'';
   const fg=(document.getElementById('fGrade')||{}).value||'';
+  const opportunitiesOnly=!!document.getElementById('fOpportunities')?.checked;
   const sq=(document.getElementById('searchBox').value||'').toLowerCase();
   const brands=getAllBrands();
 
@@ -1414,6 +1543,7 @@ function renderUnpivoted(items,visR){
           note:state.note || '',
           key:buildDataKey(ret,door.doorNumber,brand)
         };
+        if(opportunitiesOnly && row.status!=='na') return;
         if(fs && row.status!==fs) return;
         if(fg && row.grade!==fg) return;
         rows.push(row);
@@ -1446,6 +1576,7 @@ function renderUnpivoted(items,visR){
         note:state.note || '',
         key:buildDataKey(ret,'-',brand)
       };
+      if(opportunitiesOnly && row.status!=='na') return;
       if(fs && row.status!==fs) return;
       if(fg && row.grade!==fg) return;
       rows.push(row);
@@ -1455,7 +1586,7 @@ function renderUnpivoted(items,visR){
   rows.sort((a,b)=>a.retailer.localeCompare(b.retailer)||((a.doorNumber==='-'?Number.MAX_SAFE_INTEGER:Number(a.doorNumber))-(b.doorNumber==='-'?Number.MAX_SAFE_INTEGER:Number(b.doorNumber)))||a.brand.localeCompare(b.brand));
   let h='<table class="compact-table"><thead><tr><th>Retailer</th><th>Door Number</th><th>Brand</th><th>Location</th><th>Status</th><th>Category</th><th>Grade</th><th>Notes</th><th>Key</th></tr></thead><tbody>';
   if(!rows.length){
-    h+='<tr><td colspan="9" style="text-align:center;color:var(--text-dim);padding:40px">No door-brand slots matched the current filters.</td></tr>';
+    h+=`<tr><td colspan="9" style="text-align:center;color:var(--text-dim);padding:40px">${opportunitiesOnly?'No open brand-door opportunities matched the current filters.':'No door-brand slots matched the current filters.'}</td></tr>`;
   }
   rows.forEach(r=>{
     const statusPillCls = r.status==='confirmed'?'status-confirmed': r.status==='tbd'?'status-tbd': r.status==='closed'?'status-closed':'status-na';
@@ -1629,14 +1760,15 @@ let _resSearchTimer=null;
 
 function renderResearch(){
   const wrap=document.getElementById('mainView');
-  const ret=document.getElementById('fRet').value || (retailers[0]||'');
+  const ret=document.getElementById('fRet').value || '';
+  const retLabel=ret || 'All retailers';
   const shellExists=!!document.getElementById('resMap');
   if(!shellExists){
     const prevSearch=(document.getElementById('resSearch')||{}).value||'';
     const listCollapsed=window._doorListCollapsed===true;
     wrap.innerHTML=`
       <div class="research-view-header">
-        <h3>Brand–Door Research <span id="resRetailerLabel" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim);font-weight:400;margin-left:8px">Retailer ${esc(ret||'—')}</span></h3>
+        <h3>Brand–Door Research <span id="resRetailerLabel" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim);font-weight:400;margin-left:8px">${esc(retLabel)}</span></h3>
         <input type="text" class="search-box" id="resSearch" placeholder="Search door name, city, state, number…" oninput="onResSearchInput()" style="width:280px" value="${esc(prevSearch)}">
       </div>
       <div class="research-map-bar">
@@ -1660,7 +1792,7 @@ function renderResearch(){
     initResearchMap();
   }else{
     const lbl=document.getElementById('resRetailerLabel');
-    if(lbl) lbl.textContent='Retailer '+(ret||'—');
+    if(lbl) lbl.textContent=retLabel;
     updateResearchMapData();
   }
   _resShowAll=false;
@@ -1683,15 +1815,19 @@ function onResSearchInput(){
 }
 
 function renderResearchList(){
-  const ret=document.getElementById('fRet').value || (retailers[0]||'');
+  const ret=document.getElementById('fRet').value || '';
   const brand=document.getElementById('fBrand').value||'';
   const sq=(document.getElementById('resSearch')?.value||'').toLowerCase();
-  let doors=doorLocations.filter(d=>normalizeRetailer(d.retailer)===normalizeRetailer(ret));
+  const allRetailers=!ret;
+  let doors=doorLocations.filter(d=>allRetailers || normalizeRetailer(d.retailer)===normalizeRetailer(ret));
   if(brand){
-    const assignments=doorAssignments[k(ret,brand)]||[];
-    const assignedNums=new Set(assignments.map(a=>String(a.doorNumber)));
-    const retailerHasBrand=getMatrixVal(ret,brand)>0;
-    doors=doors.filter(d=>assignedNums.has(String(d.doorNumber)) || retailerHasBrand);
+    doors=doors.filter(d=>{
+      const doorRet=normalizeRetailer(d.retailer);
+      const assignments=doorAssignments[k(doorRet,brand)]||[];
+      const assignedNums=new Set(assignments.map(a=>String(a.doorNumber)));
+      const retailerHasBrand=getMatrixVal(doorRet,brand)>0;
+      return assignedNums.has(String(d.doorNumber)) || retailerHasBrand;
+    });
   }
   if(sq) doors=doors.filter(d=>(d.name||'').toLowerCase().includes(sq)||(d.city||'').toLowerCase().includes(sq)||(d.state||'').toLowerCase().includes(sq)||String(d.doorNumber).includes(sq));
   doors.sort((a,b)=>(a.tier||'Z').localeCompare(b.tier||'Z')||String(a.name||'').localeCompare(String(b.name||'')));
@@ -1702,7 +1838,8 @@ function renderResearchList(){
   const visible=(_resShowAll || doors.length<=DOOR_LIST_PAGE_SIZE) ? doors : doors.slice(0,DOOR_LIST_PAGE_SIZE);
   const items=visible.map((d,i)=>{
     const cls=['door-item']; if(isDoorIncomplete(d)) cls.push('incomplete');
-    return `<div class="${cls.join(' ')}" onclick='selectDoor(${i},${jsq(ret)},${jsq(brand)})' data-idx="${i}"><div><div class="door-name">#${esc(String(d.doorNumber))} — ${esc(d.name||'(no name)')}</div><div class="door-meta">${esc(d.city||'')}${d.state?', '+esc(d.state):''}${!d.city && !d.state ? '(no location)' : ''}</div></div><div>${d.tier?`<span class="tier-badge ${d.tier}">${d.tier}</span>`:''}</div></div>`;
+    const doorRet=normalizeRetailer(d.retailer);
+    return `<div class="${cls.join(' ')}" onclick="${jsAttr(`selectDoor(${i},${jsq(doorRet)},${jsq(brand)})`)}" data-idx="${i}"><div><div class="door-name">#${esc(String(d.doorNumber))} — ${esc(d.name||'(no name)')}</div><div class="door-meta">${allRetailers?esc(doorRet)+' · ':''}${esc(d.city||'')}${d.state?', '+esc(d.state):''}${!d.city && !d.state ? '(no location)' : ''}</div></div><div>${d.tier?`<span class="tier-badge ${d.tier}">${d.tier}</span>`:''}</div></div>`;
   }).join('');
   const more=doors.length-visible.length;
   const footer=more>0
@@ -1762,7 +1899,7 @@ function selectDoor(idx,ret,brandFilter=''){
     if(!hasCoords) missing.push('coordinates');
     html+=`<div class="door-warn-callout">
       <div class="door-warn-msg"><strong>Incomplete door</strong>Missing: ${missing.join(', ')}. ${hasCoords ? '' : 'This door won\'t appear on the map until it has coordinates. '}Fill these in to make the door browseable.</div>
-      <button class="btn btn-sm btn-accent" onclick='openEditDoorModal(${jsq(ret)},${jsq(String(d.doorNumber))})'>Edit details</button>
+      <button class="btn btn-sm btn-accent" onclick="${callAttr('openEditDoorModal',ret,String(d.doorNumber))}">Edit details</button>
     </div>`;
   }
 
@@ -1787,7 +1924,7 @@ function selectDoor(idx,ret,brandFilter=''){
   }).join('')}</div>`;
 
   det.innerHTML=html;
-  highlightDoorOnMap(d.doorNumber);
+  highlightDoorOnMap(d.doorNumber,norm);
 }
 
 /* ── Edit-door modal: lets the user fill in (or correct) info inline so
@@ -1983,7 +2120,7 @@ function addResearchMapLayers(){
     else {
       /* Door isn't in the currently filtered list (e.g., the user typed a
          search that hides it). Still respond by jumping to it on the map. */
-      highlightDoorOnMap(doorNumber);
+      highlightDoorOnMap(doorNumber,ret);
     }
   };
   ['doors-circle','doors-brands'].forEach(id=>{
@@ -1996,11 +2133,11 @@ function addResearchMapLayers(){
 
 function updateResearchMapData(){
   if(!_resMap || !_resMapStyleReady) return;
-  const ret=document.getElementById('fRet')?.value || (retailers[0]||'');
-  if(!ret){ return; }
-  const norm=normalizeRetailer(ret);
+  const ret=document.getElementById('fRet')?.value || '';
+  const allRetailers=!ret;
+  const norm=allRetailers?'__all__':normalizeRetailer(ret);
   const doors=doorLocations.filter(d=>{
-    if(normalizeRetailer(d.retailer)!==norm) return false;
+    if(!allRetailers && normalizeRetailer(d.retailer)!==norm) return false;
     const lat=Number(d.lat), lng=Number(d.lng);
     return d.lat!=null && d.lng!=null && !Number.isNaN(lat) && !Number.isNaN(lng);
   });
@@ -2009,13 +2146,14 @@ function updateResearchMapData(){
   const brandCountByDoor=new Map();
   for(const [key,assigns] of Object.entries(doorAssignments)){
     const [r]=key.split('|');
-    if(r!==norm) continue;
+    if(!allRetailers && r!==norm) continue;
     const seen=new Set();
     for(const a of assigns){
       const dn=String(a.doorNumber);
       if(dn==='TBD' || seen.has(dn)) continue;
       seen.add(dn);
-      brandCountByDoor.set(dn,(brandCountByDoor.get(dn)||0)+1);
+      const countKey=(allRetailers?r+'|':'')+dn;
+      brandCountByDoor.set(countKey,(brandCountByDoor.get(countKey)||0)+1);
     }
   }
   const features=doors.map(d=>({
@@ -2024,9 +2162,9 @@ function updateResearchMapData(){
     properties:{
       doorNumber:String(d.doorNumber),
       name:d.name||'',
-      retailer:norm,
+      retailer:normalizeRetailer(d.retailer),
       tier:d.tier||'',
-      brandCount:brandCountByDoor.get(String(d.doorNumber))||0
+      brandCount:brandCountByDoor.get((allRetailers?normalizeRetailer(d.retailer)+'|':'')+String(d.doorNumber))||0
     }
   }));
   const src=_resMap.getSource('doors');
@@ -2041,10 +2179,14 @@ function updateResearchMapData(){
   _resMapRetailer=norm;
 }
 
-function highlightDoorOnMap(doorNumber){
+function highlightDoorOnMap(doorNumber,retailer){
   if(!_resMap || !_resMap.getLayer('doors-selected')) return;
-  _resMap.setFilter('doors-selected',['==',['get','doorNumber'],String(doorNumber)]);
-  const door=doorLocations.find(d=>String(d.doorNumber)===String(doorNumber) && normalizeRetailer(d.retailer)===_resMapRetailer);
+  const normRetailer=retailer ? normalizeRetailer(retailer) : _resMapRetailer;
+  const filter=normRetailer && normRetailer!=='__all__'
+    ? ['all',['==',['get','doorNumber'],String(doorNumber)],['==',['get','retailer'],normRetailer]]
+    : ['==',['get','doorNumber'],String(doorNumber)];
+  _resMap.setFilter('doors-selected',filter);
+  const door=doorLocations.find(d=>String(d.doorNumber)===String(doorNumber) && (!normRetailer || normRetailer==='__all__' || normalizeRetailer(d.retailer)===normRetailer));
   if(door && door.lat!=null && door.lng!=null){
     const lat=Number(door.lat), lng=Number(door.lng);
     if(!Number.isNaN(lat) && !Number.isNaN(lng)){
@@ -2189,8 +2331,8 @@ function openStoreDrawer(ret,brand){
           <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim)">${a.date||''}</div>
         </div>
         <div style="display:flex;gap:4px">
-          ${isDraft&&a.doorNumber!=='TBD'?`<button class="btn btn-sm btn-accent" onclick='publishFromDrawer(${jsq(ret)},${jsq(brand)},${i})'>Publish</button>`:''}
-          ${isDraft&&a.doorNumber==='TBD'?`<button class="btn btn-sm" onclick='assignDoorToDraft(${jsq(ret)},${jsq(brand)},${i});openStoreDrawer(${jsq(ret)},${jsq(brand)})'>Assign</button>`:''}
+          ${isDraft&&a.doorNumber!=='TBD'?`<button class="btn btn-sm btn-accent" onclick="${jsAttr(`publishFromDrawer(${jsq(ret)},${jsq(brand)},${i})`)}">Publish</button>`:''}
+          ${isDraft&&a.doorNumber==='TBD'?`<button class="btn btn-sm" onclick="${jsAttr(`assignDoorToDraft(${jsq(ret)},${jsq(brand)},${i});openStoreDrawer(${jsq(ret)},${jsq(brand)})`)}">Assign</button>`:''}
           <button type="button" class="drawer-door-check assigned-remove" title="Stage unassign" onclick="event.stopPropagation();toggleDrawerCheckbox(this.closest('.drawer-door-row').querySelector('.drawerRemoveChk'))">
             <input type="checkbox" class="drawerRemoveChk drawer-door-hidden-input" value="${a.doorNumber}" onchange="syncDrawerDoorChecks();collectDrawerPendingAdds()">
             ✕
@@ -2215,7 +2357,7 @@ function openStoreDrawer(ret,brand){
         <option value="tbd">TBD</option>
       </select>
       <span id="drawerCommitState" style="font-size:0.72rem;color:var(--text-muted);margin-left:auto">No pending changes</span>
-      <button class="btn btn-sm btn-accent" id="drawerCommitBtn" onclick='commitDrawerChanges(${jsq(ret)},${jsq(brand)})' disabled>Commit Change</button>
+      <button class="btn btn-sm btn-accent" id="drawerCommitBtn" onclick="${callAttr('commitDrawerChanges',ret,brand)}" disabled>Commit Change</button>
     </div>
     <div id="drawerUnassignedList">`;
     /* Cap so opening a Dillard's / Kohl / BELK cell doesn't paint hundreds
@@ -2237,7 +2379,7 @@ function openStoreDrawer(ret,brand){
     });
     const hidden=unassignedDoors.length-visibleDoors.length;
     if(hidden>0){
-      html+=`<div style="padding:10px;text-align:center;border-top:1px solid var(--border);background:var(--surface-raised);font-size:0.74rem;color:var(--text-muted);margin-top:6px;border-radius:var(--radius-xs)">Showing ${visibleDoors.length} of ${unassignedDoors.length} unassigned doors — <a href="#" onclick='event.preventDefault();window._drawerShowAllUnassigned=true;openStoreDrawer(${jsq(ret)},${jsq(brand)})' style="color:var(--accent);font-weight:600">Load all ${unassignedDoors.length}</a></div>`;
+      html+=`<div style="padding:10px;text-align:center;border-top:1px solid var(--border);background:var(--surface-raised);font-size:0.74rem;color:var(--text-muted);margin-top:6px;border-radius:var(--radius-xs)">Showing ${visibleDoors.length} of ${unassignedDoors.length} unassigned doors — <a href="#" onclick="${jsAttr(`event.preventDefault();window._drawerShowAllUnassigned=true;openStoreDrawer(${jsq(ret)},${jsq(brand)})`)}" style="color:var(--accent);font-weight:600">Load all ${unassignedDoors.length}</a></div>`;
     }
     html+='</div>';
   }else{
@@ -2248,8 +2390,8 @@ function openStoreDrawer(ret,brand){
   const noteKey='note_'+ak;
   const existingNote=window._storeNotes&&window._storeNotes[noteKey]||'';
   html+=`<div style="margin-top:2px"><label style="display:block;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:4px">Notes</label>
-  <textarea style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-xs);font-family:var(--font-body);font-size:0.78rem;color:var(--text);resize:vertical;min-height:60px;outline:none" placeholder="Add notes for ${esc(brand)} at ${esc(ret)}…" onchange='saveStoreNote(${jsq(noteKey)},this.value)'>${esc(existingNote)}</textarea></div>`;
-  html+=`<div style="margin-top:12px;display:flex;gap:8px"><button class="btn" onclick='openHistoryDrawer(${jsq(ret)},${jsq(brand)})'>⟳ History</button></div>`;
+  <textarea style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-xs);font-family:var(--font-body);font-size:0.78rem;color:var(--text);resize:vertical;min-height:60px;outline:none" placeholder="Add notes for ${esc(brand)} at ${esc(ret)}…" onchange="${jsAttr(`saveStoreNote(${jsq(noteKey)},this.value)`)}">${esc(existingNote)}</textarea></div>`;
+  html+=`<div style="margin-top:12px;display:flex;gap:8px"><button class="btn" onclick="${callAttr('openHistoryDrawer',ret,brand)}">⟳ History</button></div>`;
   html+='</div>';
 
   document.getElementById('drContent').innerHTML=html;
@@ -2805,82 +2947,209 @@ function populateInfoRetailerCoverage(){
 
 function openImportModal(){document.getElementById('ovImport').classList.add('open');document.getElementById('mImport').classList.add('open');}
 function closeImport(){document.getElementById('ovImport').classList.remove('open');document.getElementById('mImport').classList.remove('open');}
+function closeHeaderMenus(){
+  document.querySelectorAll('.header-menu.open').forEach(menu=>{
+    menu.classList.remove('open');
+    const btn=menu.querySelector('.menu-trigger');
+    if(btn) btn.setAttribute('aria-expanded','false');
+  });
+}
+function toggleHeaderMenu(id){
+  const menu=document.getElementById(id);
+  if(!menu) return;
+  const wasOpen=menu.classList.contains('open');
+  closeHeaderMenus();
+  menu.classList.toggle('open', !wasOpen);
+  const btn=menu.querySelector('.menu-trigger');
+  if(btn) btn.setAttribute('aria-expanded', wasOpen?'false':'true');
+}
+function closeRefinePanel(){
+  const wrap=document.getElementById('refineWrap');
+  if(!wrap) return;
+  wrap.classList.remove('open');
+  const btn=wrap.querySelector('button');
+  if(btn) btn.setAttribute('aria-expanded','false');
+}
+function toggleRefinePanel(){
+  const wrap=document.getElementById('refineWrap');
+  if(!wrap) return;
+  const open=!wrap.classList.contains('open');
+  wrap.classList.toggle('open',open);
+  const btn=wrap.querySelector('button');
+  if(btn) btn.setAttribute('aria-expanded',open?'true':'false');
+}
 function handleDrop(e){e.preventDefault();e.currentTarget.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)processImp(f);}
 function handleImpFile(e){const f=e.target.files[0];if(f)processImp(f);e.target.value='';}
 function handleDoorDrop(e){e.preventDefault();e.currentTarget.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)processDoorImp(f);}
 function handleImpDoorFile(e){const f=e.target.files[0];if(f)processDoorImp(f);e.target.value='';}
+function workbookRows(wb, preferredSheet){
+  const sheetName=wb.SheetNames.find(n=>String(n).toLowerCase()===String(preferredSheet).toLowerCase()) || wb.SheetNames[0];
+  return XLSX.utils.sheet_to_json(wb.Sheets[sheetName]);
+}
+function isSheetJsReady(){
+  if(typeof XLSX!=='undefined') return true;
+  toast('Spreadsheet tools are unavailable. Reload the page and try again.');
+  return false;
+}
+function getTemplateDemoRows(){
+  return {
+    matrixRows:[
+      {Retailer:'Retailer A',Brand:'BR-A',Category:'LIFESTYLE',Doors:2},
+      {Retailer:'Retailer B',Brand:'BR-A',Category:'LIFESTYLE',Doors:1},
+      {Retailer:'Retailer A',Brand:'BR-B',Category:'PREMIUM',Doors:1},
+      {Retailer:'Retailer C',Brand:'BR-C',Category:'SPORT',Doors:2},
+      {Retailer:'Retailer B',Brand:'BR-C',Category:'SPORT',Doors:1}
+    ],
+    doorRows:[
+      {Retailer:'Retailer A','Door Number':101,Name:'Example Store 101',Address:'100 Main St',City:'New York',State:'NY',ZIP:'10001',Lat:40.7505,Lng:-73.9965,Tier:'A'},
+      {Retailer:'Retailer A','Door Number':102,Name:'Example Store 102',Address:'200 Market St',City:'Los Angeles',State:'CA',ZIP:'90015',Lat:34.0407,Lng:-118.2468,Tier:'B'},
+      {Retailer:'Retailer A','Door Number':103,Name:'Example Store 103',Address:'300 Harbor Dr',City:'San Diego',State:'CA',ZIP:'92101',Lat:32.7157,Lng:-117.1611,Tier:'C'},
+      {Retailer:'Retailer B','Door Number':201,Name:'Example Store 201',Address:'400 Lake St',City:'Chicago',State:'IL',ZIP:'60601',Lat:41.8853,Lng:-87.6216,Tier:'A'},
+      {Retailer:'Retailer B','Door Number':202,Name:'Example Store 202',Address:'500 Congress Ave',City:'Austin',State:'TX',ZIP:'78701',Lat:30.2672,Lng:-97.7431,Tier:'B'},
+      {Retailer:'Retailer C','Door Number':301,Name:'Example Store 301',Address:'600 Biscayne Blvd',City:'Miami',State:'FL',ZIP:'33132',Lat:25.7781,Lng:-80.1868,Tier:'A'},
+      {Retailer:'Retailer C','Door Number':302,Name:'Example Store 302',Address:'700 Peachtree St',City:'Atlanta',State:'GA',ZIP:'30308',Lat:33.7711,Lng:-84.3877,Tier:'B'}
+    ]
+  };
+}
+function reconcileMatrixTotalsFromDoors(){
+  matrixData.forEach(row=>{
+    const brand=row.brand;
+    if(!brand) return;
+    retailers.forEach(ret=>{
+      const target=parseInt(row[ret]||0,10)||0;
+      if(target<=0) return;
+      const doors=getRetailerDoors(ret);
+      let confirmed=getConfirmedCount(ret,brand);
+      for(const door of doors){
+        if(confirmed>=target) break;
+        const state=ensureDataKeyState(ret,door.doorNumber,brand);
+        if(normalizeStatus(state.status)==='na'){
+          state.status='confirmed';
+          state.grade=state.grade || door.tier || '-';
+          state.note=state.note || 'Created from matrix import total';
+          syncAssignmentFromDataKey(ret,door.doorNumber,brand);
+          confirmed++;
+        }
+      }
+    });
+  });
+}
+async function startExternalWorkspace(){
+  window._doorTrackerBlankGuest=true;
+  currentUser={ username:'guest', name:'External Guest', isGuest:true };
+  saveSession();
+  try{ await withStore(STORE_LATEST,'readwrite',s=>reqAsPromise(s.delete(GUEST_SAVE_KEY))); }catch(e){}
+  hideLoginModal();
+  updateUserChip();
+  await bootApp();
+}
+async function processLoginImport(file, kind){
+  if(!file) return;
+  await startExternalWorkspace();
+  if(kind==='door') processDoorImp(file);
+  else processImp(file);
+}
+function handleLoginMatrixDrop(e){e.preventDefault();e.currentTarget.classList.remove('dragover');processLoginImport(e.dataTransfer.files[0],'matrix');}
+function handleLoginMatrixFile(e){const f=e.target.files[0];processLoginImport(f,'matrix');e.target.value='';}
+function handleLoginDoorDrop(e){e.preventDefault();e.currentTarget.classList.remove('dragover');processLoginImport(e.dataTransfer.files[0],'door');}
+function handleLoginDoorFile(e){const f=e.target.files[0];processLoginImport(f,'door');e.target.value='';}
+function hasWorkbookSheet(wb, sheetName){
+  return wb.SheetNames.some(n=>String(n).toLowerCase()===String(sheetName).toLowerCase());
+}
+function importMatrixRows(rows){
+  let n=0;
+  rows.forEach(row=>{
+    const ret=row.Retailer||row.retailer||'';
+    const brand=(row.Brand||row.brand||'').toUpperCase();
+    if(!ret||!brand)return;
+    let d=matrixData.find(x=>x.brand===brand);
+    if(!d){d={brand,category:row.Category||row.category||'LUXURY'};matrixData.push(d);}
+    if(!brandCodes[brand]) brandCodes[brand]={name:row['Brand Name']||row.brandName||brand,ds_active:true};
+    d[ret]=parseInt(row.Doors||row.doors||0)||0;
+    if(!retailers.includes(ret))retailers.push(ret);
+    n++;
+  });
+  return n;
+}
+function importDoorRows(rows){
+  const pick=(row, keys)=>{ for(const k of keys){ const v=row[k]; if(v!==undefined && v!==null && v!=='') return v; } return ''; };
+  let added=0, updated=0, skipped=0;
+  rows.forEach(row=>{
+    const retRaw=pick(row,['Retailer','retailer','RETAILER']);
+    const doorRaw=pick(row,['Door Number','Door No','Door#','Door','Number','door','door_number','DoorNumber']);
+    const name=String(pick(row,['Name','Door Name','Store Name','name'])||'').trim();
+    if(!retRaw || (!doorRaw && doorRaw!==0)){ skipped++; return; }
+    const ret=normalizeRetailer(String(retRaw).trim());
+    const doorRawStr=String(doorRaw).trim();
+    const doorNumber=/^\d+$/.test(doorRawStr)?parseInt(doorRawStr,10):doorRawStr;
+    const address=String(pick(row,['Address','address','Street','Street Address'])||'').trim();
+    const city=String(pick(row,['City','city'])||'').trim();
+    const state=String(pick(row,['State','state','Province'])||'').trim();
+    const zip=String(pick(row,['ZIP','Zip','zip','Postal','Postal Code'])||'').trim();
+    const latRaw=pick(row,['Lat','lat','Latitude','latitude']);
+    const lngRaw=pick(row,['Lng','lng','Lon','Longitude','longitude']);
+    const lat=latRaw===''?undefined:parseFloat(latRaw);
+    const lng=lngRaw===''?undefined:parseFloat(lngRaw);
+    const tier=String(pick(row,['Tier','tier','Grade','grade'])||'').trim().toUpperCase();
+    const existing=doorLocations.find(d=>normalizeRetailer(d.retailer)===ret && String(d.doorNumber)===String(doorNumber));
+    if(existing){
+      if(name) existing.name=name;
+      if(address) existing.address=address;
+      if(city) existing.city=city;
+      if(state) existing.state=state;
+      if(zip) existing.zip=zip;
+      if(!Number.isNaN(lat) && lat!==undefined) existing.lat=lat;
+      if(!Number.isNaN(lng) && lng!==undefined) existing.lng=lng;
+      if(tier) existing.tier=tier;
+      updated++;
+    }else{
+      doorLocations.push({retailer:ret,doorNumber,name:name||`Door ${doorNumber}`,address,city,state,zip,lat:Number.isNaN(lat)?undefined:lat,lng:Number.isNaN(lng)?undefined:lng,tier});
+      if(!retailers.includes(ret)) retailers.push(ret);
+      added++;
+    }
+  });
+  return {added,updated,skipped};
+}
+function finishImport(){
+  ensureAllSlots();
+  reconcileMatrixTotalsFromDoors();
+  closeImport();
+  populateFilters();
+  updateViewSpecificControls();
+  render();
+  queueAutosave();
+}
 function processImp(file){
-  if(typeof XLSX==='undefined'){toast('SheetJS not loaded');return;}
+  if(!isSheetJsReady()) return;
   const reader=new FileReader();
   reader.onload=function(e){
     try{
       const wb=XLSX.read(e.target.result,{type:'array'});
-      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-      let n=0;
-      rows.forEach(row=>{
-        const ret=row.Retailer||row.retailer||'';
-        const brand=(row.Brand||row.brand||'').toUpperCase();
-        if(!ret||!brand)return;
-        let d=matrixData.find(x=>x.brand===brand);
-        if(!d){d={brand,category:row.Category||row.category||'LUXURY'};matrixData.push(d);}
-        d[ret]=parseInt(row.Doors||row.doors||0)||0;
-        if(!retailers.includes(ret))retailers.push(ret);
-        n++;
-      });
-      ensureAllSlots();closeImport();populateFilters();updateViewSpecificControls();render();queueAutosave();toast(`Imported ${n} matrix entries`);
+      const n=importMatrixRows(workbookRows(wb,'Matrix'));
+      let doorSummary=null;
+      if(hasWorkbookSheet(wb,'Door Locations')) doorSummary=importDoorRows(workbookRows(wb,'Door Locations'));
+      finishImport();
+      toast(doorSummary?`Imported ${n} matrix entries and ${doorSummary.added+doorSummary.updated} door locations`:`Imported ${n} matrix entries`);
     }catch(err){toast('Error: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
 }
 
 function processDoorImp(file){
-  if(typeof XLSX==='undefined'){toast('SheetJS not loaded');return;}
+  if(!isSheetJsReady()) return;
   const reader=new FileReader();
   reader.onload=function(e){
     try{
       const wb=XLSX.read(e.target.result,{type:'array'});
-      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-      const pick=(row, keys)=>{ for(const k of keys){ const v=row[k]; if(v!==undefined && v!==null && v!=='') return v; } return ''; };
-      let added=0, updated=0, skipped=0;
-      rows.forEach(row=>{
-        const retRaw=pick(row,['Retailer','retailer','RETAILER']);
-        const doorRaw=pick(row,['Door Number','Door No','Door#','Door','Number','door','door_number','DoorNumber']);
-        const name=String(pick(row,['Name','Door Name','Store Name','name'])||'').trim();
-        if(!retRaw || (!doorRaw && doorRaw!==0)){ skipped++; return; }
-        const ret=normalizeRetailer(String(retRaw).trim());
-        const doorRawStr=String(doorRaw).trim();
-        const doorNumber=/^\d+$/.test(doorRawStr)?parseInt(doorRawStr,10):doorRawStr;
-        const address=String(pick(row,['Address','address','Street','Street Address'])||'').trim();
-        const city=String(pick(row,['City','city'])||'').trim();
-        const state=String(pick(row,['State','state','Province'])||'').trim();
-        const zip=String(pick(row,['ZIP','Zip','zip','Postal','Postal Code'])||'').trim();
-        const latRaw=pick(row,['Lat','lat','Latitude','latitude']);
-        const lngRaw=pick(row,['Lng','lng','Lon','Longitude','longitude']);
-        const lat=latRaw===''?undefined:parseFloat(latRaw);
-        const lng=lngRaw===''?undefined:parseFloat(lngRaw);
-        const tier=String(pick(row,['Tier','tier','Grade','grade'])||'').trim().toUpperCase();
-        const existing=doorLocations.find(d=>normalizeRetailer(d.retailer)===ret && String(d.doorNumber)===String(doorNumber));
-        if(existing){
-          if(name) existing.name=name;
-          if(address) existing.address=address;
-          if(city) existing.city=city;
-          if(state) existing.state=state;
-          if(zip) existing.zip=zip;
-          if(!Number.isNaN(lat) && lat!==undefined) existing.lat=lat;
-          if(!Number.isNaN(lng) && lng!==undefined) existing.lng=lng;
-          if(tier) existing.tier=tier;
-          updated++;
-        }else{
-          doorLocations.push({retailer:ret,doorNumber,name:name||`Door ${doorNumber}`,address,city,state,zip,lat:Number.isNaN(lat)?undefined:lat,lng:Number.isNaN(lng)?undefined:lng,tier});
-          if(!retailers.includes(ret)) retailers.push(ret);
-          added++;
-        }
-      });
-      ensureAllSlots();closeImport();populateFilters();updateViewSpecificControls();render();queueAutosave();
+      const {added,updated,skipped}=importDoorRows(workbookRows(wb,'Door Locations'));
+      let matrixCount=0;
+      if(hasWorkbookSheet(wb,'Matrix')) matrixCount=importMatrixRows(workbookRows(wb,'Matrix'));
+      finishImport();
       const parts=[];
       if(added) parts.push(`${added} added`);
       if(updated) parts.push(`${updated} updated`);
       if(skipped) parts.push(`${skipped} skipped`);
+      if(matrixCount) parts.push(`${matrixCount} matrix entries`);
       toast(parts.length?`Door locations: ${parts.join(', ')}`:'No rows found — check the column headers.');
     }catch(err){toast('Error: '+err.message);}
   };
@@ -2908,6 +3177,41 @@ function loadJSON(e){
   reader.readAsText(f);e.target.value='';
 }
 
+function downloadTemplate(){
+  if(!isSheetJsReady()) return;
+  const demo=getTemplateDemoRows();
+  const matrixRows=[
+    {Retailer:'',Brand:'',Category:'',Doors:''},
+    ...demo.matrixRows
+  ];
+  const doorRows=[
+    {Retailer:'','Door Number':'',Name:'',Address:'',City:'',State:'',ZIP:'',Lat:'',Lng:'',Tier:''},
+    ...demo.doorRows
+  ];
+  const matrixWs=XLSX.utils.json_to_sheet(matrixRows);
+  matrixWs['!cols']=Object.keys(matrixRows[0]).map(k=>({wch:Math.max(k.length+2,14)}));
+  const doorWs=XLSX.utils.json_to_sheet(doorRows);
+  doorWs['!cols']=Object.keys(doorRows[0]).map(k=>({wch:Math.max(k.length+2,16)}));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,matrixWs,'Matrix');
+  XLSX.utils.book_append_sheet(wb,doorWs,'Door Locations');
+  XLSX.writeFile(wb,'Door_Tracker_Template.xlsx');
+  toast('Template downloaded with example rows');
+}
+function downloadDemoData(){
+  if(!isSheetJsReady()) return;
+  const {matrixRows,doorRows}=getTemplateDemoRows();
+  const matrixWs=XLSX.utils.json_to_sheet(matrixRows);
+  matrixWs['!cols']=Object.keys(matrixRows[0]).map(k=>({wch:Math.max(k.length+2,14)}));
+  const doorWs=XLSX.utils.json_to_sheet(doorRows);
+  doorWs['!cols']=Object.keys(doorRows[0]).map(k=>({wch:Math.max(k.length+2,16)}));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,matrixWs,'Matrix');
+  XLSX.utils.book_append_sheet(wb,doorWs,'Door Locations');
+  XLSX.writeFile(wb,'Door_Tracker_Demo_Data.xlsx');
+  toast('Demo data downloaded');
+}
+
 function populateStatusGradeFilters(){
   const gradeSel=document.getElementById('fGrade');
   if(!gradeSel) return;
@@ -2922,9 +3226,11 @@ function updateViewSpecificControls(){
   const isData=currentView==='unpivoted';
   const sg=document.getElementById('statusFilterGroup');
   const gg=document.getElementById('gradeFilterGroup');
+  const og=document.getElementById('opportunityFilterGroup');
   const div=document.getElementById('statusGradeDivider');
   if(sg) sg.style.display=isData?'flex':'none';
   if(gg) gg.style.display=isData?'flex':'none';
+  if(og) og.style.display=isData?'flex':'none';
   if(div) div.style.display=isData?'block':'none';
 }
 
@@ -2935,7 +3241,7 @@ function exportCurrentView(){
   const table=main?main.querySelector('table'):null;
   if(!table){toast('Nothing visible to export on this screen.');return;}
   const wb=XLSX.utils.table_to_book(table,{sheet:currentView==='unpivoted'?'Data':(currentView.charAt(0).toUpperCase()+currentView.slice(1))});
-  XLSX.writeFile(wb,`DS_Door_${currentView}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.writeFile(wb,`Door_Distribution_${currentView}_${new Date().toISOString().slice(0,10)}.xlsx`);
   const rowCount=table.querySelectorAll('tbody tr').length || 0;
   toast(`Exported current ${currentView} view (${rowCount} rows)`);
 }
@@ -2961,7 +3267,7 @@ function exportResearchView(){
   ws['!cols']=Object.keys(rows[0]).map(k=>({wch:Math.max(k.length+2,14)}));
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Door Locations');
-  XLSX.writeFile(wb,`DS_Door_research_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.writeFile(wb,`Door_Distribution_research_${new Date().toISOString().slice(0,10)}.xlsx`);
   toast(`Exported ${rows.length} door location${rows.length===1?'':'s'}.`);
 }
 function exportXLSX(){ exportCurrentView(); }
@@ -3062,7 +3368,7 @@ function openGlobalHistory(){
   const limit=400;
   const slice=entries.slice(0,limit);
   const html=slice.length
-    ? slice.map(e=>`<div class="history-feed-item" onclick='openHistoryDrawer(${jsq(e._ret)},${jsq(e._brand)})'>
+    ? slice.map(e=>`<div class="history-feed-item" onclick="${callAttr('openHistoryDrawer',e._ret,e._brand)}">
         <div class="history-feed-pair">${esc(e._ret)} × ${esc(e._brand)}${brandCodes[e._brand]?' — '+esc(brandCodes[e._brand].name):''}</div>
         <div class="history-date" style="margin-top:2px">${new Date(e.date).toLocaleString()}</div>
         <div style="margin-top:4px"><span class="history-new">${esc((e.scope||'assignment').toUpperCase())}</span> · ${esc(e.action||'updated')}${e.doorNumber!==''?` · Door ${esc(String(e.doorNumber))}`:''}</div>
@@ -3117,7 +3423,11 @@ function refreshSnapshotList(){
 }
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),2800);}
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('mLogin').classList.contains('open')) return; closeEdit();closeCM();closeAdd();closeImport();closeInfo();closeSnapshotsModal();closeEditDoorModal();closeDrawer();}});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.header-menu')) closeHeaderMenus();
+  if(!e.target.closest('#refineWrap')) closeRefinePanel();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeHeaderMenus();closeRefinePanel();if(document.getElementById('mLogin').classList.contains('open')) return; closeEdit();closeCM();closeAdd();closeImport();closeInfo();closeSnapshotsModal();closeEditDoorModal();closeDrawer();}});
 
 // INIT
 try{
@@ -3157,7 +3467,7 @@ function loadSession(){
     if(!raw) return null;
     const p=JSON.parse(raw);
     if(!p || !p.username) return null;
-    if(p.isGuest) return { username:'guest', name:'Guest', isGuest:true };
+    if(p.isGuest) return { username:'guest', name:p.name || 'Guest', isGuest:true };
     if(!USER_ROSTER[p.username]) return null;
     return { username:p.username, name:USER_ROSTER[p.username].name };
   }catch(e){ return null; }
@@ -3195,6 +3505,7 @@ function updateUserChip(){
 }
 
 async function enterGuestMode(){
+  window._doorTrackerBlankGuest=false;
   currentUser={ username:'guest', name:'Guest', isGuest:true };
   saveSession();
   /* Reset guest sandbox to a fresh anonymized template on each entry. */
@@ -3219,6 +3530,7 @@ async function handleLogin(){
     if(!user){ errEl.textContent='Unknown username.'; errEl.style.display='block'; btn.disabled=false; return; }
     const inputHash=await sha256Hex(password);
     if(inputHash!==user.hash){ errEl.textContent='Wrong password.'; errEl.style.display='block'; btn.disabled=false; return; }
+    window._doorTrackerBlankGuest=false;
     currentUser={ username, name:user.name };
     saveSession();
     document.getElementById('loginPass').value='';
@@ -3235,6 +3547,7 @@ async function handleLogin(){
 function signOut(){
   const wasGuest=currentUser && currentUser.isGuest;
   clearSession();
+  window._doorTrackerBlankGuest=false;
   currentUser=null;
   _appBooted=false;
   updateUserChip();
@@ -3250,14 +3563,14 @@ function signOut(){
 }
 
 function bootApp(){
-  if(_appBooted) return;
+  if(_appBooted) return Promise.resolve();
   _appBooted=true;
   initFromSeed();
   const tBtn=document.getElementById('tBtn'); if(tBtn) tBtn.style.display='inline-flex';
   /* Restore the Data/Map mode pick from the previous session. */
   let savedMode='data';
   try{ savedMode=localStorage.getItem('door-tracker-mode')||'data'; }catch(e){}
-  loadAutoState().finally(()=>{
+  return loadAutoState().finally(()=>{
     ensureAllSlots();
     populateFilters();
     setMode(savedMode==='map'?'map':'data');

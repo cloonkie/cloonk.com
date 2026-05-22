@@ -42,7 +42,7 @@
       file: "retailer-door-tracker.html",
       code: "DT-03",
       name: "Door Tracker",
-      sub: "DS Distribution",
+      sub: "Door Distribution",
       purpose:
         "Track brand × retailer door distribution. Manage per-door assignments and " +
         "drafts, browse stores on a live map, and review change history with restore points.",
@@ -60,6 +60,19 @@
         "Flatten WTD, MTD, YTD headers, map dimensions, preview, and export saved configs.",
       eats: ".xlsx / .csv / paste",
       outputs: ".xlsx / .csv / .json",
+      status: "Ready",
+    },
+    {
+      file: "upc-concat.html",
+      code: "UC-05",
+      name: "UPC Concat",
+      sub: "Schema Mapping",
+      purpose:
+        "Map product data across files into one canonical schema. Register sources, " +
+        "define fields and formulas, join SKUs across files by identity, and resolve " +
+        "concatenated descriptions.",
+      eats: ".xlsx / .csv",
+      outputs: ".xlsx / .csv / TSV",
       status: "Ready",
     },
   ];

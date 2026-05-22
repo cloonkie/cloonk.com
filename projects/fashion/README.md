@@ -111,7 +111,7 @@ Anything that supports `FileReader`, `URL.createObjectURL`, and `color-mix(in ok
 
 ---
 
-## Door Tracker — DS Distribution
+## Door Tracker — Door Distribution
 
 ### What it does
 Tracks brand × retailer door distribution at the physical-store level. The matrix view shows confirmed door counts per (retailer, brand); drill into a cell to see which specific doors carry the brand, edit status (Confirmed / TBD / N/A / Closed), assign tier grades, and write per-door notes. Door Research browses every door on a Mapbox map with fly-in transitions.
