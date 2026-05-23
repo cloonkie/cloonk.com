@@ -197,6 +197,8 @@ body.locked { overflow: hidden; }
 .toolbar-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); font-weight: 700; }
 .toolbar-divider { width: 1px; height: 20px; background: var(--border); margin: 0 3px; }
 .toolbar-spacer { flex: 1 1 auto; }
+.map-layer-toolbar { display: none; align-items: center; gap: 12px; flex-wrap: wrap; margin-left: 4px; }
+body.mode-map .map-layer-toolbar { display: flex; }
 .refine-wrap { position: relative; margin-left: auto; }
 .refine-panel {
   position: absolute;
@@ -253,9 +255,11 @@ body.light .mode-btn.active { color: #f5f2ec; }
 /* ─── SUMMARY ─── */
 .summary-bar { padding: 10px 24px; background: var(--surface-raised); border-bottom: 1px solid var(--border); display: flex; gap: 20px; align-items: center; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted); overflow-x: auto; white-space: nowrap; }
 .summary-bar .sv { color: var(--accent); font-weight: 600; }
+body.mode-map .summary-bar { display: none !important; }
 
 /* ─── MATRIX TABLE ─── */
 .matrix-wrap { padding: 16px 24px 80px; overflow-x: auto; }
+body.mode-map .matrix-wrap { padding: 0; height: calc(100vh - 112px); overflow: hidden; position: relative; }
 .matrix { border-collapse: collapse; width: 100%; font-family: var(--font-mono); font-size: 0.82rem; }
 .matrix th, .matrix td { border: 1px solid var(--border); padding: 7px 10px; text-align: center; white-space: nowrap; }
 .matrix thead th { background: var(--surface-raised); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.72rem; position: sticky; top: 0; z-index: 5; }
@@ -285,6 +289,7 @@ body.light .mode-btn.active { color: #f5f2ec; }
 .compact-table .status-badge.draft { background: var(--draft-dim); color: var(--draft); }
 
 /* ─── DOOR RESEARCH VIEW ─── */
+body.mode-map .research-view-header { display: none; }
 .research-view-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
 .research-view-header h3 { font-family: var(--font-display); font-size: 1.2rem; }
 .research-map-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
@@ -318,14 +323,54 @@ body.light .toggle-pill[data-layer="heat"]   { color: #b54514; }
 }
 .toggle-pill:not(.inactive) .toggle-dot { background: currentColor; }
 #resMap { height: calc(100vh - 320px); min-height: 380px; width: 100%; border: 1px solid var(--border); border-radius: var(--radius-xs); margin-bottom: 14px; overflow: hidden; position: relative; }
-body.mode-map #resMap { height: calc(100vh - 235px); min-height: 520px; margin-bottom: 0; }
-body.mode-map .research-map-shell { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 14px; align-items: stretch; }
-body.mode-map .door-list { max-height: 260px; margin-top: 12px; }
-body.mode-map .door-detail { max-height: calc(100vh - 235px); overflow-y: auto; }
+.research-map-shell { position: relative; }
+body.mode-map .research-map-shell { height: 100%; min-height: 0; }
+body.mode-map #resMap { position: absolute; inset: 0; height: 100%; min-height: 0; margin-bottom: 0; border: 0; border-radius: 0; }
+body.mode-map .door-list { max-height: calc(100vh - 360px); margin-top: 0; border: 0; border-radius: 0; background: transparent; }
+body.mode-map .door-detail { position: absolute; left: 12px; bottom: 12px; z-index: 95; width: min(360px, calc(100vw - 24px)); max-height: min(420px, calc(100vh - 180px)); overflow-y: auto; background: color-mix(in oklab, var(--surface) 92%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 10px 34px rgba(0,0,0,0.35); }
 #resMap .mapboxgl-popup-content { background: var(--surface-card); color: var(--text); border-radius: var(--radius-xs); padding: 8px 10px; font-family: var(--font-body); font-size: 0.74rem; }
 #resMap .mapboxgl-popup-tip { border-top-color: var(--surface-card); border-bottom-color: var(--surface-card); }
-.research-grid { display: grid; grid-template-columns: 320px 1fr; gap: 18px; align-items: start; }
+.research-grid { display: block; }
+.map-filter-rail {
+  position: relative;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  overflow: hidden;
+}
+body.mode-map .map-filter-rail {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 95;
+  width: 220px;
+  background: color-mix(in oklab, var(--surface) 90%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 5px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.32);
+}
+.map-filter-section { border-bottom: 1px solid var(--border); }
+.map-filter-section:last-child { border-bottom: 0; }
+.map-filter-section summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 10px 12px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.map-filter-section summary::-webkit-details-marker { display: none; }
+.map-filter-body { padding: 10px 12px; }
+.map-filter-body select { width: 100%; min-height: 112px; }
+body.mode-map .map-filter-body select { min-height: 104px; font-size: 0.72rem; }
+body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; font-size: 0.74rem; }
 .door-list { max-height: 360px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface); }
+.door-item { border-left: 4px solid var(--retailer-color, transparent); }
 .door-item.incomplete .door-name { color: var(--draft); }
 .door-item.incomplete .door-name::after { content: ' ⚠'; font-size: 0.7rem; color: var(--draft); }
 .door-warn-callout {
@@ -340,8 +385,8 @@ body.mode-map .door-detail { max-height: calc(100vh - 235px); overflow-y: auto; 
 }
 .door-warn-callout .door-warn-msg { flex: 1; min-width: 200px; }
 .door-warn-callout .door-warn-msg strong { color: var(--draft); display: block; margin-bottom: 2px; }
-@media (max-width: 860px) { .research-grid { grid-template-columns: 1fr; } .door-list { max-height: 320px; } }
-@media (max-width: 980px) { body.mode-map .research-map-shell { grid-template-columns: 1fr; } body.mode-map #resMap { min-height: 420px; } }
+@media (max-width: 860px) { .door-list { max-height: 320px; } }
+@media (max-width: 720px) { body.mode-map .map-filter-rail { width: calc(100vw - 24px); } body.mode-map .door-detail { display: none; } }
 .door-item { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 0.75rem; cursor: pointer; transition: background var(--transition); display: flex; justify-content: space-between; align-items: center; }
 .door-item:hover { background: var(--accent-dim); }
 .door-item.active { background: var(--accent-mid); border-left: 3px solid var(--accent); }
@@ -711,6 +756,11 @@ body.light .data-cell-note { background: #f4f2ee; }
       <div class="toolbar-divider" id="statusGradeDivider" style="display:none"></div>
       <input type="text" class="search-box" id="searchBox" placeholder="Search brand…" oninput="debouncedRender()">
     </div>
+  </div>
+  <div class="map-layer-toolbar" id="mapLayerToolbar" aria-label="Map layers">
+    <div class="toggle-pill" data-layer="doors" onclick="toggleResearchLayer('doors')" title="Show retailer-colored door pins"><div class="toggle-dot"></div>Doors</div>
+    <div class="toggle-pill inactive" data-layer="brands" onclick="toggleResearchLayer('brands')" title="Size pins by brands carried while keeping retailer colors"><div class="toggle-dot"></div>Brand density</div>
+    <div class="toggle-pill inactive" data-layer="heat" onclick="toggleResearchLayer('heat')" title="Heatmap showing store concentration"><div class="toggle-dot"></div>Store heatmap</div>
   </div>
 </div>
 
@@ -1887,28 +1937,31 @@ function renderResearch(){
   const shellExists=!!document.getElementById('resMap');
   if(!shellExists){
     const prevSearch=(document.getElementById('resSearch')||{}).value||'';
-    const listCollapsed=window._doorListCollapsed===true;
     wrap.innerHTML=`
-      <div class="research-view-header">
-        <h3>Map <span id="resRetailerLabel" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim);font-weight:400;margin-left:8px">${esc(retLabel)}</span></h3>
-        <input type="text" class="search-box" id="resSearch" placeholder="Search door name, city, state, number…" oninput="onResSearchInput()" style="width:280px" value="${esc(prevSearch)}">
-      </div>
-      <div class="research-map-bar">
-        <div class="layer-toggle">
-          <div class="toggle-pill${_layerVisible.doors?'':' inactive'}" data-layer="doors" onclick="toggleResearchLayer('doors')" title="Show each door as a gold pin"><div class="toggle-dot"></div>Doors</div>
-          <div class="toggle-pill${_layerVisible.brands?'':' inactive'}" data-layer="brands" onclick="toggleResearchLayer('brands')" title="Color pins by number of brands carried at each door"><div class="toggle-dot"></div>Brand density</div>
-          <div class="toggle-pill${_layerVisible.heat?'':' inactive'}" data-layer="heat" onclick="toggleResearchLayer('heat')" title="Heatmap showing store concentration"><div class="toggle-dot"></div>Store heatmap</div>
-        </div>
-        <button class="btn btn-sm" id="doorListToggleBtn" onclick="toggleDoorListCollapse()" title="Show or hide the matching doors list below the map">${listCollapsed?'▾ Show list':'▴ Hide list'}</button>
-      </div>
       <div class="research-map-shell">
         <div id="resMap"></div>
+        <div class="map-filter-rail">
+          <details class="map-filter-section" open>
+            <summary>Retailers</summary>
+            <div class="map-filter-body" id="mapRetailerFilter"></div>
+          </details>
+          <details class="map-filter-section" open>
+            <summary>Brands</summary>
+            <div class="map-filter-body" id="mapBrandFilter"></div>
+          </details>
+          <details class="map-filter-section" ${window._doorListCollapsed===true?'':'open'}>
+            <summary>Stores</summary>
+            <div class="map-filter-body">
+              <input type="text" class="search-box" id="resSearch" placeholder="Search stores..." oninput="onResSearchInput()" value="${esc(prevSearch)}">
+              <button class="btn btn-sm" id="doorListToggleBtn" onclick="toggleDoorListCollapse()" title="Show or hide matching stores" style="margin-bottom:8px">${window._doorListCollapsed===true?'Show stores':'Hide stores'}</button>
+              <div class="door-list" id="doorList" style="${window._doorListCollapsed===true?'display:none':''}"></div>
+            </div>
+          </details>
+        </div>
         <div class="door-detail" id="doorDetail"><p style="color:var(--text-dim)">Click a door on the map or pick one from the list to see brand placements at that store.</p></div>
       </div>
-      <div class="research-grid" id="researchGrid">
-        <div class="door-list" id="doorList" style="${listCollapsed?'display:none':''}"></div>
-      </div>
     `;
+    renderMapFilterClones();
     /* Map was destroyed when the shell got nuked by another view; create fresh. */
     _resMap=null;
     _resMapStyleReady=false;
@@ -1917,10 +1970,12 @@ function renderResearch(){
   }else{
     const lbl=document.getElementById('resRetailerLabel');
     if(lbl) lbl.textContent=retLabel;
+    renderMapFilterClones();
     updateResearchMapData();
   }
   _resShowAll=false;
   renderResearchList();
+  setTimeout(()=>{ if(_resMap) _resMap.resize(); },0);
 }
 
 function toggleDoorListCollapse(){
@@ -1928,7 +1983,23 @@ function toggleDoorListCollapse(){
   const list=document.getElementById('doorList');
   const btn=document.getElementById('doorListToggleBtn');
   if(list)  list.style.display=window._doorListCollapsed?'none':'';
-  if(btn)   btn.textContent=window._doorListCollapsed?'▾ Show list':'▴ Hide list';
+  if(btn)   btn.textContent=window._doorListCollapsed?'Show stores':'Hide stores';
+}
+
+function renderMapFilterClones(){
+  const retHost=document.getElementById('mapRetailerFilter');
+  const brandHost=document.getElementById('mapBrandFilter');
+  if(retHost) retHost.innerHTML=cloneMapSelect('fRet','mapFRet','renderMapFilterSource("mapFRet","fRet")');
+  if(brandHost) brandHost.innerHTML=cloneMapSelect('fBrand','mapFBrand','renderMapFilterSource("mapFBrand","fBrand")');
+}
+function cloneMapSelect(sourceId,cloneId,onchange){
+  const source=document.getElementById(sourceId);
+  if(!source) return '';
+  return `<select id="${cloneId}" multiple onchange='${onchange}' title="Hold Ctrl or Shift to select multiple">${Array.from(source.options).map(opt=>`<option value="${esc(opt.value)}" ${opt.selected?'selected':''}>${esc(opt.textContent)}</option>`).join('')}</select>`;
+}
+function renderMapFilterSource(cloneId,sourceId){
+  setSelectValues(sourceId,getSelectValues(cloneId));
+  render();
 }
 
 function onResSearchInput(){
@@ -1963,7 +2034,7 @@ function renderResearchList(){
   const items=visible.map((d,i)=>{
     const cls=['door-item']; if(isDoorIncomplete(d)) cls.push('incomplete');
     const doorRet=normalizeRetailer(d.retailer);
-    return `<div class="${cls.join(' ')}" onclick="${jsAttr(`selectDoor(${i},${jsq(doorRet)})`)}" data-idx="${i}"><div><div class="door-name">#${esc(String(d.doorNumber))} — ${esc(d.name||'(no name)')}</div><div class="door-meta">${allRetailers?esc(doorRet)+' · ':''}${esc(d.city||'')}${d.state?', '+esc(d.state):''}${!d.city && !d.state ? '(no location)' : ''}</div></div><div>${d.tier?`<span class="tier-badge ${d.tier}">${d.tier}</span>`:''}</div></div>`;
+    return `<div class="${cls.join(' ')}" style="--retailer-color:${esc(retailerColor(doorRet))}" onclick="${jsAttr(`selectDoor(${i},${jsq(doorRet)})`)}" data-idx="${i}"><div><div class="door-name">#${esc(String(d.doorNumber))} — ${esc(d.name||'(no name)')}</div><div class="door-meta">${allRetailers?esc(doorRet)+' · ':''}${esc(d.city||'')}${d.state?', '+esc(d.state):''}${!d.city && !d.state ? '(no location)' : ''}</div></div><div>${d.tier?`<span class="tier-badge ${d.tier}">${d.tier}</span>`:''}</div></div>`;
   }).join('');
   const more=doors.length-visible.length;
   const footer=more>0
@@ -1981,6 +2052,32 @@ function isDoorIncomplete(d){
   const noCoords=d.lat==null || d.lng==null;
   return placeholder || (noLocation && noCoords);
 }
+const RETAILER_COLORS={
+  'DLL':'#48CAE4',
+  "Dillard's":'#48CAE4',
+  'BLM':'#FF4D6D',
+  'Bloomingdales':'#FF4D6D',
+  'NRD':'#F6C562',
+  'Nordstrom':'#F6C562',
+  'Kohls':'#800033',
+  'Kohl':'#800033',
+  "Kohl's":'#800033',
+  'BELK':'#008FD5',
+  'Belk':'#008FD5',
+  'Holt':'#FF7F0E',
+  'Holt Renfrew':'#FF7F0E',
+  'Von Maur':'#922DF5',
+  'Webster':'#C9184A',
+  'The Webster':'#C9184A',
+  'Neiman Marcus':'#8a8f98',
+  'Saks Fifth Ave':'#8a8f98',
+  'Saks Fifth Avenue':'#8a8f98',
+  'Bergdorf Goodman':'#8a8f98'
+};
+function retailerColor(retailer){
+  const norm=normalizeRetailer(retailer);
+  return RETAILER_COLORS[norm] || '#8a8f98';
+}
 function selectDoor(idx,ret){
   const d=window._resDoors[idx];
   if(!d) return;
@@ -1991,6 +2088,7 @@ function selectDoor(idx,ret){
 
 function renderDoorDetail(d,ret){
   const norm=normalizeRetailer(ret);
+  const retColor=retailerColor(norm);
   const doorNum=d.doorNumber;
   const brandFilters=getSelectValues('fBrand');
 
@@ -2011,7 +2109,12 @@ function renderDoorDetail(d,ret){
   }
   matrixData.forEach(m=>{ if((m[norm]||0)>0 && !brandsAtRetailer.includes(m.brand)){ brandsAtRetailer.push(m.brand); } });
 
-  const allBrands=(brandFilters.length ? matrixData.map(m=>m.brand).filter(b=>brandFilters.includes(b)) : matrixData.map(m=>m.brand));
+  const allBrands=(brandFilters.length ? matrixData.map(m=>m.brand).filter(b=>brandFilters.includes(b)) : matrixData.map(m=>m.brand))
+    .sort((a,b)=>{
+      const ap=brandsAtRetailer.includes(a)?0:1;
+      const bp=brandsAtRetailer.includes(b)?0:1;
+      return ap-bp || a.localeCompare(b);
+    });
   const det=document.getElementById('doorDetail');
   if(!det) return;
   const incomplete=isDoorIncomplete(d);
@@ -2019,9 +2122,9 @@ function renderDoorDetail(d,ret){
   const hasCoords=d.lat!=null && d.lng!=null && !Number.isNaN(Number(d.lat)) && !Number.isNaN(Number(d.lng));
   const coordsText=hasCoords ? Number(d.lat).toFixed(4)+', '+Number(d.lng).toFixed(4) : 'No coordinates';
   let html=`
-    <h4>${esc(d.name||'(no name)')} <span class="tier-badge ${d.tier||''}">${d.tier||'–'}</span></h4>
+    <h4><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${esc(retColor)};margin-right:6px"></span>${esc(d.name||'(no name)')} <span class="tier-badge ${d.tier||''}">${d.tier||'–'}</span></h4>
     <div class="addr">${addrParts ? esc(addrParts) : '<span style="color:var(--text-dim);font-style:italic">No address on file</span>'}</div>
-    <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);margin:4px 0 12px">Door #${esc(String(d.doorNumber))} · ${esc(coordsText)}</div>
+    <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);margin:4px 0 12px">${esc(norm)} · Door #${esc(String(d.doorNumber))} · ${esc(coordsText)}</div>
   `;
   if(incomplete){
     const missing=[];
@@ -2036,7 +2139,8 @@ function renderDoorDetail(d,ret){
     </div>`;
   }
 
-  const visibleBrandsAtDoor=brandFilters.length ? brandsAtDoor.filter(x=>brandFilters.includes(x.brand)) : brandsAtDoor;
+  const visibleBrandsAtDoor=(brandFilters.length ? brandsAtDoor.filter(x=>brandFilters.includes(x.brand)) : brandsAtDoor)
+    .sort((a,b)=>a.brand.localeCompare(b.brand));
   if(visibleBrandsAtDoor.length){
     html+=`<div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px">Brands at This Door</div>`;
     html+=`<div class="brand-pills">${visibleBrandsAtDoor.map(({brand,status,metric_1,metric_2})=>{
@@ -2204,13 +2308,8 @@ function addResearchMapLayers(){
       id:'doors-brands',type:'circle',source:'doors',
       layout:{visibility:_layerVisible.brands?'visible':'none'},
       paint:{
-        'circle-radius':['interpolate',['linear'],['zoom'],3,4,12,11],
-        'circle-color':['interpolate',['linear'],['get','brandCount'],
-          0,'#3a3a36',
-          1,'#0d3b66',
-          5,'#1a8a8a',
-          10,'#3ec48c',
-          20,'#f0f060'],
+        'circle-radius':['interpolate',['linear'],['get','brandCount'],0,4,5,8,15,14,30,20],
+        'circle-color':['get','retailerColor'],
         'circle-opacity':0.88,
         'circle-stroke-width':1,
         'circle-stroke-color':'rgba(255,255,255,0.35)'
@@ -2223,7 +2322,7 @@ function addResearchMapLayers(){
       layout:{visibility:_layerVisible.doors?'visible':'none'},
       paint:{
         'circle-radius':['interpolate',['linear'],['zoom'],3,3,12,8],
-        'circle-color':'#e8b931',
+        'circle-color':['get','retailerColor'],
         'circle-opacity':0.9,
         'circle-stroke-width':1,
         'circle-stroke-color':'rgba(0,0,0,0.4)'
@@ -2307,6 +2406,7 @@ function updateResearchMapData(){
       doorNumber:String(d.doorNumber),
       name:d.name||'',
       retailer:normalizeRetailer(d.retailer),
+      retailerColor:retailerColor(d.retailer),
       tier:d.tier||'',
       brandCount:brandCountByDoor.get((allRetailers?normalizeRetailer(d.retailer)+'|':'')+String(d.doorNumber))||0
     }
@@ -2341,12 +2441,16 @@ function highlightDoorOnMap(doorNumber,retailer){
 
 function toggleResearchLayer(name){
   _layerVisible[name]=!_layerVisible[name];
-  document.querySelectorAll('.toggle-pill').forEach(p=>{
-    if(p.dataset.layer===name) p.classList.toggle('inactive',!_layerVisible[name]);
-  });
+  syncMapLayerToggles();
   if(!_resMap) return;
   (LAYER_IDS[name]||[]).forEach(id=>{
     if(_resMap.getLayer(id)) _resMap.setLayoutProperty(id,'visibility',_layerVisible[name]?'visible':'none');
+  });
+}
+function syncMapLayerToggles(){
+  document.querySelectorAll('.toggle-pill[data-layer]').forEach(p=>{
+    const name=p.dataset.layer;
+    if(p.dataset.layer===name) p.classList.toggle('inactive',!_layerVisible[name]);
   });
 }
 function mapStyleForTheme(){
@@ -2377,7 +2481,7 @@ function renderDoorMap(d){
   map.addControl(new mapboxgl.AttributionControl({compact:true}));
   map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'top-right');
   map.on('load',()=>{
-    new mapboxgl.Marker({color:'#e8b931'})
+    new mapboxgl.Marker({color:retailerColor(d.retailer)})
       .setLngLat([d.lng,d.lat])
       .setPopup(new mapboxgl.Popup({offset:18}).setHTML(`<strong>${esc(d.name)}</strong><br>Door #${esc(String(d.doorNumber))}`))
       .addTo(map)
@@ -2387,8 +2491,10 @@ function renderDoorMap(d){
 }
 
 function normalizeRetailer(raw){
-  const map={'BLOOMINGDALES':'Bloomingdales','DILLARDS':"Dillard's",'NORDSTROM':'Nordstrom','NEIMAN MARCUS':'Neiman Marcus','SAKS FIFTH AVENUE':'Saks Fifth Ave','SAKS FIFTH AVE':'Saks Fifth Ave','HoltRenfrew':'Holt','BERGDORF GOODMAN':'Bergdorf Goodman','BELK':'BELK','Kohl':'Kohl'};
-  return map[raw]||raw;
+  const key=String(raw||'').trim();
+  const upper=key.toUpperCase();
+  const map={'DLL':"Dillard's",'DILLARDS':"Dillard's",'DILLARD’S':"Dillard's","DILLARD'S":"Dillard's",'BLM':'Bloomingdales','BLOOMINGDALES':'Bloomingdales','NRD':'Nordstrom','NORDSTROM':'Nordstrom','NEIMAN MARCUS':'Neiman Marcus','SAKS FIFTH AVENUE':'Saks Fifth Ave','SAKS FIFTH AVE':'Saks Fifth Ave','HOLTRENFREW':'Holt','HOLT RENFREW':'Holt','BERGDORF GOODMAN':'Bergdorf Goodman','BELK':'BELK','KOHLS':'Kohl',"KOHL'S":'Kohl','VON MAUR':'Von Maur','WEBSTER':'Webster','THE WEBSTER':'Webster'};
+  return map[key]||map[upper]||key;
 }
 function buildDataKey(ret,doorNumber,brand){
   return String(ret||'').replace(/[^A-Za-z0-9]/g,'') + String(doorNumber||'') + String(brand||'').replace(/[^A-Za-z0-9]/g,'');
@@ -3458,6 +3564,7 @@ function setMode(m){
   document.body.classList.toggle('mode-map', m==='map');
   document.body.classList.toggle('mode-data', m==='data');
   document.querySelectorAll('#mode-toggle .mode-btn').forEach(b=>b.classList.toggle('active', b.dataset.mode===m));
+  syncMapLayerToggles();
   const tabs=document.getElementById('viewTabs');
   if(tabs) tabs.style.display = m==='map' ? 'none' : '';
   const tBtn=document.getElementById('tBtn');
