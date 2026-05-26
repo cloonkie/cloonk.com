@@ -1717,6 +1717,10 @@ body.light .data-cell-note { background: #f4f2ee; }
 <script src="data/door-tracker-matrix.js"></script>
 <script src="data/door-tracker-data-key.js"></script>
 <script src="data/door-tracker-data.js"></script>
+<script src="data/door-tracker-user-roster.local.js"></script>
+<script src="data/door-tracker-supabase-config.js"></script>
+<script src="data/door-tracker-supabase-config.local.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ═══════════════════════════════════════════════════════
 
@@ -1792,6 +1796,7 @@ function currentSaveMode(){ return (currentUser && currentUser.isGuest) ? 'guest
 const AUTOSNAP_INTERVAL_MS=5*60*1000;
 const AUTOSNAP_MAX=10;
 let _autosaveQueued=false, _legacyMigrated=false, _autoSnapTimer=null;
+let _supabaseClient=null;
 
 function openDb(){
   return new Promise((resolve,reject)=>{
@@ -1838,10 +1843,121 @@ function applyPayload(p){
   window._storeNotes=p.storeNotes||{};
 }
 
+function getSyncConfig(){
+  const cfg=window.DOOR_TRACKER_SUPABASE || {};
+  if(!cfg.url || !cfg.anonKey) return null;
+  if(String(cfg.url).includes('YOUR-') || String(cfg.anonKey).includes('YOUR-')) return null;
+  return {
+    url:cfg.url,
+    anonKey:cfg.anonKey,
+    stateTable:cfg.stateTable || 'door_tracker_state',
+    restoreTable:cfg.restoreTable || 'door_tracker_restore_points'
+  };
+}
+function getSupabaseClient(){
+  const cfg=getSyncConfig();
+  if(!cfg || !window.supabase || !window.supabase.createClient) return null;
+  if(!_supabaseClient) _supabaseClient=window.supabase.createClient(cfg.url,cfg.anonKey);
+  return _supabaseClient;
+}
+function isSharedSyncEnabled(){ return !!getSupabaseClient(); }
+function sharedStateKey(){ return currentSaveKey(); }
+function sharedUserName(){ return currentUserName(); }
+async function saveSharedLatest(row){
+  const cfg=getSyncConfig();
+  const client=getSupabaseClient();
+  if(!cfg || !client) return false;
+  const {error}=await client.from(cfg.stateTable).upsert({
+    key:sharedStateKey(),
+    mode:currentSaveMode(),
+    payload:snapshotPayload(),
+    saved_at:row.savedAt,
+    updated_by:sharedUserName()
+  },{onConflict:'key'});
+  if(error) throw error;
+  return true;
+}
+async function loadSharedLatest(){
+  const cfg=getSyncConfig();
+  const client=getSupabaseClient();
+  if(!cfg || !client) return null;
+  const {data,error}=await client.from(cfg.stateTable)
+    .select('payload,saved_at,updated_by')
+    .eq('key',sharedStateKey())
+    .maybeSingle();
+  if(error) throw error;
+  return data && data.payload ? data.payload : null;
+}
+async function createSharedRestorePoint(row){
+  const cfg=getSyncConfig();
+  const client=getSupabaseClient();
+  if(!cfg || !client) return false;
+  const {error}=await client.from(cfg.restoreTable).insert({
+    id:row.id,
+    mode:row.mode,
+    label:row.label,
+    auto:!!row.auto,
+    payload:snapshotPayload(),
+    saved_at:row.savedAt,
+    updated_by:sharedUserName()
+  });
+  if(error) throw error;
+  return true;
+}
+async function listSharedRestorePoints(){
+  const cfg=getSyncConfig();
+  const client=getSupabaseClient();
+  if(!cfg || !client) return null;
+  const {data,error}=await client.from(cfg.restoreTable)
+    .select('id,mode,label,auto,payload,saved_at,updated_by')
+    .eq('mode',currentSaveMode())
+    .order('saved_at',{ascending:false});
+  if(error) throw error;
+  return (data||[]).map(r=>Object.assign({
+    id:r.id,
+    mode:r.mode,
+    label:r.label,
+    auto:!!r.auto,
+    savedAt:r.saved_at,
+    updatedBy:r.updated_by
+  },r.payload||{}));
+}
+async function deleteSharedRestorePoint(id){
+  const cfg=getSyncConfig();
+  const client=getSupabaseClient();
+  if(!cfg || !client) return false;
+  const {error}=await client.from(cfg.restoreTable).delete().eq('id',id);
+  if(error) throw error;
+  return true;
+}
+async function getSharedRestorePoint(id){
+  const cfg=getSyncConfig();
+  const client=getSupabaseClient();
+  if(!cfg || !client) return null;
+  const {data,error}=await client.from(cfg.restoreTable)
+    .select('id,mode,label,auto,payload,saved_at,updated_by')
+    .eq('id',id)
+    .maybeSingle();
+  if(error) throw error;
+  if(!data) return null;
+  return Object.assign({
+    id:data.id,
+    mode:data.mode,
+    label:data.label,
+    auto:!!data.auto,
+    savedAt:data.saved_at,
+    updatedBy:data.updated_by
+  },data.payload||{});
+}
+
 function persistAutoState(){
   setSaveIndicator('saving');
   const row=Object.assign({key:currentSaveKey(),savedAt:new Date().toISOString()},snapshotPayload());
-  return withStore(STORE_LATEST,'readwrite',s=>reqAsPromise(s.put(row)))
+  const localSave=()=>withStore(STORE_LATEST,'readwrite',s=>reqAsPromise(s.put(row)));
+  const save=isSharedSyncEnabled()
+    ? saveSharedLatest(row).then(()=>localSave()).catch(err=>{ console.warn('Shared save failed; saved locally only.',err); return localSave().then(()=>Promise.reject(err)); })
+    : localSave();
+  return save
     .then(()=>setSaveIndicator('saved'))
     .catch(()=>setSaveIndicator('error'));
 }
@@ -1877,6 +1993,23 @@ function setSaveIndicator(state){
   }
 }
 function loadAutoState(){
+  if(isSharedSyncEnabled()){
+    return loadSharedLatest()
+      .then(payload=>{
+        if(payload){ applyPayload(payload); return; }
+        return withStore(STORE_LATEST,'readonly',s=>reqAsPromise(s.get(currentSaveKey()))).then(row=>{
+          if(row) applyPayload(row);
+          else migrateLegacyLocalStorage();
+        });
+      })
+      .catch(err=>{
+        console.warn('Shared load failed; using local IndexedDB.',err);
+        return withStore(STORE_LATEST,'readonly',s=>reqAsPromise(s.get(currentSaveKey()))).then(row=>{
+          if(row) applyPayload(row);
+          else migrateLegacyLocalStorage();
+        }).catch(()=>migrateLegacyLocalStorage());
+      });
+  }
   return withStore(STORE_LATEST,'readonly',s=>reqAsPromise(s.get(currentSaveKey())))
     .then(row=>{
       if(row) applyPayload(row);
@@ -1902,18 +2035,24 @@ function createRestorePoint(label,auto){
   const mode=currentSaveMode();
   const id=mode+':'+(auto?'auto-':'snap-')+Date.now()+'-'+Math.random().toString(36).slice(2,7);
   const row=Object.assign({id,mode,label:label||(auto?'Auto':'Snapshot'),auto:!!auto,savedAt:new Date().toISOString()},snapshotPayload());
+  if(isSharedSyncEnabled()) return createSharedRestorePoint(row).then(()=>id);
   return withStore(STORE_RESTORE,'readwrite',s=>reqAsPromise(s.put(row))).then(()=>id);
 }
 function listRestorePoints(){
   const mode=currentSaveMode();
+  if(isSharedSyncEnabled()) return listSharedRestorePoints();
   return withStore(STORE_RESTORE,'readonly',s=>reqAsPromise(s.getAll()))
     .then(rows=>(rows||[]).filter(r=>(r.mode||'user')===mode).sort((a,b)=>String(b.savedAt).localeCompare(String(a.savedAt))));
 }
 function deleteRestorePoint(id){
+  if(isSharedSyncEnabled()) return deleteSharedRestorePoint(id);
   return withStore(STORE_RESTORE,'readwrite',s=>reqAsPromise(s.delete(id)));
 }
 function restoreFromPoint(id){
-  return withStore(STORE_RESTORE,'readonly',s=>reqAsPromise(s.get(id))).then(row=>{
+  const lookup=isSharedSyncEnabled()
+    ? getSharedRestorePoint(id)
+    : withStore(STORE_RESTORE,'readonly',s=>reqAsPromise(s.get(id)));
+  return lookup.then(row=>{
     if(!row){ toast('Snapshot not found'); return; }
     return createRestorePoint('Auto · before restore',true).then(()=>{
       applyPayload(row);
@@ -5552,24 +5691,9 @@ try{
 }catch(e){}
 
 /* ── Auth wall ────────────────────────────────────────────
-   Client-side identification only — anyone reading the source
-   can see the roster shape. Don't store secrets here.
-
-   To add a user: pick a password, compute its SHA-256 hex:
-     crypto.subtle.digest('SHA-256', new TextEncoder().encode('your-password'))
-       .then(b=>console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
-   Then add an entry below as: username: { hash: '<hex>', name: 'Display Name' } */
-const USER_ROSTER={
-  // Placeholder user — username 'kevin', password 'admin'. Replace before shipping.
-  'kevin':{ hash:'8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', name:'Kevin' },
-  'amanda':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Amanda' },
-  'glenn':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Glenn' },
-  'alice':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Alice' },
-  'francis':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Francis' },
-  'beau':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Beau' },
-  'craig':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Craig' },
-  'joan':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Joan' }
-};
+   Client-side identification only. The private roster lives in
+   data/door-tracker-user-roster.local.js, which is ignored by git. */
+const USER_ROSTER=window.DOOR_TRACKER_USER_ROSTER || {};
 const SESSION_KEY='cloonk-doortracker-user';
 let currentUser=null;
 let _appBooted=false;
