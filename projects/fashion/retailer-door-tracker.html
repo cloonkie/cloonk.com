@@ -199,58 +199,165 @@ body.locked { overflow: hidden; }
 .toolbar-spacer { flex: 1 1 auto; }
 .map-layer-toolbar { display: none; align-items: center; gap: 12px; flex-wrap: wrap; margin-left: 4px; }
 body.mode-map .map-layer-toolbar { display: flex; }
+.map-screenshot-btn {
+  display: none;
+  width: 32px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+}
+body.mode-map .map-screenshot-btn { display: inline-flex; }
+.map-screenshot-btn svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .refine-wrap { position: relative; margin-left: auto; }
+.refine-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.refine-trigger-icon {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.refine-trigger-icon span {
+  display: block;
+  height: 1px;
+  background: currentColor;
+  transition: width var(--transition);
+}
+.refine-trigger-icon span:nth-child(1) { width: 14px; }
+.refine-trigger-icon span:nth-child(2) { width: 10px; }
+.refine-trigger-icon span:nth-child(3) { width: 6px; }
+.refine-wrap.open .refine-trigger-icon span:nth-child(1) { width: 6px; }
+.refine-wrap.open .refine-trigger-icon span:nth-child(3) { width: 14px; }
+.refine-badge {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 800;
+  opacity: 0;
+  transform: scale(0.75);
+  transition: opacity var(--transition), transform var(--transition);
+}
+.refine-badge.visible { opacity: 1; transform: scale(1); }
 .refine-panel {
   position: fixed;
-  top: 118px;
-  right: 24px;
+  top: 108px;
+  right: 0;
   z-index: 900;
-  display: grid;
-  gap: 10px;
-  min-width: min(360px, calc(100vw - 32px));
-  max-width: min(420px, calc(100vw - 32px));
-  max-height: calc(100vh - 138px);
-  overflow-y: auto;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: color-mix(in oklab, var(--surface-card) 94%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 18px 40px rgba(0,0,0,0.32);
+  width: 0;
+  max-width: min(280px, calc(100vw - 24px));
+  max-height: calc(100vh - 124px);
+  overflow: hidden;
+  padding: 0;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: translateY(-6px);
-  transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+  transition: width 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease, visibility var(--transition);
 }
 .refine-wrap.open .refine-panel {
+  width: 280px;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: translateY(0);
+  overflow-y: auto;
 }
 body.mode-map .refine-wrap { display: none; }
+body.mode-data.refine-open .matrix-wrap { margin-right: 280px; border-right: 1px solid var(--border); }
 .refine-panel .toolbar-divider { display: none !important; }
+.refine-panel__inner { min-width: 280px; padding: 0 18px 18px; }
+.refine-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0 12px;
+  border-bottom: 1px solid var(--border);
+}
+.refine-panel__title {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.refine-clear {
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition), color var(--transition);
+}
+.refine-clear.visible { opacity: 1; pointer-events: auto; }
+.refine-clear:hover { color: var(--text); }
 .refine-panel .toolbar-group {
   display: block;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: color-mix(in oklab, var(--surface) 88%, transparent);
+  padding: 0;
+  border-bottom: 1px solid var(--border);
 }
-.refine-panel .toolbar-label { display: block; margin-bottom: 8px; }
+.refine-panel .toolbar-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 13px 0;
+  cursor: pointer;
+}
+.refine-panel .toolbar-label::after {
+  content: '+';
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+.refine-panel .toolbar-group.is-open .toolbar-label { color: var(--text); }
+.refine-panel .toolbar-group.is-open .toolbar-label::after { content: '×'; color: var(--text); }
 .refine-panel select, .refine-panel .search-box { width: 210px; max-width: 100%; }
 select { font-family: var(--font-body); font-size: 0.82rem; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-xs); color: var(--text); outline: none; }
 select:focus { border-color: var(--accent); }
 body.light select { background: #f4f2ee; }
-.refine-panel select[multiple] { display: none; }
+.refine-panel select[multiple],
+.refine-panel #fShowAs { display: none; }
 .refine-toggle-options {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-height: 170px;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.32s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease, padding-bottom 0.22s ease;
+}
+.refine-panel .toolbar-group.is-open .refine-toggle-options {
+  max-height: 260px;
+  opacity: 1;
   overflow-y: auto;
+  padding-bottom: 12px;
 }
 .refine-panel .search-box {
   width: 100%;
@@ -265,7 +372,21 @@ body.light select { background: #f4f2ee; }
 }
 .refine-panel .search-box:focus { border-color: var(--accent); }
 .refine-panel .map-filter-row,
-.refine-panel .map-filter-all { padding-left: 0; padding-right: 0; }
+.refine-panel .map-filter-all {
+  padding: 6px 0;
+  background: transparent;
+  border-radius: 0;
+}
+.refine-panel .map-filter-row:hover,
+.refine-panel .map-filter-all:hover { background: transparent; }
+.refine-panel .map-filter-row.active .map-filter-label::before,
+.refine-panel .map-filter-all.active .map-filter-label::before {
+  content: '→';
+  color: var(--accent);
+  font-size: 0.68rem;
+  margin-right: 6px;
+}
+.refine-panel .map-filter-switch { display: none; }
 
 /* ─── MODE TOGGLE (Data | Map) ─── */
 .mode-toggle { display: flex; gap: 0; border: 1px solid var(--border); border-radius: var(--radius-xs); overflow: hidden; flex-shrink: 0; }
@@ -303,7 +424,7 @@ body.light .mode-btn.active { color: #f5f2ec; }
 body.mode-map .summary-bar { display: none !important; }
 
 /* ─── MATRIX TABLE ─── */
-.matrix-wrap { padding: 16px 24px 80px; overflow-x: auto; }
+.matrix-wrap { padding: 16px 24px 80px; overflow-x: auto; transition: margin-right 0.35s cubic-bezier(0.4,0,0.2,1), border-color 0.35s; }
 body.mode-map .matrix-wrap { padding: 0; height: calc(100vh - 112px); overflow: hidden; position: relative; }
 .matrix { border-collapse: collapse; width: 100%; font-family: var(--font-mono); font-size: 0.82rem; }
 .matrix th, .matrix td { border: 1px solid var(--border); padding: 7px 10px; text-align: center; white-space: nowrap; }
@@ -372,7 +493,7 @@ body.light .toggle-pill[data-layer="heat"]   { color: #b54514; }
 body.mode-map .research-map-shell { height: 100%; min-height: 0; }
 body.mode-map #resMap { position: absolute; inset: 0; height: 100%; min-height: 0; margin-bottom: 0; border: 0; border-radius: 0; }
 body.mode-map .door-list { max-height: calc(100vh - 360px); margin-top: 0; border: 0; border-radius: 0; background: transparent; }
-body.mode-map .door-detail { position: absolute; left: 12px; bottom: 12px; z-index: 95; width: min(360px, calc(100vw - 24px)); max-height: min(420px, calc(100vh - 180px)); overflow-y: auto; background: color-mix(in oklab, var(--surface) 92%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 10px 34px rgba(0,0,0,0.35); }
+body.mode-map .door-detail { position: absolute; left: 12px; top: 12px; z-index: 95; width: min(360px, calc(100vw - 24px)); max-height: min(520px, calc(100vh - 136px)); overflow-y: auto; background: color-mix(in oklab, var(--surface) 92%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 10px 34px rgba(0,0,0,0.35); }
 #resMap .mapboxgl-popup-content { background: var(--surface-card); color: var(--text); border-radius: var(--radius-xs); padding: 8px 10px; font-family: var(--font-body); font-size: 0.74rem; }
 #resMap .mapboxgl-popup-tip { border-top-color: var(--surface-card); border-bottom-color: var(--surface-card); }
 .research-grid { display: block; }
@@ -506,7 +627,23 @@ body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; fo
 .door-list { max-height: 360px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface); }
 .door-item { border-left: 4px solid var(--retailer-color, transparent); }
 .door-item.incomplete .door-name { color: var(--draft); }
-.door-item.incomplete .door-name::after { content: ' ⚠'; font-size: 0.7rem; color: var(--draft); }
+.door-warning-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--draft);
+  border-radius: 50%;
+  background: var(--draft-dim);
+  color: var(--draft);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  margin-left: 6px;
+}
+.door-warning-btn:hover { background: var(--draft); color: #000; }
 .door-warn-callout {
   border: 1px solid var(--draft);
   background: var(--draft-dim);
@@ -527,6 +664,7 @@ body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; fo
 .door-item .door-name { font-weight: 600; }
 .door-item .door-meta { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-dim); }
 .door-detail { border: 1px solid var(--border); border-radius: var(--radius-xs); padding: 16px; }
+.door-detail:empty { display: none; }
 .door-detail h4 { font-family: var(--font-display); font-size: 1rem; margin-bottom: 4px; }
 .door-detail .addr { color: var(--text-muted); font-size: 0.75rem; margin-bottom: 12px; }
 .brand-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
@@ -735,6 +873,12 @@ body.light .search-box { background: #f4f2ee; }
 .drawer-door-row input,
 .drawer-door-row button,
 .drawer-door-row select { pointer-events: auto; }
+.drawer-door-empty {
+  padding: 10px 0;
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  text-align: center;
+}
 
 .data-pill-select {
   appearance: none;
@@ -820,7 +964,10 @@ body.light .data-cell-note { background: #f4f2ee; }
   .toolbar { padding: 6px 12px; }
   .matrix-wrap { padding: 10px 12px; }
   .research-grid { grid-template-columns: 1fr; }
-  .refine-panel { top: 104px; right: 12px; min-width: calc(100vw - 24px); max-width: calc(100vw - 24px); }
+  .refine-panel { top: 104px; max-width: calc(100vw - 24px); }
+  .refine-wrap.open .refine-panel { width: calc(100vw - 24px); }
+  .refine-panel__inner { min-width: calc(100vw - 24px); }
+  body.mode-data.refine-open .matrix-wrap { margin-right: 0; border-right: 0; }
 }
 </style>
 <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css">
@@ -876,6 +1023,9 @@ body.light .data-cell-note { background: #f4f2ee; }
     <button type="button" class="mode-btn active" data-mode="data" onclick="setMode('data')" title="Tabular views: Matrix, Compact, Tabular, Data, Drafts">Data</button>
     <button type="button" class="mode-btn" data-mode="map" onclick="setMode('map')" title="Spatial view: Brand–Door Research map">Map</button>
   </div>
+  <button class="btn btn-sm map-screenshot-btn" id="mapScreenshotBtn" type="button" onclick="copyMapScreenshot()" aria-label="Copy map screenshot" title="Copy map screenshot">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4l1.7 2H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3.8l1.7-2h5z"/><circle cx="12" cy="13" r="3.5"/></svg>
+  </button>
   <div class="toolbar-divider"></div>
   <div class="view-tabs" id="viewTabs">
     <button class="view-tab active" data-v="matrix" onclick="setView('matrix')">Matrix</button>
@@ -887,40 +1037,69 @@ body.light .data-cell-note { background: #f4f2ee; }
   <button class="btn btn-sm" id="tBtn" onclick="toggleTranspose()" title="Swap rows/columns in Matrix view">⇄ Transpose</button>
   <div class="toolbar-spacer"></div>
   <div class="refine-wrap" id="refineWrap">
-    <button class="btn btn-sm menu-trigger" type="button" onclick="toggleRefinePanel()" aria-expanded="false" title="Show filters and search">Refine</button>
+    <button class="btn btn-sm menu-trigger refine-trigger" type="button" onclick="toggleRefinePanel()" aria-expanded="false" title="Show filters and search">
+      <span class="refine-trigger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+      Refine
+      <span class="refine-badge" id="refineBadge">0</span>
+    </button>
     <div class="refine-panel" id="refinePanel">
-      <div class="toolbar-group">
-        <span class="toolbar-label">Retailer</span>
+      <div class="refine-panel__inner">
+        <div class="refine-panel__header">
+          <span class="refine-panel__title">Refine</span>
+          <button class="refine-clear" id="refineClearAll" type="button" onclick="clearAllRefineFilters()">Clear all</button>
+        </div>
+      <div class="toolbar-group is-open">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Show As</span>
+        <select id="fShowAs" onchange="setShowAs(this.value)" title="Choose the retailer hierarchy to filter by">
+          <option value="retailer_group">Retailer Group</option>
+          <option value="retailer">Retailer</option>
+          <option value="channel">Channel</option>
+        </select>
+        <div class="refine-toggle-options" id="refineShowAsToggles"></div>
+      </div>
+      <div class="toolbar-group is-open" id="retailerGroupFilterGroup">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Retailer Group</span>
+        <select id="fRetGroup" multiple onchange="render()" title="Select parent retailer groups"><option value="">All</option></select>
+        <div class="refine-toggle-options" id="refineRetGroupToggles"></div>
+      </div>
+      <div class="toolbar-group is-open" id="retailerFilterGroup">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Retailer</span>
         <select id="fRet" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple retailers"><option value="">All</option></select>
         <div class="refine-toggle-options" id="refineRetToggles"></div>
       </div>
-      <div class="toolbar-group">
-        <span class="toolbar-label">Category</span>
+      <div class="toolbar-group is-open" id="channelFilterGroup">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Channel</span>
+        <select id="fRetChannel" multiple onchange="render()" title="Select retailer channels"><option value="">All</option></select>
+        <div class="refine-toggle-options" id="refineRetChannelToggles"></div>
+      </div>
+      <div class="toolbar-group is-open">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Category</span>
         <select id="fCat" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple categories"><option value="">All</option></select>
         <div class="refine-toggle-options" id="refineCatToggles"></div>
       </div>
-      <div class="toolbar-group">
-        <span class="toolbar-label">Brand</span>
+      <div class="toolbar-group is-open">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Brand</span>
         <select id="fBrand" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple brands"><option value="">All</option></select>
         <div class="refine-toggle-options" id="refineBrandToggles"></div>
       </div>
-      <div class="toolbar-group" id="statusFilterGroup" style="display:none">
-        <span class="toolbar-label">Status</span>
+      <div class="toolbar-group is-open" id="statusFilterGroup" style="display:none">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Status</span>
         <select id="fStatus" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple statuses"><option value="">All</option><option value="confirmed">Confirmed</option><option value="tbd">TBD</option><option value="na">N/A</option><option value="closed">Closed</option></select>
         <div class="refine-toggle-options" id="refineStatusToggles"></div>
       </div>
-      <div class="toolbar-group" id="gradeFilterGroup" style="display:none">
-        <span class="toolbar-label">Grade</span>
+      <div class="toolbar-group is-open" id="gradeFilterGroup" style="display:none">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Grade</span>
         <select id="fGrade" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple grades"><option value="">All</option></select>
         <div class="refine-toggle-options" id="refineGradeToggles"></div>
       </div>
-      <div class="toolbar-group" id="opportunityFilterGroup" style="display:none">
-        <span class="toolbar-label">Opportunities</span>
+      <div class="toolbar-group is-open" id="opportunityFilterGroup" style="display:none">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Opportunities</span>
         <input type="checkbox" id="fOpportunities" onchange="render()" style="display:none">
         <div class="refine-toggle-options" id="refineOpportunityToggles"></div>
       </div>
       <div class="toolbar-divider" id="statusGradeDivider" style="display:none"></div>
       <input type="text" class="search-box" id="searchBox" placeholder="Search brand…" oninput="debouncedRender()">
+      </div>
     </div>
   </div>
   <div class="map-layer-toolbar" id="mapLayerToolbar" aria-label="Map layers">
@@ -953,14 +1132,17 @@ body.light .data-cell-note { background: #f4f2ee; }
 
 <div class="overlay" id="ovAdd" onclick="closeAdd()"></div>
 <div class="modal" id="mAdd" style="max-width:820px">
-  <h3>Modify Door</h3><p>Create door-level assignments only. Counts are rolled up from specific retailer + door selections.</p>
+  <h3>Modify Door</h3><p>Create or remove door-level records and assignments. Counts are rolled up from specific retailer + door selections.</p>
+  <label>Intent <span style="color:var(--danger)">*</span></label>
+  <div class="multi-mode-toggle">
+    <button class="btn btn-sm active" type="button" id="modeDoorToBrands" onclick="setAddMode('door_to_brands')">New Door</button>
+    <button class="btn btn-sm" type="button" id="modeBrandToDoors" onclick="setAddMode('brand_to_doors')">New Brand</button>
+    <button class="btn btn-sm" type="button" id="modeDeleteDoor" onclick="setAddMode('delete_door')">Delete Door</button>
+  </div>
+  <div class="helper-text" id="modifyDoorStepHint">Step 1: choose intent. Step 2: choose retailer. Step 3: choose the door or brand details.</div>
+
   <label>Retailer <span style="color:var(--danger)">*</span></label>
   <select id="aRet" onchange="populateAddDoors();renderAddSelectionPanels()"></select>
-
-  <div class="multi-mode-toggle">
-    <button class="btn btn-sm active" type="button" id="modeDoorToBrands" onclick="setAddMode('door_to_brands')">One door → many brands</button>
-    <button class="btn btn-sm" type="button" id="modeBrandToDoors" onclick="setAddMode('brand_to_doors')">One brand → many doors</button>
-  </div>
 
   <div id="doorToBrandsWrap">
     <label>Door <span style="color:var(--danger)">*</span></label>
@@ -1008,10 +1190,20 @@ body.light .data-cell-note { background: #f4f2ee; }
     </div>
   </div>
 
+  <div id="deleteDoorWrap" style="display:none">
+    <label>Door to delete <span style="color:var(--danger)">*</span></label>
+    <select id="delDoor" onchange="renderAddSelectionPanels()"><option value="">— Select a door —</option></select>
+    <div class="helper-text">Deleting a door removes the retailer door record and all brand assignments tied to that door. This cannot be undone except by restoring a saved state.</div>
+    <div class="pick-panel" style="margin-top:10px">
+      <h4>Assignments that will be removed</h4>
+      <div class="pick-list" id="delDoorCurrent"></div>
+    </div>
+  </div>
+
   <label>Notes</label>
   <input type="text" id="aNote" placeholder="Optional notes…">
   <div class="helper-text">New entries start as drafts. Publish from the Drafts tab to make them count in the verified-door totals.</div>
-  <div class="modal-actions"><button class="btn" onclick="closeAdd()">Cancel</button><button class="btn btn-draft" onclick="addEntry()">Add as Draft</button></div>
+  <div class="modal-actions"><button class="btn" onclick="closeAdd()">Cancel</button><button class="btn btn-draft" id="modifyDoorSubmitBtn" onclick="addEntry()">Add as Draft</button></div>
 </div>
 
 <div class="overlay" id="ovImport" onclick="closeImport()"></div>
@@ -1048,6 +1240,7 @@ body.light .data-cell-note { background: #f4f2ee; }
   </div>
   <div class="info-modal-tabs" role="tablist">
     <button class="info-modal-tab active" data-tab="about" role="tab">About</button>
+    <button class="info-modal-tab" data-tab="qa" role="tab">Q&amp;A</button>
     <button class="info-modal-tab" data-tab="schema" role="tab">Schema</button>
     <button class="info-modal-tab" data-tab="appendix" role="tab">Appendix</button>
     <button class="info-modal-tab" data-tab="resources" role="tab">Resources</button>
@@ -1064,6 +1257,28 @@ body.light .data-cell-note { background: #f4f2ee; }
     <div class="info-section">
       <h4>Privacy</h4>
       <p>Spreadsheet parsing and save files run locally in your browser. Use exported JSON save files for offline persistence or shared-drive handoff.</p>
+    </div>
+  </div>
+  <div class="info-modal-pane" id="modal-tab-qa" role="tabpanel">
+    <div class="info-section">
+      <h4>How do I add a new door?</h4>
+      <p>Open <strong>Modify Door</strong>, choose <strong>New Door</strong>, select a retailer, then use <strong>Add New Door</strong>. Fill in store name, location, optional latitude/longitude, and tier. Pick brands to add, then save as draft.</p>
+    </div>
+    <div class="info-section">
+      <h4>How do I add a new brand?</h4>
+      <p>Open <strong>Modify Door</strong>, choose <strong>New Brand</strong>, select a retailer, then use <strong>Add New Brand</strong>. Select the doors that should carry it and save as draft.</p>
+    </div>
+    <div class="info-section">
+      <h4>How do I delete a door?</h4>
+      <p>Open <strong>Modify Door</strong>, choose <strong>Delete Door</strong>, select the retailer and door, review the affected assignments, then confirm. This removes the door location and all assignments tied to that retailer door.</p>
+    </div>
+    <div class="info-section">
+      <h4>How do I remove a brand from a door?</h4>
+      <p>Open the retailer-brand drawer from a matrix/data cell. In <strong>Assigned Doors</strong>, click the X for the door, choose <strong>Exit</strong> or <strong>TBD</strong>, then commit the change.</p>
+    </div>
+    <div class="info-section">
+      <h4>Why do some doors show a warning?</h4>
+      <p>A warning means the door is missing map coordinates. Click the warning icon or edit details to add latitude and longitude. Doors named <strong>E-COMMERCE</strong> count as doors and do not require coordinates.</p>
     </div>
   </div>
   <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
@@ -1637,10 +1852,13 @@ function populateFilters(){
   const cats=[...new Set(matrixData.map(d=>d.category).filter(Boolean))];
   const brands=getAllBrands();
   const grades=['-','A','B','C'];
-  fillSel('fCat',cats); fillSel('fBrand',brands); fillSel('fGrade',grades);
+  const allRetailers=[...new Set([...retailers,...doorLocations.map(d=>normalizeRetailer(d.retailer))])].filter(Boolean).sort();
+  const groups=[...new Set(allRetailers.map(retailerGroup).filter(Boolean))].sort();
+  const channels=[...new Set(allRetailers.map(retailerChannel).filter(Boolean))].sort();
+  fillSel('fCat',cats); fillSel('fBrand',brands); fillSel('fGrade',grades); fillSel('fRetGroup',groups); fillSel('fRetChannel',channels);
   const el=document.getElementById('fRet');
   const cv=getSelectValues(el);
-  el.innerHTML='<option value="">All</option>'+retailers.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  el.innerHTML='<option value="">All</option>'+allRetailers.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
   setSelectValues(el,cv);
   populateStatusGradeFilters();
   renderRefineToggles();
@@ -1668,13 +1886,63 @@ function fillSel(id,vals){
   setSelectValues(el,cv);
 }
 
+function filterOptionLabel(sourceId,opt){
+  if(sourceId==='fBrand'){
+    const code=opt.value;
+    const name=brandCodes[code] && brandCodes[code].name;
+    return name || opt.textContent || code;
+  }
+  return opt.textContent || opt.value;
+}
+
 function renderRefineToggles(){
+  renderShowAsToggles();
+  renderRefineToggleGroup('fRetGroup','refineRetGroupToggles','All groups');
   renderRefineToggleGroup('fRet','refineRetToggles','All retailers');
+  renderRefineToggleGroup('fRetChannel','refineRetChannelToggles','All channels');
   renderRefineToggleGroup('fCat','refineCatToggles','All categories');
   renderRefineToggleGroup('fBrand','refineBrandToggles','All brands');
   renderRefineToggleGroup('fStatus','refineStatusToggles','All statuses');
   renderRefineToggleGroup('fGrade','refineGradeToggles','All grades');
   renderRefineOpportunityToggle();
+  updateRefineActiveState();
+  updateShowAsVisibility();
+}
+
+function currentShowAs(){
+  return document.getElementById('fShowAs')?.value || 'retailer_group';
+}
+
+function renderShowAsToggles(){
+  const host=document.getElementById('refineShowAsToggles');
+  const source=document.getElementById('fShowAs');
+  if(!host || !source) return;
+  const value=currentShowAs();
+  const options=[
+    ['retailer_group','Retailer Group'],
+    ['retailer','Retailer'],
+    ['channel','Channel']
+  ];
+  host.innerHTML=options.map(([val,label])=>`<div class="map-filter-row ${value===val?'active':''}" role="button" tabindex="0" aria-pressed="${value===val?'true':'false'}" data-show-as-value="${esc(val)}">
+    <span class="map-filter-label">${esc(label)}</span>
+    <span class="map-filter-switch" aria-hidden="true"></span>
+  </div>`).join('');
+}
+
+function updateShowAsVisibility(){
+  const mode=currentShowAs();
+  const groups=[
+    ['retailer_group','retailerGroupFilterGroup'],
+    ['retailer','retailerFilterGroup'],
+    ['channel','channelFilterGroup']
+  ];
+  groups.forEach(([key,id])=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display=mode===key?'block':'none';
+  });
+  document.querySelectorAll('.map-hierarchy-section').forEach(el=>{
+    el.style.display=el.dataset.showAsSection===mode?'block':'none';
+  });
 }
 
 function renderRefineToggleGroup(sourceId,hostId,allLabel){
@@ -1686,12 +1954,13 @@ function renderRefineToggleGroup(sourceId,hostId,allLabel){
   const options=Array.from(source.options).filter(opt=>opt.value);
   const rows=options.map(opt=>{
     const active=selected.has(opt.value);
-    return `<div class="map-filter-row ${active?'active':''}" role="button" tabindex="0" aria-pressed="${active?'true':'false'}" onclick="toggleRefineFilterValue(${jsq(sourceId)},${jsq(opt.value)})" onkeydown="onRefineFilterKey(event,${jsq(sourceId)},${jsq(opt.value)})" title="${esc(opt.textContent)}">
-      <span class="map-filter-label">${esc(opt.textContent)}</span>
+    const label=filterOptionLabel(sourceId,opt);
+    return `<div class="map-filter-row ${active?'active':''}" role="button" tabindex="0" aria-pressed="${active?'true':'false'}" data-refine-source="${esc(sourceId)}" data-refine-value="${esc(opt.value)}" title="${esc(opt.textContent)}">
+      <span class="map-filter-label">${esc(label)}</span>
       <span class="map-filter-switch" aria-hidden="true"></span>
     </div>`;
   }).join('');
-  host.innerHTML=`<div class="map-filter-all ${values.length?'':'active'}" role="button" tabindex="0" aria-pressed="${values.length?'false':'true'}" onclick="clearRefineFilter(${jsq(sourceId)})" onkeydown="onRefineFilterClearKey(event,${jsq(sourceId)})">
+  host.innerHTML=`<div class="map-filter-all ${values.length?'':'active'}" role="button" tabindex="0" aria-pressed="${values.length?'false':'true'}" data-refine-clear="${esc(sourceId)}">
       <span class="map-filter-label">${esc(allLabel)}</span>
       <span class="map-filter-count">${options.length}</span>
     </div>${rows || '<div style="padding:6px 0;color:var(--text-dim);font-size:0.68rem">No options yet.</div>'}`;
@@ -1702,7 +1971,7 @@ function renderRefineOpportunityToggle(){
   const source=document.getElementById('fOpportunities');
   if(!host || !source) return;
   const active=source.checked;
-  host.innerHTML=`<div class="map-filter-row ${active?'active':''}" role="button" tabindex="0" aria-pressed="${active?'true':'false'}" onclick="toggleRefineOpportunity()" onkeydown="onRefineOpportunityKey(event)">
+  host.innerHTML=`<div class="map-filter-row ${active?'active':''}" role="button" tabindex="0" aria-pressed="${active?'true':'false'}" data-refine-opportunity="1">
     <span class="map-filter-label">Brand can be at door</span>
     <span class="map-filter-switch" aria-hidden="true"></span>
   </div>`;
@@ -1714,12 +1983,14 @@ function toggleRefineFilterValue(sourceId,value){
   else values.add(value);
   setSelectValues(sourceId,Array.from(values));
   renderRefineToggles();
+  renderMapFilterClones();
   render();
 }
 
 function clearRefineFilter(sourceId){
   setSelectValues(sourceId,[]);
   renderRefineToggles();
+  renderMapFilterClones();
   render();
 }
 
@@ -1740,6 +2011,19 @@ function toggleRefineOpportunity(){
   if(!source) return;
   source.checked=!source.checked;
   renderRefineOpportunityToggle();
+  updateRefineActiveState();
+  render();
+}
+
+function setShowAs(value){
+  const source=document.getElementById('fShowAs');
+  const mode=['retailer_group','retailer','channel'].includes(value) ? value : 'retailer_group';
+  if(source) source.value=mode;
+  if(mode!=='retailer_group') setSelectValues('fRetGroup',[]);
+  if(mode!=='retailer') setSelectValues('fRet',[]);
+  if(mode!=='channel') setSelectValues('fRetChannel',[]);
+  renderRefineToggles();
+  renderMapFilterClones();
   render();
 }
 
@@ -1747,6 +2031,66 @@ function onRefineOpportunityKey(e){
   if(e.key!=='Enter' && e.key!==' ') return;
   e.preventDefault();
   toggleRefineOpportunity();
+}
+
+function handleRefineToggleEvent(e){
+  const row=e.target.closest('[data-show-as-value],[data-refine-source],[data-refine-clear],[data-refine-opportunity]');
+  if(!row || !row.closest('#refinePanel')) return;
+  if(e.type==='keydown' && e.key!=='Enter' && e.key!==' ') return;
+  e.preventDefault();
+  e.stopPropagation();
+  if(row.dataset.showAsValue){
+    setShowAs(row.dataset.showAsValue);
+  }else if(row.dataset.refineSource){
+    toggleRefineFilterValue(row.dataset.refineSource,row.dataset.refineValue);
+  }else if(row.dataset.refineClear){
+    clearRefineFilter(row.dataset.refineClear);
+  }else if(row.dataset.refineOpportunity){
+    toggleRefineOpportunity();
+  }
+}
+
+function getRefineActiveCount(){
+  let count=0;
+  ['fRetGroup','fRet','fRetChannel','fCat','fBrand','fStatus','fGrade'].forEach(id=>{ count+=getSelectValues(id).length; });
+  if(document.getElementById('fOpportunities')?.checked) count++;
+  if((document.getElementById('searchBox')?.value||'').trim()) count++;
+  return count;
+}
+
+function updateRefineActiveState(){
+  const count=getRefineActiveCount();
+  const badge=document.getElementById('refineBadge');
+  const clear=document.getElementById('refineClearAll');
+  if(badge){
+    badge.textContent=String(count);
+    badge.classList.toggle('visible',count>0);
+  }
+  if(clear) clear.classList.toggle('visible',count>0);
+}
+
+function clearAllRefineFilters(){
+  ['fRetGroup','fRet','fRetChannel','fCat','fBrand','fStatus','fGrade'].forEach(id=>setSelectValues(id,[]));
+  const opp=document.getElementById('fOpportunities');
+  if(opp) opp.checked=false;
+  const search=document.getElementById('searchBox');
+  if(search) search.value='';
+  renderRefineToggles();
+  renderMapFilterClones();
+  render();
+}
+
+function toggleRefineSection(label){
+  const group=label?.closest('.toolbar-group');
+  if(!group) return;
+  const open=group.classList.toggle('is-open');
+  label.setAttribute('aria-expanded',String(open));
+}
+
+function onRefineSectionKey(e,label){
+  if(e.key!=='Enter' && e.key!==' ') return;
+  e.preventDefault();
+  toggleRefineSection(label);
 }
 
 function getFiltered(){
@@ -1760,8 +2104,17 @@ function getFiltered(){
   return items;
 }
 function getVisibleRetailers(){
-  const fr=getSelectValues('fRet');
-  return fr.length?fr:retailers;
+  const fr=getSelectValues('fRet').map(normalizeRetailer);
+  const groups=getSelectValues('fRetGroup');
+  const channels=getSelectValues('fRetChannel');
+  const allRetailers=[...new Set([...retailers,...doorLocations.map(d=>normalizeRetailer(d.retailer))])].filter(Boolean).sort();
+  return allRetailers.filter(r=>{
+    const norm=normalizeRetailer(r);
+    if(fr.length && !fr.includes(norm)) return false;
+    if(groups.length && !groups.includes(retailerGroup(norm))) return false;
+    if(channels.length && !channels.includes(retailerChannel(norm))) return false;
+    return true;
+  });
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1789,12 +2142,14 @@ function render(){
     else if(currentView==='drafts') renderDrafts();
   }finally{
     _renderCache=null;
+    updateRefineActiveState();
   }
 }
 
 /* 150 ms debounce so typing in the search box doesn't re-render per keystroke. */
 function debouncedRender(){
   clearTimeout(_searchTimer);
+  updateRefineActiveState();
   _searchTimer=setTimeout(render,150);
 }
 
@@ -2181,7 +2536,9 @@ let _resSearchTimer=null;
 function renderResearch(){
   const wrap=document.getElementById('mainView');
   const retVals=getSelectValues('fRet');
-  const retLabel=retVals.length ? retVals.join(', ') : 'All retailers';
+  const groupVals=getSelectValues('fRetGroup');
+  const channelVals=getSelectValues('fRetChannel');
+  const retLabel=retVals.length ? retVals.join(', ') : (groupVals.length ? groupVals.join(', ') : (channelVals.length ? channelVals.join(', ') : 'All retailers'));
   const shellExists=!!document.getElementById('resMap');
   if(!shellExists){
     const prevSearch=(document.getElementById('resSearch')||{}).value||'';
@@ -2190,8 +2547,20 @@ function renderResearch(){
         <div id="resMap"></div>
         <div class="map-filter-rail">
           <details class="map-filter-section" open>
+            <summary>Show As</summary>
+            <div class="map-filter-body" id="mapShowAsFilter"></div>
+          </details>
+          <details class="map-filter-section map-hierarchy-section" data-show-as-section="retailer_group" open>
+            <summary>Groups</summary>
+            <div class="map-filter-body" id="mapRetailerGroupFilter"></div>
+          </details>
+          <details class="map-filter-section map-hierarchy-section" data-show-as-section="retailer" open>
             <summary>Retailers</summary>
             <div class="map-filter-body" id="mapRetailerFilter"></div>
+          </details>
+          <details class="map-filter-section map-hierarchy-section" data-show-as-section="channel" open>
+            <summary>Channels</summary>
+            <div class="map-filter-body" id="mapRetailerChannelFilter"></div>
           </details>
           <details class="map-filter-section" open>
             <summary>Brands</summary>
@@ -2206,7 +2575,7 @@ function renderResearch(){
             </div>
           </details>
         </div>
-        <div class="door-detail" id="doorDetail"><p style="color:var(--text-dim)">Click a door on the map or pick one from the list to see brand placements at that store.</p></div>
+        <div class="door-detail" id="doorDetail"></div>
       </div>
     `;
     renderMapFilterClones();
@@ -2235,10 +2604,17 @@ function toggleDoorListCollapse(){
 }
 
 function renderMapFilterClones(){
+  const showAsHost=document.getElementById('mapShowAsFilter');
+  const groupHost=document.getElementById('mapRetailerGroupFilter');
   const retHost=document.getElementById('mapRetailerFilter');
+  const channelHost=document.getElementById('mapRetailerChannelFilter');
   const brandHost=document.getElementById('mapBrandFilter');
+  if(showAsHost) showAsHost.innerHTML=renderMapShowAsFilter();
+  if(groupHost) groupHost.innerHTML=renderMapToggleFilter('fRetGroup','retailer-group');
   if(retHost) retHost.innerHTML=renderMapToggleFilter('fRet','retailer');
+  if(channelHost) channelHost.innerHTML=renderMapToggleFilter('fRetChannel','channel');
   if(brandHost) brandHost.innerHTML=renderMapToggleFilter('fBrand','brand');
+  updateShowAsVisibility();
 }
 
 function renderMapToggleFilter(sourceId,filterKind){
@@ -2248,15 +2624,16 @@ function renderMapToggleFilter(sourceId,filterKind){
   const selected=new Set(values);
   const options=Array.from(source.options).filter(opt=>opt.value);
   const allActive=!values.length;
-  const allLabel=filterKind==='retailer' ? 'All retailers' : 'All brands';
+  const allLabel=filterKind==='retailer-group' ? 'All groups' : (filterKind==='retailer' ? 'All retailers' : (filterKind==='channel' ? 'All channels' : 'All brands'));
   const rows=options.map(opt=>{
     const active=selected.has(opt.value);
-    return `<div class="map-filter-row ${active?'active':''}" role="button" tabindex="0" aria-pressed="${active?'true':'false'}" onclick="toggleMapFilterValue(${jsq(sourceId)},${jsq(opt.value)})" onkeydown="onMapFilterKey(event,${jsq(sourceId)},${jsq(opt.value)})" title="${esc(opt.textContent)}">
-      <span class="map-filter-label">${esc(opt.textContent)}</span>
+    const label=filterOptionLabel(sourceId,opt);
+    return `<div class="map-filter-row ${active?'active':''}" role="button" tabindex="0" aria-pressed="${active?'true':'false'}" data-map-source="${esc(sourceId)}" data-map-value="${esc(opt.value)}" title="${esc(opt.textContent)}">
+      <span class="map-filter-label">${esc(label)}</span>
       <span class="map-filter-switch" aria-hidden="true"></span>
     </div>`;
   }).join('');
-  return `<div class="map-filter-all ${allActive?'active':''}" role="button" tabindex="0" aria-pressed="${allActive?'true':'false'}" onclick="clearMapFilter(${jsq(sourceId)})" onkeydown="onMapFilterClearKey(event,${jsq(sourceId)})">
+  return `<div class="map-filter-all ${allActive?'active':''}" role="button" tabindex="0" aria-pressed="${allActive?'true':'false'}" data-map-clear="${esc(sourceId)}">
       <span class="map-filter-label">${allLabel}</span>
       <span class="map-filter-count">${options.length}</span>
     </div>
@@ -2269,13 +2646,19 @@ function toggleMapFilterValue(sourceId,value){
   else values.add(value);
   setSelectValues(sourceId,Array.from(values));
   renderRefineToggles();
-  render();
+  renderMapFilterClones();
+  updateResearchMapData();
+  _resShowAll=false;
+  renderResearchList();
 }
 
 function clearMapFilter(sourceId){
   setSelectValues(sourceId,[]);
   renderRefineToggles();
-  render();
+  renderMapFilterClones();
+  updateResearchMapData();
+  _resShowAll=false;
+  renderResearchList();
 }
 
 function onMapFilterKey(e,sourceId,value){
@@ -2290,25 +2673,52 @@ function onMapFilterClearKey(e,sourceId){
   clearMapFilter(sourceId);
 }
 
+function handleMapFilterEvent(e){
+  const row=e.target.closest('[data-map-show-as],[data-map-source],[data-map-clear]');
+  if(!row || !row.closest('.map-filter-rail')) return;
+  if(e.type==='keydown' && e.key!=='Enter' && e.key!==' ') return;
+  e.preventDefault();
+  e.stopPropagation();
+  if(row.dataset.mapShowAs){
+    setShowAs(row.dataset.mapShowAs);
+  }else if(row.dataset.mapSource){
+    toggleMapFilterValue(row.dataset.mapSource,row.dataset.mapValue);
+  }else if(row.dataset.mapClear){
+    clearMapFilter(row.dataset.mapClear);
+  }
+}
+
+function renderMapShowAsFilter(){
+  const value=currentShowAs();
+  return [['retailer_group','Retailer Group'],['retailer','Retailer'],['channel','Channel']]
+    .map(([val,label])=>`<div class="map-filter-row ${value===val?'active':''}" role="button" tabindex="0" aria-pressed="${value===val?'true':'false'}" data-map-show-as="${esc(val)}">
+      <span class="map-filter-label">${esc(label)}</span>
+      <span class="map-filter-switch" aria-hidden="true"></span>
+    </div>`).join('');
+}
+
 function onResSearchInput(){
   clearTimeout(_resSearchTimer);
   _resSearchTimer=setTimeout(()=>{ _resShowAll=false; renderResearchList(); },150);
 }
 
+function doorHasBrandAssignment(ret,doorNumber,brand){
+  const assignments=doorAssignments[k(normalizeRetailer(ret),brand)]||[];
+  return assignments.some(a=>String(a.doorNumber)===String(doorNumber));
+}
+
 function renderResearchList(){
-  const retVals=getSelectValues('fRet');
+  const visibleRetailers=new Set(getVisibleRetailers().map(normalizeRetailer));
+  const hasRetailerScope=getSelectValues('fRet').length || getSelectValues('fRetGroup').length || getSelectValues('fRetChannel').length;
   const brandVals=getSelectValues('fBrand');
   const sq=(document.getElementById('resSearch')?.value||'').toLowerCase();
-  const allRetailers=!retVals.length;
-  let doors=doorLocations.filter(d=>allRetailers || retVals.includes(normalizeRetailer(d.retailer)));
+  const allRetailers=!hasRetailerScope;
+  let doors=doorLocations.filter(d=>visibleRetailers.has(normalizeRetailer(d.retailer)));
   if(brandVals.length){
     doors=doors.filter(d=>{
       const doorRet=normalizeRetailer(d.retailer);
       return brandVals.some(brand=>{
-        const assignments=doorAssignments[k(doorRet,brand)]||[];
-        const assignedNums=new Set(assignments.map(a=>String(a.doorNumber)));
-        const retailerHasBrand=getMatrixVal(doorRet,brand)>0;
-        return assignedNums.has(String(d.doorNumber)) || retailerHasBrand;
+        return doorHasBrandAssignment(doorRet,d.doorNumber,brand);
       });
     });
   }
@@ -2322,7 +2732,9 @@ function renderResearchList(){
   const items=visible.map((d,i)=>{
     const cls=['door-item']; if(isDoorIncomplete(d)) cls.push('incomplete');
     const doorRet=normalizeRetailer(d.retailer);
-    return `<div class="${cls.join(' ')}" style="--retailer-color:${esc(retailerColor(doorRet))}" onclick="${jsAttr(`selectDoor(${i},${jsq(doorRet)})`)}" data-idx="${i}"><div><div class="door-name">#${esc(String(d.doorNumber))} — ${esc(d.name||'(no name)')}</div><div class="door-meta">${allRetailers?esc(doorRet)+' · ':''}${esc(d.city||'')}${d.state?', '+esc(d.state):''}${!d.city && !d.state ? '(no location)' : ''}</div></div><div>${d.tier?`<span class="tier-badge ${d.tier}">${d.tier}</span>`:''}</div></div>`;
+    const coordWarn=doorNeedsCoordinateWarning(d);
+    const warnBtn=coordWarn ? `<button type="button" class="door-warning-btn" title="Missing coordinates. Edit door details." onclick="${jsAttr(`event.stopPropagation();openEditDoorModal(${jsq(doorRet)},${jsq(String(d.doorNumber))})`)}">&#9888;</button>` : '';
+    return `<div class="${cls.join(' ')}" style="--retailer-color:${esc(retailerColor(doorRet))}" onclick="${jsAttr(`selectDoor(${i},${jsq(doorRet)})`)}" data-idx="${i}"><div><div class="door-name">#${esc(String(d.doorNumber))} — ${esc(d.name||'(no name)')}${warnBtn}</div><div class="door-meta">${allRetailers?esc(doorRet)+' · ':''}${esc(d.city||'')}${d.state?', '+esc(d.state):''}${!d.city && !d.state ? '(no location)' : ''}</div></div><div>${d.tier?`<span class="tier-badge ${d.tier}">${d.tier}</span>`:''}</div></div>`;
   }).join('');
   const more=doors.length-visible.length;
   const footer=more>0
@@ -2331,14 +2743,30 @@ function renderResearchList(){
   list.innerHTML=items+footer;
 }
 
-/* A door is "incomplete" when it still has the auto-generated "Door N"
-   placeholder name OR is missing both human address and map coordinates. */
+function isEcommerceDoor(d){
+  const name=String((d&&d.name)||'').trim().toUpperCase().replace(/[\s_]+/g,'-');
+  return name==='E-COMMERCE' || name==='ECOMMERCE' || name==='E-COM';
+}
+
+function doorNeedsCoordinateWarning(d){
+  if(!d || isEcommerceDoor(d)) return false;
+  const latRaw=d.lat;
+  const lngRaw=d.lng;
+  if(latRaw==null || lngRaw==null || String(latRaw).trim()==='' || String(lngRaw).trim()==='') return true;
+  const lat=Number(latRaw);
+  const lng=Number(lngRaw);
+  return Number.isNaN(lat) || Number.isNaN(lng);
+}
+
+/* A door is "incomplete" when it still has the auto-generated "Door N",
+   lacks location detail, or is missing coordinates. E-COMMERCE is a valid
+   non-mapped door and does not need coordinates. */
 function isDoorIncomplete(d){
   if(!d) return true;
+  if(isEcommerceDoor(d)) return false;
   const placeholder=/^Door\s+\S+$/i.test(String(d.name||''));
   const noLocation=!(d.city||d.state||d.address);
-  const noCoords=d.lat==null || d.lng==null;
-  return placeholder || (noLocation && noCoords);
+  return placeholder || noLocation || doorNeedsCoordinateWarning(d);
 }
 const RETAILER_COLORS={
   'DLL':'#48CAE4',
@@ -2508,6 +2936,13 @@ function saveEditDoor(){
   d.tier=next.tier;
   d.lat=latNum;
   d.lng=lngNum;
+  for(const [key,assigns] of Object.entries(doorAssignments)){
+    const [r]=key.split('|');
+    if(r!==ret) continue;
+    assigns.forEach(a=>{
+      if(String(a.doorNumber)===String(doorNumber)) a.doorName=d.name;
+    });
+  }
   const changes=Object.keys(before).filter(k=>String(before[k])!==String(k==='lat'?(latNum==null?'':latNum):(k==='lng'?(lngNum==null?'':lngNum):next[k])));
   /* Record a single rolled-up history entry against every brand currently
      tied to this door, so the audit log captures who fixed the door. */
@@ -2522,9 +2957,11 @@ function saveEditDoor(){
       recordHistory(ret,b,{scope:'door',action:'door details updated',oldVal:'',newVal:changes.join(', '),doorNumber:d.doorNumber});
     });
   }
+  const drawerToRefresh=(document.getElementById('drawer')?.classList.contains('open') && activeStoreDrawer) ? {...activeStoreDrawer} : null;
   closeEditDoorModal();
   populateFilters();
   render();
+  if(drawerToRefresh) openStoreDrawer(drawerToRefresh.ret,drawerToRefresh.brand);
   queueAutosave();
   /* Re-open the same door's detail to show the now-complete view. */
   const idx=(window._resDoors||[]).findIndex(x=>String(x.doorNumber)===String(doorNumber));
@@ -2563,6 +3000,7 @@ function initResearchMap(){
     style:mapStyleForTheme(),
     center:[-95,39],
     zoom:3,
+    preserveDrawingBuffer:true,
     attributionControl:false
   });
   _resMap.addControl(new mapboxgl.AttributionControl({compact:true}));
@@ -2654,17 +3092,17 @@ function addResearchMapLayers(){
 
 function updateResearchMapData(){
   if(!_resMap || !_resMapStyleReady) return;
-  const retVals=getSelectValues('fRet');
+  const retVals=getVisibleRetailers().map(normalizeRetailer);
+  const hasRetailerScope=getSelectValues('fRet').length || getSelectValues('fRetGroup').length || getSelectValues('fRetChannel').length;
   const brandVals=getSelectValues('fBrand');
-  const allRetailers=!retVals.length;
+  const allRetailers=!hasRetailerScope;
   const norm=allRetailers?'__all__':retVals.join('|');
   const doors=doorLocations.filter(d=>{
     const doorRet=normalizeRetailer(d.retailer);
     if(!allRetailers && !retVals.includes(doorRet)) return false;
     if(brandVals.length){
       const hasBrand=brandVals.some(brand=>{
-        const assignments=doorAssignments[k(doorRet,brand)]||[];
-        return assignments.some(a=>String(a.doorNumber)===String(d.doorNumber)) || getMatrixVal(doorRet,brand)>0;
+        return doorHasBrandAssignment(doorRet,d.doorNumber,brand);
       });
       if(!hasBrand) return false;
     }
@@ -2741,6 +3179,49 @@ function syncMapLayerToggles(){
     if(p.dataset.layer===name) p.classList.toggle('inactive',!_layerVisible[name]);
   });
 }
+async function copyMapScreenshot(){
+  if(!_resMap){
+    toast('Switch to Map mode before taking a screenshot.');
+    return;
+  }
+  try{
+    _resMap.resize();
+    _resMap.triggerRepaint();
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    const canvas=_resMap.getCanvas();
+    const blob=await new Promise((resolve,reject)=>{
+      try{
+        canvas.toBlob(b=>b?resolve(b):reject(new Error('Map screenshot failed.')),'image/png');
+      }catch(err){ reject(err); }
+    });
+    if(navigator.clipboard && window.ClipboardItem){
+      try{
+        await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+        toast('Map screenshot copied.');
+      }catch(copyErr){
+        console.warn(copyErr);
+        downloadMapScreenshot(blob);
+        toast('Clipboard copy was blocked, so the map screenshot was downloaded.');
+      }
+      return;
+    }
+    downloadMapScreenshot(blob);
+    toast('Clipboard image copy is unavailable here, so the map screenshot was downloaded.');
+  }catch(err){
+    console.warn(err);
+    toast('Browser blocked copying the map screenshot.');
+  }
+}
+function downloadMapScreenshot(blob){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='door-map-screenshot.png';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 function mapStyleForTheme(){
   return document.body.classList.contains('light')
     ? 'mapbox://styles/mapbox/light-v11'
@@ -2783,6 +3264,32 @@ function normalizeRetailer(raw){
   const upper=key.toUpperCase();
   const map={'DLL':"Dillard's",'DILLARDS':"Dillard's",'DILLARD’S':"Dillard's","DILLARD'S":"Dillard's",'BLM':'Bloomingdales','BLOOMINGDALES':'Bloomingdales','NRD':'Nordstrom','NORDSTROM':'Nordstrom','NEIMAN MARCUS':'Neiman Marcus','SAKS FIFTH AVENUE':'Saks Fifth Ave','SAKS FIFTH AVE':'Saks Fifth Ave','HOLTRENFREW':'Holt','HOLT RENFREW':'Holt','BERGDORF GOODMAN':'Bergdorf Goodman','BELK':'BELK','KOHLS':'Kohl',"KOHL'S":'Kohl','VON MAUR':'Von Maur','WEBSTER':'Webster','THE WEBSTER':'Webster'};
   return map[key]||map[upper]||key;
+}
+const RETAILER_GROUPS={
+  'Saks Fifth Ave':'Saks Global',
+  'Neiman Marcus':'Saks Global',
+  'Bergdorf Goodman':'Saks Global'
+};
+function retailerGroup(retailer){
+  const norm=normalizeRetailer(retailer);
+  return RETAILER_GROUPS[norm] || norm;
+}
+const RETAILER_CHANNELS={
+  "Dillard's":'Luxury',
+  'Bloomingdales':'Luxury',
+  'Nordstrom':'Luxury',
+  'Saks Fifth Ave':'Luxury',
+  'Neiman Marcus':'Luxury',
+  'Bergdorf Goodman':'Luxury',
+  'Holt':'Luxury',
+  'Von Maur':'Luxury',
+  'Webster':'Luxury',
+  'BELK':'STARS',
+  'Kohl':'STARS'
+};
+function retailerChannel(retailer){
+  const norm=normalizeRetailer(retailer);
+  return RETAILER_CHANNELS[norm] || 'Luxury';
 }
 function buildDataKey(ret,doorNumber,brand){
   return String(ret||'').replace(/[^A-Za-z0-9]/g,'') + String(doorNumber||'') + String(brand||'').replace(/[^A-Za-z0-9]/g,'');
@@ -2834,6 +3341,7 @@ function updateDataKeyField(ret,doorNumber,brand,field,value,el){
 // ═══════════════════════════════════════════════════════
 function cellClick(r,b){window._drawerShowAllUnassigned=false;openStoreDrawer(r,b);}
 function openStoreDrawer(ret,brand){
+  activeStoreDrawer={ret,brand};
   const bName=brandCodes[brand]?brandCodes[brand].name:brand;
   document.getElementById('drTitle').textContent=bName+' at '+ret;
   const count=getMatrixVal(ret,brand);
@@ -2856,6 +3364,7 @@ function openStoreDrawer(ret,brand){
     <button class="btn btn-sm active" id="drawerAssignedToggle" type="button" onclick="setDrawerDoorPanel('assigned')">Assigned Doors <span class="draft-badge" style="margin-left:6px">${assigns.length}</span></button>
     <button class="btn btn-sm" id="drawerUnassignedToggle" type="button" onclick="setDrawerDoorPanel('unassigned')">Unassigned Doors <span class="draft-badge" style="margin-left:6px">${unassignedDoors.length}</span></button>
   </div>`;
+  html+=`<input class="search-box" id="drawerDoorSearch" type="search" placeholder="Search doors..." oninput="filterDrawerDoors()" style="width:100%;margin:0 0 2px 0">`;
 
   html+='<div id="drawerAssignedPanel">';
   html+='<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px;margin-top:4px">Assigned Doors</div>';
@@ -2873,9 +3382,16 @@ function openStoreDrawer(ret,brand){
     assigns.forEach((a,i)=>{
       const isDraft=a.status==='draft';
       const keyVal=(a.doorNumber!=='TBD')?buildDataKey(ret,a.doorNumber,brand):'Pending key until door is assigned';
-      html+=`<div class="drawer-door-row" data-door-row="1" style="padding:8px 0;border-bottom:1px solid var(--border);font-size:0.78rem;display:flex;justify-content:space-between;align-items:start" onclick="onDrawerRowClick(event, 'remove')">
+      const assignedDoor=a.doorNumber!=='TBD' ? getDoorInfo(ret,a.doorNumber) : null;
+      const assignedName=assignedDoor ? assignedDoor.name : a.doorName;
+      const assignedLocation=assignedDoor ? [assignedDoor.address,assignedDoor.city,assignedDoor.state,assignedDoor.zip].filter(Boolean).join(' ') : '';
+      const assignedSearch=[a.doorNumber,assignedName,keyVal,a.note,assignedLocation,a.status].filter(Boolean).join(' ');
+      const assignedWarn=assignedDoor && doorNeedsCoordinateWarning(assignedDoor)
+        ? `<button type="button" class="door-warning-btn" title="Missing coordinates. Edit door details." onclick="${jsAttr(`event.stopPropagation();openEditDoorModal(${jsq(ret)},${jsq(String(a.doorNumber))})`)}">&#9888;</button>`
+        : '';
+      html+=`<div class="drawer-door-row" data-door-row="1" data-search="${esc(assignedSearch.toLowerCase())}" style="padding:8px 0;border-bottom:1px solid var(--border);font-size:0.78rem;display:flex;justify-content:space-between;align-items:start" onclick="onDrawerRowClick(event, 'remove')">
         <div>
-          <div style="font-weight:600;${isDraft?'color:var(--draft);font-style:italic':''}">${a.doorNumber==='TBD'?'TBD — Pending door':'#'+a.doorNumber+' — '+esc(a.doorName)} <span style="font-size:0.6rem;padding:1px 5px;border-radius:3px;${isDraft?'background:var(--draft-dim);color:var(--draft)':'background:rgba(39,174,96,0.15);color:var(--success)'}">${a.status.toUpperCase()}</span></div>
+          <div style="font-weight:600;${isDraft?'color:var(--draft);font-style:italic':''}">${a.doorNumber==='TBD'?'TBD — Pending door':'#'+a.doorNumber+' — '+esc(assignedName||'(no name)')}${assignedWarn} <span style="font-size:0.6rem;padding:1px 5px;border-radius:3px;${isDraft?'background:var(--draft-dim);color:var(--draft)':'background:rgba(39,174,96,0.15);color:var(--success)'}">${a.status.toUpperCase()}</span></div>
           <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim);margin-top:2px">${esc(keyVal)}</div>
           ${a.note?'<div style="color:var(--text-muted);font-size:0.7rem;margin-top:2px">'+esc(a.note)+'</div>':''}
           <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim)">${a.date||''}</div>
@@ -2911,27 +3427,22 @@ function openStoreDrawer(ret,brand){
       <span id="drawerCommitState" style="font-size:0.72rem;color:var(--text-muted);margin-left:auto">No pending changes</span>
     </div>
     <div class="drawer-door-list" id="drawerUnassignedList">`;
-    /* Cap so opening a Dillard's / Kohl / BELK cell doesn't paint hundreds
-       of rows synchronously. The user can expand if they need the full list. */
-    const DRAWER_DOOR_CAP=50;
-    const showAll=window._drawerShowAllUnassigned===true;
-    const visibleDoors=(showAll || unassignedDoors.length<=DRAWER_DOOR_CAP) ? unassignedDoors : unassignedDoors.slice(0,DRAWER_DOOR_CAP);
-    visibleDoors.forEach(dl=>{
+    unassignedDoors.forEach(dl=>{
       const keyVal=buildDataKey(ret,dl.doorNumber,brand);
-      html+=`<div class="drawer-door-row clickable" data-door-row="1" onclick="onDrawerRowClick(event, 'add')">
+      const searchText=[dl.doorNumber,dl.name,dl.address,dl.city,dl.state,dl.zip,dl.tier,keyVal].filter(Boolean).join(' ');
+      const warnBtn=doorNeedsCoordinateWarning(dl)
+        ? `<button type="button" class="door-warning-btn" title="Missing coordinates. Edit door details." onclick="${jsAttr(`event.stopPropagation();openEditDoorModal(${jsq(ret)},${jsq(String(dl.doorNumber))})`)}">&#9888;</button>`
+        : '';
+      html+=`<div class="drawer-door-row clickable" data-door-row="1" data-search="${esc(searchText.toLowerCase())}" onclick="onDrawerRowClick(event, 'add')">
         <input type="checkbox" class="drawerAddChk drawer-door-hidden-input" value="${dl.doorNumber}" onchange="syncDrawerDoorChecks();collectDrawerPendingAdds()">
         <div class="drawer-door-meta">
-          <div style="font-weight:600">#${dl.doorNumber} — ${esc(dl.name||'(no name)')} <span style="font-size:0.6rem;padding:1px 5px;border-radius:3px;background:transparent;color:var(--text-dim);border:1px solid var(--border)">UNASSIGNED</span></div>
+          <div style="font-weight:600">#${dl.doorNumber} — ${esc(dl.name||'(no name)')}${warnBtn} <span style="font-size:0.6rem;padding:1px 5px;border-radius:3px;background:transparent;color:var(--text-dim);border:1px solid var(--border)">UNASSIGNED</span></div>
           <div style="color:var(--text-muted);font-size:0.7rem;margin-top:2px">${esc(dl.address||'')} ${dl.city||dl.state?'· ':''}${esc(dl.city||'')}${dl.city&&dl.state?', ':''}${esc(dl.state||'')}</div>
           <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim);margin-top:2px">${esc(keyVal)}</div>
         </div>
         <button type="button" class="drawer-door-check unassigned-check" onclick="event.stopPropagation();toggleDrawerCheckbox(this.closest('.drawer-door-row').querySelector('.drawerAddChk'))">✓</button>
       </div>`;
     });
-    const hidden=unassignedDoors.length-visibleDoors.length;
-    if(hidden>0){
-      html+=`<div style="padding:10px;text-align:center;border-top:1px solid var(--border);background:var(--surface-raised);font-size:0.74rem;color:var(--text-muted);margin-top:6px;border-radius:var(--radius-xs)">Showing ${visibleDoors.length} of ${unassignedDoors.length} unassigned doors — <a href="#" onclick="${jsAttr(`event.preventDefault();window._drawerShowAllUnassigned=true;openStoreDrawer(${jsq(ret)},${jsq(brand)})`)}" style="color:var(--accent);font-weight:600">Load all ${unassignedDoors.length}</a></div>`;
-    }
     html+='</div>';
   }else{
     html+='<div class="helper-text" style="padding:10px 0;border-bottom:1px solid var(--border)">All known doors for this retailer are already assigned to this brand.</div>';
@@ -2952,6 +3463,7 @@ function openStoreDrawer(ret,brand){
   document.getElementById('ovDraw').classList.add('open');
   document.getElementById('drawer').classList.add('open');
   resetDrawerPendingChanges();
+  filterDrawerDoors();
 }
 
 function publishFromDrawer(ret,brand,idx){
@@ -2964,6 +3476,7 @@ let drawerPendingAdds = [];
 let drawerPendingRemoves = [];
 let drawerPendingMode = 'confirmed';
 let drawerPendingRemoveMode = 'closed';
+let activeStoreDrawer = null;
 
 function syncDrawerDoorChecks(){
   document.querySelectorAll('.drawer-door-row[data-door-row]').forEach(row=>{
@@ -2985,6 +3498,30 @@ function toggleDrawerCheckbox(chk){
   chk.checked=!chk.checked;
   syncDrawerDoorChecks();
   collectDrawerPendingAdds();
+}
+function filterDrawerDoors(){
+  const input=document.getElementById('drawerDoorSearch');
+  const q=(input?.value||'').trim().toLowerCase();
+  ['drawerAssignedList','drawerUnassignedList'].forEach(listId=>{
+    const list=document.getElementById(listId);
+    if(!list) return;
+    const rows=[...list.querySelectorAll('.drawer-door-row[data-door-row]')];
+    let shown=0;
+    rows.forEach(row=>{
+      const match=!q || (row.dataset.search||row.textContent||'').toLowerCase().includes(q);
+      row.style.display=match?'flex':'none';
+      if(match) shown++;
+    });
+    let empty=list.querySelector('.drawer-door-empty');
+    if(!empty){
+      empty=document.createElement('div');
+      empty.className='drawer-door-empty';
+      empty.textContent='No doors match this search.';
+      list.appendChild(empty);
+    }
+    empty.style.display=(q && !shown) ? 'block' : 'none';
+  });
+  updateDrawerSelectionButtons();
 }
 function refreshDataPillDropdowns(scope){
   if(!scope) scope=document;
@@ -3108,11 +3645,12 @@ function setDrawerDoorPanel(panel){
   if(unassigned) unassigned.style.display=showAssigned?'none':'block';
   if(assignedBtn) assignedBtn.classList.toggle('active',showAssigned);
   if(unassignedBtn) unassignedBtn.classList.toggle('active',!showAssigned);
+  filterDrawerDoors();
 }
 
 function toggleDrawerDoorSelection(kind){
   const selector = kind === 'remove' ? '.drawerRemoveChk' : '.drawerAddChk';
-  const checks = [...document.querySelectorAll(selector)];
+  const checks = [...document.querySelectorAll(selector)].filter(el=>el.closest('.drawer-door-row')?.style.display!=='none');
   if(!checks.length) return;
   const shouldSelect = !checks.every(el=>el.checked);
   checks.forEach(el=>{ el.checked=shouldSelect; });
@@ -3124,11 +3662,11 @@ function updateDrawerSelectionButtons(){
   const assignedBtn=document.getElementById('drawerAssignedSelectAllBtn');
   const unassignedBtn=document.getElementById('drawerUnassignedSelectAllBtn');
   if(assignedBtn){
-    const checks=[...document.querySelectorAll('.drawerRemoveChk')];
+    const checks=[...document.querySelectorAll('.drawerRemoveChk')].filter(el=>el.closest('.drawer-door-row')?.style.display!=='none');
     assignedBtn.textContent=checks.length && checks.every(el=>el.checked) ? 'Deselect All' : 'Select All';
   }
   if(unassignedBtn){
-    const checks=[...document.querySelectorAll('.drawerAddChk')];
+    const checks=[...document.querySelectorAll('.drawerAddChk')].filter(el=>el.closest('.drawer-door-row')?.style.display!=='none');
     unassignedBtn.textContent=checks.length && checks.every(el=>el.checked) ? 'Deselect All' : 'Select All';
   }
 }
@@ -3273,6 +3811,7 @@ function confirmClose(){
 }
 
 function openHistoryDrawer(r,b){
+  activeStoreDrawer=null;
   window.__drawerRet=arguments[0]; window.__drawerBrand=arguments[1];
   const hk=k(r,b);const entries=history[hk]||[];
   document.getElementById('drTitle').textContent='Assignment & Data History';
@@ -3280,7 +3819,7 @@ function openHistoryDrawer(r,b){
   document.getElementById('drContent').innerHTML=entries.length?entries.slice().reverse().map(e=>`<div class="history-entry"><div class="history-date">${new Date(e.date).toLocaleString()}</div><div><span class="history-new">${esc((e.scope||'assignment').toUpperCase())}</span> · ${esc(e.action||'updated')}${e.doorNumber!==''?` · Door ${esc(String(e.doorNumber))}`:''}</div><div>${e.oldVal!==''||e.newVal!==''?`<span class="history-old">${esc(String(e.oldVal))}</span> → <span class="history-new">${esc(String(e.newVal))}</span>`:''}${e.note?' — '+esc(e.note):''}</div><div class="history-user">${esc(e.user||'System')}</div></div>`).join(''):'<p style="color:var(--text-dim);margin-top:16px">No assignment/data changes recorded.</p>';
   document.getElementById('ovDraw').classList.add('open');document.getElementById('drawer').classList.add('open');
 }
-function closeDrawer(){resetDrawerPendingChanges();window._drawerShowAllUnassigned=false;document.getElementById('ovDraw').classList.remove('open');document.getElementById('drawer').classList.remove('open');}
+function closeDrawer(){resetDrawerPendingChanges();activeStoreDrawer=null;window._drawerShowAllUnassigned=false;document.getElementById('ovDraw').classList.remove('open');document.getElementById('drawer').classList.remove('open');}
 
 function closeAdd(){document.getElementById('ovAdd').classList.remove('open');document.getElementById('mAdd').classList.remove('open');}
 
@@ -3327,8 +3866,22 @@ function setAddMode(mode){
   addMode=mode;
   document.getElementById('modeDoorToBrands').classList.toggle('active',mode==='door_to_brands');
   document.getElementById('modeBrandToDoors').classList.toggle('active',mode==='brand_to_doors');
+  document.getElementById('modeDeleteDoor').classList.toggle('active',mode==='delete_door');
   document.getElementById('doorToBrandsWrap').style.display=mode==='door_to_brands'?'block':'none';
   document.getElementById('brandToDoorsWrap').style.display=mode==='brand_to_doors'?'block':'none';
+  document.getElementById('deleteDoorWrap').style.display=mode==='delete_door'?'block':'none';
+  const hint=document.getElementById('modifyDoorStepHint');
+  if(hint){
+    const intent=mode==='delete_door'?'delete a door':(mode==='brand_to_doors'?'add a brand to doors':'add a new door assignment');
+    hint.textContent=`Step 1: ${intent}. Step 2: choose retailer. Step 3: choose ${mode==='brand_to_doors'?'brand and doors':(mode==='delete_door'?'door to delete':'door and brands')}.`;
+  }
+  const submit=document.getElementById('modifyDoorSubmitBtn');
+  if(submit){
+    submit.textContent=mode==='delete_door'?'Delete Door':'Add as Draft';
+    submit.classList.toggle('btn-draft',mode!=='delete_door');
+    submit.style.borderColor=mode==='delete_door'?'var(--danger)':'';
+    submit.style.color=mode==='delete_door'?'var(--danger)':'';
+  }
   renderAddSelectionPanels();
 }
 
@@ -3338,11 +3891,12 @@ function renderAddSelectionPanels(){
   const doorList=document.getElementById('aDoorMulti');
   const doorCurrent=document.getElementById('aDoorCurrent');
   const brandCurrent=document.getElementById('aBrandCurrent');
-  if(!brandList||!doorList||!doorCurrent||!brandCurrent) return;
-  brandList.innerHTML=''; doorList.innerHTML=''; doorCurrent.innerHTML=''; brandCurrent.innerHTML='';
+  const delDoorCurrent=document.getElementById('delDoorCurrent');
+  if(!brandList||!doorList||!doorCurrent||!brandCurrent||!delDoorCurrent) return;
+  brandList.innerHTML=''; doorList.innerHTML=''; doorCurrent.innerHTML=''; brandCurrent.innerHTML=''; delDoorCurrent.innerHTML='';
   if(!ret){
     const msg='<div class="helper-text">Select a retailer first.</div>';
-    brandList.innerHTML=msg; doorList.innerHTML=msg; doorCurrent.innerHTML=msg; brandCurrent.innerHTML=msg;
+    brandList.innerHTML=msg; doorList.innerHTML=msg; doorCurrent.innerHTML=msg; brandCurrent.innerHTML=msg; delDoorCurrent.innerHTML=msg;
     return;
   }
 
@@ -3387,21 +3941,40 @@ function renderAddSelectionPanels(){
   }else{
     brandCurrent.innerHTML='<div class="helper-text">Select a brand to inspect current door assignments.</div>';
   }
+
+  const selectedDeleteDoor=document.getElementById('delDoor').value;
+  if(selectedDeleteDoor){
+    const brandsAtDeleteDoor=getBrandsAtDoor(ret,selectedDeleteDoor);
+    if(brandsAtDeleteDoor.length){
+      brandsAtDeleteDoor.forEach(b=>{
+        delDoorCurrent.innerHTML+=`<div class="pick-item"><span><strong>${esc(b.brand)}</strong> <span class="status-badge ${b.status==='confirmed'?'confirmed':'draft'}">${b.status}</span></span></div>`;
+      });
+    }else{
+      delDoorCurrent.innerHTML='<div class="helper-text">No brand assignments are tied to this door.</div>';
+    }
+  }else{
+    delDoorCurrent.innerHTML='<div class="helper-text">Select a door to preview affected assignments.</div>';
+  }
 }
 
 function populateAddDoors(){
   const ret=document.getElementById('aRet').value;
   const doorSel=document.getElementById('aDoor');
+  const delDoorSel=document.getElementById('delDoor');
   const norm=normalizeRetailer(ret);
   const rDoors=doorLocations.filter(d=>normalizeRetailer(d.retailer)===norm);
   doorSel.innerHTML='<option value="">— Select a door —</option><option value="TBD">TBD — Not yet confirmed</option>';
+  if(delDoorSel) delDoorSel.innerHTML='<option value="">— Select a door —</option>';
   rDoors.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
   rDoors.forEach(d=>{
-    doorSel.innerHTML+=`<option value="${d.doorNumber}">#${d.doorNumber} — ${esc(d.name)} (${esc(d.city)}, ${esc(d.state)})</option>`;
+    const opt=`<option value="${esc(String(d.doorNumber))}">#${esc(String(d.doorNumber))} — ${esc(d.name)} (${esc(d.city)}, ${esc(d.state)})</option>`;
+    doorSel.innerHTML+=opt;
+    if(delDoorSel) delDoorSel.innerHTML+=opt;
   });
 }
 
 function addEntry(){
+  if(addMode==='delete_door'){ deleteDoorFromModify(); return; }
   const ret=document.getElementById('aRet').value;
   const note=document.getElementById('aNote').value.trim();
   if(!ret){toast('Retailer is required.');return;}
@@ -3469,6 +4042,58 @@ function addEntry(){
   }
 }
 
+function deleteDoorFromModify(){
+  const ret=document.getElementById('aRet').value;
+  const doorVal=document.getElementById('delDoor').value;
+  const note=document.getElementById('aNote').value.trim();
+  if(!ret){ toast('Retailer is required.'); return; }
+  if(!doorVal){ toast('Door selection is required.'); return; }
+  const norm=normalizeRetailer(ret);
+  const door=doorLocations.find(d=>normalizeRetailer(d.retailer)===norm && String(d.doorNumber)===String(doorVal));
+  if(!door){ toast('Door not found.'); return; }
+  const affected=[];
+  for(const [key,assigns] of Object.entries(doorAssignments)){
+    const [r,b]=key.split('|');
+    if(r!==norm) continue;
+    assigns.forEach(a=>{
+      if(String(a.doorNumber)===String(doorVal)) affected.push({brand:b,status:a.status,doorName:a.doorName||door.name||''});
+    });
+  }
+  const label=`#${door.doorNumber} — ${door.name || '(no name)'}`;
+  const msg=`Delete ${label} from ${norm}? This will remove ${affected.length} brand assignment${affected.length===1?'':'s'} tied to this door.`;
+  if(!confirm(msg)) return;
+
+  doorLocations=doorLocations.filter(d=>!(normalizeRetailer(d.retailer)===norm && String(d.doorNumber)===String(doorVal)));
+  for(const [key,assigns] of Object.entries(doorAssignments)){
+    const [r,b]=key.split('|');
+    if(r!==norm) continue;
+    const kept=assigns.filter(a=>String(a.doorNumber)!==String(doorVal));
+    if(kept.length!==assigns.length){
+      doorAssignments[key]=kept;
+      recordHistory(norm,b,{
+        scope:'door',
+        action:'door deleted',
+        oldVal:buildDataKey(norm,doorVal,b),
+        newVal:'DELETED',
+        doorNumber:doorVal,
+        user:currentUserName(),
+        note:note || `Deleted ${label} from Modify Door`
+      });
+    }
+  }
+  Object.keys(dataKeyState).forEach(key=>{
+    const st=dataKeyState[key] || {};
+    if(normalizeRetailer(st.retailer)===norm && String(st.doorNumber)===String(doorVal)) delete dataKeyState[key];
+  });
+
+  populateFilters();
+  populateAddDoors();
+  render();
+  renderAddSelectionPanels();
+  queueAutosave();
+  toast(`Deleted ${label} from ${norm}.`);
+}
+
 function openAddModal(){
   const el=document.getElementById('aRet');
   el.innerHTML='<option value="">— Select retailer —</option>';
@@ -3480,6 +4105,7 @@ function openAddModal(){
   dsB.forEach(([c,v])=>{bel.innerHTML+=`<option value="${c}">${c} — ${esc(v.name)}</option>`;});
   document.getElementById('aNote').value='';
   document.getElementById('aDoor').innerHTML='<option value="">— Select retailer first —</option><option value="TBD">TBD — Not yet confirmed</option>';
+  document.getElementById('delDoor').innerHTML='<option value="">— Select retailer first —</option>';
   document.getElementById('ovAdd').classList.add('open');
   document.getElementById('mAdd').classList.add('open');
   setAddMode('door_to_brands');
@@ -3556,6 +4182,7 @@ function closeRefinePanel(){
   const wrap=document.getElementById('refineWrap');
   if(!wrap) return;
   wrap.classList.remove('open');
+  document.body.classList.remove('refine-open');
   const btn=wrap.querySelector('button');
   if(btn){
     btn.setAttribute('aria-expanded','false');
@@ -3567,6 +4194,7 @@ function toggleRefinePanel(){
   if(!wrap) return;
   const open=!wrap.classList.contains('open');
   wrap.classList.toggle('open',open);
+  document.body.classList.toggle('refine-open',open);
   const btn=wrap.querySelector('button');
   if(btn){
     btn.setAttribute('aria-expanded',open?'true':'false');
@@ -4041,8 +4669,14 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 
 document.addEventListener('click',e=>{
   if(!e.target.closest('.header-menu')) closeHeaderMenus();
-  if(!e.target.closest('#refineWrap')) closeRefinePanel();
+  const path=typeof e.composedPath==='function' ? e.composedPath() : [];
+  const inRefine=path.some(el=>el && el.id==='refineWrap') || e.target.closest('#refineWrap');
+  if(!inRefine) closeRefinePanel();
 });
+document.getElementById('refinePanel')?.addEventListener('click',handleRefineToggleEvent);
+document.getElementById('refinePanel')?.addEventListener('keydown',handleRefineToggleEvent);
+document.addEventListener('click',handleMapFilterEvent);
+document.addEventListener('keydown',handleMapFilterEvent);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeHeaderMenus();closeRefinePanel();if(document.getElementById('mLogin').classList.contains('open')) return; closeEdit();closeCM();closeAdd();closeImport();closeInfo();closeSnapshotsModal();closeEditDoorModal();closeDrawer();}});
 
 // INIT
@@ -4064,7 +4698,14 @@ try{
    Then add an entry below as: username: { hash: '<hex>', name: 'Display Name' } */
 const USER_ROSTER={
   // Placeholder user — username 'kevin', password 'admin'. Replace before shipping.
-  'kevin':{ hash:'8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', name:'Kevin' }
+  'kevin':{ hash:'8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', name:'Kevin' },
+  'amanda':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Amanda' },
+  'glenn':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Glenn' },
+  'alice':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Alice' },
+  'francis':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Francis' },
+  'beau':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Beau' },
+  'craig':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Craig' },
+  'joan':{ hash:'5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name:'Joan' }
 };
 const SESSION_KEY='cloonk-doortracker-user';
 let currentUser=null;
