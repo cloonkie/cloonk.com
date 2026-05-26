@@ -201,26 +201,71 @@ body.locked { overflow: hidden; }
 body.mode-map .map-layer-toolbar { display: flex; }
 .refine-wrap { position: relative; margin-left: auto; }
 .refine-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 300;
-  display: none;
+  position: fixed;
+  top: 118px;
+  right: 24px;
+  z-index: 900;
+  display: grid;
+  gap: 10px;
   min-width: min(360px, calc(100vw - 32px));
+  max-width: min(420px, calc(100vw - 32px));
+  max-height: calc(100vh - 138px);
+  overflow-y: auto;
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: var(--surface-card);
+  background: color-mix(in oklab, var(--surface-card) 94%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 18px 40px rgba(0,0,0,0.32);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
 }
-.refine-wrap.open .refine-panel { display: grid; gap: 10px; }
+.refine-wrap.open .refine-panel {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+body.mode-map .refine-wrap { display: none; }
 .refine-panel .toolbar-divider { display: none !important; }
-.refine-panel .toolbar-group { justify-content: space-between; gap: 12px; }
+.refine-panel .toolbar-group {
+  display: block;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: color-mix(in oklab, var(--surface) 88%, transparent);
+}
+.refine-panel .toolbar-label { display: block; margin-bottom: 8px; }
 .refine-panel select, .refine-panel .search-box { width: 210px; max-width: 100%; }
 select { font-family: var(--font-body); font-size: 0.82rem; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-xs); color: var(--text); outline: none; }
 select:focus { border-color: var(--accent); }
 body.light select { background: #f4f2ee; }
-.refine-panel select[multiple] { min-height: 92px; padding: 6px; }
+.refine-panel select[multiple] { display: none; }
+.refine-toggle-options {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 170px;
+  overflow-y: auto;
+}
+.refine-panel .search-box {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  outline: none;
+}
+.refine-panel .search-box:focus { border-color: var(--accent); }
+.refine-panel .map-filter-row,
+.refine-panel .map-filter-all { padding-left: 0; padding-right: 0; }
 
 /* ─── MODE TOGGLE (Data | Map) ─── */
 .mode-toggle { display: flex; gap: 0; border: 1px solid var(--border); border-radius: var(--radius-xs); overflow: hidden; flex-shrink: 0; }
@@ -334,10 +379,9 @@ body.mode-map .door-detail { position: absolute; left: 12px; bottom: 12px; z-ind
 .map-filter-rail {
   position: relative;
   min-height: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xs);
-  background: var(--surface);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 body.mode-map .map-filter-rail {
   position: absolute;
@@ -345,29 +389,119 @@ body.mode-map .map-filter-rail {
   right: 12px;
   z-index: 95;
   width: 220px;
+}
+.map-filter-section {
+  border: 1px solid var(--border);
+  border-radius: 5px;
   background: color-mix(in oklab, var(--surface) 90%, transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-radius: 5px;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.32);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.26);
 }
-.map-filter-section { border-bottom: 1px solid var(--border); }
-.map-filter-section:last-child { border-bottom: 0; }
 .map-filter-section summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   list-style: none;
   cursor: pointer;
-  padding: 10px 12px;
-  background: var(--surface-raised);
+  padding: 9px 12px;
   color: var(--text);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  user-select: none;
 }
+.map-filter-section summary::after {
+  content: '▲';
+  color: var(--text-dim);
+  font-size: 0.58rem;
+  transition: transform var(--transition);
+}
+.map-filter-section:not([open]) summary::after { transform: rotate(180deg); }
 .map-filter-section summary::-webkit-details-marker { display: none; }
-.map-filter-body { padding: 10px 12px; }
-.map-filter-body select { width: 100%; min-height: 112px; }
-body.mode-map .map-filter-body select { min-height: 104px; font-size: 0.72rem; }
+.map-filter-body { padding: 0 10px 10px; }
+.map-filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.map-filter-row,
+.map-filter-all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition);
+}
+.map-filter-row {
+  padding: 5px 2px;
+}
+.map-filter-all {
+  padding: 5px 2px 7px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.map-filter-row:hover,
+.map-filter-all:hover { background: var(--accent-dim); }
+.map-filter-label {
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--transition);
+}
+.map-filter-row.active .map-filter-label,
+.map-filter-all.active .map-filter-label { color: var(--text); }
+.map-filter-all.active .map-filter-label { color: var(--accent); }
+.map-filter-count {
+  flex-shrink: 0;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+.map-filter-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 28px;
+  height: 14px;
+  border: 1px solid var(--border-hover);
+  border-radius: 999px;
+  background: var(--bg);
+  transition: background var(--transition), border-color var(--transition);
+}
+.map-filter-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition: transform var(--transition), background var(--transition);
+}
+.map-filter-row.active .map-filter-switch,
+.map-filter-all.active .map-filter-switch {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.map-filter-row.active .map-filter-switch::after,
+.map-filter-all.active .map-filter-switch::after {
+  transform: translateX(14px);
+  background: #000;
+}
 body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; font-size: 0.74rem; }
 .door-list { max-height: 360px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface); }
 .door-item { border-left: 4px solid var(--retailer-color, transparent); }
@@ -488,7 +622,23 @@ body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; fo
 .info-link-meta { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.7rem; }
 
 /* ─── DRAWER ─── */
-.drawer { position: fixed; top: 0; right: -440px; z-index: 1001; width: 400px; max-width: 90vw; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 24px 20px; overflow-y: auto; transition: right 0.3s ease; }
+.drawer {
+  position: fixed;
+  top: 16px;
+  right: -440px;
+  z-index: 1001;
+  width: 400px;
+  max-width: 90vw;
+  max-height: calc(100vh - 32px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-right: 0;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  padding: 24px 20px;
+  overflow-y: auto;
+  transition: right 0.3s ease;
+  box-shadow: 0 18px 48px rgba(0,0,0,0.38);
+}
 .drawer.open { right: 0; }
 .drawer h3 { font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 4px; }
 .drawer .sub { color: var(--text-muted); font-size: 0.75rem; margin-bottom: 16px; }
@@ -542,8 +692,20 @@ body.light .search-box { background: #f4f2ee; }
 .metric-chip { display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border-radius:999px; font-size:0.74rem; font-weight:700; border:1px solid var(--border); background:var(--surface-raised); color:var(--text-muted); }
 
 .drawer-door-row { padding:8px 0; border-bottom:1px solid var(--border); font-size:0.78rem; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; transition: background var(--transition), padding-left var(--transition); border-radius: var(--radius-xs); }
+.drawer-door-list {
+  max-height: 312px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding-right: 4px;
+}
+.drawer-door-list .drawer-door-row:last-child { border-bottom: 0; }
 .drawer-door-row.clickable { cursor:pointer; }
-.drawer-door-row.clickable:hover { background: var(--accent-dim); padding-left: 6px; }
+.drawer-door-row.clickable:hover,
+.drawer-door-list .drawer-door-row:hover {
+  background: var(--accent-dim);
+  padding-left: 6px;
+}
 .drawer-door-meta { flex:1; min-width:0; }
 .drawer-door-check { width:18px; height:18px; border:1px solid var(--border); border-radius:4px; display:inline-flex; align-items:center; justify-content:center; color:transparent; background:var(--bg); font-size:0.78rem; line-height:1; margin-top:2px; }
 .drawer-door-row.selected .drawer-door-check { color: #000; background: var(--accent); border-color: var(--accent); }
@@ -562,7 +724,7 @@ body.light .search-box { background: #f4f2ee; }
   color: var(--danger); background: rgba(192,57,43,0.10); border-color: rgba(192,57,43,0.35);
 }
 .drawer-commit-bar {
-  display:flex; align-items:center; justify-content:flex-end; gap:8px; margin:10px 0 12px;
+  display:flex; align-items:center; justify-content:space-between; gap:8px; margin:12px 0 0;
 }
 
 .drawer-door-row { user-select: none; }
@@ -658,6 +820,7 @@ body.light .data-cell-note { background: #f4f2ee; }
   .toolbar { padding: 6px 12px; }
   .matrix-wrap { padding: 10px 12px; }
   .research-grid { grid-template-columns: 1fr; }
+  .refine-panel { top: 104px; right: 12px; min-width: calc(100vw - 24px); max-width: calc(100vw - 24px); }
 }
 </style>
 <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css">
@@ -729,29 +892,32 @@ body.light .data-cell-note { background: #f4f2ee; }
       <div class="toolbar-group">
         <span class="toolbar-label">Retailer</span>
         <select id="fRet" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple retailers"><option value="">All</option></select>
+        <div class="refine-toggle-options" id="refineRetToggles"></div>
       </div>
       <div class="toolbar-group">
         <span class="toolbar-label">Category</span>
         <select id="fCat" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple categories"><option value="">All</option></select>
+        <div class="refine-toggle-options" id="refineCatToggles"></div>
       </div>
       <div class="toolbar-group">
         <span class="toolbar-label">Brand</span>
         <select id="fBrand" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple brands"><option value="">All</option></select>
+        <div class="refine-toggle-options" id="refineBrandToggles"></div>
       </div>
       <div class="toolbar-group" id="statusFilterGroup" style="display:none">
         <span class="toolbar-label">Status</span>
         <select id="fStatus" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple statuses"><option value="">All</option><option value="confirmed">Confirmed</option><option value="tbd">TBD</option><option value="na">N/A</option><option value="closed">Closed</option></select>
+        <div class="refine-toggle-options" id="refineStatusToggles"></div>
       </div>
       <div class="toolbar-group" id="gradeFilterGroup" style="display:none">
         <span class="toolbar-label">Grade</span>
         <select id="fGrade" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple grades"><option value="">All</option></select>
+        <div class="refine-toggle-options" id="refineGradeToggles"></div>
       </div>
       <div class="toolbar-group" id="opportunityFilterGroup" style="display:none">
         <span class="toolbar-label">Opportunities</span>
-        <label class="toggle-pill" style="text-transform:none;letter-spacing:0;font-family:var(--font-body);font-size:0.76rem;color:var(--text-muted)">
-          <input type="checkbox" id="fOpportunities" onchange="render()" style="width:auto">
-          Brand can be at door
-        </label>
+        <input type="checkbox" id="fOpportunities" onchange="render()" style="display:none">
+        <div class="refine-toggle-options" id="refineOpportunityToggles"></div>
       </div>
       <div class="toolbar-divider" id="statusGradeDivider" style="display:none"></div>
       <input type="text" class="search-box" id="searchBox" placeholder="Search brand…" oninput="debouncedRender()">
@@ -1477,6 +1643,7 @@ function populateFilters(){
   el.innerHTML='<option value="">All</option>'+retailers.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
   setSelectValues(el,cv);
   populateStatusGradeFilters();
+  renderRefineToggles();
 }
 function getSelectValues(elOrId){
   const el=typeof elOrId==='string'?document.getElementById(elOrId):elOrId;
@@ -1499,6 +1666,87 @@ function fillSel(id,vals){
   const cv=getSelectValues(el);
   el.innerHTML='<option value="">All</option>'+vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
   setSelectValues(el,cv);
+}
+
+function renderRefineToggles(){
+  renderRefineToggleGroup('fRet','refineRetToggles','All retailers');
+  renderRefineToggleGroup('fCat','refineCatToggles','All categories');
+  renderRefineToggleGroup('fBrand','refineBrandToggles','All brands');
+  renderRefineToggleGroup('fStatus','refineStatusToggles','All statuses');
+  renderRefineToggleGroup('fGrade','refineGradeToggles','All grades');
+  renderRefineOpportunityToggle();
+}
+
+function renderRefineToggleGroup(sourceId,hostId,allLabel){
+  const host=document.getElementById(hostId);
+  const source=document.getElementById(sourceId);
+  if(!host || !source) return;
+  const values=getSelectValues(source);
+  const selected=new Set(values);
+  const options=Array.from(source.options).filter(opt=>opt.value);
+  const rows=options.map(opt=>{
+    const active=selected.has(opt.value);
+    return `<div class="map-filter-row ${active?'active':''}" role="button" tabindex="0" aria-pressed="${active?'true':'false'}" onclick="toggleRefineFilterValue(${jsq(sourceId)},${jsq(opt.value)})" onkeydown="onRefineFilterKey(event,${jsq(sourceId)},${jsq(opt.value)})" title="${esc(opt.textContent)}">
+      <span class="map-filter-label">${esc(opt.textContent)}</span>
+      <span class="map-filter-switch" aria-hidden="true"></span>
+    </div>`;
+  }).join('');
+  host.innerHTML=`<div class="map-filter-all ${values.length?'':'active'}" role="button" tabindex="0" aria-pressed="${values.length?'false':'true'}" onclick="clearRefineFilter(${jsq(sourceId)})" onkeydown="onRefineFilterClearKey(event,${jsq(sourceId)})">
+      <span class="map-filter-label">${esc(allLabel)}</span>
+      <span class="map-filter-count">${options.length}</span>
+    </div>${rows || '<div style="padding:6px 0;color:var(--text-dim);font-size:0.68rem">No options yet.</div>'}`;
+}
+
+function renderRefineOpportunityToggle(){
+  const host=document.getElementById('refineOpportunityToggles');
+  const source=document.getElementById('fOpportunities');
+  if(!host || !source) return;
+  const active=source.checked;
+  host.innerHTML=`<div class="map-filter-row ${active?'active':''}" role="button" tabindex="0" aria-pressed="${active?'true':'false'}" onclick="toggleRefineOpportunity()" onkeydown="onRefineOpportunityKey(event)">
+    <span class="map-filter-label">Brand can be at door</span>
+    <span class="map-filter-switch" aria-hidden="true"></span>
+  </div>`;
+}
+
+function toggleRefineFilterValue(sourceId,value){
+  const values=new Set(getSelectValues(sourceId));
+  if(values.has(value)) values.delete(value);
+  else values.add(value);
+  setSelectValues(sourceId,Array.from(values));
+  renderRefineToggles();
+  render();
+}
+
+function clearRefineFilter(sourceId){
+  setSelectValues(sourceId,[]);
+  renderRefineToggles();
+  render();
+}
+
+function onRefineFilterKey(e,sourceId,value){
+  if(e.key!=='Enter' && e.key!==' ') return;
+  e.preventDefault();
+  toggleRefineFilterValue(sourceId,value);
+}
+
+function onRefineFilterClearKey(e,sourceId){
+  if(e.key!=='Enter' && e.key!==' ') return;
+  e.preventDefault();
+  clearRefineFilter(sourceId);
+}
+
+function toggleRefineOpportunity(){
+  const source=document.getElementById('fOpportunities');
+  if(!source) return;
+  source.checked=!source.checked;
+  renderRefineOpportunityToggle();
+  render();
+}
+
+function onRefineOpportunityKey(e){
+  if(e.key!=='Enter' && e.key!==' ') return;
+  e.preventDefault();
+  toggleRefineOpportunity();
 }
 
 function getFiltered(){
@@ -1989,17 +2237,57 @@ function toggleDoorListCollapse(){
 function renderMapFilterClones(){
   const retHost=document.getElementById('mapRetailerFilter');
   const brandHost=document.getElementById('mapBrandFilter');
-  if(retHost) retHost.innerHTML=cloneMapSelect('fRet','mapFRet','renderMapFilterSource("mapFRet","fRet")');
-  if(brandHost) brandHost.innerHTML=cloneMapSelect('fBrand','mapFBrand','renderMapFilterSource("mapFBrand","fBrand")');
+  if(retHost) retHost.innerHTML=renderMapToggleFilter('fRet','retailer');
+  if(brandHost) brandHost.innerHTML=renderMapToggleFilter('fBrand','brand');
 }
-function cloneMapSelect(sourceId,cloneId,onchange){
+
+function renderMapToggleFilter(sourceId,filterKind){
   const source=document.getElementById(sourceId);
   if(!source) return '';
-  return `<select id="${cloneId}" multiple onchange='${onchange}' title="Hold Ctrl or Shift to select multiple">${Array.from(source.options).map(opt=>`<option value="${esc(opt.value)}" ${opt.selected?'selected':''}>${esc(opt.textContent)}</option>`).join('')}</select>`;
+  const values=getSelectValues(source);
+  const selected=new Set(values);
+  const options=Array.from(source.options).filter(opt=>opt.value);
+  const allActive=!values.length;
+  const allLabel=filterKind==='retailer' ? 'All retailers' : 'All brands';
+  const rows=options.map(opt=>{
+    const active=selected.has(opt.value);
+    return `<div class="map-filter-row ${active?'active':''}" role="button" tabindex="0" aria-pressed="${active?'true':'false'}" onclick="toggleMapFilterValue(${jsq(sourceId)},${jsq(opt.value)})" onkeydown="onMapFilterKey(event,${jsq(sourceId)},${jsq(opt.value)})" title="${esc(opt.textContent)}">
+      <span class="map-filter-label">${esc(opt.textContent)}</span>
+      <span class="map-filter-switch" aria-hidden="true"></span>
+    </div>`;
+  }).join('');
+  return `<div class="map-filter-all ${allActive?'active':''}" role="button" tabindex="0" aria-pressed="${allActive?'true':'false'}" onclick="clearMapFilter(${jsq(sourceId)})" onkeydown="onMapFilterClearKey(event,${jsq(sourceId)})">
+      <span class="map-filter-label">${allLabel}</span>
+      <span class="map-filter-count">${options.length}</span>
+    </div>
+    <div class="map-filter-options">${rows || '<div style="padding:6px 2px;color:var(--text-dim);font-size:0.68rem">No options yet.</div>'}</div>`;
 }
-function renderMapFilterSource(cloneId,sourceId){
-  setSelectValues(sourceId,getSelectValues(cloneId));
+
+function toggleMapFilterValue(sourceId,value){
+  const values=new Set(getSelectValues(sourceId));
+  if(values.has(value)) values.delete(value);
+  else values.add(value);
+  setSelectValues(sourceId,Array.from(values));
+  renderRefineToggles();
   render();
+}
+
+function clearMapFilter(sourceId){
+  setSelectValues(sourceId,[]);
+  renderRefineToggles();
+  render();
+}
+
+function onMapFilterKey(e,sourceId,value){
+  if(e.key!=='Enter' && e.key!==' ') return;
+  e.preventDefault();
+  toggleMapFilterValue(sourceId,value);
+}
+
+function onMapFilterClearKey(e,sourceId){
+  if(e.key!=='Enter' && e.key!==' ') return;
+  e.preventDefault();
+  clearMapFilter(sourceId);
 }
 
 function onResSearchInput(){
@@ -2572,6 +2860,16 @@ function openStoreDrawer(ret,brand){
   html+='<div id="drawerAssignedPanel">';
   html+='<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px;margin-top:4px">Assigned Doors</div>';
   if(assigns.length){
+    html+=`<div class="helper-text" style="margin-bottom:8px">Click X to stage a door change, choose Exit or TBD, then commit.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center">
+      <button class="btn btn-sm" id="drawerAssignedSelectAllBtn" onclick="toggleDrawerDoorSelection('remove')">Select All</button>
+      <select id="drawerRemoveMode" onchange="collectDrawerPendingAdds()" style="width:auto;min-width:120px">
+        <option value="closed">Exit</option>
+        <option value="tbd">TBD</option>
+      </select>
+      <span id="drawerAssignedCommitState" style="font-size:0.72rem;color:var(--text-muted);margin-left:auto">No pending changes</span>
+    </div>`;
+    html+='<div class="drawer-door-list" id="drawerAssignedList">';
     assigns.forEach((a,i)=>{
       const isDraft=a.status==='draft';
       const keyVal=(a.doorNumber!=='TBD')?buildDataKey(ret,a.doorNumber,brand):'Pending key until door is assigned';
@@ -2585,13 +2883,16 @@ function openStoreDrawer(ret,brand){
         <div style="display:flex;gap:4px">
           ${isDraft&&a.doorNumber!=='TBD'?`<button class="btn btn-sm btn-accent" onclick="${jsAttr(`publishFromDrawer(${jsq(ret)},${jsq(brand)},${i})`)}">Publish</button>`:''}
           ${isDraft&&a.doorNumber==='TBD'?`<button class="btn btn-sm" onclick="${jsAttr(`assignDoorToDraft(${jsq(ret)},${jsq(brand)},${i});openStoreDrawer(${jsq(ret)},${jsq(brand)})`)}">Assign</button>`:''}
-          <button type="button" class="drawer-door-check assigned-remove" title="Stage unassign" onclick="event.stopPropagation();toggleDrawerCheckbox(this.closest('.drawer-door-row').querySelector('.drawerRemoveChk'))">
-            <input type="checkbox" class="drawerRemoveChk drawer-door-hidden-input" value="${a.doorNumber}" onchange="syncDrawerDoorChecks();collectDrawerPendingAdds()">
-            ✕
-          </button>
+          ${a.doorNumber==='TBD'
+            ? `<button type="button" class="drawer-door-check assigned-remove" title="Remove TBD draft" onclick="${jsAttr(`event.stopPropagation();removeDraft(${jsq(ret)},${jsq(brand)},${i});openStoreDrawer(${jsq(ret)},${jsq(brand)})`)}">✕</button>`
+            : `<button type="button" class="drawer-door-check assigned-remove" title="Stage Exit/TBD" onclick="event.stopPropagation();toggleDrawerCheckbox(this.closest('.drawer-door-row').querySelector('.drawerRemoveChk'))">
+                <input type="checkbox" class="drawerRemoveChk drawer-door-hidden-input" value="${a.doorNumber}" onchange="syncDrawerDoorChecks();collectDrawerPendingAdds()">
+                ✕
+              </button>`}
         </div>
       </div>`;
     });
+    html+='</div>';
   }else{
     html+='<div class="helper-text" style="padding:10px 0;border-bottom:1px solid var(--border)">No assigned doors yet for this brand-retailer combination.</div>';
   }
@@ -2602,16 +2903,14 @@ function openStoreDrawer(ret,brand){
   if(unassignedDoors.length){
     html+=`<div class="helper-text" style="margin-bottom:8px">Stage additions or removals here, choose Assign or TBD for unassigned doors, then click Commit Change. Exiting without committing discards all staged selections.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center">
-      <button class="btn btn-sm" onclick="toggleDrawerDoorSelection(true)">Select All</button>
-      <button class="btn btn-sm" onclick="toggleDrawerDoorSelection(false)">Clear</button>
+      <button class="btn btn-sm" id="drawerUnassignedSelectAllBtn" onclick="toggleDrawerDoorSelection('add')">Select All</button>
       <select id="drawerAddMode" onchange="collectDrawerPendingAdds()" style="width:auto;min-width:120px">
         <option value="confirmed">Assign</option>
         <option value="tbd">TBD</option>
       </select>
       <span id="drawerCommitState" style="font-size:0.72rem;color:var(--text-muted);margin-left:auto">No pending changes</span>
-      <button class="btn btn-sm btn-accent" id="drawerCommitBtn" onclick="${callAttr('commitDrawerChanges',ret,brand)}" disabled>Commit Change</button>
     </div>
-    <div id="drawerUnassignedList">`;
+    <div class="drawer-door-list" id="drawerUnassignedList">`;
     /* Cap so opening a Dillard's / Kohl / BELK cell doesn't paint hundreds
        of rows synchronously. The user can expand if they need the full list. */
     const DRAWER_DOOR_CAP=50;
@@ -2643,7 +2942,10 @@ function openStoreDrawer(ret,brand){
   const existingNote=window._storeNotes&&window._storeNotes[noteKey]||'';
   html+=`<div style="margin-top:2px"><label style="display:block;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:4px">Notes</label>
   <textarea style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-xs);font-family:var(--font-body);font-size:0.78rem;color:var(--text);resize:vertical;min-height:60px;outline:none" placeholder="Add notes for ${esc(brand)} at ${esc(ret)}…" onchange="${jsAttr(`saveStoreNote(${jsq(noteKey)},this.value)`)}">${esc(existingNote)}</textarea></div>`;
-  html+=`<div style="margin-top:12px;display:flex;gap:8px"><button class="btn" onclick="${callAttr('openHistoryDrawer',ret,brand)}">⟳ History</button></div>`;
+  html+=`<div class="drawer-commit-bar">
+    <button class="btn" onclick="${callAttr('openHistoryDrawer',ret,brand)}">⟳ History</button>
+    <button class="btn btn-accent" id="drawerBottomCommitBtn" onclick="${callAttr('commitDrawerChanges',ret,brand)}" disabled>Commit Change</button>
+  </div>`;
   html+='</div>';
 
   document.getElementById('drContent').innerHTML=html;
@@ -2661,6 +2963,7 @@ function publishFromDrawer(ret,brand,idx){
 let drawerPendingAdds = [];
 let drawerPendingRemoves = [];
 let drawerPendingMode = 'confirmed';
+let drawerPendingRemoveMode = 'closed';
 
 function syncDrawerDoorChecks(){
   document.querySelectorAll('.drawer-door-row[data-door-row]').forEach(row=>{
@@ -2669,6 +2972,7 @@ function syncDrawerDoorChecks(){
     if(addChk) row.classList.toggle('selected', addChk.checked);
     if(removeChk) row.classList.toggle('selected', removeChk.checked);
   });
+  updateDrawerSelectionButtons();
 }
 function onDrawerRowClick(e, kind){
   if(e.target.closest('button')||e.target.closest('select')||e.target.tagName==='INPUT') return;
@@ -2709,28 +3013,37 @@ function resetDrawerPendingChanges(){
   document.querySelectorAll('.drawerAddChk,.drawerRemoveChk').forEach(el => { el.checked = false; });
   const mode = document.getElementById('drawerAddMode');
   if(mode) drawerPendingMode = mode.value || 'confirmed';
+  const removeMode = document.getElementById('drawerRemoveMode');
+  if(removeMode) drawerPendingRemoveMode = removeMode.value || 'closed';
   syncDrawerDoorChecks();
   updateDrawerCommitState();
 }
 function updateDrawerCommitState(){
-  const btn = document.getElementById('drawerCommitBtn');
-  const badge = document.getElementById('drawerCommitState');
+  const addBadge = document.getElementById('drawerCommitState');
+  const assignedBadge = document.getElementById('drawerAssignedCommitState');
+  const bottomBtn = document.getElementById('drawerBottomCommitBtn');
   const addCount = drawerPendingAdds.length;
   const removeCount = drawerPendingRemoves.length;
   const total = addCount + removeCount;
   const mode = document.getElementById('drawerAddMode');
   const modeLabel = mode ? (mode.value === 'tbd' ? 'TBD' : 'Assign') : 'Assign';
+  const removeMode = document.getElementById('drawerRemoveMode');
+  const removeModeLabel = removeMode ? (removeMode.value === 'tbd' ? 'TBD' : 'Exit') : 'Exit';
   let parts = [];
   if(addCount) parts.push(`${addCount} ${modeLabel}`);
-  if(removeCount) parts.push(`${removeCount} Unassign`);
-  if (badge) badge.textContent = total ? parts.join(' · ') : 'No pending changes';
-  if (btn) btn.disabled = total === 0;
+  if(removeCount) parts.push(`${removeCount} ${removeModeLabel}`);
+  if (addBadge) addBadge.textContent = total ? parts.join(' · ') : 'No pending changes';
+  if (assignedBadge) assignedBadge.textContent = removeCount ? `${removeCount} ${removeModeLabel}` : 'No pending changes';
+  if (bottomBtn) bottomBtn.disabled = total === 0;
+  updateDrawerSelectionButtons();
 }
 function collectDrawerPendingAdds(){
   drawerPendingAdds = [...document.querySelectorAll('.drawerAddChk:checked')].map(el => String(el.value));
   drawerPendingRemoves = [...document.querySelectorAll('.drawerRemoveChk:checked')].map(el => String(el.value));
   const mode = document.getElementById('drawerAddMode');
   drawerPendingMode = mode ? mode.value : 'confirmed';
+  const removeMode = document.getElementById('drawerRemoveMode');
+  drawerPendingRemoveMode = removeMode ? removeMode.value : 'closed';
   updateDrawerCommitState();
 }
 function commitDrawerChanges(ret, brand){
@@ -2738,17 +3051,18 @@ function commitDrawerChanges(ret, brand){
   const removePicks = drawerPendingRemoves.slice();
   if(!addPicks.length && !removePicks.length){ toast('Select at least one change.'); return; }
   const mode = drawerPendingMode || 'confirmed';
+  const removeMode = drawerPendingRemoveMode || 'closed';
   let changed = 0;
 
   removePicks.forEach(val=>{
     const state = ensureDataKeyState(ret, val, brand);
     const oldStatus = normalizeStatus(state.status);
-    state.status = 'na';
-    state.note = state.note || 'Unassigned from assigned doors list';
+    state.status = removeMode === 'tbd' ? 'tbd' : 'closed';
+    state.note = state.note || (removeMode === 'tbd' ? 'Moved to TBD from assigned doors list' : 'Exited from assigned doors list');
     syncAssignmentFromDataKey(ret, val, brand);
     recordHistory(ret,brand,{
       scope:'data',
-      action:'unassigned from assigned list',
+      action: removeMode === 'tbd' ? 'tbd from assigned list' : 'exited from assigned list',
       oldVal: oldStatus,
       newVal: buildDataKey(ret,val,brand),
       doorNumber: val,
@@ -2780,7 +3094,7 @@ function commitDrawerChanges(ret, brand){
   populateFilters(); render(); openStoreDrawer(ret,brand);
   const msg = [];
   if(addPicks.length) msg.push(`${addPicks.length} ${mode==='tbd'?'TBD':'assigned'}`);
-  if(removePicks.length) msg.push(`${removePicks.length} unassigned`);
+  if(removePicks.length) msg.push(`${removePicks.length} ${removeMode==='tbd'?'TBD':'exited'}`);
   toast(msg.length ? msg.join(' · ') : `Updated ${changed} door${changed===1?'':'s'}`);
 }
 
@@ -2796,10 +3110,27 @@ function setDrawerDoorPanel(panel){
   if(unassignedBtn) unassignedBtn.classList.toggle('active',!showAssigned);
 }
 
-function toggleDrawerDoorSelection(checked){
-  document.querySelectorAll('.drawerAddChk').forEach(el=>{ el.checked=checked; });
+function toggleDrawerDoorSelection(kind){
+  const selector = kind === 'remove' ? '.drawerRemoveChk' : '.drawerAddChk';
+  const checks = [...document.querySelectorAll(selector)];
+  if(!checks.length) return;
+  const shouldSelect = !checks.every(el=>el.checked);
+  checks.forEach(el=>{ el.checked=shouldSelect; });
   syncDrawerDoorChecks();
   collectDrawerPendingAdds();
+}
+
+function updateDrawerSelectionButtons(){
+  const assignedBtn=document.getElementById('drawerAssignedSelectAllBtn');
+  const unassignedBtn=document.getElementById('drawerUnassignedSelectAllBtn');
+  if(assignedBtn){
+    const checks=[...document.querySelectorAll('.drawerRemoveChk')];
+    assignedBtn.textContent=checks.length && checks.every(el=>el.checked) ? 'Deselect All' : 'Select All';
+  }
+  if(unassignedBtn){
+    const checks=[...document.querySelectorAll('.drawerAddChk')];
+    unassignedBtn.textContent=checks.length && checks.every(el=>el.checked) ? 'Deselect All' : 'Select All';
+  }
 }
 
 
@@ -3226,7 +3557,10 @@ function closeRefinePanel(){
   if(!wrap) return;
   wrap.classList.remove('open');
   const btn=wrap.querySelector('button');
-  if(btn) btn.setAttribute('aria-expanded','false');
+  if(btn){
+    btn.setAttribute('aria-expanded','false');
+    btn.classList.remove('active');
+  }
 }
 function toggleRefinePanel(){
   const wrap=document.getElementById('refineWrap');
@@ -3234,7 +3568,10 @@ function toggleRefinePanel(){
   const open=!wrap.classList.contains('open');
   wrap.classList.toggle('open',open);
   const btn=wrap.querySelector('button');
-  if(btn) btn.setAttribute('aria-expanded',open?'true':'false');
+  if(btn){
+    btn.setAttribute('aria-expanded',open?'true':'false');
+    btn.classList.toggle('active',open);
+  }
 }
 function handleDrop(e){e.preventDefault();e.currentTarget.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)processImp(f);}
 function handleImpFile(e){const f=e.target.files[0];if(f)processImp(f);e.target.value='';}
@@ -3504,10 +3841,11 @@ function updateViewSpecificControls(){
   const gg=document.getElementById('gradeFilterGroup');
   const og=document.getElementById('opportunityFilterGroup');
   const div=document.getElementById('statusGradeDivider');
-  if(sg) sg.style.display=isData?'flex':'none';
-  if(gg) gg.style.display=isData?'flex':'none';
-  if(og) og.style.display=isData?'flex':'none';
+  if(sg) sg.style.display=isData?'block':'none';
+  if(gg) gg.style.display=isData?'block':'none';
+  if(og) og.style.display=isData?'block':'none';
   if(div) div.style.display=isData?'block':'none';
+  renderRefineToggles();
 }
 
 function exportCurrentView(){
@@ -3571,6 +3909,7 @@ function setMode(m){
   if(m==='map'){
     if(tBtn) tBtn.style.display='none';
     currentView='research';
+    closeRefinePanel();
   }else{
     if(currentView==='research') currentView='matrix';
     document.querySelectorAll('.view-tab').forEach(t=>t.classList.toggle('active', t.dataset.v===currentView));

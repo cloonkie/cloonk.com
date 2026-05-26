@@ -472,6 +472,160 @@ tr:hover td { background: var(--accent-dim); }
   font-family: var(--font-display);
   font-size: 1.2rem;
 }
+.panel-header-meta { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.panel-header-meta .panel-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.panel-header-actions { display: inline-flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.panel-info-btn {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.panel-info-btn:hover { color: var(--accent-fg); border-color: var(--accent); background: var(--accent); }
+.load-progress {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xs);
+  background: var(--accent-dim);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+}
+.load-progress.show { display: flex; }
+.load-progress .spinner {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border: 2px solid var(--accent);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.load-progress-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.load-progress-count { color: var(--text-muted); font-size: 0.68rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.info-modal-pane h4 {
+  margin: 16px 0 6px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+.info-modal-pane h4 .step-num {
+  margin-right: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.info-modal-pane .panel-info-section { scroll-margin-top: 12px; padding-top: 6px; }
+.info-modal-pane .panel-info-section:first-child { padding-top: 0; }
+.info-modal-pane ul { margin: 4px 0 10px 18px; }
+.info-modal-pane li { margin-bottom: 4px; }
+.panel-toggle {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  padding: 0;
+  transition: color var(--transition), background var(--transition);
+}
+.panel-toggle:hover { color: var(--text); background: var(--surface-card); }
+.panel-toggle svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform var(--transition);
+}
+.panel.collapsed .panel-toggle svg { transform: rotate(-90deg); }
+.panel.collapsed .panel-body { display: none; }
+.dropzone-compact { min-height: 152px; }
+.chip-select { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-select label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color var(--transition), background var(--transition), color var(--transition);
+}
+.chip-select label:hover { border-color: var(--border-hover); color: var(--text); }
+.chip-select label.active { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+.chip-select input { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
+.map-section-title {
+  margin-top: 4px;
+  margin-bottom: 2px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.map-section-title:first-child { margin-top: 0; }
+.map-section-title.spacer { margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.dropzone-inline {
+  margin-bottom: 4px;
+}
+.field-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.field-label-row input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.field-label-row label {
+  margin: 0;
+  cursor: pointer;
+}
+.field input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: var(--surface-card);
+}
 .info-modal-overlay {
   position: fixed;
   inset: 0;
@@ -646,42 +800,51 @@ tr:hover td { background: var(--accent-dim); }
 </header>
 
 <main class="shell">
-  <section class="intro">
-    <div class="intro-copy">
-      <p class="eyebrow">Weekly sell-out reports</p>
-      <h1>Sell-Out Standardizer</h1>
-      <p>Upload files or paste an Excel range to begin.</p>
-    </div>
-    <label class="dropzone" id="dropzone">
-      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple>
-      <span class="drop-inner">
-        <span class="drop-icon">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
-        </span>
-        <span class="drop-title">Drop weekly files here</span>
-        <span class="drop-sub">.xlsx, .xls, or .csv - local browser parsing</span>
-      </span>
-    </label>
-  </section>
-
   <section class="workspace">
     <aside class="control-stack">
-      <section class="panel">
+      <section class="panel" id="panelInput">
         <div class="panel-header">
-          <div>
-            <div class="panel-title">Input</div>
-            <div class="panel-sub">Files and pasted grids</div>
+          <button class="panel-toggle" data-collapse="panelInput" aria-label="Toggle Input panel">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="panel-header-meta">
+            <div>
+              <div class="panel-title-row">
+                <span class="panel-title">Input</span>
+                <button class="panel-info-btn" data-panel-info="input" type="button" title="What this panel does" aria-label="How the Input panel works">i</button>
+              </div>
+              <div class="panel-sub">Files and pasted grids</div>
+            </div>
           </div>
-          <button class="btn btn-sm btn-danger" id="clearBtn">Clear</button>
+          <div class="panel-header-actions">
+            <button class="btn btn-sm" id="insertFileBtn">Insert File</button>
+            <button class="btn btn-sm btn-danger" id="clearBtn">Clear</button>
+          </div>
         </div>
         <div class="panel-body control-stack">
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple style="display:none">
+          <div class="load-progress" id="loadProgress" role="status" aria-live="polite">
+            <span class="spinner"></span>
+            <span class="load-progress-text" id="loadProgressText">Reading...</span>
+            <span class="load-progress-count" id="loadProgressCount"></span>
+          </div>
+          <label class="dropzone dropzone-compact dropzone-inline" id="dropzone" hidden>
+            <input type="file" id="dropzoneInput" accept=".xlsx,.xls,.csv" multiple>
+            <span class="drop-inner">
+              <span class="drop-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+              </span>
+              <span class="drop-title">Drop weekly files here</span>
+              <span class="drop-sub">.xlsx, .xls, or .csv - local browser parsing</span>
+            </span>
+          </label>
           <div class="segmented" role="tablist" aria-label="Input mode">
             <button class="active" id="fileModeBtn" type="button">Files</button>
             <button id="pasteModeBtn" type="button">Paste</button>
           </div>
           <div id="fileMode">
             <div class="file-list" id="fileList">
-              <div class="empty-state" style="min-height:120px;padding:18px;"><strong>No sources yet</strong><span>Upload files or switch to Paste.</span></div>
+              <div class="empty-state" style="min-height:120px;padding:18px;"><strong>No sources yet</strong><span>Use Insert File or drop files above.</span></div>
             </div>
           </div>
           <div id="pasteMode" style="display:none">
@@ -698,23 +861,36 @@ tr:hover td { background: var(--accent-dim); }
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel" id="panelHeader">
         <div class="panel-header">
-          <div>
-            <div class="panel-title">Header Detection</div>
-            <div class="panel-sub">Cadence row + metric row</div>
+          <button class="panel-toggle" data-collapse="panelHeader" aria-label="Toggle Header Detection panel">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="panel-header-meta">
+            <div>
+              <div class="panel-title-row">
+                <span class="panel-title">Header Detection</span>
+                <button class="panel-info-btn" data-panel-info="header" type="button" title="What this panel does" aria-label="How Header Detection works">i</button>
+              </div>
+              <div class="panel-sub">Cadence + metric layout</div>
+            </div>
           </div>
-          <button class="btn btn-sm" id="autoDetectBtn">Auto</button>
+          <div class="panel-header-actions">
+            <button class="btn btn-sm" id="autoDetectBtn">Auto</button>
+          </div>
         </div>
         <div class="panel-body control-stack">
           <div class="inline-fields">
             <div class="field">
-              <label for="cadenceRow">Cadence Row</label>
-              <input type="number" id="cadenceRow" min="0" value="1">
+              <div class="field-label-row">
+                <input type="checkbox" id="hasCadenceRow">
+                <label for="hasCadenceRow">Cadence Row</label>
+              </div>
+              <input type="number" id="cadenceRow" min="1" value="1" disabled>
             </div>
             <div class="field">
               <label for="headerRow">Metric Header Row</label>
-              <input type="number" id="headerRow" min="1" value="2">
+              <input type="number" id="headerRow" min="1" value="1">
             </div>
           </div>
           <div class="field">
@@ -730,20 +906,18 @@ tr:hover td { background: var(--accent-dim); }
             <input id="ignoreRows" placeholder="Skip output only, ex: 8, 20-24">
           </div>
           <div class="field">
-            <label for="defaultCadence">Default Cadence</label>
-            <select id="defaultCadence">
-              <option value="">Blank when missing</option>
-              <option value="WTD">WTD</option>
-              <option value="MTD">MTD</option>
-              <option value="QTD">QTD</option>
-              <option value="YTD">YTD</option>
-            </select>
+            <label>Cadence Type</label>
+            <div class="chip-select" id="cadenceTypeSelect"></div>
+          </div>
+          <div class="field">
+            <label>Cadence Metrics</label>
+            <div class="chip-select" id="cadenceMetricSelect"></div>
           </div>
           <label class="check-row" for="includeLy">
             <input type="checkbox" id="includeLy">
             <span>
               <strong>Map LY values</strong>
-              <span>Add a <code>year_basis</code> field and preserve LY columns next to each cadence.</span>
+              <span>Adds an LY variant of every selected cadence-metric mapping row.</span>
             </span>
           </label>
           <label class="check-row" for="calculateSt">
@@ -757,13 +931,23 @@ tr:hover td { background: var(--accent-dim); }
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel" id="panelMapping">
         <div class="panel-header">
-          <div>
-            <div class="panel-title">Field Mapping</div>
-            <div class="panel-sub">Dimensions stay wide</div>
+          <button class="panel-toggle" data-collapse="panelMapping" aria-label="Toggle Field Mapping panel">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="panel-header-meta">
+            <div>
+              <div class="panel-title-row">
+                <span class="panel-title">Field Mapping</span>
+                <button class="panel-info-btn" data-panel-info="mapping" type="button" title="What this panel does" aria-label="How Field Mapping works">i</button>
+              </div>
+              <div class="panel-sub">Dimensions + cadence metrics</div>
+            </div>
           </div>
-          <button class="btn btn-sm" id="remapBtn">Remap</button>
+          <div class="panel-header-actions">
+            <button class="btn btn-sm" id="remapBtn">Remap</button>
+          </div>
         </div>
         <div class="panel-body">
           <div class="mapping-grid" id="mappingGrid"></div>
@@ -773,11 +957,16 @@ tr:hover td { background: var(--accent-dim); }
 
     <section class="panel">
       <div class="panel-header">
-        <div>
-          <div class="panel-title">Preview</div>
-          <div class="panel-sub" id="previewSub">Final standardized output</div>
+        <div class="panel-header-meta">
+          <div>
+            <div class="panel-title-row">
+              <span class="panel-title">Preview</span>
+              <button class="panel-info-btn" data-panel-info="preview" type="button" title="What this panel does" aria-label="How Preview works">i</button>
+            </div>
+            <div class="panel-sub" id="previewSub">Final standardized output</div>
+          </div>
         </div>
-        <div class="header-actions">
+        <div class="panel-header-actions">
           <button class="btn btn-sm" id="downloadCsvBtn" disabled>CSV</button>
           <button class="btn btn-sm" id="downloadJsonBtn" disabled>JSON</button>
           <button class="btn btn-sm btn-accent" id="downloadXlsxBtn" disabled>XLSX</button>
@@ -816,6 +1005,7 @@ tr:hover td { background: var(--accent-dim); }
     </div>
     <div class="info-modal-tabs" role="tablist">
       <button class="info-modal-tab active" data-tab="about" role="tab">About</button>
+      <button class="info-modal-tab" data-tab="panels" role="tab">Panels</button>
       <button class="info-modal-tab" data-tab="schema" role="tab">Schema</button>
       <button class="info-modal-tab" data-tab="appendix" role="tab">Appendix</button>
       <button class="info-modal-tab" data-tab="resources" role="tab">Resources</button>
@@ -828,6 +1018,54 @@ tr:hover td { background: var(--accent-dim); }
         <p>Upload recurring reports or paste an Excel range, confirm the cadence and metric header rows, map product fields, then preview and export the standardized output.</p>
         <h3>Privacy</h3>
         <p>All parsing happens locally in your browser. Imported spreadsheets are not uploaded to a server.</p>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-panels" role="tabpanel">
+        <div class="panel-info-section" id="panelinfo-input">
+          <h4><span class="step-num">01</span>Input</h4>
+          <p>Load weekly sell-out reports into the tool. Each file's sheets become individual sources you can include or exclude.</p>
+          <ul>
+            <li><strong>Insert File</strong> — opens the system file picker. Accepts <code>.xlsx</code>, <code>.xls</code>, <code>.csv</code>; multi-select is allowed.</li>
+            <li><strong>Drop zone</strong> — shows when no sources are loaded. Drag files onto it to import.</li>
+            <li><strong>Files / Paste tabs</strong> — switch between uploading files and pasting an Excel range as a single source.</li>
+            <li><strong>File rows</strong> — each row is one sheet from one file. Checkbox toggles whether the sheet is included; Remove deletes the source.</li>
+            <li><strong>Clear</strong> — drops every loaded source and resets the preview.</li>
+          </ul>
+        </div>
+        <div class="panel-info-section" id="panelinfo-header">
+          <h4><span class="step-num">02</span>Header Detection</h4>
+          <p>Tell the tool where the header rows are and which cadences and metrics to expect. These settings drive the Field Mapping panel.</p>
+          <ul>
+            <li><strong>Cadence Row</strong> — 1-based row number that holds cadence labels (set to 0 if cadences are baked into the metric headers themselves).</li>
+            <li><strong>Metric Header Row</strong> — 1-based row number for the column names.</li>
+            <li><strong>Report Period</strong> — free-text tag written into every output row (e.g. <code>2026 W21</code>).</li>
+            <li><strong>Delete Rows</strong> — Excel row numbers stripped before parsing (e.g. <code>1, 3-5</code>). Useful for totals or subtitle rows.</li>
+            <li><strong>Ignore Rows</strong> — keeps the sheet shape intact but excludes those rows from the output.</li>
+            <li><strong>Cadence Type</strong> — multi-select. Choosing <code>WTD + YTD</code> adds those cadences to Field Mapping.</li>
+            <li><strong>Cadence Metrics</strong> — multi-select. Each metric × selected cadence produces a mapping row (e.g. <code>WTD Sales $</code>).</li>
+            <li><strong>Map LY values</strong> — doubles every metric mapping row with a Last-Year variant and stamps <code>year_basis</code> on output rows.</li>
+            <li><strong>Calculate ST%</strong> — emits a calculated <code>sell_through_pct = Sale U / (Sale U + On Hand U)</code> row whenever both inputs exist for the same cadence + year basis.</li>
+            <li><strong>Auto</strong> — scans the first 12 rows of the first included sheet and picks the most likely cadence row and metric header row.</li>
+          </ul>
+        </div>
+        <div class="panel-info-section" id="panelinfo-mapping">
+          <h4><span class="step-num">03</span>Field Mapping</h4>
+          <p>Bind canonical fields to specific columns in the source. Dimensions stay wide; metric mappings drive the long-format output.</p>
+          <ul>
+            <li><strong>Product Dimensions</strong> — pick the column that holds each standard product/retail attribute (<code>brand</code>, <code>style</code>, <code>upc</code>, <code>store_name</code>, etc.). Unmapped fields stay blank in the output.</li>
+            <li><strong>Cadence Metrics</strong> — one mapping row per cadence × metric × (TY/LY). Driven by the selections in Header Detection. Empty selections produce no output rows for that combination.</li>
+            <li><strong>Remap</strong> — clears all current mappings and re-runs auto-matching against header text (cadence keyword + metric aliases + LY presence).</li>
+          </ul>
+        </div>
+        <div class="panel-info-section" id="panelinfo-preview">
+          <h4><span class="step-num">04</span>Preview</h4>
+          <p>Inspect the result before exporting. The first 500 rows are rendered; the full set is still exported.</p>
+          <ul>
+            <li><strong>Output</strong> tab — the standardized long-format table that will be exported.</li>
+            <li><strong>Headers</strong> tab — debug view: every detected column with its detected cadence, year-basis, and current mapping.</li>
+            <li><strong>Raw</strong> tab — the first 80 unmodified rows of the first included sheet, so you can sanity-check what was parsed.</li>
+            <li><strong>CSV / JSON / XLSX</strong> — download the full standardized output. Buttons stay disabled until at least one mapped metric produces values.</li>
+          </ul>
+        </div>
       </div>
       <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
         <h3>Standard Output</h3>
@@ -890,29 +1128,35 @@ const STANDARD_FIELDS = [
 const CADENCES = ["WTD", "MTD", "QTD", "YTD"];
 const CADENCE_RE = /\b(WTD|MTD|QTD|YTD)\b/i;
 const YEAR_BASIS_RE = /\b(LY|LAST\s+YEAR|TY|THIS\s+YEAR)\b/i;
-const KNOWN_METRICS = [
-  ["sell_through_pct", ["sell through", "sell thru", "st%", "sell-through", "sell thru %"]],
-  ["sale_dollars", ["$", "sale $", "sales $", "retail $", "net sales", "gross sales", "sales dollars", "dollars"]],
-  ["sale_units", ["sale u", "sale units", "sales u", "sales units", "units sold", "sold units", "qty sold", "quantity sold"]],
-  ["on_hand_units", ["oh", "on hand", "on-hand", "on hand u", "oh u", "inventory", "stock"]],
-  ["receipt_units", ["receipts", "received", "receipt units"]],
-  ["margin_pct", ["margin %", "gm%", "gross margin %"]],
-  ["aur", ["aur", "avg unit retail", "average unit retail"]]
+const CADENCE_METRIC_OPTIONS = [
+  { key: "sale_dollars", label: "Sales $", aliases: ["sale $", "sales $", "sale dollars", "sales dollars", "net sales", "gross sales", "merch net sales", "retail $", "dollars"] },
+  { key: "sale_units", label: "Sales U", aliases: ["sale u", "sales u", "sale units", "sales units", "merch net sales units", "units sold", "sold units", "qty sold", "quantity sold"] },
+  { key: "on_hand_units", label: "On Hand U", aliases: ["on hand", "on-hand", "oh u", "on hand units", "on hand u", "inventory units", "eop units"] },
+  { key: "receipt_units", label: "Receipt U", aliases: ["receipts", "received", "receipt units", "receipt u"] },
+  { key: "sell_through_pct", label: "Sell-Through %", aliases: ["sell through", "sell thru", "st%", "sell-through", "sell thru %"] },
+  { key: "margin_pct", label: "Margin %", aliases: ["margin %", "gm%", "gross margin %"] },
+  { key: "aur", label: "AUR", aliases: ["aur", "avg unit retail", "average unit retail"] }
 ];
+const CADENCE_METRIC_MAP = Object.fromEntries(CADENCE_METRIC_OPTIONS.map(m => [m.key, m]));
+const LY_RE = /\b(LY|LAST\s+YEAR)\b/i;
 
 const state = {
   sources: [],
   config: {
+    hasCadenceRow: false,
     cadenceRow: 1,
-    headerRow: 2,
+    headerRow: 1,
     reportPeriod: "",
     deleteRows: "",
     ignoreRows: "",
-    defaultCadence: "",
+    cadenceTypes: ["WTD"],
+    cadenceMetrics: ["sale_dollars", "sale_units"],
     includeLy: false,
     calculateSt: false,
     sheetIncludes: {},
-    mappings: {}
+    mappings: {},
+    metricMappings: {},
+    collapsed: {}
   },
   headers: [],
   output: [],
@@ -922,6 +1166,8 @@ const state = {
 const els = {
   fileInput: document.getElementById("fileInput"),
   dropzone: document.getElementById("dropzone"),
+  dropzoneInput: document.getElementById("dropzoneInput"),
+  insertFileBtn: document.getElementById("insertFileBtn"),
   fileList: document.getElementById("fileList"),
   fileModeBtn: document.getElementById("fileModeBtn"),
   pasteModeBtn: document.getElementById("pasteModeBtn"),
@@ -930,12 +1176,14 @@ const els = {
   pasteName: document.getElementById("pasteName"),
   pasteBox: document.getElementById("pasteBox"),
   addPasteBtn: document.getElementById("addPasteBtn"),
+  hasCadenceRow: document.getElementById("hasCadenceRow"),
   cadenceRow: document.getElementById("cadenceRow"),
   headerRow: document.getElementById("headerRow"),
   reportPeriod: document.getElementById("reportPeriod"),
   deleteRows: document.getElementById("deleteRows"),
   ignoreRows: document.getElementById("ignoreRows"),
-  defaultCadence: document.getElementById("defaultCadence"),
+  cadenceTypeSelect: document.getElementById("cadenceTypeSelect"),
+  cadenceMetricSelect: document.getElementById("cadenceMetricSelect"),
   includeLy: document.getElementById("includeLy"),
   calculateSt: document.getElementById("calculateSt"),
   detectedChips: document.getElementById("detectedChips"),
@@ -952,7 +1200,10 @@ const els = {
   downloadJsonBtn: document.getElementById("downloadJsonBtn"),
   downloadXlsxBtn: document.getElementById("downloadXlsxBtn"),
   configInput: document.getElementById("configInput"),
-  toast: document.getElementById("toast")
+  toast: document.getElementById("toast"),
+  loadProgress: document.getElementById("loadProgress"),
+  loadProgressText: document.getElementById("loadProgressText"),
+  loadProgressCount: document.getElementById("loadProgressCount")
 };
 
 function esc(value) {
@@ -1040,8 +1291,8 @@ function getYearBasis(label) {
 function toMetricName(label) {
   const cleaned = stripMetaLabels(label);
   const normalized = normalize(cleaned);
-  for (const [metric, aliases] of KNOWN_METRICS) {
-    if (aliases.some(alias => normalized === normalize(alias) || normalized.includes(normalize(alias)))) return metric;
+  for (const metric of CADENCE_METRIC_OPTIONS) {
+    if (metric.aliases.some(alias => normalized === normalize(alias) || normalized.includes(normalize(alias)))) return metric.key;
   }
   return normalized.replace(/\s+/g, "_") || "metric";
 }
@@ -1074,34 +1325,66 @@ function normalizeRows(rows) {
     .map(row => Array.from({ length: width }, (_, i) => row[i] ?? ""));
 }
 
+function showLoadProgress(text, count) {
+  if (!els.loadProgress) return;
+  els.loadProgressText.textContent = text;
+  els.loadProgressCount.textContent = count || "";
+  els.loadProgress.classList.add("show");
+}
+
+function hideLoadProgress() {
+  if (els.loadProgress) els.loadProgress.classList.remove("show");
+}
+
+const yieldToBrowser = () => new Promise(resolve => setTimeout(resolve, 0));
+
 async function handleFiles(files) {
   const list = Array.from(files || []);
   if (!list.length) return;
   if (!window.XLSX) {
     toast("Spreadsheet library did not load. CSV and pasted ranges still work.");
   }
-  for (const file of list) {
+  const totalFiles = list.length;
+  showLoadProgress(`Preparing ${totalFiles} file${totalFiles === 1 ? "" : "s"}...`, "");
+  await yieldToBrowser();
+  for (let fileIdx = 0; fileIdx < list.length; fileIdx++) {
+    const file = list[fileIdx];
+    const fileCount = `${fileIdx + 1} / ${totalFiles}`;
     try {
       const lower = file.name.toLowerCase();
       if (lower.endsWith(".csv")) {
+        showLoadProgress(`Reading ${file.name}`, fileCount);
+        await yieldToBrowser();
         const text = await file.text();
         addSource(file.name, "CSV", parseDelimited(text));
       } else {
         if (!window.XLSX) throw new Error("XLSX library unavailable");
+        showLoadProgress(`Reading ${file.name}`, fileCount);
+        await yieldToBrowser();
         const data = await file.arrayBuffer();
+        showLoadProgress(`Parsing workbook: ${file.name}`, fileCount);
+        await yieldToBrowser();
         const wb = XLSX.read(data, { type: "array", cellDates: true });
-        wb.SheetNames.forEach(sheetName => {
+        const sheetNames = wb.SheetNames;
+        for (let sIdx = 0; sIdx < sheetNames.length; sIdx++) {
+          const sheetName = sheetNames[sIdx];
+          showLoadProgress(`${file.name} → ${sheetName}`, `${fileCount} · sheet ${sIdx + 1} / ${sheetNames.length}`);
+          await yieldToBrowser();
           const ws = wb.Sheets[sheetName];
           const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
           addSource(file.name, sheetName, rows);
-        });
+        }
       }
     } catch (error) {
       toast(`Could not read ${file.name}: ${error.message}`);
     }
   }
+  showLoadProgress("Detecting headers and building preview...", "");
+  await yieldToBrowser();
   autoDetect();
   rebuild();
+  hideLoadProgress();
+  toast(`Loaded ${state.sources.length} source${state.sources.length === 1 ? "" : "s"}.`);
 }
 
 function addSource(name, sheet, rows) {
@@ -1136,21 +1419,58 @@ function autoDetect() {
     .filter(r => header && r.idx < header.idx)
     .sort((a, b) => b.cadenceHits - a.cadenceHits)[0];
   if (header) state.config.headerRow = header.idx + 1;
-  if (cadence && cadence.cadenceHits) state.config.cadenceRow = cadence.idx + 1;
+  if (cadence && cadence.cadenceHits) {
+    state.config.hasCadenceRow = true;
+    state.config.cadenceRow = cadence.idx + 1;
+  } else {
+    state.config.hasCadenceRow = false;
+    state.config.cadenceRow = 0;
+  }
   els.headerRow.value = state.config.headerRow;
-  els.cadenceRow.value = state.config.cadenceRow;
+  els.hasCadenceRow.checked = state.config.hasCadenceRow;
+  els.cadenceRow.value = state.config.hasCadenceRow ? state.config.cadenceRow : 1;
+  els.cadenceRow.disabled = !state.config.hasCadenceRow;
 }
 
 function syncConfigFromControls() {
   state.config.sheetIncludes = state.config.sheetIncludes || {};
-  state.config.cadenceRow = Math.max(0, Number(els.cadenceRow.value) || 0);
+  state.config.hasCadenceRow = els.hasCadenceRow.checked;
+  state.config.cadenceRow = state.config.hasCadenceRow ? Math.max(1, Number(els.cadenceRow.value) || 1) : 0;
   state.config.headerRow = Math.max(1, Number(els.headerRow.value) || 1);
   state.config.reportPeriod = els.reportPeriod.value.trim();
   state.config.deleteRows = els.deleteRows.value.trim();
   state.config.ignoreRows = els.ignoreRows.value.trim();
-  state.config.defaultCadence = els.defaultCadence.value;
   state.config.includeLy = els.includeLy.checked;
   state.config.calculateSt = els.calculateSt.checked;
+  els.cadenceRow.disabled = !state.config.hasCadenceRow;
+}
+
+function metricMapKey(cadence, yearBasis, metricKey) {
+  return `${cadence}|${yearBasis}|${metricKey}`;
+}
+
+function getActiveCadences() {
+  return CADENCES.filter(c => (state.config.cadenceTypes || []).includes(c));
+}
+
+function getActiveMetrics() {
+  return CADENCE_METRIC_OPTIONS.filter(m => (state.config.cadenceMetrics || []).includes(m.key));
+}
+
+function getYearBases() {
+  return state.config.includeLy ? ["TY", "LY"] : ["TY"];
+}
+
+function getActiveMappingTriples() {
+  const triples = [];
+  getActiveCadences().forEach(cadence => {
+    getActiveMetrics().forEach(metric => {
+      getYearBases().forEach(yearBasis => {
+        triples.push({ cadence, yearBasis, metric });
+      });
+    });
+  });
+  return triples;
 }
 
 function buildHeaders() {
@@ -1165,38 +1485,21 @@ function buildHeaders() {
   const cadenceIdx = state.config.cadenceRow ? state.config.cadenceRow - 1 : -1;
   const headerRow = workingRows[headerIdx] || [];
   const cadenceRow = cadenceIdx >= 0 ? (workingRows[cadenceIdx] || []) : [];
-  let carryCadence = "";
-  let carryYearBasis = "TY";
   state.headers = headerRow.map((label, idx) => {
     const cadenceRaw = cleanHeader(cadenceRow[idx]);
-    if (CADENCE_RE.test(cadenceRaw)) carryCadence = cadenceRaw.match(CADENCE_RE)[1].toUpperCase();
-    if (state.config.includeLy && YEAR_BASIS_RE.test(cadenceRaw)) carryYearBasis = getYearBasis(cadenceRaw);
-    const header = cleanHeader(label) || cleanHeader(cadenceRaw) || `Column ${idx + 1}`;
-    const directCadence = CADENCE_RE.test(header) ? header.match(CADENCE_RE)[1].toUpperCase() : "";
-    const directYearBasis = state.config.includeLy && YEAR_BASIS_RE.test(header) ? getYearBasis(header) : "";
-    const cadence = directCadence || carryCadence || state.config.defaultCadence;
-    const yearBasis = state.config.includeLy ? (directYearBasis || carryYearBasis || "TY") : "TY";
-    const mappedField = findMappedField(header);
-    const metric = mappedField ? "" : toMetricName(header);
+    const header = cleanHeader(label) || cadenceRaw || `Column ${idx + 1}`;
+    const directCadence = CADENCE_RE.test(header) ? header.match(CADENCE_RE)[1].toUpperCase()
+      : (CADENCE_RE.test(cadenceRaw) ? cadenceRaw.match(CADENCE_RE)[1].toUpperCase() : "");
+    const directYearBasis = LY_RE.test(header) || LY_RE.test(cadenceRaw) ? "LY" : "TY";
     return {
       index: idx,
       raw: header,
-      cadence,
-      yearBasis,
-      metric,
-      mappedField,
-      combined: `${cadence && !CADENCE_RE.test(header) ? `${cadence} ` : ""}${state.config.includeLy && yearBasis === "LY" && !YEAR_BASIS_RE.test(header) ? "LY " : ""}${header}`.trim()
+      contextLabel: cadenceRaw && cadenceRaw !== header ? `${cadenceRaw} / ${header}` : header,
+      detectedCadence: directCadence,
+      detectedYearBasis: directYearBasis
     };
   });
   autoMap();
-}
-
-function findMappedField(header) {
-  const n = normalize(header);
-  const explicit = Object.entries(state.config.mappings).find(([, idx]) => state.headers[idx]?.raw === header);
-  if (explicit) return explicit[0];
-  const field = STANDARD_FIELDS.find(f => f.aliases.some(alias => n === normalize(alias) || n.includes(normalize(alias))));
-  return field ? field.key : "";
 }
 
 function autoMap() {
@@ -1212,10 +1515,38 @@ function autoMap() {
       taken.add(found.index);
     }
   });
+  state.config.metricMappings = state.config.metricMappings || {};
+  const usedMetricCols = new Set(Object.values(state.config.metricMappings).map(Number).filter(n => Number.isFinite(n)));
+  getActiveMappingTriples().forEach(({ cadence, yearBasis, metric }) => {
+    const key = metricMapKey(cadence, yearBasis, metric.key);
+    if (state.config.metricMappings[key] !== undefined) return;
+    const cadenceNorm = cadence.toLowerCase();
+    const wantsLy = yearBasis === "LY";
+    const found = state.headers.find(h => {
+      if (usedMetricCols.has(h.index)) return false;
+      const n = normalize(h.raw);
+      const hasCadence = h.detectedCadence === cadence || n.includes(cadenceNorm);
+      if (!hasCadence) return false;
+      const isLy = h.detectedYearBasis === "LY" || /\b(ly|last\s*year)\b/.test(n);
+      if (wantsLy !== isLy) return false;
+      return metric.aliases.some(alias => {
+        const an = normalize(alias);
+        return n === an || n.includes(an);
+      });
+    });
+    if (found) {
+      state.config.metricMappings[key] = found.index;
+      usedMetricCols.add(found.index);
+    }
+  });
 }
 
 function isDimensionColumn(header) {
   return Object.values(state.config.mappings).map(Number).includes(header.index);
+}
+
+function isMetricColumn(header) {
+  return Object.values(state.config.metricMappings || {}).map(Number).includes(header.index);
 }
 
 function parseNumber(value) {
@@ -1229,7 +1560,7 @@ function parseNumber(value) {
 function buildOutput() {
   const headerIdx = state.config.headerRow - 1;
   const outputs = [];
-  const metricHeaders = state.headers.filter(h => !isDimensionColumn(h) && h.raw && h.metric && !/^column_\d+$/i.test(h.metric));
+  const triples = getActiveMappingTriples();
   getIncludedSources().forEach(source => {
     const ignoredRows = getIgnoredRows();
     const workingRows = getRowsForSource(source);
@@ -1243,13 +1574,13 @@ function buildOutput() {
         dims[field.key] = Number.isFinite(col) ? cleanHeader(row[col]) : "";
       });
       const rowMetrics = new Map();
-      metricHeaders.forEach(header => {
-        const rawValue = row[header.index];
+      triples.forEach(({ cadence, yearBasis, metric }) => {
+        const key = metricMapKey(cadence, yearBasis, metric.key);
+        const col = Number((state.config.metricMappings || {})[key]);
+        if (!Number.isFinite(col)) return;
+        const rawValue = row[col];
         if (rawValue === undefined || cleanHeader(rawValue) === "") return;
-        const cadence = header.cadence || state.config.defaultCadence;
-        const yearBasis = state.config.includeLy ? header.yearBasis : "TY";
-        const metricKey = `${cadence}|${yearBasis}|${header.metric}`;
-        rowMetrics.set(metricKey, rawValue);
+        rowMetrics.set(key, rawValue);
         outputs.push({
           source_file: source.name,
           source_sheet: source.sheet,
@@ -1257,18 +1588,17 @@ function buildOutput() {
           report_period: state.config.reportPeriod,
           cadence,
           year_basis: yearBasis,
-          metric: header.metric,
+          metric: metric.key,
           value: cleanHeader(rawValue),
           value_source: "imported",
           ...dims
         });
       });
       if (state.config.calculateSt) {
-        CADENCES.forEach(cadence => {
-          const bases = state.config.includeLy ? ["TY", "LY"] : ["TY"];
-          bases.forEach(yearBasis => {
-            const sold = parseNumber(rowMetrics.get(`${cadence}|${yearBasis}|sale_units`));
-            const onHand = parseNumber(rowMetrics.get(`${cadence}|${yearBasis}|on_hand_units`));
+        getActiveCadences().forEach(cadence => {
+          getYearBases().forEach(yearBasis => {
+            const sold = parseNumber(rowMetrics.get(metricMapKey(cadence, yearBasis, "sale_units")));
+            const onHand = parseNumber(rowMetrics.get(metricMapKey(cadence, yearBasis, "on_hand_units")));
             const denominator = sold + onHand;
             if (!Number.isFinite(sold) || !Number.isFinite(onHand) || denominator <= 0) return;
             outputs.push({
@@ -1292,8 +1622,9 @@ function buildOutput() {
 }
 
 function renderFileList() {
+  if (els.dropzone) els.dropzone.hidden = state.sources.length > 0;
   if (!state.sources.length) {
-    els.fileList.innerHTML = '<div class="empty-state" style="min-height:120px;padding:18px;"><strong>No sources yet</strong><span>Upload files or switch to Paste.</span></div>';
+    els.fileList.innerHTML = '<div class="empty-state" style="min-height:96px;padding:14px;"><strong>No sources yet</strong><span>Use Insert File or drop files above.</span></div>';
     return;
   }
   els.fileList.innerHTML = state.sources.map(source => `
@@ -1305,55 +1636,98 @@ function renderFileList() {
   `).join("");
 }
 
+function renderCadenceSelectors() {
+  const types = state.config.cadenceTypes || [];
+  els.cadenceTypeSelect.innerHTML = CADENCES.map(c => `
+    <label class="${types.includes(c) ? "active" : ""}">
+      <input type="checkbox" data-cadence-type="${c}" ${types.includes(c) ? "checked" : ""}>
+      <span>${c}</span>
+    </label>
+  `).join("");
+  const metrics = state.config.cadenceMetrics || [];
+  els.cadenceMetricSelect.innerHTML = CADENCE_METRIC_OPTIONS.map(m => `
+    <label class="${metrics.includes(m.key) ? "active" : ""}">
+      <input type="checkbox" data-cadence-metric="${m.key}" ${metrics.includes(m.key) ? "checked" : ""}>
+      <span>${esc(m.label)}</span>
+    </label>
+  `).join("");
+}
+
+function headerOptionLabel(h) {
+  return h.contextLabel || h.raw;
+}
+
 function renderMappings() {
   if (!state.headers.length) {
     els.mappingGrid.innerHTML = '<div class="empty-state" style="min-height:140px;padding:18px;"><strong>No headers yet</strong><span>Load data to map fields.</span></div>';
     return;
   }
   const options = ['<option value="">Unmapped</option>'].concat(
-    state.headers.map(h => `<option value="${h.index}">${esc(h.combined)}</option>`)
+    state.headers.map(h => `<option value="${h.index}">${esc(headerOptionLabel(h))}</option>`)
   ).join("");
-  els.mappingGrid.innerHTML = STANDARD_FIELDS.map(field => `
+  const dimRows = STANDARD_FIELDS.map(field => `
     <div class="map-row">
       <label for="map-${field.key}">${esc(field.label)}</label>
       <select id="map-${field.key}" data-map="${field.key}">${options}</select>
     </div>
   `).join("");
+  const triples = getActiveMappingTriples();
+  const metricRowsHtml = triples.length ? triples.map(({ cadence, yearBasis, metric }) => {
+    const key = metricMapKey(cadence, yearBasis, metric.key);
+    const id = `metricmap-${key.replace(/[^a-z0-9]+/gi, "-")}`;
+    const labelText = `${cadence} ${state.config.includeLy ? yearBasis + " " : ""}${metric.label}`;
+    return `
+      <div class="map-row">
+        <label for="${id}">${esc(labelText)}</label>
+        <select id="${id}" data-metric-map="${esc(key)}">${options}</select>
+      </div>
+    `;
+  }).join("") : `<div class="map-section-title" style="color:var(--text-dim);font-weight:500;letter-spacing:0;font-family:var(--font-body);text-transform:none;font-size:0.78rem;">Select Cadence Type and Cadence Metrics to add metric mappings.</div>`;
+  els.mappingGrid.innerHTML = `
+    <div class="map-section-title">Product Dimensions</div>
+    ${dimRows}
+    <div class="map-section-title spacer">Cadence Metrics</div>
+    ${metricRowsHtml}
+  `;
   STANDARD_FIELDS.forEach(field => {
     const select = document.getElementById(`map-${field.key}`);
     if (select && state.config.mappings[field.key] !== undefined) select.value = String(state.config.mappings[field.key]);
   });
+  triples.forEach(({ cadence, yearBasis, metric }) => {
+    const key = metricMapKey(cadence, yearBasis, metric.key);
+    const id = `metricmap-${key.replace(/[^a-z0-9]+/gi, "-")}`;
+    const select = document.getElementById(id);
+    if (select && state.config.metricMappings && state.config.metricMappings[key] !== undefined) {
+      select.value = String(state.config.metricMappings[key]);
+    }
+  });
 }
 
 function renderChips() {
-  const metricHeaders = state.headers.filter(h => !isDimensionColumn(h) && h.metric);
-  const mappedCount = Object.values(state.config.mappings).filter(v => v !== "" && v !== undefined).length;
-  const cadences = Array.from(new Set(metricHeaders.map(h => h.cadence).filter(Boolean)));
+  const cadences = getActiveCadences();
+  const metrics = getActiveMetrics();
+  const triples = getActiveMappingTriples();
+  const mappedMetricCount = triples.filter(({ cadence, yearBasis, metric }) => {
+    const k = metricMapKey(cadence, yearBasis, metric.key);
+    return Number.isFinite(Number((state.config.metricMappings || {})[k]));
+  }).length;
+  const mappedDimCount = Object.values(state.config.mappings).filter(v => v !== "" && v !== undefined).length;
   const includedCount = getIncludedSources().length;
   const deletedCount = getDeletedRows().size;
   const ignoredCount = getIgnoredRows().size;
-  const missingCore = [];
-  CADENCES.forEach(cadence => {
-    const hasSaleU = metricHeaders.some(h => h.cadence === cadence && h.metric === "sale_units");
-    const hasSaleDollars = metricHeaders.some(h => h.cadence === cadence && h.metric === "sale_dollars");
-    if (cadences.includes(cadence) && (!hasSaleU || !hasSaleDollars)) {
-      missingCore.push(`${cadence}: ${!hasSaleU ? "Sale U" : ""}${!hasSaleU && !hasSaleDollars ? " + " : ""}${!hasSaleDollars ? "Sale $" : ""}`);
-    }
-  });
   els.detectedChips.innerHTML = [
     `<span class="chip ${includedCount ? "good" : "warn"}">${includedCount} included sheets</span>`,
-    `<span class="chip good">${metricHeaders.length} metric columns</span>`,
-    `<span class="chip">${mappedCount} mapped dimensions</span>`,
+    cadences.length ? `<span class="chip good">${esc(cadences.join(", "))}</span>` : `<span class="chip warn">No cadence selected</span>`,
+    metrics.length ? `<span class="chip good">${metrics.length} metrics: ${esc(metrics.map(m => m.label).join(", "))}</span>` : `<span class="chip warn">No metrics selected</span>`,
+    `<span class="chip ${triples.length && mappedMetricCount === triples.length ? "good" : (mappedMetricCount ? "" : "warn")}">${mappedMetricCount}/${triples.length} metric mappings</span>`,
+    `<span class="chip">${mappedDimCount} dimensions mapped</span>`,
     deletedCount ? `<span class="chip warn">${deletedCount} deleted rows</span>` : `<span class="chip">No deleted rows</span>`,
     ignoredCount ? `<span class="chip warn">${ignoredCount} ignored rows</span>` : `<span class="chip">No ignored rows</span>`,
-    cadences.length ? `<span class="chip good">${esc(cadences.join(", "))}</span>` : `<span class="chip warn">No cadence detected</span>`,
     state.config.includeLy ? `<span class="chip good">LY mapping on</span>` : `<span class="chip">TY only</span>`,
-    state.config.calculateSt ? `<span class="chip good">ST% calc on</span>` : `<span class="chip">ST% calc off</span>`,
-    !cadences.length ? `<span class="chip warn">Awaiting Sale U + Sale $</span>` :
-      missingCore.length ? `<span class="chip warn">Missing ${esc(missingCore.join("; "))}</span>` : `<span class="chip good">Sale U + Sale $ detected</span>`
+    state.config.calculateSt ? `<span class="chip good">ST% calc on</span>` : `<span class="chip">ST% calc off</span>`
   ].join("");
-  els.metricChip.textContent = `${metricHeaders.length} metrics`;
-  els.dimChip.textContent = `${mappedCount} dimensions`;
+  els.metricChip.textContent = `${triples.length} metric slots`;
+  els.dimChip.textContent = `${mappedDimCount} dimensions`;
 }
 
 function renderTable() {
@@ -1361,11 +1735,11 @@ function renderTable() {
     state.view === "headers" ? state.headers.map(h => ({
       index: h.index + 1,
       raw_header: h.raw,
-      combined_header: h.combined,
-      cadence: h.cadence,
-      year_basis: h.yearBasis,
-      metric: h.metric,
-      mapped_dimension: Object.entries(state.config.mappings).find(([, idx]) => Number(idx) === h.index)?.[0] || ""
+      cadence_row_label: h.contextLabel !== h.raw ? h.contextLabel : "",
+      detected_cadence: h.detectedCadence,
+      detected_year_basis: h.detectedYearBasis,
+      mapped_dimension: Object.entries(state.config.mappings).find(([, idx]) => Number(idx) === h.index)?.[0] || "",
+      mapped_metric: Object.entries(state.config.metricMappings || {}).find(([, idx]) => Number(idx) === h.index)?.[0] || ""
     })) :
     (getIncludedSources()[0] ? getRowsForSource(getIncludedSources()[0]).slice(0, 80).map(item => Object.fromEntries([["row", item.originalRow]].concat(item.row.map((cell, idx) => [`col_${idx + 1}`, cell])))) : []);
   if (!rows.length) {
@@ -1395,6 +1769,7 @@ function rebuild() {
   buildHeaders();
   buildOutput();
   renderFileList();
+  renderCadenceSelectors();
   renderMappings();
   renderChips();
   renderTable();
@@ -1455,19 +1830,34 @@ async function importConfig(file) {
     state.config.sheetIncludes = state.config.sheetIncludes || {};
     state.config.deleteRows = state.config.deleteRows || "";
     state.config.ignoreRows = state.config.ignoreRows || "";
-    els.cadenceRow.value = state.config.cadenceRow;
+    state.config.cadenceTypes = Array.isArray(state.config.cadenceTypes) ? state.config.cadenceTypes : ["WTD"];
+    state.config.cadenceMetrics = Array.isArray(state.config.cadenceMetrics) ? state.config.cadenceMetrics : ["sale_dollars", "sale_units"];
+    state.config.metricMappings = state.config.metricMappings || {};
+    state.config.collapsed = state.config.collapsed || {};
+    state.config.hasCadenceRow = state.config.hasCadenceRow === undefined ? Number(state.config.cadenceRow) > 0 : !!state.config.hasCadenceRow;
+    els.hasCadenceRow.checked = state.config.hasCadenceRow;
+    els.cadenceRow.value = state.config.hasCadenceRow ? (Number(state.config.cadenceRow) || 1) : 1;
+    els.cadenceRow.disabled = !state.config.hasCadenceRow;
     els.headerRow.value = state.config.headerRow;
     els.reportPeriod.value = state.config.reportPeriod || "";
     els.deleteRows.value = state.config.deleteRows || "";
     els.ignoreRows.value = state.config.ignoreRows || "";
-    els.defaultCadence.value = state.config.defaultCadence || "";
     els.includeLy.checked = !!state.config.includeLy;
     els.calculateSt.checked = !!state.config.calculateSt;
+    applyCollapseState();
     rebuild();
     toast("Configuration imported.");
   } catch (error) {
     toast(`Could not import config: ${error.message}`);
   }
+}
+
+function applyCollapseState() {
+  const map = state.config.collapsed || {};
+  ["panelInput", "panelHeader", "panelMapping"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle("collapsed", !!map[id]);
+  });
 }
 
 function toast(message) {
@@ -1489,19 +1879,39 @@ function initInfoModal() {
   const openBtn = document.getElementById("infoBtn");
   const closeBtn = document.getElementById("infoModalClose");
   const close = () => overlay.classList.remove("open");
+  const activateTab = tabKey => {
+    document.querySelectorAll(".info-modal-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tabKey));
+    document.querySelectorAll(".info-modal-pane").forEach(p => p.classList.toggle("active", p.id === "modal-tab-" + tabKey));
+  };
   openBtn.addEventListener("click", () => overlay.classList.add("open"));
   closeBtn.addEventListener("click", close);
   overlay.addEventListener("click", e => { if (e.target === overlay) close(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
   document.querySelectorAll(".info-modal-tab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll(".info-modal-tab").forEach(t => t.classList.toggle("active", t === tab));
-      document.querySelectorAll(".info-modal-pane").forEach(p => p.classList.toggle("active", p.id === "modal-tab-" + tab.dataset.tab));
+    tab.addEventListener("click", () => activateTab(tab.dataset.tab));
+  });
+  document.querySelectorAll("[data-panel-info]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      overlay.classList.add("open");
+      activateTab("panels");
+      const target = document.getElementById("panelinfo-" + btn.dataset.panelInfo);
+      if (target) {
+        setTimeout(() => target.scrollIntoView({ block: "start", behavior: "smooth" }), 40);
+      }
     });
   });
 }
 
-els.fileInput.addEventListener("change", e => handleFiles(e.target.files));
+els.fileInput.addEventListener("change", e => {
+  handleFiles(e.target.files);
+  e.target.value = "";
+});
+els.dropzoneInput.addEventListener("change", e => {
+  handleFiles(e.target.files);
+  e.target.value = "";
+});
+els.insertFileBtn.addEventListener("click", () => els.fileInput.click());
 els.dropzone.addEventListener("dragover", e => { e.preventDefault(); els.dropzone.classList.add("dragging"); });
 els.dropzone.addEventListener("dragleave", () => els.dropzone.classList.remove("dragging"));
 els.dropzone.addEventListener("drop", e => {
@@ -1543,11 +1953,30 @@ els.fileList.addEventListener("change", e => {
   rebuild();
 });
 ["change", "input"].forEach(evt => {
-  [els.cadenceRow, els.headerRow, els.reportPeriod, els.deleteRows, els.ignoreRows, els.defaultCadence, els.includeLy, els.calculateSt].forEach(el => el.addEventListener(evt, rebuild));
+  [els.cadenceRow, els.headerRow, els.reportPeriod, els.deleteRows, els.ignoreRows, els.includeLy, els.calculateSt].forEach(el => el.addEventListener(evt, rebuild));
+});
+els.cadenceTypeSelect.addEventListener("change", e => {
+  const input = e.target.closest("[data-cadence-type]");
+  if (!input) return;
+  const set = new Set(state.config.cadenceTypes || []);
+  if (input.checked) set.add(input.dataset.cadenceType);
+  else set.delete(input.dataset.cadenceType);
+  state.config.cadenceTypes = CADENCES.filter(c => set.has(c));
+  rebuild();
+});
+els.cadenceMetricSelect.addEventListener("change", e => {
+  const input = e.target.closest("[data-cadence-metric]");
+  if (!input) return;
+  const set = new Set(state.config.cadenceMetrics || []);
+  if (input.checked) set.add(input.dataset.cadenceMetric);
+  else set.delete(input.dataset.cadenceMetric);
+  state.config.cadenceMetrics = CADENCE_METRIC_OPTIONS.map(m => m.key).filter(k => set.has(k));
+  rebuild();
 });
 document.getElementById("autoDetectBtn").addEventListener("click", () => { autoDetect(); rebuild(); toast("Header rows detected."); });
 document.getElementById("remapBtn").addEventListener("click", () => {
   state.config.mappings = {};
+  state.config.metricMappings = {};
   buildHeaders();
   rebuild();
   toast("Mappings refreshed.");
@@ -1559,11 +1988,30 @@ document.getElementById("clearBtn").addEventListener("click", () => {
   rebuild();
 });
 els.mappingGrid.addEventListener("change", e => {
-  const select = e.target.closest("[data-map]");
-  if (!select) return;
-  if (select.value === "") delete state.config.mappings[select.dataset.map];
-  else state.config.mappings[select.dataset.map] = Number(select.value);
-  rebuild();
+  const dimSelect = e.target.closest("[data-map]");
+  if (dimSelect) {
+    if (dimSelect.value === "") delete state.config.mappings[dimSelect.dataset.map];
+    else state.config.mappings[dimSelect.dataset.map] = Number(dimSelect.value);
+    rebuild();
+    return;
+  }
+  const metricSelect = e.target.closest("[data-metric-map]");
+  if (metricSelect) {
+    state.config.metricMappings = state.config.metricMappings || {};
+    if (metricSelect.value === "") delete state.config.metricMappings[metricSelect.dataset.metricMap];
+    else state.config.metricMappings[metricSelect.dataset.metricMap] = Number(metricSelect.value);
+    rebuild();
+  }
+});
+document.querySelectorAll("[data-collapse]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const id = btn.dataset.collapse;
+    const panel = document.getElementById(id);
+    if (!panel) return;
+    panel.classList.toggle("collapsed");
+    state.config.collapsed = state.config.collapsed || {};
+    state.config.collapsed[id] = panel.classList.contains("collapsed");
+  });
 });
 document.querySelectorAll(".view-tab").forEach(btn => {
   btn.addEventListener("click", () => {

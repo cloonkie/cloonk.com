@@ -947,6 +947,7 @@ select:focus, .search-input:focus { border-color: var(--accent); }
     <button class="btn btn-sm" id="btnDownloadTemplate" onclick="downloadTemplate()">↓ Template</button>
     <input type="file" id="imageFolder" accept="image/*" multiple style="display:none">
     <button class="btn btn-sm" id="btnImages" style="display:none" onclick="document.getElementById('imageFolder').click()">↑ Images</button>
+    <button class="btn btn-sm btn-danger" id="btnClear" style="display:none" onclick="clearLineSheet()">Clear</button>
     <button class="btn btn-sm btn-accent" id="btnExport" style="display:none" onclick="exportSelects()">↓ Export Selects</button>
   </div>
 </header>
@@ -1629,6 +1630,7 @@ function loadData(json, embeddedImages = {}, options = {}) {
   document.getElementById('toolbar').style.display = '';
   document.getElementById('headerStats').style.display = '';
   document.getElementById('btnImages').style.display = '';
+  document.getElementById('btnClear').style.display = '';
   document.getElementById('btnExport').style.display = '';
 
   renderCards();
@@ -1733,6 +1735,48 @@ function readAutosaveSnapshot() {
 
 function writeAutosaveSnapshot(snapshot) {
   return withAutosaveStore('readwrite', store => store.put(snapshot));
+}
+
+function deleteAutosaveSnapshot() {
+  return withAutosaveStore('readwrite', store => store.delete(AUTOSAVE_KEY));
+}
+
+function clearLineSheet() {
+  if (!allItems.length) return;
+  if (!confirm('Clear the loaded line sheet and saved browser autosave?')) return;
+
+  clearTimeout(autosaveTimer);
+  allItems = [];
+  selectedSet = new Set();
+  notesMap = {};
+  imageMap = {};
+
+  document.getElementById('fileInput').value = '';
+  document.getElementById('fileInputLanding').value = '';
+  document.getElementById('imageFolder').value = '';
+  document.getElementById('filterBrand').innerHTML = '<option value="">All</option>';
+  document.getElementById('filterStatus').innerHTML = '<option value="">All</option>';
+  document.getElementById('filterPolarized').value = '';
+  document.getElementById('sortBy').value = 'rank-asc';
+  document.getElementById('filterSelection').value = '';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('cardGrid').innerHTML = '';
+  document.getElementById('statTotal').textContent = '0';
+  document.getElementById('statSelected').textContent = '0';
+  document.getElementById('statFiltered').textContent = '0';
+  document.getElementById('landing').style.display = '';
+  document.getElementById('gridContainer').style.display = 'none';
+  document.getElementById('toolbar').style.display = 'none';
+  document.getElementById('headerStats').style.display = 'none';
+  document.getElementById('btnImages').style.display = 'none';
+  document.getElementById('btnClear').style.display = 'none';
+  document.getElementById('btnExport').style.display = 'none';
+  updateSelectionBar();
+  closeLightbox();
+
+  deleteAutosaveSnapshot()
+    .then(() => showToast('Line sheet cleared'))
+    .catch(() => showToast('Line sheet cleared. Autosave could not be removed.'));
 }
 
 // ─── Helpers ───
