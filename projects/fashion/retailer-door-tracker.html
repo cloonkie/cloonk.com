@@ -1689,7 +1689,7 @@ body.light .data-cell-note { background: #f4f2ee; }
   </div>
   <div class="login-divider">Sign In</div>
   <p>Sign in to record who's making changes. Every edit is attributed in the change history.</p>
-  <label for="loginUser">Username</label>
+  <label for="loginUser">Username / Email</label>
   <input type="text" id="loginUser" autocomplete="username" autocapitalize="off" spellcheck="false">
   <label for="loginPass">Password</label>
   <input type="password" id="loginPass" autocomplete="current-password" onkeydown="if(event.key==='Enter'){event.preventDefault();handleLogin();}">
@@ -1860,7 +1860,7 @@ function getSupabaseClient(){
   if(!_supabaseClient) _supabaseClient=window.supabase.createClient(cfg.url,cfg.anonKey);
   return _supabaseClient;
 }
-function isSharedSyncEnabled(){ return !!getSupabaseClient(); }
+function isSharedSyncEnabled(){ return !!getSupabaseClient() && currentUser && currentUser.authProvider==='supabase' && !currentUser.isGuest; }
 function sharedStateKey(){ return currentSaveKey(); }
 function sharedUserName(){ return currentUserName(); }
 async function saveSharedLatest(row){
@@ -5699,6 +5699,7 @@ let currentUser=null;
 let _appBooted=false;
 
 function currentUserName(){ return currentUser ? (currentUser.name || currentUser.username) : 'Unknown'; }
+function normalizeEmail(v){ return String(v||'').trim().toLowerCase(); }
 
 async function sha256Hex(text){
   const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -5711,6 +5712,7 @@ function loadSession(){
     if(!raw) return null;
     const p=JSON.parse(raw);
     if(!p || !p.username) return null;
+    if(p.authProvider==='supabase') return null;
     if(p.isGuest) return { username:'guest', name:p.name || 'Guest', isGuest:true };
     if(!USER_ROSTER[p.username]) return null;
     return { username:p.username, name:USER_ROSTER[p.username].name };
@@ -5718,9 +5720,35 @@ function loadSession(){
 }
 function saveSession(){
   if(!currentUser) return;
+  if(currentUser.authProvider==='supabase') return;
   try{ localStorage.setItem(SESSION_KEY, JSON.stringify({username:currentUser.username, name:currentUser.name, isGuest:!!currentUser.isGuest, loginAt:new Date().toISOString()})); }catch(e){}
 }
 function clearSession(){ try{ localStorage.removeItem(SESSION_KEY); }catch(e){} }
+
+async function getSupabaseRosterUser(email){
+  const client=getSupabaseClient();
+  if(!client) return null;
+  const normalized=normalizeEmail(email);
+  const {data,error}=await client.from('door_tracker_allowed_users')
+    .select('email,display_name')
+    .eq('email',normalized)
+    .maybeSingle();
+  if(error) throw error;
+  return data ? { username:data.email, name:data.display_name || data.email, authProvider:'supabase' } : null;
+}
+async function loadSupabaseSession(){
+  const client=getSupabaseClient();
+  if(!client) return null;
+  const {data,error}=await client.auth.getSession();
+  if(error || !data || !data.session || !data.session.user) return null;
+  const user=data.session.user;
+  const rosterUser=await getSupabaseRosterUser(user.email);
+  if(!rosterUser){
+    await client.auth.signOut().catch(()=>{});
+    return null;
+  }
+  return rosterUser;
+}
 
 function showLoginModal(){
   document.getElementById('ovLogin').classList.add('open');
@@ -5770,6 +5798,26 @@ async function handleLogin(){
   if(!username || !password){ errEl.textContent='Enter username and password.'; errEl.style.display='block'; return; }
   btn.disabled=true;
   try{
+    const client=getSupabaseClient();
+    if(client){
+      const {data,error}=await client.auth.signInWithPassword({email:username,password});
+      if(error) throw error;
+      const rosterUser=await getSupabaseRosterUser(data.user && data.user.email);
+      if(!rosterUser){
+        await client.auth.signOut().catch(()=>{});
+        errEl.textContent='This email is not on the door tracker user roster.';
+        errEl.style.display='block';
+        btn.disabled=false;
+        return;
+      }
+      window._doorTrackerBlankGuest=false;
+      currentUser=rosterUser;
+      document.getElementById('loginPass').value='';
+      hideLoginModal();
+      updateUserChip();
+      bootApp();
+      return;
+    }
     const user=USER_ROSTER[username];
     if(!user){ errEl.textContent='Unknown username.'; errEl.style.display='block'; btn.disabled=false; return; }
     const inputHash=await sha256Hex(password);
@@ -5788,9 +5836,14 @@ async function handleLogin(){
   }
 }
 
-function signOut(){
+async function signOut(){
   const wasGuest=currentUser && currentUser.isGuest;
+  const wasSupabase=currentUser && currentUser.authProvider==='supabase';
   clearSession();
+  if(wasSupabase){
+    const client=getSupabaseClient();
+    if(client) await client.auth.signOut().catch(()=>{});
+  }
   window._doorTrackerBlankGuest=false;
   currentUser=null;
   _appBooted=false;
@@ -5875,8 +5928,8 @@ function applyDefaultDSBrandFilter(){
 }
 
 /* Boot: resume session or show the login wall. */
-(function bootGate(){
-  const stored=loadSession();
+(async function bootGate(){
+  const stored=await loadSupabaseSession().catch(()=>null) || loadSession();
   if(stored){
     currentUser=stored;
     updateUserChip();
