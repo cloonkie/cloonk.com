@@ -1277,13 +1277,18 @@ body.light .data-cell-note { background: #f4f2ee; }
       </div>
       <div class="toolbar-group is-open" id="statusFilterGroup" style="display:none">
         <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Status</span>
-        <select id="fStatus" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple statuses"><option value="">All</option><option value="confirmed">Confirmed</option><option value="tbd">TBD</option><option value="na">N/A</option><option value="closed">Closed</option></select>
+        <select id="fStatus" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple statuses"><option value="">All</option><option value="confirmed">Confirmed</option><option value="tbd">TBD</option><option value="na">N/A</option><option value="closed">Exit</option></select>
         <div class="refine-toggle-options" id="refineStatusToggles"></div>
       </div>
       <div class="toolbar-group is-open" id="gradeFilterGroup" style="display:none">
         <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Grade</span>
         <select id="fGrade" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple grades"><option value="">All</option></select>
         <div class="refine-toggle-options" id="refineGradeToggles"></div>
+      </div>
+      <div class="toolbar-group is-open" id="genderFilterGroup" style="display:none">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Gender</span>
+        <select id="fGender" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple gender values"><option value="">All</option><option value="ALL">ALL</option><option value="Mens Only">Mens Only</option><option value="Ladies Only">Ladies Only</option></select>
+        <div class="refine-toggle-options" id="refineGenderToggles"></div>
       </div>
       <div class="toolbar-group is-open" id="opportunityFilterGroup" style="display:none">
         <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Opportunities</span>
@@ -1409,7 +1414,7 @@ body.light .data-cell-note { background: #f4f2ee; }
   </div>
 
   <label>Matrix data</label>
-  <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>. Optional door-brand selling fields: <code>Door Number</code>, <code>Status</code>, <code>Grade</code>, <code>metric_1</code>, <code>metric_2</code>, <code>Notes</code>.</div>
+  <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>. Optional door-brand selling fields: <code>Door Number</code>, <code>Status</code>, <code>Grade</code>, <code>Gender</code>, <code>metric_1</code>, <code>metric_2</code>, <code>Notes</code>.</div>
   <div class="import-zone" onclick="document.getElementById('impFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
     <p>Drop matrix file or click to browse</p>
     <input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="handleImpFile(event)">
@@ -1477,7 +1482,7 @@ body.light .data-cell-note { background: #f4f2ee; }
   <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
     <div class="info-section">
       <h4>Matrix data</h4>
-      <p>Columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>. Optional per door-brand fields include <code>Door Number</code>, <code>Status</code>, <code>Grade</code>, <code>metric_1</code>, <code>metric_2</code>, and <code>Notes</code> for selling analysis.</p>
+      <p>Columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>. Optional per door-brand fields include <code>Door Number</code>, <code>Status</code>, <code>Grade</code>, <code>Gender</code>, <code>metric_1</code>, <code>metric_2</code>, and <code>Notes</code> for selling analysis.</p>
     </div>
     <div class="info-section">
       <h4>Door locations</h4>
@@ -1580,7 +1585,7 @@ body.light .data-cell-note { background: #f4f2ee; }
       <tr><td>Matrix</td><td>Brand x retailer grid with confirmed door counts.</td></tr>
       <tr><td>Compact</td><td>Brand, category, and per-retailer counts.</td></tr>
       <tr><td>Tabular</td><td>Flat retailer x brand rows with penetration.</td></tr>
-      <tr><td>Data</td><td>Retailer, door, brand, status, grade, metric_1, metric_2, notes, and key rows.</td></tr>
+      <tr><td>Data</td><td>Retailer, door, brand, status, grade, gender, metric_1, metric_2, notes, and key rows.</td></tr>
       <tr><td>Research</td><td>Doors-first location list with placement detail and map reveal.</td></tr>
       <tr><td>Store</td><td>Editable door locations: name, number, address, lat/lng, tier.</td></tr>
     </table>
@@ -1601,11 +1606,6 @@ body.light .data-cell-note { background: #f4f2ee; }
     <div class="info-section">
       <h4>Map reveal</h4>
       <p>Door details include a Mapbox map. Picking a door zooms in; selecting a retailer fits the map to that retailer's doors, or all doors when retailer All is selected.</p>
-    </div>
-    <div class="info-section">
-      <h4>Retailer Coverage &amp; Max Doors</h4>
-      <p>Live counts from your current data, refreshed when the modal opens.</p>
-      <div id="infoRetailerCoverage" style="margin-top:8px;font-family:var(--font-mono);font-size:0.78rem;line-height:1.6"></div>
     </div>
   </div>
   <div class="info-modal-pane" id="modal-tab-resources" role="tabpanel">
@@ -1667,7 +1667,7 @@ body.light .data-cell-note { background: #f4f2ee; }
         <h4 style="margin-bottom:0">Matrix Data</h4>
         <button class="btn btn-sm" type="button" onclick="downloadTemplate()">Template</button>
       </div>
-      <p>Retailer, Brand, Category, Doors. Add Door Number, Status, Grade, metric_1, metric_2, and Notes when you want per door-brand selling analysis.</p>
+      <p>Retailer, Brand, Category, Doors. Add Door Number, Status, Grade, Gender, metric_1, metric_2, and Notes when you want per door-brand selling analysis.</p>
       <div class="login-upload-zone" onclick="document.getElementById('loginMatrixFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleLoginMatrixDrop(event)">
         <input type="file" id="loginMatrixFile" accept=".xlsx,.xls,.csv" onchange="handleLoginMatrixFile(event)">
         <div class="login-upload-title">Drop matrix file or browse</div>
@@ -1746,11 +1746,17 @@ function normalizeStatus(s){
   const v=String(s||'').trim().toLowerCase();
   if(v==='confirmed') return 'confirmed';
   if(v==='draft' || v==='tbd' || v==='under consideration') return 'tbd';
-  if(v==='closed') return 'closed';
+  if(v==='closed' || v==='exit' || v==='exited') return 'closed';
   return 'na';
 }
 function statusLabel(s){
-  return ({confirmed:'Confirmed',tbd:'TBD',na:'N/A',closed:'Closed'})[normalizeStatus(s)] || 'N/A';
+  return ({confirmed:'Confirmed',tbd:'TBD',na:'N/A',closed:'Exit'})[normalizeStatus(s)] || 'N/A';
+}
+function normalizeGender(v){
+  const s=String(v||'').trim().toLowerCase();
+  if(s==='mens only' || s==='men only' || s==='mens' || s==="men's only" || s==="men's") return 'Mens Only';
+  if(s==='ladies only' || s==='ladies' || s==='women only' || s==="women's only" || s==='womens only' || s==='womens') return 'Ladies Only';
+  return 'ALL';
 }
 
 function getStateClass(s){
@@ -1840,6 +1846,7 @@ function applyPayload(p){
   history=p.history||{};
   doorAssignments=p.doorAssignments||{};
   dataKeyState=p.dataKeyState||{};
+  Object.values(dataKeyState).forEach(st=>{ if(st) st.gender=normalizeGender(st.gender); });
   window._storeNotes=p.storeNotes||{};
 }
 
@@ -2213,7 +2220,7 @@ function ensureAllSlots(){
       brands.forEach(brand=>{
         const key=buildDataKey(ret,door.doorNumber,brand);
         if(!dataKeyState[key]){
-          dataKeyState[key]={status:'na',grade:door.tier||'-',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:door.doorNumber,brand:brand};
+          dataKeyState[key]={status:'na',grade:door.tier||'-',gender:'ALL',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:door.doorNumber,brand:brand};
         }
       });
     });
@@ -2239,7 +2246,7 @@ function reconcileDataKeyFromAssignments(){
       const st=dataKeyState[key];
       if(!st){
         const door=getDoorInfo(norm,a.doorNumber);
-        dataKeyState[key]={status:wanted,grade:(door&&door.tier)||'-',note:a.note||'',metric_1:'',metric_2:'',retailer:norm,doorNumber:a.doorNumber,brand};
+        dataKeyState[key]={status:wanted,grade:(door&&door.tier)||'-',gender:'ALL',note:a.note||'',metric_1:'',metric_2:'',retailer:norm,doorNumber:a.doorNumber,brand};
         return;
       }
       if(wanted==='confirmed' && normalizeStatus(st.status)!=='confirmed'){
@@ -2409,6 +2416,7 @@ function renderRefineToggles(){
   renderRefineToggleGroup('fBrand','refineBrandToggles','All brands');
   renderRefineToggleGroup('fStatus','refineStatusToggles','All statuses');
   renderRefineToggleGroup('fGrade','refineGradeToggles','All grades');
+  renderRefineToggleGroup('fGender','refineGenderToggles','All genders');
   renderRefineOpportunityToggle();
   updateRefineActiveState();
   updateShowAsVisibility();
@@ -2588,7 +2596,7 @@ function handleRefineToggleEvent(e){
 
 function getRefineActiveCount(){
   let count=0;
-  ['fRetGroup','fRet','fRetChannel','fCat','fBrand','fStatus','fGrade'].forEach(id=>{ count+=getSelectValues(id).length; });
+  ['fRetGroup','fRet','fRetChannel','fCat','fBrand','fStatus','fGrade','fGender'].forEach(id=>{ count+=getSelectValues(id).length; });
   if(document.getElementById('fOpportunities')?.checked) count++;
   if((document.getElementById('searchBox')?.value||'').trim()) count++;
   return count;
@@ -2648,7 +2656,7 @@ function onFilterToggleKey(e,kind){
 }
 
 function clearAllRefineFilters(){
-  ['fRetGroup','fRet','fRetChannel','fCat','fBrand','fStatus','fGrade'].forEach(id=>setSelectValues(id,[]));
+  ['fRetGroup','fRet','fRetChannel','fCat','fBrand','fStatus','fGrade','fGender'].forEach(id=>setSelectValues(id,[]));
   /* Turn the Channel filter switch off when the user clears everything. */
   const channelGroup=document.getElementById('channelFilterGroup');
   if(channelGroup) channelGroup.classList.remove('is-active');
@@ -2744,6 +2752,27 @@ function updateSummary(items,visR){
   bar.style.display='none';
 }
 
+function buildRetailerColumns(visR){
+  if(isShowByGroupOn()){
+    const groupMap=new Map();
+    visR.forEach(r=>{
+      const g=retailerGroup(r);
+      if(!groupMap.has(g)) groupMap.set(g,[]);
+      groupMap.get(g).push(r);
+    });
+    return [...groupMap.entries()].map(([label,members])=>({label,members,isGroup:members.length>1}));
+  }
+  return visR.map(r=>({label:r,members:[r],isGroup:false}));
+}
+function sortRetailerColumns(cols){
+  cols.forEach(col=>{ col._channel=retailerChannel(col.members[0]) || 'Other'; });
+  cols.sort((a,b)=>a._channel.localeCompare(b._channel) || a.label.localeCompare(b.label));
+  return cols;
+}
+function getGroupMatrixVal(members,brand){ return members.reduce((s,r)=>s+getMatrixVal(r,brand),0); }
+function getGroupBMDoors(members){ return members.reduce((s,r)=>s+getBMDoorsForRetailer(r),0); }
+function getGroupBMConfirmed(members,brand){ return members.reduce((s,r)=>s+getBMConfirmedCount(r,brand),0); }
+
 
 function renderMatrix(items,visR){
   const wrap=document.getElementById('mainView');
@@ -2760,24 +2789,10 @@ function renderMatrix(items,visR){
 
   /* The "Show by Group" toggle inside the Retailer refine section
      collapses member retailers into a single summed column per group. */
-  const grouping=isShowByGroupOn();
-  let cols;
-  if(grouping){
-    const groupMap=new Map();
-    visR.forEach(r=>{
-      const g=retailerGroup(r);
-      if(!groupMap.has(g)) groupMap.set(g,[]);
-      groupMap.get(g).push(r);
-    });
-    cols=[...groupMap.entries()].map(([label,members])=>({label,members,isGroup:members.length>1}));
-  }else{
-    cols=visR.map(r=>({label:r,members:[r],isGroup:false}));
-  }
+  let cols=buildRetailerColumns(visR);
   /* Sort columns by channel first so the matrix reads channel-by-channel,
      then alphabetically within each channel. */
-  const colChannel=col=>(retailerChannel(col.members[0]) || 'Other');
-  cols.forEach(col=>{col._channel=colChannel(col);});
-  cols.sort((a,b)=>a._channel.localeCompare(b._channel) || a.label.localeCompare(b.label));
+  sortRetailerColumns(cols);
   /* Bucket cols into channel chunks for the thead colspan / divider rows. */
   const channelChunks=[];
   cols.forEach(col=>{
@@ -2885,14 +2900,22 @@ function renderMatrix(items,visR){
 
 function renderCompact(items,visR){
   const wrap=document.getElementById('mainView');
+  const cols=sortRetailerColumns(buildRetailerColumns(visR));
   let h='<table class="compact-table"><thead><tr><th>Brand</th><th>Name</th><th>Category</th>';
-  visR.forEach(r=>{h+=`<th>${esc(r)}</th>`;});
+  cols.forEach(col=>{h+=`<th>${esc(col.label)}</th>`;});
   h+='<th>Perimeter</th></tr></thead><tbody>';
   items.forEach(d=>{
     const bName=brandCodes[d.brand]?brandCodes[d.brand].name:'';
     let tot=0;
     h+=`<tr><td style="font-family:var(--font-mono);font-weight:700">${esc(d.brand)}</td><td>${esc(bName)}</td><td><span class="cat-badge">${esc(d.category)}</span></td>`;
-    visR.forEach(r=>{const v=getMatrixVal(r,d.brand);tot+=v;h+=`<td class="cell" style="font-family:var(--font-mono);text-align:center;cursor:pointer;${v?'':'color:var(--text-dim)'}" onclick="${callAttr('openStoreDrawer',r,d.brand)}">${v||'–'}</td>`;});
+    cols.forEach(col=>{
+      const v=getGroupMatrixVal(col.members,d.brand);
+      tot+=v;
+      const clickAttr=col.isGroup
+        ? `onclick="${callAttr('openGroupDrawer',col.label,d.brand)}"`
+        : `onclick="${callAttr('openStoreDrawer',col.members[0],d.brand)}"`;
+      h+=`<td class="cell${col.isGroup?' group-cell':''}" style="font-family:var(--font-mono);text-align:center;cursor:pointer;${v?'':'color:var(--text-dim)'}" ${clickAttr}>${v||'–'}</td>`;
+    });
     h+=`<td style="font-family:var(--font-mono);font-weight:700;text-align:center;color:var(--accent)">${tot}</td></tr>`;
   });
   h+='</tbody></table>';
@@ -2902,14 +2925,17 @@ function renderCompact(items,visR){
 function renderTabular(items,visR){
   const wrap=document.getElementById('mainView');
   let rows=[];
+  const cols=sortRetailerColumns(buildRetailerColumns(visR));
   items.forEach(d=>{
-    visR.forEach(r=>{
-      const v=getMatrixVal(r,d.brand);
+    cols.forEach(col=>{
+      const v=getGroupMatrixVal(col.members,d.brand);
       if(v>0){
-        const bmDoors=getBMDoorsForRetailer(r);
-        const bmBrand=getBMConfirmedCount(r,d.brand);
+        const bmDoors=getGroupBMDoors(col.members);
+        const bmBrand=getGroupBMConfirmed(col.members,d.brand);
         rows.push({
-          retailer:r,
+          retailer:col.label,
+          members:col.members,
+          isGroup:col.isGroup,
           brand:d.brand,
           category:d.category,
           doors:v,
@@ -2923,7 +2949,10 @@ function renderTabular(items,visR){
   rows.sort((a,b)=>a.retailer.localeCompare(b.retailer)||a.category.localeCompare(b.category)||a.brand.localeCompare(b.brand));
   let h='<table class="compact-table"><thead><tr><th>Retailer</th><th>Code</th><th>Brand</th><th>Category</th><th>Doors</th><th>Retailer B&M</th><th>Penetration</th></tr></thead><tbody>';
   rows.forEach(r=>{
-    h+=`<tr><td>${esc(r.retailer)}</td><td style="font-family:var(--font-mono);font-weight:700">${esc(r.brand)}</td><td>${esc(r.name)}</td><td><span class="cat-badge">${esc(r.category)}</span></td><td class="cell" style="font-family:var(--font-mono);text-align:center;cursor:pointer" onclick="${callAttr('openStoreDrawer',r.retailer,r.brand)}">${r.doors}</td><td style="font-family:var(--font-mono);text-align:center;color:var(--text-muted)">${r.bm}</td><td style="font-family:var(--font-mono);text-align:center">${r.pct}</td></tr>`;
+    const clickAttr=r.isGroup
+      ? `onclick="${callAttr('openGroupDrawer',r.retailer,r.brand)}"`
+      : `onclick="${callAttr('openStoreDrawer',r.members[0],r.brand)}"`;
+    h+=`<tr><td>${esc(r.retailer)}</td><td style="font-family:var(--font-mono);font-weight:700">${esc(r.brand)}</td><td>${esc(r.name)}</td><td><span class="cat-badge">${esc(r.category)}</span></td><td class="cell${r.isGroup?' group-cell':''}" style="font-family:var(--font-mono);text-align:center;cursor:pointer" ${clickAttr}>${r.doors}</td><td style="font-family:var(--font-mono);text-align:center;color:var(--text-muted)">${r.bm}</td><td style="font-family:var(--font-mono);text-align:center">${r.pct}</td></tr>`;
   });
   h+='</tbody></table>';
   wrap.innerHTML=h;
@@ -3065,6 +3094,14 @@ function remapDoorNumberKeys(ret,oldNum,newNum){
   });
 }
 
+function dataRowMatchesSearch(row,sq,brandName){
+  if(!sq) return true;
+  return [
+    row.retailer,row.doorNumber,row.doorName,row.brand,brandName,row.category,row.location,
+    row.status,row.grade,row.gender,row.note,row.metric_1,row.metric_2,row.key
+  ].some(v=>String(v||'').toLowerCase().includes(sq));
+}
+
 function renderUnpivoted(items,visR){
   const wrap=document.getElementById('mainView');
   const activeRet=getActiveSingleRetailer(visR);
@@ -3079,6 +3116,7 @@ function renderUnpivoted(items,visR){
   const fb=getSelectValues('fBrand');
   const fs=getSelectValues('fStatus');
   const fg=getSelectValues('fGrade');
+  const fgen=getSelectValues('fGender');
   const opportunitiesOnly=!!document.getElementById('fOpportunities')?.checked;
   const sq=(document.getElementById('searchBox').value||'').toLowerCase();
   const brands=getAllBrands();
@@ -3090,7 +3128,6 @@ function renderUnpivoted(items,visR){
         const brandName=(brandCodes[brand]&&brandCodes[brand].name)||'';
         if(!hasFilterValue(fc,category)) return;
         if(!hasFilterValue(fb,brand)) return;
-        if(sq && !brand.toLowerCase().includes(sq) && !brandName.toLowerCase().includes(sq)) return;
         const state=getDataKeyState(ret,door.doorNumber,brand) || {};
         const row={
           retailer:ret,
@@ -3101,14 +3138,17 @@ function renderUnpivoted(items,visR){
           location:`${door.city||'-'}, ${door.state||'-'}`,
           status:normalizeStatus(state.status || 'na'),
           grade:state.grade || door.tier || '-',
+          gender:normalizeGender(state.gender),
           note:state.note || '',
           metric_1:state.metric_1 ?? '',
           metric_2:state.metric_2 ?? '',
           key:buildDataKey(ret,door.doorNumber,brand)
         };
+        if(!dataRowMatchesSearch(row,sq,brandName)) return;
         if(opportunitiesOnly && row.status!=='na') return;
         if(!hasFilterValue(fs,row.status)) return;
         if(!hasFilterValue(fg,row.grade)) return;
+        if(!hasFilterValue(fgen,row.gender)) return;
         rows.push(row);
       });
     });
@@ -3121,7 +3161,6 @@ function renderUnpivoted(items,visR){
     const brandName=(brandCodes[brand]&&brandCodes[brand].name)||'';
     if(!hasFilterValue(fc,category)) continue;
     if(!hasFilterValue(fb,brand)) continue;
-    if(sq && !brand.toLowerCase().includes(sq) && !brandName.toLowerCase().includes(sq)) continue;
     assigns.forEach(a=>{
       const rawDoor=a.doorNumber;
       const hasMappedDoor=String(rawDoor)!=='-' && !!getDoorInfo(ret,rawDoor);
@@ -3136,23 +3175,26 @@ function renderUnpivoted(items,visR){
         location:'-',
         status:normalizeStatus(state.status || 'na'),
         grade:state.grade || '-',
+        gender:normalizeGender(state.gender),
         note:state.note || '',
         metric_1:state.metric_1 ?? '',
         metric_2:state.metric_2 ?? '',
         key:buildDataKey(ret,'-',brand)
       };
+      if(!dataRowMatchesSearch(row,sq,brandName)) return;
       if(opportunitiesOnly && row.status!=='na') return;
       if(!hasFilterValue(fs,row.status)) return;
       if(!hasFilterValue(fg,row.grade)) return;
+      if(!hasFilterValue(fgen,row.gender)) return;
       rows.push(row);
     });
   }
 
   rows.sort((a,b)=>a.retailer.localeCompare(b.retailer)||((a.doorNumber==='-'?Number.MAX_SAFE_INTEGER:Number(a.doorNumber))-(b.doorNumber==='-'?Number.MAX_SAFE_INTEGER:Number(b.doorNumber)))||a.brand.localeCompare(b.brand));
   let h=renderSingleRetailerPicker(visR,activeRet);
-  h+='<table class="compact-table"><thead><tr><th>Retailer</th><th>Door Number</th><th>Brand</th><th>Location</th><th>Status</th><th>Category</th><th>Grade</th><th>Metric 1</th><th>Metric 2</th><th>Notes</th><th>Key</th></tr></thead><tbody>';
+  h+='<table class="compact-table"><thead><tr><th>Retailer</th><th>Door Number</th><th>Brand</th><th>Location</th><th>Status</th><th>Category</th><th>Grade</th><th>Gender</th><th>Metric 1</th><th>Metric 2</th><th>Notes</th><th>Key</th></tr></thead><tbody>';
   if(!rows.length){
-    h+=`<tr><td colspan="11" style="text-align:center;color:var(--text-dim);padding:40px">${opportunitiesOnly?'No open brand-door opportunities matched the current filters.':'No door-brand slots matched the current filters.'}</td></tr>`;
+    h+=`<tr><td colspan="12" style="text-align:center;color:var(--text-dim);padding:40px">${opportunitiesOnly?'No open brand-door opportunities matched the current filters.':'No door-brand slots matched the current filters.'}</td></tr>`;
   }
   rows.forEach(r=>{
     const statusPillCls = r.status==='confirmed'?'status-confirmed': r.status==='tbd'?'status-tbd': r.status==='closed'?'status-closed':'status-na';
@@ -3171,6 +3213,11 @@ function renderUnpivoted(items,visR){
       <td>
         <select class="data-pill-select gradeSel ${gradePillCls}" onchange='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"grade",this.value,this);refreshDataPillDropdowns(this.closest("tr"))'>
           ${['-','A','B','C'].map(v=>`<option value="${v}" ${String(r.grade)===v?'selected':''}>${v}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <select class="data-pill-select genderSel" onchange='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"gender",this.value,this)'>
+          ${['ALL','Mens Only','Ladies Only'].map(v=>`<option value="${v}" ${r.gender===v?'selected':''}>${v}</option>`).join('')}
         </select>
       </td>
       <td><input class="data-cell-note" type="number" step="any" value="${esc(r.metric_1)}" oninput='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"metric_1",this.value,this)' title="metric_1: first selling metric for this retailer-door-brand row"></td>
@@ -4102,7 +4149,7 @@ function ensureDataKeyState(ret,doorNumber,brand){
   const key=buildDataKey(ret,doorNumber,brand);
   if(!dataKeyState[key]){
     const doorInfo=(String(doorNumber)==='-'?null:getDoorInfo(ret,doorNumber));
-    dataKeyState[key]={status:'na',grade:(doorInfo&&doorInfo.tier)||'-',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:doorNumber,brand:brand};
+    dataKeyState[key]={status:'na',grade:(doorInfo&&doorInfo.tier)||'-',gender:'ALL',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:doorNumber,brand:brand};
   }
   return dataKeyState[key];
 }
@@ -4128,6 +4175,7 @@ function updateDataKeyField(ret,doorNumber,brand,field,value,el){
   const oldVal=(state[field]??'');
   if(field==='status') state.status=normalizeStatus(value);
   else if(field==='grade') state.grade=value||'-';
+  else if(field==='gender') state.gender=normalizeGender(value);
   else if(field==='note') state.note=value||'';
   else if(field==='metric_1' || field==='metric_2') state[field]=value===''?'':Number(value);
   else state[field]=value;
@@ -4662,6 +4710,7 @@ function confirmClose(){
     user:currentUserName(),
     note:document.getElementById('closeReason').value.trim()
   });
+  queueAutosave();
   closeCM();render();toast(`${r} × ${b} closed`);
 }
 
@@ -5080,13 +5129,13 @@ function isSheetJsReady(){
 function getTemplateDemoRows(){
   return {
     matrixRows:[
-      {Retailer:'Retailer A',Brand:'BR-A',Category:'LIFESTYLE',Doors:2,'Door Number':101,Status:'confirmed',Grade:'A',metric_1:128,metric_2:0.62,Notes:'Example: units and sell-through'},
-      {Retailer:'Retailer A',Brand:'BR-A',Category:'LIFESTYLE',Doors:2,'Door Number':102,Status:'confirmed',Grade:'B',metric_1:74,metric_2:0.48,Notes:'Example: units and sell-through'},
-      {Retailer:'Retailer B',Brand:'BR-A',Category:'LIFESTYLE',Doors:1,'Door Number':201,Status:'confirmed',Grade:'A',metric_1:92,metric_2:0.55,Notes:'Example: units and sell-through'},
-      {Retailer:'Retailer A',Brand:'BR-B',Category:'PREMIUM',Doors:1,'Door Number':101,Status:'confirmed',Grade:'A',metric_1:43,metric_2:0.34,Notes:'Example: units and sell-through'},
-      {Retailer:'Retailer C',Brand:'BR-C',Category:'SPORT',Doors:2,'Door Number':301,Status:'confirmed',Grade:'A',metric_1:156,metric_2:0.71,Notes:'Example: units and sell-through'},
-      {Retailer:'Retailer C',Brand:'BR-C',Category:'SPORT',Doors:2,'Door Number':302,Status:'confirmed',Grade:'B',metric_1:88,metric_2:0.53,Notes:'Example: units and sell-through'},
-      {Retailer:'Retailer B',Brand:'BR-C',Category:'SPORT',Doors:1,'Door Number':202,Status:'confirmed',Grade:'B',metric_1:67,metric_2:0.41,Notes:'Example: units and sell-through'}
+      {Retailer:'Retailer A',Brand:'BR-A',Category:'LIFESTYLE',Doors:2,'Door Number':101,Status:'confirmed',Grade:'A',Gender:'ALL',metric_1:128,metric_2:0.62,Notes:'Example: units and sell-through'},
+      {Retailer:'Retailer A',Brand:'BR-A',Category:'LIFESTYLE',Doors:2,'Door Number':102,Status:'confirmed',Grade:'B',Gender:'Mens Only',metric_1:74,metric_2:0.48,Notes:'Example: units and sell-through'},
+      {Retailer:'Retailer B',Brand:'BR-A',Category:'LIFESTYLE',Doors:1,'Door Number':201,Status:'confirmed',Grade:'A',Gender:'Ladies Only',metric_1:92,metric_2:0.55,Notes:'Example: units and sell-through'},
+      {Retailer:'Retailer A',Brand:'BR-B',Category:'PREMIUM',Doors:1,'Door Number':101,Status:'confirmed',Grade:'A',Gender:'ALL',metric_1:43,metric_2:0.34,Notes:'Example: units and sell-through'},
+      {Retailer:'Retailer C',Brand:'BR-C',Category:'SPORT',Doors:2,'Door Number':301,Status:'confirmed',Grade:'A',Gender:'ALL',metric_1:156,metric_2:0.71,Notes:'Example: units and sell-through'},
+      {Retailer:'Retailer C',Brand:'BR-C',Category:'SPORT',Doors:2,'Door Number':302,Status:'confirmed',Grade:'B',Gender:'Mens Only',metric_1:88,metric_2:0.53,Notes:'Example: units and sell-through'},
+      {Retailer:'Retailer B',Brand:'BR-C',Category:'SPORT',Doors:1,'Door Number':202,Status:'confirmed',Grade:'B',Gender:'ALL',metric_1:67,metric_2:0.41,Notes:'Example: units and sell-through'}
     ],
     doorRows:[
       {Retailer:'Retailer A','Door Number':101,Name:'Example Store 101',Address:'100 Main St',City:'New York',State:'NY',ZIP:'10001',Lat:40.7505,Lng:-73.9965,Tier:'A'},
@@ -5166,6 +5215,7 @@ function importMatrixRows(rows){
       const status=row.Status||row.status;
       if(status) state.status=normalizeStatus(status);
       if(row.Grade||row.grade) state.grade=row.Grade||row.grade;
+      if(row.Gender!==undefined || row.gender!==undefined) state.gender=normalizeGender(row.Gender ?? row.gender);
       if(row.Note||row.Notes||row.note) state.note=row.Note||row.Notes||row.note;
       if(row.metric_1!==undefined || row.Metric_1!==undefined || row['Metric 1']!==undefined) state.metric_1=row.metric_1 ?? row.Metric_1 ?? row['Metric 1'] ?? '';
       if(row.metric_2!==undefined || row.Metric_2!==undefined || row['Metric 2']!==undefined) state.metric_2=row.metric_2 ?? row.Metric_2 ?? row['Metric 2'] ?? '';
@@ -5285,7 +5335,7 @@ function downloadTemplate(){
   if(!isSheetJsReady()) return;
   const demo=getTemplateDemoRows();
   const matrixRows=[
-    {Retailer:'',Brand:'',Category:'',Doors:'','Door Number':'',Status:'',Grade:'',metric_1:'',metric_2:'',Notes:''},
+    {Retailer:'',Brand:'',Category:'',Doors:'','Door Number':'',Status:'',Grade:'',Gender:'ALL',metric_1:'',metric_2:'',Notes:''},
     ...demo.matrixRows
   ];
   const doorRows=[
@@ -5330,10 +5380,12 @@ function updateViewSpecificControls(){
   const isData=currentView==='unpivoted';
   const sg=document.getElementById('statusFilterGroup');
   const gg=document.getElementById('gradeFilterGroup');
+  const gen=document.getElementById('genderFilterGroup');
   const og=document.getElementById('opportunityFilterGroup');
   const div=document.getElementById('statusGradeDivider');
   if(sg) sg.style.display=isData?'block':'none';
   if(gg) gg.style.display=isData?'block':'none';
+  if(gen) gen.style.display=isData?'block':'none';
   if(og) og.style.display=isData?'block':'none';
   if(div) div.style.display=isData?'block':'none';
   renderRefineToggles();
@@ -5403,6 +5455,7 @@ function exportFullData(){
           Category: category,
           Status: status||'',
           Grade: state.grade||'',
+          Gender: normalizeGender(state.gender),
           metric_1: state.metric_1||'',
           metric_2: state.metric_2||'',
           Notes: state.note||'',
