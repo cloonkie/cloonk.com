@@ -57,6 +57,130 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
+.group-drawer { display: flex; flex-direction: column; gap: 16px; max-height: calc(100vh - 160px); overflow-y: auto; padding-right: 4px; }
+.group-drawer-section { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 12px 10px; background: var(--surface-card); }
+.group-drawer-section.summary {
+  padding: 10px 14px; cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.group-drawer-section.summary:hover { border-color: var(--accent-mid); background: color-mix(in oklab, var(--surface-card) 80%, var(--accent-dim)); }
+.group-drawer-section.summary:hover .group-drawer-retailer { color: var(--accent); }
+.group-drawer-section-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 2px 0;
+}
+.group-drawer-section:not(.summary) .group-drawer-section-header { cursor: pointer; align-items: flex-start; margin-bottom: 8px; }
+.group-drawer-section-header:hover .group-drawer-retailer { color: var(--accent); }
+.group-drawer-retailer { font-family: var(--font-display); font-size: 0.95rem; font-weight: 600; }
+.group-drawer-meta { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+.group-drawer-list-label {
+  text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.6rem;
+  color: var(--text-dim); margin: 8px 0 4px; font-weight: 700;
+}
+.group-drawer-row {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 6px 8px; border-radius: 4px;
+  background: var(--surface);
+  margin-bottom: 4px;
+}
+.group-drawer-row.is-draft { border-left: 2px solid var(--draft); }
+.group-drawer-row-empty { background: transparent; border: 1px dashed var(--border); }
+.group-drawer-row-main { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 0.76rem; }
+.group-drawer-num { font-family: var(--font-mono); font-weight: 700; color: var(--text); }
+.group-drawer-name { color: var(--text-muted); flex: 1; min-width: 0; }
+.group-drawer-key { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-dim); }
+
+.history-filter-bar {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  padding: 0 0 12px 0; margin: -4px 0 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.history-filter-pill {
+  font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.05em;
+  text-transform: uppercase; cursor: pointer;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--surface-raised); color: var(--text-muted);
+  border: 1px solid var(--border);
+  transition: all var(--transition);
+}
+.history-filter-pill:hover { color: var(--text); border-color: var(--border-hover); }
+.history-filter-pill.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-mid); }
+.history-filter-pill .history-filter-count { font-weight: 700; opacity: 0.75; margin-left: 4px; }
+.history-row-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; }
+.history-revert {
+  font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.05em;
+  text-transform: uppercase; cursor: pointer;
+  padding: 3px 8px; border-radius: 3px;
+  background: transparent; color: var(--accent);
+  border: 1px solid var(--accent-mid);
+  transition: all var(--transition);
+}
+.history-revert:hover:not(.disabled) { background: var(--accent-dim); border-color: var(--accent); }
+.history-revert.disabled { opacity: 0.4; cursor: not-allowed; color: var(--text-dim); border-color: var(--border); }
+
+.single-retailer-picker {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 12px; margin-bottom: 12px;
+  background: var(--surface-raised); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.single-retailer-picker label {
+  text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: 0.66rem; font-weight: 700; color: var(--text-dim);
+}
+.single-retailer-picker select {
+  font-family: var(--font-display); font-size: 0.9rem; font-weight: 600;
+  padding: 6px 12px; min-width: 200px;
+}
+.single-retailer-note { font-size: 0.7rem; color: var(--text-muted); margin-left: auto; }
+
+.store-view { display: flex; flex-direction: column; gap: 10px; }
+.store-toolbar { display: flex; align-items: center; gap: 8px; padding: 4px 2px; }
+.store-table td input {
+  width: 100%; padding: 4px 6px; border: 1px solid transparent;
+  background: transparent; color: var(--text); font-family: var(--font-mono); font-size: 0.78rem;
+  border-radius: 3px; transition: border-color var(--transition), background var(--transition);
+}
+.store-table td input:hover { border-color: var(--border); }
+.store-table td input:focus { border-color: var(--accent); background: var(--surface-card); outline: none; }
+.store-table td input.store-saved { border-color: var(--success); background: color-mix(in oklab, var(--success) 14%, transparent); }
+.store-table th.rh { white-space: nowrap; font-family: var(--font-display); font-weight: 600; color: var(--text); background: var(--surface-raised); position: sticky; left: 0; z-index: 3; }
+.store-table td { padding: 4px 6px !important; }
+
+.schema-diagram {
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface-raised); padding: 12px;
+  color: var(--text-muted);
+}
+.schema-diagram svg { width: 100%; height: auto; display: block; color: var(--accent); }
+.schema-diagram .schema-nodes rect { fill: var(--surface-card); stroke: var(--border); stroke-width: 1; }
+.schema-diagram .schema-nodes text { fill: var(--text-muted); }
+.schema-diagram .schema-nodes .schema-title { fill: var(--text); font-size: 10px; font-weight: 700; }
+
+.select-with-pill {
+  display: flex; align-items: stretch; gap: 8px;
+}
+.select-with-pill select { flex: 1; min-width: 0; }
+.select-with-pill .select-pill { flex-shrink: 0; white-space: nowrap; }
+
+.save-indicator {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 4px 9px; border-radius: 999px;
+  border: 1px solid var(--border); color: var(--text-muted);
+  background: var(--surface-raised);
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+  white-space: nowrap;
+}
+.save-indicator::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; opacity: 0.85;
+}
+.save-indicator.save-saved { color: var(--success); border-color: color-mix(in oklab, var(--success) 40%, var(--border)); }
+.save-indicator.save-saving { color: var(--accent); border-color: var(--accent-mid); }
+.save-indicator.save-pending { color: var(--draft); border-color: color-mix(in oklab, var(--draft) 40%, var(--border)); }
+.save-indicator.save-error { color: var(--danger); border-color: color-mix(in oklab, var(--danger) 40%, var(--border)); }
+
 /* ─── HEADER ─── */
 .header {
   position: sticky; top: 0; z-index: 100;
@@ -338,6 +462,50 @@ body.mode-data.refine-open .matrix-wrap { margin-right: 280px; border-right: 1px
 }
 .refine-panel .toolbar-group.is-open .toolbar-label { color: var(--text); }
 .refine-panel .toolbar-group.is-open .toolbar-label::after { content: '×'; color: var(--text); }
+.refine-panel .toolbar-group.filter-toggle-group .toolbar-label { gap: 8px; }
+.refine-panel .toolbar-group.filter-toggle-group .label-text { flex: 1; }
+.refine-switch {
+  position: relative;
+  display: inline-flex;
+  width: 30px; height: 16px;
+  background: var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+.refine-switch-knob {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--text);
+  transition: transform var(--transition), background var(--transition);
+}
+.filter-toggle-group.is-active .refine-switch { background: var(--accent); }
+.filter-toggle-group.is-active .refine-switch-knob { transform: translateX(14px); background: #000; }
+body.light .filter-toggle-group.is-active .refine-switch-knob { background: #fff; }
+/* Channel filter is map-only; hide its section from the data-pane refine. */
+body.mode-data #channelFilterGroup { display: none; }
+.retailer-group-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 8px; margin: 2px 0 6px;
+  font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em;
+  font-weight: 600; color: var(--text-muted);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--transition), background var(--transition), border-color var(--transition);
+}
+.retailer-group-toggle:hover { color: var(--text); border-color: var(--border-hover); }
+.retailer-group-toggle.is-on { color: var(--accent); border-color: var(--accent-mid); background: var(--accent-dim); }
+.retailer-group-toggle.is-on .refine-switch { background: var(--accent); }
+.retailer-group-toggle.is-on .refine-switch-knob { transform: translateX(14px); background: #000; }
+body.light .retailer-group-toggle.is-on .refine-switch-knob { background: #fff; }
+/* When the parent Retailer section is collapsed, hide the embedded toggle too. */
+.refine-panel .toolbar-group:not(.is-open) .retailer-group-toggle { display: none; }
 .refine-panel select, .refine-panel .search-box { width: 210px; max-width: 100%; }
 select { font-family: var(--font-body); font-size: 0.82rem; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-xs); color: var(--text); outline: none; }
 select:focus { border-color: var(--accent); }
@@ -430,7 +598,9 @@ body.mode-map .matrix-wrap { padding: 0; height: calc(100vh - 112px); overflow: 
 .matrix th, .matrix td { border: 1px solid var(--border); padding: 7px 10px; text-align: center; white-space: nowrap; }
 .matrix thead th { background: var(--surface-raised); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.72rem; position: sticky; top: 0; z-index: 5; }
 .matrix th.rh { background: var(--surface); text-align: left; font-weight: 600; color: var(--text); position: sticky; left: 0; z-index: 4; min-width: 44px; }
-.matrix th.rh2 { background: var(--surface); text-align: left; font-weight: 400; color: var(--text-muted); position: sticky; left: 44px; z-index: 4; min-width: 100px; font-size: 0.6rem; }
+.matrix th.rh2 { background: var(--surface); text-align: left; font-weight: 500; color: var(--text); position: sticky; left: 44px; z-index: 4; min-width: 120px; font-size: 0.82rem; }
+.matrix .channel-header { background: var(--surface-raised); color: var(--text); font-weight: 700; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 2px solid var(--accent-mid); }
+.matrix .channel-divider td { background: var(--surface-raised); color: var(--accent); font-weight: 700; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; text-align: left; padding: 8px 12px; }
 .matrix thead th:first-child { position: sticky; left: 0; z-index: 6; }
 .matrix thead th:nth-child(2) { position: sticky; left: 44px; z-index: 6; }
 .matrix .cat-row td { background: var(--surface-raised); text-align: left; font-weight: 700; color: var(--accent); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 8px; }
@@ -441,6 +611,8 @@ body.mode-map .matrix-wrap { padding: 0; height: calc(100vh - 112px); overflow: 
 .matrix td.cell.empty { color: var(--text-dim); }
 .matrix td.cell.empty:hover { color: var(--text-muted); }
 .matrix .total-row td, .matrix .total-row th { background: var(--surface-raised); font-weight: 700; color: var(--accent); border-top: 2px solid var(--accent); }
+.matrix td.group-cell { background: color-mix(in oklab, var(--surface-card) 80%, var(--accent-dim)); cursor: pointer; }
+.matrix td.group-cell:hover { background: var(--accent-dim); color: var(--accent); }
 .matrix .ret-total { background: var(--surface-raised); font-weight: 600; color: var(--text); }
 
 /* ─── COMPACT TABLE ─── */
@@ -492,8 +664,26 @@ body.light .toggle-pill[data-layer="heat"]   { color: #b54514; }
 .research-map-shell { position: relative; }
 body.mode-map .research-map-shell { height: 100%; min-height: 0; }
 body.mode-map #resMap { position: absolute; inset: 0; height: 100%; min-height: 0; margin-bottom: 0; border: 0; border-radius: 0; }
-body.mode-map .door-list { max-height: calc(100vh - 360px); margin-top: 0; border: 0; border-radius: 0; background: transparent; }
-body.mode-map .door-detail { position: absolute; left: 12px; top: 12px; z-index: 95; width: min(360px, calc(100vw - 24px)); max-height: min(520px, calc(100vh - 136px)); overflow-y: auto; background: color-mix(in oklab, var(--surface) 92%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 10px 34px rgba(0,0,0,0.35); }
+body.mode-map .door-list {
+  --map-door-row-h: 52px;
+  max-height: calc(6 * var(--map-door-row-h));
+  margin-top: 0; border: 0; border-radius: 0; background: transparent;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+body.mode-map .door-list .door-item {
+  min-height: var(--map-door-row-h);
+  box-sizing: border-box;
+  scroll-snap-align: none;
+}
+/* Every sixth row anchors a snap point, so wheel/touch/keyboard scrolling
+   advances the list by 6 stores at a time instead of by individual rows. */
+body.mode-map .door-list .door-item:nth-child(6n+1) {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+body.mode-map .door-detail { position: absolute; right: 12px; bottom: 12px; z-index: 95; width: min(360px, calc(100vw - 24px)); max-height: min(520px, calc(100vh - 136px)); overflow-y: auto; background: color-mix(in oklab, var(--surface) 92%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 10px 34px rgba(0,0,0,0.35); }
 #resMap .mapboxgl-popup-content { background: var(--surface-card); color: var(--text); border-radius: var(--radius-xs); padding: 8px 10px; font-family: var(--font-body); font-size: 0.74rem; }
 #resMap .mapboxgl-popup-tip { border-top-color: var(--surface-card); border-bottom-color: var(--surface-card); }
 .research-grid { display: block; }
@@ -507,7 +697,7 @@ body.mode-map .door-detail { position: absolute; left: 12px; top: 12px; z-index:
 body.mode-map .map-filter-rail {
   position: absolute;
   top: 12px;
-  right: 12px;
+  left: 12px;
   z-index: 95;
   width: 220px;
 }
@@ -773,7 +963,6 @@ body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; fo
   border-right: 0;
   border-radius: var(--radius-sm) 0 0 var(--radius-sm);
   padding: 24px 20px;
-  overflow-y: auto;
   transition: right 0.3s ease;
   box-shadow: 0 18px 48px rgba(0,0,0,0.38);
 }
@@ -858,9 +1047,11 @@ body.light .search-box { background: #f4f2ee; }
 .drawer-door-row.selected .drawer-door-check.unassigned-check {
   color:#000; background: var(--success); border-color: var(--success);
 }
-.drawer-door-check.assigned-remove {
-  color: var(--danger); background: rgba(192,57,43,0.10); border-color: rgba(192,57,43,0.35);
+.drawer-door-check.assigned-remove { color: transparent; background: var(--bg); border-color: var(--border); }
+.drawer-door-row.selected .drawer-door-check.assigned-remove {
+  color: #fff; background: var(--danger); border-color: var(--danger);
 }
+.drawer-door-actions { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
 .drawer-commit-bar {
   display:flex; align-items:center; justify-content:space-between; gap:8px; margin:12px 0 0;
 }
@@ -991,6 +1182,8 @@ body.light .data-cell-note { background: #f4f2ee; }
     </span>
   </div>
   <div class="header-actions">
+    <span class="save-indicator save-saved" id="saveIndicator" title="Local autosave status">Saved.</span>
+    <button class="btn btn-sm" onclick="manualSaveNow()" title="Persist the current state immediately">Save</button>
     <button class="btn" onclick="openAddModal()" title="Modify verified door assignments by adding or removing specific retailer-door-brand records">Modify Door</button>
     <div class="header-menu" id="dataMenu">
       <button class="btn menu-trigger" type="button" onclick="toggleHeaderMenu('dataMenu')" aria-haspopup="menu" aria-expanded="false" title="Import, export, templates, and file save/load">Data</button>
@@ -999,6 +1192,7 @@ body.light .data-cell-note { background: #f4f2ee; }
         <button class="menu-item" type="button" onclick="exportCurrentView();closeHeaderMenus()" role="menuitem">Export View</button>
         <div class="menu-sep"></div>
         <button class="menu-item" type="button" onclick="downloadTemplate();closeHeaderMenus()" role="menuitem">Blank Template</button>
+        <button class="menu-item" type="button" onclick="exportFullData();closeHeaderMenus()" role="menuitem">Export Data</button>
         <button class="menu-item" type="button" onclick="downloadDemoData();closeHeaderMenus()" role="menuitem">Demo Data</button>
         <div class="menu-sep"></div>
         <button class="menu-item" type="button" onclick="openSnapshotsModal();closeHeaderMenus()" role="menuitem">Restore Points</button>
@@ -1032,6 +1226,7 @@ body.light .data-cell-note { background: #f4f2ee; }
     <button class="view-tab" data-v="compact" onclick="setView('compact')">Compact</button>
     <button class="view-tab" data-v="tabular" onclick="setView('tabular')">Tabular</button>
     <button class="view-tab" data-v="unpivoted" onclick="setView('unpivoted')">Data</button>
+    <button class="view-tab" data-v="store" onclick="setView('store')" title="Edit door locations inline">Store</button>
     <button class="view-tab draft-tab" data-v="drafts" onclick="setView('drafts')">Drafts <span class="draft-badge" id="draftCount">0</span></button>
   </div>
   <button class="btn btn-sm" id="tBtn" onclick="toggleTranspose()" title="Swap rows/columns in Matrix view">⇄ Transpose</button>
@@ -1048,30 +1243,28 @@ body.light .data-cell-note { background: #f4f2ee; }
           <span class="refine-panel__title">Refine</span>
           <button class="refine-clear" id="refineClearAll" type="button" onclick="clearAllRefineFilters()">Clear all</button>
         </div>
-      <div class="toolbar-group is-open">
-        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Show As</span>
-        <select id="fShowAs" onchange="setShowAs(this.value)" title="Choose the retailer hierarchy to filter by">
-          <option value="retailer_group">Retailer Group</option>
-          <option value="retailer">Retailer</option>
-          <option value="channel">Channel</option>
-        </select>
-        <div class="refine-toggle-options" id="refineShowAsToggles"></div>
-      </div>
-      <div class="toolbar-group is-open" id="retailerGroupFilterGroup">
-        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Retailer Group</span>
-        <select id="fRetGroup" multiple onchange="render()" title="Select parent retailer groups"><option value="">All</option></select>
-        <div class="refine-toggle-options" id="refineRetGroupToggles"></div>
-      </div>
-      <div class="toolbar-group is-open" id="retailerFilterGroup">
-        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Retailer</span>
-        <select id="fRet" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple retailers"><option value="">All</option></select>
-        <div class="refine-toggle-options" id="refineRetToggles"></div>
-      </div>
-      <div class="toolbar-group is-open" id="channelFilterGroup">
-        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Channel</span>
+      <select id="fShowAs" style="display:none" onchange="setShowAs(this.value)">
+        <option value="retailer">Retailer</option>
+        <option value="channel">Channel</option>
+      </select>
+      <div class="toolbar-group filter-toggle-group is-open" id="channelFilterGroup">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">
+          <span class="label-text">Channel</span>
+          <span class="refine-switch" aria-hidden="true" onclick="toggleFilterSwitch(event,'channel')" title="Enable channel filter"><span class="refine-switch-knob"></span></span>
+        </span>
         <select id="fRetChannel" multiple onchange="render()" title="Select retailer channels"><option value="">All</option></select>
         <div class="refine-toggle-options" id="refineRetChannelToggles"></div>
       </div>
+      <div class="toolbar-group is-open" id="retailerFilterGroup">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Retailer</span>
+        <div class="retailer-group-toggle embedded" id="showByGroupRow" role="button" tabindex="0" onclick="toggleShowByGroupSwitch(event)" onkeydown="onShowByGroupKey(event)" title="Combine retailer pills into their parent group">
+          <span>Show by Group</span>
+          <span class="refine-switch" aria-hidden="true"><span class="refine-switch-knob"></span></span>
+        </div>
+        <select id="fRet" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple retailers"><option value="">All</option></select>
+        <div class="refine-toggle-options" id="refineRetToggles"></div>
+      </div>
+      <select id="fRetGroup" multiple onchange="render()" style="display:none"><option value="">All</option></select>
       <div class="toolbar-group is-open">
         <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Category</span>
         <select id="fCat" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple categories"><option value="">All</option></select>
@@ -1146,9 +1339,9 @@ body.light .data-cell-note { background: #f4f2ee; }
 
   <div id="doorToBrandsWrap">
     <label>Door <span style="color:var(--danger)">*</span></label>
-    <select id="aDoor" onchange="renderAddSelectionPanels()"><option value="">— Select a door —</option></select>
-    <div class="inline-actions">
-      <button class="btn btn-sm" type="button" onclick="openNewDoorPrompt()">＋ Add New Door</button>
+    <div class="select-with-pill">
+      <select id="aDoor" onchange="renderAddSelectionPanels()"><option value="">— Select a door —</option></select>
+      <button class="btn btn-sm select-pill" type="button" onclick="openNewDoorPrompt()">＋ Add New Door</button>
     </div>
     <div class="multi-pick-grid">
       <div class="pick-panel">
@@ -1169,9 +1362,9 @@ body.light .data-cell-note { background: #f4f2ee; }
 
   <div id="brandToDoorsWrap" style="display:none">
     <label>Brand Code <span style="color:var(--danger)">*</span></label>
-    <select id="aBrand" onchange="renderAddSelectionPanels()"><option value="">— Select a brand —</option></select>
-    <div class="inline-actions">
-      <button class="btn btn-sm" type="button" onclick="openNewBrandPrompt()">＋ Add New Brand</button>
+    <div class="select-with-pill">
+      <select id="aBrand" onchange="renderAddSelectionPanels()"><option value="">— Select a brand —</option></select>
+      <button class="btn btn-sm select-pill" type="button" onclick="openNewBrandPrompt()">＋ Add New Brand</button>
     </div>
     <div class="multi-pick-grid">
       <div class="pick-panel">
@@ -1290,6 +1483,98 @@ body.light .data-cell-note { background: #f4f2ee; }
       <h4>Door locations</h4>
       <p>Columns: <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Tier</code>. Matching retailer and door number updates the existing record; new pairs are appended.</p>
     </div>
+    <div class="info-section">
+      <h4>Entity relations</h4>
+      <p style="font-size:0.74rem;color:var(--text-muted);margin-bottom:8px">How the local data model fits together. Lines indicate keyed relationships.</p>
+      <div class="schema-diagram" id="schemaDiagram">
+        <svg viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Entity relation diagram">
+          <defs>
+            <marker id="schemaArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <g class="schema-edges" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.55">
+            <path d="M 110 110 L 220 110" marker-end="url(#schemaArrow)"/>
+            <path d="M 110 200 L 220 200" marker-end="url(#schemaArrow)"/>
+            <path d="M 330 130 L 330 180" marker-end="url(#schemaArrow)"/>
+            <path d="M 330 240 L 330 290" marker-end="url(#schemaArrow)"/>
+            <path d="M 440 200 L 540 200" marker-end="url(#schemaArrow)"/>
+            <path d="M 440 310 L 540 310" marker-end="url(#schemaArrow)"/>
+            <path d="M 330 350 L 330 400" marker-end="url(#schemaArrow)"/>
+            <path d="M 540 110 L 440 110" marker-end="url(#schemaArrow)"/>
+          </g>
+          <g class="schema-nodes" font-family="DM Mono, monospace" font-size="9">
+            <g transform="translate(20,80)">
+              <rect width="90" height="60" rx="6"/>
+              <text x="45" y="18" text-anchor="middle" class="schema-title">RetailerGroup</text>
+              <text x="6" y="34">label PK</text>
+              <text x="6" y="46">members[]</text>
+            </g>
+            <g transform="translate(20,170)">
+              <rect width="90" height="60" rx="6"/>
+              <text x="45" y="18" text-anchor="middle" class="schema-title">Channel</text>
+              <text x="6" y="34">name PK</text>
+              <text x="6" y="46">retailers[]</text>
+            </g>
+            <g transform="translate(220,80)">
+              <rect width="110" height="60" rx="6"/>
+              <text x="55" y="18" text-anchor="middle" class="schema-title">Retailer</text>
+              <text x="6" y="34">name PK</text>
+              <text x="6" y="46">group · channel</text>
+            </g>
+            <g transform="translate(220,180)">
+              <rect width="110" height="64" rx="6"/>
+              <text x="55" y="18" text-anchor="middle" class="schema-title">Door</text>
+              <text x="6" y="34">retailer+# PK</text>
+              <text x="6" y="46">name · lat/lng</text>
+              <text x="6" y="58">tier · address</text>
+            </g>
+            <g transform="translate(220,290)">
+              <rect width="110" height="62" rx="6"/>
+              <text x="55" y="18" text-anchor="middle" class="schema-title">DoorAssign</text>
+              <text x="6" y="34">ret|brand PK</text>
+              <text x="6" y="46">doorNumber</text>
+              <text x="6" y="58">status · date</text>
+            </g>
+            <g transform="translate(220,400)">
+              <rect width="110" height="50" rx="6"/>
+              <text x="55" y="18" text-anchor="middle" class="schema-title">History</text>
+              <text x="6" y="34">ret|brand PK</text>
+              <text x="6" y="46">entries[]</text>
+            </g>
+            <g transform="translate(540,80)">
+              <rect width="100" height="60" rx="6"/>
+              <text x="50" y="18" text-anchor="middle" class="schema-title">Brand</text>
+              <text x="6" y="34">code PK</text>
+              <text x="6" y="46">name · ds_active</text>
+            </g>
+            <g transform="translate(540,180)">
+              <rect width="110" height="62" rx="6"/>
+              <text x="55" y="18" text-anchor="middle" class="schema-title">DataKeyState</text>
+              <text x="6" y="34">retDoorBrand PK</text>
+              <text x="6" y="46">status · grade</text>
+              <text x="6" y="58">metric_1/2 · note</text>
+            </g>
+            <g transform="translate(540,290)">
+              <rect width="110" height="50" rx="6"/>
+              <text x="55" y="18" text-anchor="middle" class="schema-title">User</text>
+              <text x="6" y="34">username PK</text>
+              <text x="6" y="46">name · hash</text>
+            </g>
+            <g transform="translate(680,80)">
+              <rect width="70" height="50" rx="6"/>
+              <text x="35" y="18" text-anchor="middle" class="schema-title">Category</text>
+              <text x="6" y="34">CAT_ORDER</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div style="font-size:0.66rem;color:var(--text-dim);margin-top:8px;line-height:1.6">
+        <div><strong>Storage:</strong> All persisted in IndexedDB <code>door-tracker-autosave</code> (stores: <code>snapshots</code>, <code>restorePoints</code>).</div>
+        <div><strong>Identity keys:</strong> <code>buildDataKey(ret,door,brand)</code> joins retailer + door # + brand code into one string. Used for cell state and per-cell history.</div>
+        <div><strong>Aggregates:</strong> <code>matrixData[brand][retailer]</code> is the legacy roll-up; live counts are derived from <code>dataKeyState</code> filtered by <code>status === 'confirmed'</code>.</div>
+      </div>
+    </div>
     <table class="info-modal-table">
       <tr><th>View</th><th>Shape</th></tr>
       <tr><td>Matrix</td><td>Brand x retailer grid with confirmed door counts.</td></tr>
@@ -1297,6 +1582,7 @@ body.light .data-cell-note { background: #f4f2ee; }
       <tr><td>Tabular</td><td>Flat retailer x brand rows with penetration.</td></tr>
       <tr><td>Data</td><td>Retailer, door, brand, status, grade, metric_1, metric_2, notes, and key rows.</td></tr>
       <tr><td>Research</td><td>Doors-first location list with placement detail and map reveal.</td></tr>
+      <tr><td>Store</td><td>Editable door locations: name, number, address, lat/lng, tier.</td></tr>
     </table>
   </div>
   <div class="info-modal-pane" id="modal-tab-appendix" role="tabpanel">
@@ -1553,14 +1839,42 @@ function applyPayload(p){
 }
 
 function persistAutoState(){
+  setSaveIndicator('saving');
   const row=Object.assign({key:currentSaveKey(),savedAt:new Date().toISOString()},snapshotPayload());
-  return withStore(STORE_LATEST,'readwrite',s=>reqAsPromise(s.put(row))).catch(()=>{});
+  return withStore(STORE_LATEST,'readwrite',s=>reqAsPromise(s.put(row)))
+    .then(()=>setSaveIndicator('saved'))
+    .catch(()=>setSaveIndicator('error'));
 }
 function queueAutosave(){
   if(_autosaveQueued) return;
   _autosaveQueued=true;
+  setSaveIndicator('pending');
   clearTimeout(_autosaveTimer);
   _autosaveTimer=setTimeout(()=>{_autosaveQueued=false;persistAutoState();},250);
+}
+function manualSaveNow(){
+  clearTimeout(_autosaveTimer);
+  _autosaveQueued=false;
+  return persistAutoState().then(()=>toast('Saved.'));
+}
+let _saveIndicatorClear=null;
+function setSaveIndicator(state){
+  const el=document.getElementById('saveIndicator');
+  if(!el) return;
+  el.classList.remove('save-pending','save-saving','save-saved','save-error');
+  let label='';
+  if(state==='saving'){ label='Saving…'; el.classList.add('save-saving'); }
+  else if(state==='pending'){ label='Unsaved changes'; el.classList.add('save-pending'); }
+  else if(state==='error'){ label='Save failed'; el.classList.add('save-error'); }
+  else { label='Saved.'; el.classList.add('save-saved'); }
+  el.textContent=label;
+  clearTimeout(_saveIndicatorClear);
+  if(state==='saved'){
+    _saveIndicatorClear=setTimeout(()=>{
+      const cur=document.getElementById('saveIndicator');
+      if(cur && cur.classList.contains('save-saved')) cur.textContent='Saved.';
+    },2400);
+  }
 }
 function loadAutoState(){
   return withStore(STORE_LATEST,'readonly',s=>reqAsPromise(s.get(currentSaveKey())))
@@ -1765,6 +2079,35 @@ function ensureAllSlots(){
       });
     });
   });
+  reconcileDataKeyFromAssignments();
+}
+
+/* Heal any drift where doorAssignments declares a status that dataKeyState
+   contradicts. doorAssignments is the source of truth for publish actions
+   (legacy publishDraft only updated assignments). After this runs, matrix
+   counts pulled from dataKeyState match what the drawer shows. */
+function reconcileDataKeyFromAssignments(){
+  Object.entries(doorAssignments).forEach(([ak,assigns])=>{
+    const [ret,brand]=ak.split('|');
+    if(!ret || !brand) return;
+    const norm=normalizeRetailer(ret);
+    (assigns||[]).forEach(a=>{
+      if(!a || a.doorNumber==='TBD') return;
+      if(!getDoorInfo(norm,a.doorNumber)) return;
+      const wanted=a.status==='confirmed' ? 'confirmed' : (a.status==='draft' ? 'tbd' : null);
+      if(!wanted) return;
+      const key=buildDataKey(norm,a.doorNumber,brand);
+      const st=dataKeyState[key];
+      if(!st){
+        const door=getDoorInfo(norm,a.doorNumber);
+        dataKeyState[key]={status:wanted,grade:(door&&door.tier)||'-',note:a.note||'',metric_1:'',metric_2:'',retailer:norm,doorNumber:a.doorNumber,brand};
+        return;
+      }
+      if(wanted==='confirmed' && normalizeStatus(st.status)!=='confirmed'){
+        st.status='confirmed';
+      }
+    });
+  });
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1823,6 +2166,29 @@ function getMaxDoorsForRetailer(ret){
   const val=seen.size;
   if(_renderCache) _renderCache.maxDoors.set(ret,val);
   return val;
+}
+
+function getBMDoorsForRetailer(ret){
+  const norm=normalizeRetailer(ret);
+  const seen=new Set();
+  for(const d of doorLocations){
+    if(normalizeRetailer(d.retailer)!==norm) continue;
+    if(isEcommerceDoor(d)) continue;
+    seen.add(String(d.doorNumber));
+  }
+  return seen.size;
+}
+
+function getBMConfirmedCount(ret,brand){
+  const norm=normalizeRetailer(ret);
+  let n=0;
+  for(const d of doorLocations){
+    if(normalizeRetailer(d.retailer)!==norm) continue;
+    if(isEcommerceDoor(d)) continue;
+    const st=getDataKeyState(norm,d.doorNumber,brand);
+    if(st && normalizeStatus(st.status)==='confirmed') n++;
+  }
+  return n;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1898,7 +2264,7 @@ function filterOptionLabel(sourceId,opt){
 function renderRefineToggles(){
   renderShowAsToggles();
   renderRefineToggleGroup('fRetGroup','refineRetGroupToggles','All groups');
-  renderRefineToggleGroup('fRet','refineRetToggles','All retailers');
+  renderRetailerOrGroupToggles();
   renderRefineToggleGroup('fRetChannel','refineRetChannelToggles','All channels');
   renderRefineToggleGroup('fCat','refineCatToggles','All categories');
   renderRefineToggleGroup('fBrand','refineBrandToggles','All brands');
@@ -1910,7 +2276,48 @@ function renderRefineToggles(){
 }
 
 function currentShowAs(){
-  return document.getElementById('fShowAs')?.value || 'retailer_group';
+  const v=document.getElementById('fShowAs')?.value || 'retailer';
+  return v==='retailer_group' ? 'retailer' : v;
+}
+
+/* The "Show by Group" toggle inside the Retailer section is the single
+   switch that collapses matrix columns to their parent retailer group. */
+function isShowByGroupOn(){
+  const el=document.getElementById('showByGroupRow');
+  return !!(el && el.classList.contains('is-on'));
+}
+function setShowByGroup(on){
+  const el=document.getElementById('showByGroupRow');
+  if(!el) return;
+  el.classList.toggle('is-on',!!on);
+  /* The Retailer section's pill list source flips between fRet (retailers)
+     and fRetGroup (parent groups). Clear the opposite source so old picks
+     don't keep filtering behind the user's back. */
+  if(on) setSelectValues('fRet',[]);
+  else setSelectValues('fRetGroup',[]);
+  try{ localStorage.setItem('door-tracker-show-by-group', on?'1':'0'); }catch(e){}
+  renderRefineToggles();
+  renderMapFilterClones();
+  render();
+}
+
+/* Render either retailer or group pills into #refineRetToggles depending on
+   whether "Show by Group" is currently on. */
+function renderRetailerOrGroupToggles(){
+  if(isShowByGroupOn()){
+    renderRefineToggleGroup('fRetGroup','refineRetToggles','All groups');
+  }else{
+    renderRefineToggleGroup('fRet','refineRetToggles','All retailers');
+  }
+}
+function toggleShowByGroupSwitch(e){
+  if(e){ e.preventDefault(); e.stopPropagation(); }
+  setShowByGroup(!isShowByGroupOn());
+}
+function onShowByGroupKey(e){
+  if(e.key!=='Enter' && e.key!==' ') return;
+  e.preventDefault();
+  toggleShowByGroupSwitch(e);
 }
 
 function renderShowAsToggles(){
@@ -1919,7 +2326,6 @@ function renderShowAsToggles(){
   if(!host || !source) return;
   const value=currentShowAs();
   const options=[
-    ['retailer_group','Retailer Group'],
     ['retailer','Retailer'],
     ['channel','Channel']
   ];
@@ -1930,19 +2336,10 @@ function renderShowAsToggles(){
 }
 
 function updateShowAsVisibility(){
-  const mode=currentShowAs();
-  const groups=[
-    ['retailer_group','retailerGroupFilterGroup'],
-    ['retailer','retailerFilterGroup'],
-    ['channel','channelFilterGroup']
-  ];
-  groups.forEach(([key,id])=>{
-    const el=document.getElementById(id);
-    if(el) el.style.display=mode===key?'block':'none';
-  });
-  document.querySelectorAll('.map-hierarchy-section').forEach(el=>{
-    el.style.display=el.dataset.showAsSection===mode?'block':'none';
-  });
+  /* Show As was removed from the refine UI; the function is kept as a stub
+     so existing call sites stay valid. The "Show by Group" toggle now owns
+     matrix grouping, and Channel/Retailer/Group filter sections are always
+     visible in the map filter rail. */
 }
 
 function renderRefineToggleGroup(sourceId,hostId,allLabel){
@@ -2017,11 +2414,11 @@ function toggleRefineOpportunity(){
 
 function setShowAs(value){
   const source=document.getElementById('fShowAs');
-  const mode=['retailer_group','retailer','channel'].includes(value) ? value : 'retailer_group';
+  const mode=['retailer','channel'].includes(value) ? value : 'retailer';
   if(source) source.value=mode;
-  if(mode!=='retailer_group') setSelectValues('fRetGroup',[]);
-  if(mode!=='retailer') setSelectValues('fRet',[]);
-  if(mode!=='channel') setSelectValues('fRetChannel',[]);
+  /* Show As now only chooses the matrix grouping mode; Channel and Group
+     filters live behind their own toggles, so we leave their selections
+     alone when Show As changes. */
   renderRefineToggles();
   renderMapFilterClones();
   render();
@@ -2069,8 +2466,53 @@ function updateRefineActiveState(){
   if(clear) clear.classList.toggle('visible',count>0);
 }
 
+/* Channel and Retailer Group sections render as on/off toggles. The active
+   state lives on the section's `is-open` class — `getVisibleRetailers` reads
+   it to decide whether to apply that filter at all. Toggling off clears any
+   pill selection so the filter UI matches the data path. */
+const FILTER_TOGGLE_TARGETS={channel:{groupId:'channelFilterGroup',sourceId:'fRetChannel'}};
+
+function isFilterToggleOn(kind){
+  const cfg=FILTER_TOGGLE_TARGETS[kind];
+  if(!cfg) return false;
+  const el=document.getElementById(cfg.groupId);
+  return !!(el && el.classList.contains('is-active'));
+}
+
+function setFilterToggle(kind,on){
+  const cfg=FILTER_TOGGLE_TARGETS[kind];
+  if(!cfg) return;
+  const el=document.getElementById(cfg.groupId);
+  if(!el) return;
+  /* is-active drives whether the filter is on; is-open is independent and
+     controlled by toggleRefineSection (clicking the section label collapses
+     pills without changing the on/off state). Turning the filter off also
+     clears the pill selection so it doesn't keep filtering invisibly. */
+  el.classList.toggle('is-active',!!on);
+  if(on) el.classList.add('is-open');
+  if(!on) setSelectValues(cfg.sourceId,[]);
+  renderRefineToggles();
+  renderMapFilterClones();
+  render();
+}
+
+function toggleFilterSwitch(e,kind){
+  e.preventDefault();
+  e.stopPropagation();
+  setFilterToggle(kind, !isFilterToggleOn(kind));
+}
+
+function onFilterToggleKey(e,kind){
+  if(e.key!=='Enter' && e.key!==' ') return;
+  e.preventDefault();
+  setFilterToggle(kind, !isFilterToggleOn(kind));
+}
+
 function clearAllRefineFilters(){
   ['fRetGroup','fRet','fRetChannel','fCat','fBrand','fStatus','fGrade'].forEach(id=>setSelectValues(id,[]));
+  /* Turn the Channel filter switch off when the user clears everything. */
+  const channelGroup=document.getElementById('channelFilterGroup');
+  if(channelGroup) channelGroup.classList.remove('is-active');
   const opp=document.getElementById('fOpportunities');
   if(opp) opp.checked=false;
   const search=document.getElementById('searchBox');
@@ -2106,7 +2548,9 @@ function getFiltered(){
 function getVisibleRetailers(){
   const fr=getSelectValues('fRet').map(normalizeRetailer);
   const groups=getSelectValues('fRetGroup');
-  const channels=getSelectValues('fRetChannel');
+  /* Channel filter only applies in map mode — its UI is hidden in the data
+     pane, so its selections must not silently filter the matrix/data views. */
+  const channels=currentMode==='map' ? getSelectValues('fRetChannel') : [];
   const allRetailers=[...new Set([...retailers,...doorLocations.map(d=>normalizeRetailer(d.retailer))])].filter(Boolean).sort();
   return allRetailers.filter(r=>{
     const norm=normalizeRetailer(r);
@@ -2138,6 +2582,7 @@ function render(){
     else if(currentView==='compact') renderCompact(items,visR);
     else if(currentView==='tabular') renderTabular(items,visR);
     else if(currentView==='unpivoted') renderUnpivoted(items,visR);
+    else if(currentView==='store') renderStore(items,visR);
     else if(currentView==='research') renderResearch();
     else if(currentView==='drafts') renderDrafts();
   }finally{
@@ -2174,43 +2619,91 @@ function renderMatrix(items,visR){
   const lu={};
   items.forEach(d=>{lu[d.brand]=d;});
 
-  if(!transposed){
-    let h='<table class="matrix"><thead><tr><th class="rh" style="z-index:6">Code</th><th class="rh2" style="z-index:6">Brand</th>';
+  /* The "Show by Group" toggle inside the Retailer refine section
+     collapses member retailers into a single summed column per group. */
+  const grouping=isShowByGroupOn();
+  let cols;
+  if(grouping){
+    const groupMap=new Map();
     visR.forEach(r=>{
-      const maxDoors=getMaxDoorsForRetailer(r);
-      h+=`<th>${esc(r)}<br><span style="font-weight:400;font-size:0.55rem;color:var(--text-dim)">${maxDoors} door${maxDoors===1?'':'s'}</span></th>`;
+      const g=retailerGroup(r);
+      if(!groupMap.has(g)) groupMap.set(g,[]);
+      groupMap.get(g).push(r);
+    });
+    cols=[...groupMap.entries()].map(([label,members])=>({label,members,isGroup:members.length>1}));
+  }else{
+    cols=visR.map(r=>({label:r,members:[r],isGroup:false}));
+  }
+  /* Sort columns by channel first so the matrix reads channel-by-channel,
+     then alphabetically within each channel. */
+  const colChannel=col=>(retailerChannel(col.members[0]) || 'Other');
+  cols.forEach(col=>{col._channel=colChannel(col);});
+  cols.sort((a,b)=>a._channel.localeCompare(b._channel) || a.label.localeCompare(b.label));
+  /* Bucket cols into channel chunks for the thead colspan / divider rows. */
+  const channelChunks=[];
+  cols.forEach(col=>{
+    const last=channelChunks[channelChunks.length-1];
+    if(last && last.channel===col._channel) last.cols.push(col);
+    else channelChunks.push({channel:col._channel, cols:[col]});
+  });
+  const colMax=col=>col.members.reduce((s,r)=>s+getMaxDoorsForRetailer(r),0);
+  const colVal=(col,brand)=>col.members.reduce((s,r)=>s+getMatrixVal(r,brand),0);
+  const colDrafts=(col,brand)=>col.members.reduce((s,r)=>s+getDraftCount(r,brand),0);
+
+  if(!transposed){
+    let h='<table class="matrix"><thead>';
+    /* Top header row: channel bands spanning their retailer columns. */
+    h+='<tr><th class="rh" style="z-index:6;background:var(--surface-raised)"></th><th class="rh2" style="z-index:6;background:var(--surface-raised)"></th>';
+    channelChunks.forEach(chunk=>{
+      h+=`<th class="channel-header" colspan="${chunk.cols.length}">${esc(chunk.channel)}</th>`;
+    });
+    h+='<th class="channel-header"></th></tr>';
+    /* Second header row: retailer / group names, colored to match the map pins. */
+    h+='<tr><th class="rh" style="z-index:6">Code</th><th class="rh2" style="z-index:6">Brand</th>';
+    cols.forEach(col=>{
+      const maxDoors=colMax(col);
+      const subtitle=col.isGroup
+        ? `${col.members.length} retailers · ${maxDoors} doors`
+        : `${maxDoors} door${maxDoors===1?'':'s'}`;
+      const color=retailerColor(col.label);
+      h+=`<th style="color:${color}">${esc(col.label)}<br><span style="font-weight:400;font-size:0.55rem;color:var(--text-dim)">${esc(subtitle)}</span></th>`;
     });
     h+='<th>Total</th></tr></thead><tbody>';
 
     CAT_ORDER.forEach(cat=>{
       const brands=brandsByCat[cat];
       if(!brands||!brands.length) return;
-      h+=`<tr class="cat-row"><td colspan="${visR.length+3}">${esc(cat)}</td></tr>`;
+      h+=`<tr class="cat-row"><td colspan="${cols.length+3}">${esc(cat)}</td></tr>`;
       brands.forEach(brand=>{
         const bName=brandCodes[brand]?brandCodes[brand].name:'';
         h+=`<tr><th class="rh">${esc(brand)}</th><th class="rh2">${esc(bName)}</th>`;
         let rowTot=0;
-        visR.forEach(r=>{
-          const val=getMatrixVal(r,brand);
-          const drafts=getDraftCount(r,brand);
-          const maxDoors=getMaxDoorsForRetailer(r);
+        cols.forEach(col=>{
+          const val=colVal(col,brand);
+          const drafts=colDrafts(col,brand);
+          const maxDoors=colMax(col);
           const atCap=maxDoors>0 && val>0 && val>=maxDoors;
           const cls=['cell'];
           if(!val) cls.push('empty');
           if(atCap) cls.push('at-cap');
+          if(col.isGroup) cls.push('group-cell');
           rowTot+=val;
           const draftIndicator=drafts>0?` <span style="color:var(--draft);font-size:0.55rem">+${drafts}d</span>`:'';
-          h+=`<td class="${cls.join(' ')}" data-r="${esc(r)}" data-b="${esc(brand)}" onclick="${callAttr('cellClick',r,brand)}" oncontextmenu="${ctxAttr(r,brand)}" title="${esc(r)} × ${esc(brand)}: ${val} confirmed${drafts?' + '+drafts+' drafts':''}">${val||'–'}${draftIndicator}</td>`;
+          const clickAttr = col.isGroup
+            ? ` onclick="${callAttr('openGroupDrawer',col.label,brand)}"`
+            : ` onclick="${callAttr('cellClick',col.members[0],brand)}" oncontextmenu="${ctxAttr(col.members[0],brand)}"`;
+          const titleSuffix = col.isGroup ? ` (group: ${col.members.join(', ')})` : '';
+          h+=`<td class="${cls.join(' ')}" data-r="${esc(col.label)}" data-b="${esc(brand)}"${clickAttr} title="${esc(col.label)} × ${esc(brand)}: ${val} confirmed${drafts?' + '+drafts+' drafts':''}${titleSuffix}">${val||'–'}${draftIndicator}</td>`;
         });
         h+=`<td class="ret-total">${rowTot||'–'}</td></tr>`;
       });
     });
 
-    // Total row — retailer door count (not sum of brands)
+    // Total row — door count (not sum of brands)
     h+=`<tr class="total-row"><th class="rh" style="color:var(--accent)">TTL</th><th class="rh2" style="color:var(--accent)">Doors</th>`;
     let gTot=0;
-    visR.forEach(r=>{
-      const v=getMaxDoorsForRetailer(r);
+    cols.forEach(col=>{
+      const v=colMax(col);
       gTot+=v;
       h+=`<td>${v}</td>`;
     });
@@ -2222,14 +2715,25 @@ function renderMatrix(items,visR){
     let h='<table class="matrix"><thead><tr><th class="rh" style="z-index:6">Retailer</th>';
     allBrands.forEach(({brand})=>{h+=`<th>${esc(brand)}</th>`;});
     h+='<th>Doors</th></tr></thead><tbody>';
-    visR.forEach(r=>{
-      const maxDoors=getMaxDoorsForRetailer(r);
-      h+=`<tr><th class="rh">${esc(r)}<br><span style="font-weight:400;font-size:0.55rem">${maxDoors}</span></th>`;
+    let lastChannel=null;
+    cols.forEach(col=>{
+      if(col._channel!==lastChannel){
+        h+=`<tr class="channel-divider"><td colspan="${allBrands.length+2}">${esc(col._channel)}</td></tr>`;
+        lastChannel=col._channel;
+      }
+      const maxDoors=colMax(col);
+      const subtitle=col.isGroup ? `${col.members.length} retailers · ${maxDoors}` : `${maxDoors}`;
+      const color=retailerColor(col.label);
+      h+=`<tr><th class="rh" style="color:${color}">${esc(col.label)}<br><span style="font-weight:400;font-size:0.55rem;color:var(--text-dim)">${esc(subtitle)}</span></th>`;
       allBrands.forEach(({brand})=>{
-        const val=getMatrixVal(r,brand);
+        const val=colVal(col,brand);
         const atCap=maxDoors>0 && val>0 && val>=maxDoors;
         const cls=['cell'];if(!val)cls.push('empty');if(atCap)cls.push('at-cap');
-        h+=`<td class="${cls.join(' ')}" onclick="${callAttr('cellClick',r,brand)}" oncontextmenu="${ctxAttr(r,brand)}">${val||'–'}</td>`;
+        if(col.isGroup) cls.push('group-cell');
+        const clickAttr=col.isGroup
+          ? ` onclick="${callAttr('openGroupDrawer',col.label,brand)}"`
+          : ` onclick="${callAttr('cellClick',col.members[0],brand)}" oncontextmenu="${ctxAttr(col.members[0],brand)}"`;
+        h+=`<td class="${cls.join(' ')}"${clickAttr}>${val||'–'}</td>`;
       });
       h+=`<td class="ret-total">${maxDoors||'–'}</td></tr>`;
     });
@@ -2263,8 +2767,17 @@ function renderTabular(items,visR){
     visR.forEach(r=>{
       const v=getMatrixVal(r,d.brand);
       if(v>0){
-        const maxDoors=getMaxDoorsForRetailer(r);
-        rows.push({retailer:r,brand:d.brand,category:d.category,doors:v,bm:maxDoors,pct:maxDoors?Math.round(v/maxDoors*100)+'%':'–',name:brandCodes[d.brand]?brandCodes[d.brand].name:''});
+        const bmDoors=getBMDoorsForRetailer(r);
+        const bmBrand=getBMConfirmedCount(r,d.brand);
+        rows.push({
+          retailer:r,
+          brand:d.brand,
+          category:d.category,
+          doors:v,
+          bm:bmDoors,
+          pct:bmDoors?Math.round(bmBrand/bmDoors*100)+'%':'–',
+          name:brandCodes[d.brand]?brandCodes[d.brand].name:''
+        });
       }
     });
   });
@@ -2280,8 +2793,148 @@ function renderTabular(items,visR){
 // ═══════════════════════════════════════════════════════
 // UNPIVOTED VIEW
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// STORE VIEW — editable location matrix
+// ═══════════════════════════════════════════════════════
+/* Data view and Store view scope to one retailer at a time to keep render
+   cost predictable. `_singleRetailerScope` remembers the user's pick across
+   renders; when it falls outside the current visible-retailer set we fall
+   back to the first visible retailer. */
+let _singleRetailerScope=null;
+function getActiveSingleRetailer(visR){
+  if(!visR || !visR.length) return null;
+  if(_singleRetailerScope && visR.includes(_singleRetailerScope)) return _singleRetailerScope;
+  return visR[0];
+}
+function setSingleRetailerScope(ret){
+  _singleRetailerScope = ret || null;
+  render();
+}
+function renderSingleRetailerPicker(visR, active){
+  if(!visR.length) return '';
+  const opts=visR.map(r=>`<option value="${esc(r)}"${r===active?' selected':''}>${esc(r)}</option>`).join('');
+  const extra=visR.length>1 ? `<span class="single-retailer-note">${visR.length} retailers match the current refine — showing one at a time for performance.</span>` : '';
+  return `<div class="single-retailer-picker">
+    <label for="singleRetailerSel">Retailer</label>
+    <select id="singleRetailerSel" onchange="setSingleRetailerScope(this.value)">${opts}</select>
+    ${extra}
+  </div>`;
+}
+
+function renderStore(items,visR){
+  const wrap=document.getElementById('mainView');
+  const activeRet=getActiveSingleRetailer(visR);
+  if(!activeRet){
+    wrap.innerHTML='<div style="text-align:center;padding:60px;color:var(--text-dim)">No retailers match the current filters.</div>';
+    return;
+  }
+  const sq=(document.getElementById('searchBox').value||'').toLowerCase();
+  const doors=doorLocations
+    .filter(d=>normalizeRetailer(d.retailer)===normalizeRetailer(activeRet))
+    .filter(d=>{
+      if(!sq) return true;
+      const blob=[d.retailer,d.doorNumber,d.name,d.address,d.city,d.state,d.zip,d.tier].filter(Boolean).join(' ').toLowerCase();
+      return blob.includes(sq);
+    })
+    .sort((a,b)=>String(a.doorNumber).localeCompare(String(b.doorNumber),undefined,{numeric:true}));
+
+  if(!doors.length){
+    wrap.innerHTML=renderSingleRetailerPicker(visR,activeRet)+'<div style="text-align:center;padding:60px;color:var(--text-dim)">No doors match the current filters for '+esc(activeRet)+'.</div>';
+    return;
+  }
+  const fields=[
+    {key:'name',w:'minmax(160px,1.4fr)',type:'text',ph:'Store / mall name'},
+    {key:'doorNumber',w:'90px',type:'text',ph:'#'},
+    {key:'address',w:'minmax(160px,1.4fr)',type:'text',ph:'Street'},
+    {key:'city',w:'120px',type:'text',ph:'City'},
+    {key:'state',w:'70px',type:'text',ph:'State'},
+    {key:'zip',w:'90px',type:'text',ph:'ZIP'},
+    {key:'tier',w:'70px',type:'text',ph:'Tier'},
+    {key:'lat',w:'100px',type:'number',ph:'Lat'},
+    {key:'lng',w:'100px',type:'number',ph:'Lng'}
+  ];
+  let h='<div class="store-view">';
+  h+=renderSingleRetailerPicker(visR,activeRet);
+  h+='<div class="store-toolbar"><span style="color:var(--text-muted);font-size:0.78rem">'+doors.length+' door'+(doors.length===1?'':'s')+' for '+esc(activeRet)+' — edits save on blur.</span></div>';
+  h+='<table class="compact-table store-table"><thead><tr><th>Retailer</th>';
+  fields.forEach(f=>{ h+=`<th>${esc(f.key.charAt(0).toUpperCase()+f.key.slice(1))}</th>`; });
+  h+='<th></th></tr></thead><tbody>';
+  doors.forEach(d=>{
+    const ret=normalizeRetailer(d.retailer);
+    const row=fields.map(f=>{
+      const val=d[f.key]==null?'':d[f.key];
+      const attr=callAttr('updateStoreDoorField',ret,String(d.doorNumber),f.key);
+      return `<td><input type="${f.type}" value="${esc(String(val))}" placeholder="${esc(f.ph)}" data-store-field="${esc(f.key)}" onchange="${attr}" oninput="this.dataset.dirty=1"></td>`;
+    }).join('');
+    h+=`<tr data-store-key="${esc(ret+'|'+d.doorNumber)}"><th class="rh">${esc(ret)}</th>${row}<td style="text-align:right"><button class="btn btn-sm" type="button" onclick="${callAttr('openEditDoorModal',ret,String(d.doorNumber))}" title="Open detail editor">Edit</button></td></tr>`;
+  });
+  h+='</tbody></table></div>';
+  wrap.innerHTML=h;
+}
+
+function updateStoreDoorField(ret,doorNumber,field,el){
+  el = el || (event && event.target);
+  if(!el) return;
+  const norm=normalizeRetailer(ret);
+  const d=doorLocations.find(x=>normalizeRetailer(x.retailer)===norm && String(x.doorNumber)===String(doorNumber));
+  if(!d) return;
+  let value=el.value;
+  let next=value;
+  if(field==='lat' || field==='lng'){
+    if(String(value).trim()==='') next=undefined;
+    else { const n=parseFloat(value); next=Number.isNaN(n)?undefined:n; }
+  }else if(field==='doorNumber'){
+    next=/^\d+$/.test(String(value).trim()) ? parseInt(value,10) : String(value).trim();
+  }else if(field==='state' || field==='tier'){
+    next=String(value||'').trim().toUpperCase();
+  }else{
+    next=String(value||'').trim();
+  }
+  const oldVal=d[field]==null?'':d[field];
+  if(String(oldVal)===String(next==null?'':next)) return;
+  d[field]=next;
+  el.classList.add('store-saved');
+  setTimeout(()=>el.classList.remove('store-saved'),900);
+  if(field==='doorNumber'){
+    const oldNum=String(doorNumber);
+    const newNum=String(next);
+    if(oldNum!==newNum) remapDoorNumberKeys(norm,oldNum,newNum);
+  }
+  const user=currentUserName();
+  recordHistory(norm,'__door__',{action:'edit',doorNumber:String(d.doorNumber),scope:'door',oldVal:String(oldVal),newVal:String(next==null?'':next),date:new Date().toISOString(),user,note:`${field} changed`});
+  queueAutosave();
+}
+
+/* When a door # is edited in the Store view, follow the change through
+   dataKeyState and doorAssignments so existing brand records stay intact. */
+function remapDoorNumberKeys(ret,oldNum,newNum){
+  const norm=normalizeRetailer(ret);
+  Object.keys(dataKeyState).forEach(key=>{
+    const st=dataKeyState[key];
+    if(!st || st.retailer!==norm) return;
+    if(String(st.doorNumber)!==String(oldNum)) return;
+    const newKey=buildDataKey(norm,newNum,st.brand);
+    st.doorNumber=newNum;
+    if(newKey!==key){ dataKeyState[newKey]=st; delete dataKeyState[key]; }
+  });
+  Object.keys(doorAssignments).forEach(ak=>{
+    const [r]=ak.split('|');
+    if(normalizeRetailer(r)!==norm) return;
+    (doorAssignments[ak]||[]).forEach(a=>{
+      if(String(a.doorNumber)===String(oldNum)) a.doorNumber=newNum;
+    });
+  });
+}
+
 function renderUnpivoted(items,visR){
   const wrap=document.getElementById('mainView');
+  const activeRet=getActiveSingleRetailer(visR);
+  if(!activeRet){
+    wrap.innerHTML='<div style="text-align:center;padding:60px;color:var(--text-dim)">No retailers match the current filters.</div>';
+    return;
+  }
+  /* Data view scopes to a single retailer at a time. */
+  const scopedVisR=[activeRet];
   let rows=[];
   const fc=getSelectValues('fCat');
   const fb=getSelectValues('fBrand');
@@ -2291,7 +2944,7 @@ function renderUnpivoted(items,visR){
   const sq=(document.getElementById('searchBox').value||'').toLowerCase();
   const brands=getAllBrands();
 
-  visR.forEach(ret=>{
+  scopedVisR.forEach(ret=>{
     getRetailerDoors(ret).forEach(door=>{
       brands.forEach(brand=>{
         const category=getBrandCategory(brand);
@@ -2324,7 +2977,7 @@ function renderUnpivoted(items,visR){
 
   for(const [aKey,assigns] of Object.entries(doorAssignments)){
     const [ret,brand]=aKey.split('|');
-    if(!visR.includes(ret)) continue;
+    if(!scopedVisR.includes(ret)) continue;
     const category=getBrandCategory(brand);
     const brandName=(brandCodes[brand]&&brandCodes[brand].name)||'';
     if(!hasFilterValue(fc,category)) continue;
@@ -2357,7 +3010,8 @@ function renderUnpivoted(items,visR){
   }
 
   rows.sort((a,b)=>a.retailer.localeCompare(b.retailer)||((a.doorNumber==='-'?Number.MAX_SAFE_INTEGER:Number(a.doorNumber))-(b.doorNumber==='-'?Number.MAX_SAFE_INTEGER:Number(b.doorNumber)))||a.brand.localeCompare(b.brand));
-  let h='<table class="compact-table"><thead><tr><th>Retailer</th><th>Door Number</th><th>Brand</th><th>Location</th><th>Status</th><th>Category</th><th>Grade</th><th>Metric 1</th><th>Metric 2</th><th>Notes</th><th>Key</th></tr></thead><tbody>';
+  let h=renderSingleRetailerPicker(visR,activeRet);
+  h+='<table class="compact-table"><thead><tr><th>Retailer</th><th>Door Number</th><th>Brand</th><th>Location</th><th>Status</th><th>Category</th><th>Grade</th><th>Metric 1</th><th>Metric 2</th><th>Notes</th><th>Key</th></tr></thead><tbody>';
   if(!rows.length){
     h+=`<tr><td colspan="11" style="text-align:center;color:var(--text-dim);padding:40px">${opportunitiesOnly?'No open brand-door opportunities matched the current filters.':'No door-brand slots matched the current filters.'}</td></tr>`;
   }
@@ -2438,6 +3092,10 @@ function publishDraft(ret,brand,idx){
   }
   assigns[idx].status='confirmed';
   assigns[idx].date=new Date().toISOString().slice(0,10);
+  /* Keep dataKeyState in lockstep with doorAssignments — getConfirmedCount
+     reads from dataKeyState, so publishing must update both. */
+  const state=ensureDataKeyState(ret,assigns[idx].doorNumber,brand);
+  state.status='confirmed';
   recordHistory(ret,brand,{
     scope:'data',
     action:'published confirmed key',
@@ -2447,6 +3105,7 @@ function publishDraft(ret,brand,idx){
     user:currentUserName(),
     note:'Draft promoted into Data'
   });
+  queueAutosave();
   render();
   toast(`Published: ${brand} → #${assigns[idx].doorNumber} at ${ret}`);
 }
@@ -2457,20 +3116,24 @@ function publishAllDrafts(){
   drafts.forEach(d=>{
     if(d.doorNumber!=='TBD'){
       const ak=k(d.ret,d.brand);
+      const doorNum=doorAssignments[ak][d.idx].doorNumber;
       doorAssignments[ak][d.idx].status='confirmed';
       doorAssignments[ak][d.idx].date=new Date().toISOString().slice(0,10);
+      const state=ensureDataKeyState(d.ret,doorNum,d.brand);
+      state.status='confirmed';
       recordHistory(d.ret,d.brand,{
         scope:'data',
         action:'published confirmed key',
         oldVal:'DRAFT',
-        newVal:buildDataKey(d.ret,doorAssignments[ak][d.idx].doorNumber,d.brand),
-        doorNumber:doorAssignments[ak][d.idx].doorNumber,
+        newVal:buildDataKey(d.ret,doorNum,d.brand),
+        doorNumber:doorNum,
         user:currentUserName(),
         note:'Bulk publish into Data'
       });
       published++;
     }
   });
+  queueAutosave();
   render();
   toast(`Published ${published} entries` + (drafts.length-published>0 ? ` (${drafts.length-published} still need door assignment)` : ''));
 }
@@ -2547,20 +3210,16 @@ function renderResearch(){
         <div id="resMap"></div>
         <div class="map-filter-rail">
           <details class="map-filter-section" open>
-            <summary>Show As</summary>
-            <div class="map-filter-body" id="mapShowAsFilter"></div>
+            <summary>Channels</summary>
+            <div class="map-filter-body" id="mapRetailerChannelFilter"></div>
           </details>
-          <details class="map-filter-section map-hierarchy-section" data-show-as-section="retailer_group" open>
-            <summary>Groups</summary>
-            <div class="map-filter-body" id="mapRetailerGroupFilter"></div>
-          </details>
-          <details class="map-filter-section map-hierarchy-section" data-show-as-section="retailer" open>
+          <details class="map-filter-section" open>
             <summary>Retailers</summary>
             <div class="map-filter-body" id="mapRetailerFilter"></div>
           </details>
-          <details class="map-filter-section map-hierarchy-section" data-show-as-section="channel" open>
-            <summary>Channels</summary>
-            <div class="map-filter-body" id="mapRetailerChannelFilter"></div>
+          <details class="map-filter-section" open>
+            <summary>Groups</summary>
+            <div class="map-filter-body" id="mapRetailerGroupFilter"></div>
           </details>
           <details class="map-filter-section" open>
             <summary>Brands</summary>
@@ -2745,7 +3404,10 @@ function renderResearchList(){
 
 function isEcommerceDoor(d){
   const name=String((d&&d.name)||'').trim().toUpperCase().replace(/[\s_]+/g,'-');
-  return name==='E-COMMERCE' || name==='ECOMMERCE' || name==='E-COM';
+  /* Match the door if its name is one of the standard e-commerce labels.
+     The store name field is the source of truth — anything starting with
+     E-COM or ECOM (with or without -MERCE) counts. */
+  return /^(E-?COMMERCE|E-?COM|ECOM|E-?STORE|ONLINE)$/.test(name);
 }
 
 function doorNeedsCoordinateWarning(d){
@@ -3340,6 +4002,53 @@ function updateDataKeyField(ret,doorNumber,brand,field,value,el){
 // INTERACTIONS
 // ═══════════════════════════════════════════════════════
 function cellClick(r,b){window._drawerShowAllUnassigned=false;openStoreDrawer(r,b);}
+
+/* Group drawer: when a Retailer Group cell is clicked, surface a combined
+   read-out of every retailer in the group with its assigned and unassigned
+   doors plus the buildDataKey value, then let the user jump into the
+   single-retailer drawer for actual edits. */
+function openGroupDrawer(group, brand){
+  activeStoreDrawer={ret:group,brand,isGroup:true};
+  const bName=brandCodes[brand]?brandCodes[brand].name:brand;
+  const allRetailers=[...new Set([...retailers,...doorLocations.map(d=>normalizeRetailer(d.retailer))])].filter(Boolean);
+  const members=allRetailers.filter(r=>retailerGroup(r)===group).sort();
+  document.getElementById('drTitle').textContent=`${bName} at ${group}`;
+  let totalConfirmed=0, totalDraft=0, totalDoors=0;
+  members.forEach(r=>{
+    totalConfirmed+=getMatrixVal(r,brand);
+    totalDraft+=getDraftCount(r,brand);
+    totalDoors+=getMaxDoorsForRetailer(r);
+  });
+  document.getElementById('drSub').textContent=`${members.length} retailers · ${totalConfirmed} confirmed${totalDraft?' + '+totalDraft+' drafts':''} of ${totalDoors} doors`;
+  let html='<div class="group-drawer">';
+  if(!members.length){
+    html+='<div class="helper-text">No retailers found under this group.</div>';
+  }
+  members.forEach(ret=>{
+    const norm=normalizeRetailer(ret);
+    const rDoors=getRetailerDoors(norm);
+    const bmDoors=getBMDoorsForRetailer(norm);
+    const confirmedCt=getMatrixVal(norm,brand);
+    const draftCt=getDraftCount(norm,brand);
+    const penPct=bmDoors ? Math.round(getBMConfirmedCount(norm,brand)/bmDoors*100) : null;
+
+    /* Group drawer shows one summary row per retailer — door-level lists
+       only appear when the user drills into the per-retailer drawer. */
+    html+=`<div class="group-drawer-section summary" onclick="${callAttr('openStoreDrawer',norm,brand)}" role="button" tabindex="0">
+      <div class="group-drawer-section-header">
+        <div>
+          <div class="group-drawer-retailer">${esc(norm)}</div>
+          <div class="group-drawer-meta">${confirmedCt} confirmed${draftCt?' + '+draftCt+' drafts':''} of ${rDoors.length} door${rDoors.length===1?'':'s'}${penPct!=null?` · ${penPct}% B&M penetration`:''}</div>
+        </div>
+        <button class="btn btn-sm" type="button" onclick="event.stopPropagation();openStoreDrawer('${esc(norm)}','${esc(brand)}')">Open →</button>
+      </div>
+    </div>`;
+  });
+  html+='</div>';
+  document.getElementById('drContent').innerHTML=html;
+  document.getElementById('ovDraw').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+}
 function openStoreDrawer(ret,brand){
   activeStoreDrawer={ret,brand};
   const bName=brandCodes[brand]?brandCodes[brand].name:brand;
@@ -3389,22 +4098,29 @@ function openStoreDrawer(ret,brand){
       const assignedWarn=assignedDoor && doorNeedsCoordinateWarning(assignedDoor)
         ? `<button type="button" class="door-warning-btn" title="Missing coordinates. Edit door details." onclick="${jsAttr(`event.stopPropagation();openEditDoorModal(${jsq(ret)},${jsq(String(a.doorNumber))})`)}">&#9888;</button>`
         : '';
-      html+=`<div class="drawer-door-row" data-door-row="1" data-search="${esc(assignedSearch.toLowerCase())}" style="padding:8px 0;border-bottom:1px solid var(--border);font-size:0.78rem;display:flex;justify-content:space-between;align-items:start" onclick="onDrawerRowClick(event, 'remove')">
-        <div>
-          <div style="font-weight:600;${isDraft?'color:var(--draft);font-style:italic':''}">${a.doorNumber==='TBD'?'TBD — Pending door':'#'+a.doorNumber+' — '+esc(assignedName||'(no name)')}${assignedWarn} <span style="font-size:0.6rem;padding:1px 5px;border-radius:3px;${isDraft?'background:var(--draft-dim);color:var(--draft)':'background:rgba(39,174,96,0.15);color:var(--success)'}">${a.status.toUpperCase()}</span></div>
+      const isTBD=a.doorNumber==='TBD';
+      const stagingRow = !isTBD
+        ? `<input type="checkbox" class="drawerRemoveChk drawer-door-hidden-input" value="${a.doorNumber}" onchange="syncDrawerDoorChecks();collectDrawerPendingAdds()">`
+        : '';
+      const trailingAction = isTBD
+        ? `<button type="button" class="drawer-door-check assigned-remove" title="Remove TBD draft" onclick="${jsAttr(`event.stopPropagation();removeDraft(${jsq(ret)},${jsq(brand)},${i});openStoreDrawer(${jsq(ret)},${jsq(brand)})`)}">✕</button>`
+        : `<button type="button" class="drawer-door-check assigned-remove" title="Stage Exit/TBD" onclick="event.stopPropagation();toggleDrawerCheckbox(this.closest('.drawer-door-row').querySelector('.drawerRemoveChk'))">✕</button>`;
+      const publishOrAssign = isDraft && !isTBD
+        ? `<button class="btn btn-sm btn-accent" onclick="event.stopPropagation();${jsAttr(`publishFromDrawer(${jsq(ret)},${jsq(brand)},${i})`)}">Publish</button>`
+        : (isDraft && isTBD
+            ? `<button class="btn btn-sm" onclick="event.stopPropagation();${jsAttr(`assignDoorToDraft(${jsq(ret)},${jsq(brand)},${i});openStoreDrawer(${jsq(ret)},${jsq(brand)})`)}">Assign</button>`
+            : '');
+      html+=`<div class="drawer-door-row clickable${isDraft?' is-draft':''}" data-door-row="1" data-search="${esc(assignedSearch.toLowerCase())}" onclick="onDrawerRowClick(event, 'remove')">
+        ${stagingRow}
+        <div class="drawer-door-meta">
+          <div style="font-weight:600;${isDraft?'color:var(--draft);font-style:italic':''}">${isTBD?'TBD — Pending door':'#'+a.doorNumber+' — '+esc(assignedName||'(no name)')}${assignedWarn} <span style="font-size:0.6rem;padding:1px 5px;border-radius:3px;${isDraft?'background:var(--draft-dim);color:var(--draft)':'background:rgba(39,174,96,0.15);color:var(--success)'}">${a.status.toUpperCase()}</span></div>
           <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim);margin-top:2px">${esc(keyVal)}</div>
           ${a.note?'<div style="color:var(--text-muted);font-size:0.7rem;margin-top:2px">'+esc(a.note)+'</div>':''}
           <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim)">${a.date||''}</div>
         </div>
-        <div style="display:flex;gap:4px">
-          ${isDraft&&a.doorNumber!=='TBD'?`<button class="btn btn-sm btn-accent" onclick="${jsAttr(`publishFromDrawer(${jsq(ret)},${jsq(brand)},${i})`)}">Publish</button>`:''}
-          ${isDraft&&a.doorNumber==='TBD'?`<button class="btn btn-sm" onclick="${jsAttr(`assignDoorToDraft(${jsq(ret)},${jsq(brand)},${i});openStoreDrawer(${jsq(ret)},${jsq(brand)})`)}">Assign</button>`:''}
-          ${a.doorNumber==='TBD'
-            ? `<button type="button" class="drawer-door-check assigned-remove" title="Remove TBD draft" onclick="${jsAttr(`event.stopPropagation();removeDraft(${jsq(ret)},${jsq(brand)},${i});openStoreDrawer(${jsq(ret)},${jsq(brand)})`)}">✕</button>`
-            : `<button type="button" class="drawer-door-check assigned-remove" title="Stage Exit/TBD" onclick="event.stopPropagation();toggleDrawerCheckbox(this.closest('.drawer-door-row').querySelector('.drawerRemoveChk'))">
-                <input type="checkbox" class="drawerRemoveChk drawer-door-hidden-input" value="${a.doorNumber}" onchange="syncDrawerDoorChecks();collectDrawerPendingAdds()">
-                ✕
-              </button>`}
+        <div class="drawer-door-actions">
+          ${publishOrAssign}
+          ${trailingAction}
         </div>
       </div>`;
     });
@@ -3835,6 +4551,10 @@ function openNewBrandPrompt(){
   if(!brandCodes[code]) brandCodes[code]={name, ds_active:true};
   else { brandCodes[code].name=name || brandCodes[code].name; brandCodes[code].ds_active=true; }
   if(!matrixData.find(x=>x.brand===code)) matrixData.push({brand:code, category:'LUXURY'});
+  ensureAllSlots();
+  populateFilters();
+  queueAutosave();
+  render();
   toast(`Brand ${code} added.`);
   openAddModal();
 }
@@ -3857,6 +4577,10 @@ function openNewDoorPrompt(){
   if(doorLocations.some(d=>normalizeRetailer(d.retailer)===norm && String(d.doorNumber)===doorRaw)){ toast('That door already exists for this retailer.'); return; }
   const doorNumber = /^\d+$/.test(doorRaw) ? parseInt(doorRaw,10) : doorRaw;
   doorLocations.push({retailer:norm,doorNumber,name,zip,tier,address,city,state,lat:latStr?parseFloat(latStr):undefined,lng:lngStr?parseFloat(lngStr):undefined});
+  ensureAllSlots();
+  populateFilters();
+  queueAutosave();
+  render();
   toast(`Door ${doorRaw} added for ${norm}.`);
   populateAddDoors();
   renderAddSelectionPanels();
@@ -4514,6 +5238,60 @@ function exportResearchView(){
 }
 function exportXLSX(){ exportCurrentView(); }
 
+/* Two-sheet workbook export of the entire loaded dataset:
+   Sheet 1 = unpivoted matrix rows (retailer × brand × door),
+   Sheet 2 = door location records. */
+function exportFullData(){
+  if(!isSheetJsReady()){ toast('Spreadsheet engine not ready yet.'); return; }
+  const matrixRows=[];
+  const brands=getAllBrands();
+  const allRetailers=[...new Set([...retailers,...doorLocations.map(d=>normalizeRetailer(d.retailer))])].filter(Boolean).sort();
+  allRetailers.forEach(ret=>{
+    const doors=getRetailerDoors(ret);
+    brands.forEach(brand=>{
+      const bName=(brandCodes[brand]&&brandCodes[brand].name)||'';
+      const category=getBrandCategory(brand)||'';
+      doors.forEach(door=>{
+        const state=getDataKeyState(ret,door.doorNumber,brand) || {};
+        const status=normalizeStatus(state.status);
+        if(status==='na') return;
+        matrixRows.push({
+          Retailer: ret,
+          'Door Number': door.doorNumber,
+          'Door Name': door.name||'',
+          Brand: brand,
+          'Brand Name': bName,
+          Category: category,
+          Status: status||'',
+          Grade: state.grade||'',
+          metric_1: state.metric_1||'',
+          metric_2: state.metric_2||'',
+          Notes: state.note||'',
+          Key: buildDataKey(ret,door.doorNumber,brand)
+        });
+      });
+    });
+  });
+  const doorRows=doorLocations.map(d=>({
+    Retailer: normalizeRetailer(d.retailer),
+    'Door Number': d.doorNumber,
+    Name: d.name||'',
+    Address: d.address||'',
+    City: d.city||'',
+    State: d.state||'',
+    ZIP: d.zip||'',
+    Lat: d.lat==null?'':d.lat,
+    Lng: d.lng==null?'':d.lng,
+    Tier: d.tier||''
+  }));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(matrixRows.length?matrixRows:[{}]), 'Matrix');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(doorRows.length?doorRows:[{}]), 'Doors');
+  const stamp=new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `door-tracker-data-${stamp}.xlsx`);
+  toast(`Exported ${matrixRows.length} matrix rows, ${doorRows.length} doors.`);
+}
+
 // ═══════════════════════════════════════════════════════
 // VIEW CONTROLS
 // ═══════════════════════════════════════════════════════
@@ -4600,30 +5378,115 @@ window.addEventListener('storage',e=>{
 });
 
 /* ── Global history feed ─────────────────────────────────── */
+let _historyActiveTypes=new Set();
+let _historyAllEntries=[];
+
+function _historyEntryType(e){
+  /* Bucket each entry by scope so the filter feels stable even as
+     individual action verbs proliferate over time. */
+  const scope=String(e.scope||'assignment').toLowerCase();
+  if(scope==='door') return 'door';
+  if(scope==='matrix') return 'matrix';
+  const action=String(e.action||'').toLowerCase();
+  if(/add|publish|new/.test(action)) return 'add';
+  if(/remove|subtract|delete|close|exit/.test(action)) return 'remove';
+  if(/edit|update|change|grade|status|metric|note/.test(action)) return 'edit';
+  return 'other';
+}
+
+const HISTORY_TYPE_LABELS={add:'Add',remove:'Remove',edit:'Edit',door:'Door details',matrix:'Matrix',other:'Other'};
+
 function openGlobalHistory(){
-  const entries=[];
+  _historyAllEntries=[];
   Object.keys(history||{}).forEach(hk=>{
     const [ret,brand]=hk.split('|');
-    (history[hk]||[]).forEach(e=>entries.push(Object.assign({_ret:ret,_brand:brand,_key:hk},e)));
+    (history[hk]||[]).forEach((e,idx)=>_historyAllEntries.push(Object.assign({_ret:ret,_brand:brand,_key:hk,_idx:idx},e)));
   });
-  entries.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  _historyAllEntries.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  _historyActiveTypes=new Set();
   document.getElementById('drTitle').textContent='All Changes';
-  document.getElementById('drSub').textContent=`${entries.length.toLocaleString()} recorded change${entries.length===1?'':'s'} across ${Object.keys(history||{}).length.toLocaleString()} retailer × brand pair${Object.keys(history||{}).length===1?'':'s'}`;
-  const limit=400;
-  const slice=entries.slice(0,limit);
-  const html=slice.length
-    ? slice.map(e=>`<div class="history-feed-item" onclick="${callAttr('openHistoryDrawer',e._ret,e._brand)}">
-        <div class="history-feed-pair">${esc(e._ret)} × ${esc(e._brand)}${brandCodes[e._brand]?' — '+esc(brandCodes[e._brand].name):''}</div>
-        <div class="history-date" style="margin-top:2px">${new Date(e.date).toLocaleString()}</div>
-        <div style="margin-top:4px"><span class="history-new">${esc((e.scope||'assignment').toUpperCase())}</span> · ${esc(e.action||'updated')}${e.doorNumber!==''?` · Door ${esc(String(e.doorNumber))}`:''}</div>
-        ${(e.oldVal!==''||e.newVal!=='')?`<div><span class="history-old">${esc(String(e.oldVal))}</span> → <span class="history-new">${esc(String(e.newVal))}</span></div>`:''}
-        ${e.note?`<div style="margin-top:2px;color:var(--text-muted)">${esc(e.note)}</div>`:''}
-        <div class="history-user">${esc(e.user||'System')}</div>
-      </div>`).join('') + (entries.length>limit?`<p style="color:var(--text-dim);text-align:center;margin-top:10px">Showing latest ${limit} of ${entries.length.toLocaleString()}.</p>`:'')
-    : '<p style="color:var(--text-dim);margin-top:16px">No changes recorded yet — every edit you make will show up here.</p>';
-  document.getElementById('drContent').innerHTML=html;
+  renderGlobalHistory();
   document.getElementById('ovDraw').classList.add('open');
   document.getElementById('drawer').classList.add('open');
+}
+
+function renderGlobalHistory(){
+  const entries=_historyAllEntries;
+  const present=new Set(entries.map(_historyEntryType));
+  const orderedTypes=['add','remove','edit','door','matrix','other'].filter(t=>present.has(t));
+  const filtered=_historyActiveTypes.size
+    ? entries.filter(e=>_historyActiveTypes.has(_historyEntryType(e)))
+    : entries;
+  document.getElementById('drSub').textContent=`${filtered.length.toLocaleString()} of ${entries.length.toLocaleString()} change${entries.length===1?'':'s'} across ${Object.keys(history||{}).length.toLocaleString()} pair${Object.keys(history||{}).length===1?'':'s'}`;
+  const filterPills=`<div class="history-filter-bar">
+    <span style="font-size:0.66rem;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase">Type</span>
+    <button class="history-filter-pill ${_historyActiveTypes.size===0?'active':''}" type="button" onclick="toggleHistoryFilter('')">All <span class="history-filter-count">${entries.length}</span></button>
+    ${orderedTypes.map(t=>{
+      const n=entries.filter(e=>_historyEntryType(e)===t).length;
+      const active=_historyActiveTypes.has(t);
+      return `<button class="history-filter-pill ${active?'active':''}" type="button" onclick="toggleHistoryFilter('${esc(t)}')">${esc(HISTORY_TYPE_LABELS[t]||t)} <span class="history-filter-count">${n}</span></button>`;
+    }).join('')}
+  </div>`;
+  const limit=400;
+  const slice=filtered.slice(0,limit);
+  const itemsHtml=slice.length
+    ? slice.map(e=>{
+        const type=_historyEntryType(e);
+        const canRevert=type==='door' && (String(e.oldVal||'')!==String(e.newVal||''));
+        const revertBtn=canRevert
+          ? `<button class="history-revert" type="button" onclick="event.stopPropagation();revertHistoryEntry('${esc(e._key)}',${e._idx})" title="Set this field back to its previous value">↶ Revert</button>`
+          : `<button class="history-revert disabled" type="button" disabled title="For assignment or matrix changes, use Restore Points">↶ Revert</button>`;
+        return `<div class="history-feed-item history-type-${esc(type)}" onclick="${callAttr('openHistoryDrawer',e._ret,e._brand)}">
+          <div class="history-feed-pair">${esc(e._ret)} × ${esc(e._brand)}${brandCodes[e._brand]?' — '+esc(brandCodes[e._brand].name):''}</div>
+          <div class="history-date" style="margin-top:2px">${new Date(e.date).toLocaleString()}</div>
+          <div style="margin-top:4px"><span class="history-new">${esc(String(e.scope||'assignment').toUpperCase())}</span> · ${esc(e.action||'updated')}${e.doorNumber!==''?` · Door ${esc(String(e.doorNumber))}`:''}</div>
+          ${(e.oldVal!==''||e.newVal!=='')?`<div><span class="history-old">${esc(String(e.oldVal))}</span> → <span class="history-new">${esc(String(e.newVal))}</span></div>`:''}
+          ${e.note?`<div style="margin-top:2px;color:var(--text-muted)">${esc(e.note)}</div>`:''}
+          <div class="history-row-footer"><span class="history-user">${esc(e.user||'System')}</span>${revertBtn}</div>
+        </div>`;
+      }).join('') + (filtered.length>limit?`<p style="color:var(--text-dim);text-align:center;margin-top:10px">Showing latest ${limit} of ${filtered.length.toLocaleString()}.</p>`:'')
+    : '<p style="color:var(--text-dim);margin-top:16px">No changes match the current filter.</p>';
+  document.getElementById('drContent').innerHTML = filterPills + itemsHtml;
+}
+
+function toggleHistoryFilter(type){
+  if(!type){ _historyActiveTypes=new Set(); }
+  else if(_historyActiveTypes.has(type)) _historyActiveTypes.delete(type);
+  else _historyActiveTypes.add(type);
+  renderGlobalHistory();
+}
+
+function revertHistoryEntry(key,idx){
+  const entries=(history||{})[key]||[];
+  const entry=entries[idx];
+  if(!entry){ toast('Entry not found.'); return; }
+  if(String(entry.scope||'').toLowerCase()!=='door'){
+    toast('Only door-detail edits can be reverted from here. Use Restore Points for assignment changes.');
+    return;
+  }
+  const [ret]=key.split('|');
+  const norm=normalizeRetailer(ret);
+  const door=doorLocations.find(d=>normalizeRetailer(d.retailer)===norm && String(d.doorNumber)===String(entry.doorNumber));
+  if(!door){ toast('Door no longer exists.'); return; }
+  const field=String(entry.note||'').replace(/\s+changed$/,'').trim();
+  if(!field || !(field in door) && !['name','address','city','state','zip','tier','lat','lng','doorNumber'].includes(field)){
+    toast('Could not detect which field to revert.');
+    return;
+  }
+  const newField = field;
+  const oldVal=entry.oldVal;
+  let restore=oldVal;
+  if(newField==='lat'||newField==='lng'){
+    if(String(oldVal).trim()==='') restore=undefined;
+    else { const n=parseFloat(oldVal); restore=Number.isNaN(n)?undefined:n; }
+  }
+  door[newField]=restore;
+  recordHistory(norm,'__door__',{action:'revert',doorNumber:String(door.doorNumber),scope:'door',oldVal:String(entry.newVal||''),newVal:String(restore==null?'':restore),date:new Date().toISOString(),user:currentUserName(),note:`${newField} reverted`});
+  queueAutosave();
+  render();
+  toast(`Reverted ${newField} on door ${door.doorNumber}.`);
+  /* Re-open history with the same filter set after the new entry lands. */
+  openGlobalHistory();
 }
 
 /* ── Snapshots UI ────────────────────────────────────────── */
@@ -4830,10 +5693,61 @@ function bootApp(){
   return loadAutoState().finally(()=>{
     ensureAllSlots();
     populateFilters();
+    applyDefaultDSBrandFilter();
+    applyDefaultLuxuryChannel();
+    restoreShowByGroupState();
     setMode(savedMode==='map'?'map':'data');
     persistAutoState();
     scheduleAutoSnapshots();
   });
+}
+
+/* First load: default the Channel filter to Luxury and turn the toggle on. */
+function applyDefaultLuxuryChannel(){
+  try{
+    if(localStorage.getItem('door-tracker-luxury-default-applied')==='1') return;
+    const fc=document.getElementById('fRetChannel');
+    if(!fc) return;
+    if(getSelectValues(fc).length) return;
+    const hasLuxury=Array.from(fc.options).some(o=>o.value==='Luxury');
+    if(!hasLuxury) return;
+    setSelectValues(fc,['Luxury']);
+    const group=document.getElementById('channelFilterGroup');
+    if(group){
+      group.classList.add('is-active');
+      group.classList.add('is-open');
+    }
+    try{ localStorage.setItem('door-tracker-luxury-default-applied','1'); }catch(e){}
+  }catch(e){}
+}
+
+function restoreShowByGroupState(){
+  try{
+    const v=localStorage.getItem('door-tracker-show-by-group');
+    const el=document.getElementById('showByGroupRow');
+    if(el && v==='1'){
+      el.classList.add('is-on');
+      /* Re-render the Retailer pill list so it shows groups instead of
+         individual retailers when the toggle was persisted as on. */
+      renderRefineToggles();
+    }
+  }catch(e){}
+}
+
+/* Default load: matrix view with DS-active brands selected. */
+function applyDefaultDSBrandFilter(){
+  try{
+    if(localStorage.getItem('door-tracker-ds-default-applied')==='1') return;
+    const fb=document.getElementById('fBrand');
+    if(!fb) return;
+    if(getSelectValues(fb).length) return;
+    const ds=Object.entries(brandCodes).filter(([code,v])=>v && v.ds_active).map(([code])=>code);
+    if(ds.length){
+      setSelectValues(fb,ds);
+      currentView='matrix';
+      try{ localStorage.setItem('door-tracker-ds-default-applied','1'); }catch(e){}
+    }
+  }catch(e){}
 }
 
 /* Boot: resume session or show the login wall. */
