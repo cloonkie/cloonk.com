@@ -5,12 +5,13 @@ spreadsheets into one **canonical schema**, joins the same physical SKU across
 those files by **identity fields**, and resolves **concatenated descriptions**
 through a safe Excel-like formula language.
 
-It ships with an eyewear example profile, but the engine is generic — nothing
-about eyewear is hard-coded. It is a small ETL/concat engine that happens to
-come pre-loaded with two sample EssilorLuxottica file definitions.
+The shipped profile ("Eyewear Starter") defines a canonical eyewear field
+vocabulary but does **not** bind to any specific source files — register the
+workbooks you actually use, then point each canonical field at the columns in
+those workbooks.
 
 - **File:** `upc-concat.html` (single file, ~110 KB unminified)
-- **Standalone profile:** `default-profile.json` (also embedded inline in the HTML)
+- **Standalone starter profile:** `default-profile.json` (also embedded inline)
 - **Test fixtures:** `upc-concat-test-fixtures.md`
 
 ---
@@ -32,15 +33,15 @@ All parsing, indexing, and resolution happen in the browser. No data is uploaded
 
 ## The three-layer model
 
-1. **Sources** — registered files. Each has a sheet, a header row (1-indexed),
-   and one or more declared **key columns** used as join keys. Indices are built
-   on those columns when the file is attached.
+1. **Sources** — registered workbooks. Each source is one sheet of one workbook
+   with a header row. Indices are built on the declared key columns when the
+   file is attached.
 2. **Canonical schema** — your standard field vocabulary. Two field types:
    - **Direct** — value looked up from a column in a source file.
    - **Derived** — value computed from a formula referencing other fields.
 3. **Field mappings** — each direct field has an *ordered* list of
-   `{file, column}` sources. Resolution walks the list; the first non-blank
-   value wins.
+   `file → sheet → column` sources. Resolution walks the list; the first
+   non-blank value wins.
 
 ### Priority
 
@@ -65,19 +66,25 @@ zero-stripped, and zero-padded (11–14 digit) forms, so `0097963819817` and
 
 ---
 
-## Adding a new source file
+## Steps
 
-1. Click **+ Register file** in panel 1.
-2. Choose the workbook, pick the sheet and the header row.
-3. Give it a `file id` (e.g. `file_pricing`).
-4. List the **key columns** — by header name, or by spreadsheet letter
-   (`G`) when the header cell is blank.
-5. Register. The file appears as a slot; map canonical fields to its columns in
-   the schema editor.
-
-Files dropped onto the dropzone are auto-matched to profile slots by the
-`expected_filename_pattern` (glob with `*`). Unmatched files become new ad-hoc
-slots automatically.
+1. **Register source files.** Drop workbooks onto the dropzone or click
+   "+ Register file". For each, pick the sheet and the header row (1-indexed),
+   then declare the key columns — by header name, or by column letter (`G`)
+   when the header cell is blank.
+2. **Map each canonical field to** `file → sheet → column`. Open a field in
+   the Schema panel. For direct fields, add one or more sources (a registered
+   file plus a column in that file's sheet). For derived fields, write a
+   formula referencing other canonical fields with `{name}`.
+3. **Rank file priority** in the Sources panel. The order applies to every
+   field's source list by default. Override on a per-field basis when needed.
+4. **Define output templates** — named formulas that concatenate canonical
+   fields into ready-to-paste descriptions.
+5. **Paste keys and run.** Mix identity types freely — the tool detects each
+   key's type and finds its cluster.
+6. **Inspect & export.** Expand any row's *trail* to see where every value
+   came from. Copy TSV, or download `.csv` / `.xlsx` (with a per-cell
+   source-trail sheet).
 
 If a re-attached file is missing a mapped column, that source is flagged with a
 red badge; resolution skips it and records the skip in the source trail.
@@ -169,26 +176,27 @@ templates — *without* the source data. Files are re-attached each session.
   (key `upc_concat_profiles`).
 - **Export** — downloads the profile as JSON.
 - **Import** — loads a JSON profile from disk; re-attach the source files after.
-- **Reset** — reloads the bundled `default-profile.json`.
+- **Reset** — reloads the bundled `default-profile.json` (Eyewear Starter).
 - **Discard** — reverts to the last saved state.
 
 An orange dot next to the profile name marks unsaved changes.
 
-To share a workflow: build and test it, **Export**, send the `.json` to a
-teammate, who **Imports** it and drops their own copy of the source files into
-the matching slots.
+To share a workflow: register your files, finish mapping, **Save** and then
+**Export**, send the `.json` to a teammate, who **Imports** it and re-attaches
+their own copies of the source files.
 
 ---
 
 ## Running a resolution
 
-1. Attach source files (panel 1).
-2. Paste keys into panel 4 — one per line, any mix of identity types. The
+1. Register & attach source files (panel 1).
+2. Map each canonical field's sources (panel 2).
+3. Paste keys into panel 4 — one per line, any mix of identity types. The
    detected-type preview updates as you type once clusters exist.
-3. Click **Run resolution**. The progress bar shows cluster building.
-4. Results appear in panel 5 — sortable (click a header), filterable, with a
+4. Click **Run resolution**. The progress bar shows cluster building.
+5. Results appear in panel 5 — sortable (click a header), filterable, with a
    per-row **trail** expander showing where every value came from.
-5. Export via **Copy TSV**, **.csv**, or **.xlsx** (the xlsx file includes a
+6. Export via **Copy TSV**, **.csv**, or **.xlsx** (the xlsx file includes a
    second `_source_trail` sheet with per-cell attribution).
 
 ---
@@ -196,8 +204,7 @@ the matching slots.
 ## Performance
 
 - Indexing and clustering run in chunked work loops with a progress bar, so the
-  UI stays responsive on large sheets (216K-row `OpenText` is the design
-  target).
+  UI stays responsive on large sheets (200K+ row workbooks).
 - Lookups are O(1) per identity-index hit.
 - The tool warns at 100K rows and refuses at 1M rows.
 
@@ -205,6 +212,6 @@ the matching slots.
 
 ## Out of scope
 
-Server-side parsing, authentication, writing back to source files, live SAP/API
+Server-side parsing, authentication, writing back to source files, live API
 integration, cross-row aggregation (`SUM`/`COUNT`), cell references in formulas,
 product image rendering, and version diffing.

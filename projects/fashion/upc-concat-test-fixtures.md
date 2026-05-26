@@ -1,99 +1,83 @@
 # UPC Concat — Test Fixtures
 
-Sample input keys for verifying the tool against the **Default Eyewear Profile**
-and the two sample files:
+A checklist for verifying the tool with your own files. The bundled profile is a
+canonical-field starter only — it doesn't lock in any specific workbooks. Pick
+two or more of your own source files (each with overlapping SKUs identified by
+different keys) and walk through this list.
 
-- `Consolidated_Upload_2026_Week_17.xlsx` — sheet `OpenText`, header row 1
-- `Matricione_File2026-03-02.xlsx` — sheet `Report 1`, header row 2
-
-> **Note on expected values.** The tool runs entirely against whatever data is
-> in the files you attach, and the default profile maps to *expected* column
-> names. The only row documented in the build spec is OpenText row 47, used as
-> the anchor below. Treat the **Detected identity** and **Resolves to a cluster**
-> columns as the hard contract — those depend only on indexing logic, not on the
-> specific cell contents. The resolved-field values are illustrative; verify
-> them against your actual files and adjust the profile's column mappings if a
-> source shows a red "column missing" badge.
+> **What's a hard contract vs. illustrative.** The hard contract is the
+> **logic**: detection, cluster merging, leading-zero handling, broken-mapping
+> warnings, formula behavior. The specific resolved values depend on your data
+> and your mappings — those are illustrative only.
 
 ## How to run the check
 
-1. Open `upc-concat.html`, leave the Default Eyewear Profile loaded.
-2. Drop both sample files onto the dropzone (they auto-match by filename).
-3. Confirm both slots show a green row-count badge and no red "key col missing"
-   badges. Fix any column-name mismatch in the schema editor first.
-4. Paste the 20 keys below into panel 4.
-5. The detect line should report a mix of `primary_upc`, `cpid`, `grid`,
-   `art_base`, and `material`.
-6. Click **Run resolution** and compare against the table.
+1. Register at least two source files (Sources panel). Pick the sheet, the
+   header row, and declare key columns for each.
+2. For each canonical field you care about, map sources as `file → sheet → column`
+   in the Schema panel.
+3. Confirm no slot shows a red "column missing" badge. Fix any column-name
+   mismatch in the schema editor first.
+4. Paste a mix of identity keys into the Input panel.
+5. The detect line should report a mix by identity type (e.g. `primary_upc`,
+   `cpid`, `grid`, `art_base`, `material`).
+6. Click **Run resolution** and inspect the table + per-row trails.
 
-## Anchor row (documented)
+## What to verify
 
-OpenText row 47 — its identity values, per the build spec:
-
-| Identity field | Value |
-|---|---|
-| `primary_upc` | `97963819817` |
-| `art_base` | `06S912991290164` |
-| `grid` (derived `{color}&{size}`) | `91290164` |
-| `material` | `06S9129` |
-
-All four keys below (#1–#4) should land on the **same cluster_id**.
-
-## 20 sample input keys
-
-| # | Input key | Detected identity | Resolves to a cluster | Notes |
-|---|---|---|---|---|
-| 1 | `97963819817` | `primary_upc` | yes | anchor SKU; raw 11-digit UPC |
-| 2 | `0097963819817` | `primary_upc` | yes | same SKU, leading zeros — must match #1's cluster |
-| 3 | `06S912991290164` | `art_base` | yes | same SKU via Art Base |
-| 4 | `91290164` | `grid` | yes | same SKU via derived Grid |
-| 5 | `06S9129` | `material` | yes | same SKU via Material |
-| 6 | `198537000010` | `primary_upc` | yes | second SKU, full 12-digit UPC |
-| 7 | `8056597000123` | `primary_upc` | yes | third SKU, 13-digit EAN-style |
-| 8 | `CPID0048213` | `cpid` | yes | matched only in the Matricione file |
-| 9 | `CPID0099001` | `cpid` | yes | Matricione-only SKU; brand resolves from priority 2 |
-| 10 | `06S6001` | `material` | yes | Material shared across both files |
-| 11 | `91290165` | `grid` | yes | adjacent grid value, different SKU than #4 |
-| 12 | `0` | n/a | no | degenerate input — should report `unmatched` |
-| 13 | `99999999999` | n/a | no | nonexistent UPC — `unmatched`, no crash |
-| 14 | `06S700131234567` | `art_base` | yes | Art Base on a sunglass style |
-| 15 | `198537000027` | `primary_upc` | yes | optical frame; `desc_full` includes lens fields |
-| 16 | `   97963819817   ` | `primary_upc` | yes | surrounding whitespace — trimmed, matches #1 |
-| 17 | `CPID0048213` | `cpid` | yes | duplicate of #8 — both rows resolve identically |
-| 18 | `06S9129` | `material` | yes | duplicate of #5 — confirms idempotent lookup |
-| 19 | `8056597111456` | `secondary_upc` | yes | matched via the secondary UPC index |
-| 20 | `` (blank line) | — | skipped | blank lines are ignored, not counted |
+| # | Scenario | Expected behavior |
+|---|---|---|
+| 1 | A raw UPC mapped only in File A | Detected as `primary_upc`, resolves to a cluster, brand fills from File A. |
+| 2 | The same UPC with leading zeros (e.g. `0097963819817`) | Resolves to the same cluster as #1 — proves leading-zero variant indexing. |
+| 3 | A CPID mapped only in File B | Detected as `cpid`, resolves to a cluster that also contains File A rows via shared identity. |
+| 4 | A derived Grid (`{color} & {size}`) value | Detected as `grid`, resolves to the same cluster as #1 if the SKU is the same. |
+| 5 | An Art Base value | Detected as `art_base`, resolves to the same cluster as #1. |
+| 6 | A Material value shared across both files | Detected as `material`, resolves to a cluster with rows from both files. |
+| 7 | A UPC present only in File A (no overlap) | Resolves to a cluster with File A rows; File-B-sourced fields are `BLANK`. |
+| 8 | A SKU present only in File B (no overlap) | Same, mirror-image — brand falls back to File B per the priority list. |
+| 9 | `0` or a single digit | `unmatched`, no crash. |
+| 10 | A long string of zeros (`00000000000`) | `unmatched`, no crash, no false cluster hit. |
+| 11 | A nonexistent UPC (`99999999999`) | `unmatched`, no crash. |
+| 12 | An input line with leading/trailing whitespace | Trimmed and matched normally. |
+| 13 | Two duplicate keys in the input | Both rows resolve identically and idempotently. |
+| 14 | A blank input line | Skipped, not counted. |
+| 15 | A SKU whose File-A column has a value but File-B column is blank | Brand resolves from File A (priority 1); trail shows priority 1. |
+| 16 | A SKU whose File-A column is blank but File-B column has a value | Brand resolves from File B (priority 2); trail shows "priority 1 returned blank → priority 2". |
+| 17 | Re-attach a file with a column renamed | The mapped source shows a red "broken" badge in the schema editor; resolution skips it. |
+| 18 | A formula referencing a field that's blank | `&` concatenates as empty (Excel-style); `JOIN` drops blank args. |
+| 19 | A formula with a circular reference (`a = {b} & "x"`, `b = {a} & "y"`) | Rejected at save; warning at the top of the page lists the cycle path. |
+| 20 | A column with a blank header referenced by letter (e.g. `G`) | Resolves correctly via the letter fallback. |
 
 ## Expected behaviors to confirm
 
-- **Cluster merge** — keys #1, #2, #3, #4, #5, #16 all share `cluster_id`.
-- **Leading zeros** — #2 (`0097963819817`) resolves to the same cluster as #1
-  (`97963819817`). If it does not, the numeric-variant indexing is broken.
-- **Cross-file priority** — for a SKU present in both files, `brand` should
-  resolve from `Consolidated Upload` (priority 1) when that column is non-blank,
-  and fall back to `Matricione File` (priority 2) otherwise. Open the row's
-  **trail** and confirm the `← … (priority N)` annotation.
-- **Derived fields** — `grid` shows `derived: {color} & {size}` in the trail;
+- **Cluster merge** — keys belonging to the same SKU (UPC, CPID, Grid, Art
+  Base, Material) all share `cluster_id`. Toggle "show cluster_id" in the
+  results filter bar to verify.
+- **Leading zeros** — a raw and a zero-padded form of the same numeric identity
+  resolve to the same cluster. If they don't, the numeric-variant indexing is
+  broken.
+- **Cross-file priority** — for a SKU present in both files, a field with two
+  sources resolves from the higher-priority file when non-blank, and falls
+  back when blank. Confirm with the per-row trail (`← … (priority N)`).
+- **Derived fields** — the trail shows `derived: {formula}`; values like
   `desc_short` and `desc_full` concatenate with single spaces and drop blanks.
-- **Unmatched** — #12 and #13 appear with `detected_identity = unmatched` and
+- **Unmatched** — degenerate inputs show `detected_identity = unmatched` and
   all canonical fields `BLANK`; the run does not error.
-- **Templates** — `Standard Description` and `NRF Tag` columns populate for
-  matched rows; `NRF Tag` is `BLANK - BLANK`-free only when both NRF fields
-  resolve.
-- **Export** — `.xlsx` export contains a `Resolved` sheet and a `_source_trail`
-  sheet; row counts match the results table.
+- **Templates** — each output template column populates for matched rows.
+- **Export** — `.xlsx` export contains a `Resolved` sheet and a
+  `_source_trail` sheet; row counts match the results table.
 
 ## Formula parser spot-checks
 
 Paste these as derived fields and confirm the live preview / parse status:
 
-| Formula | Expected on the anchor SKU |
+| Formula | Expected behavior |
 |---|---|
-| `{color} & {size}` | `91290164` |
-| `PAD({primary_upc}, 13, "0")` | `0097963819817` |
-| `LEFT({material}, 3)` | `06S` |
-| `IF({product_type} = "SUN", "SUNGLASSES", "OPTICAL")` | branch on product type |
-| `JOIN(" ", {brand}, {material})` | brand + material, single space |
-| `a = {b} & "x"` with `b = {a} & "y"` | rejected — circular reference warning |
-| `LEFT(42, 2)` | coerces silently → `42` then `4` |
-| `CONCAT({brand}, BLANK, {material})` | blank arg dropped |
+| `{color} & {size}` | concatenates color + size, blank handled as empty string |
+| `PAD({primary_upc}, 13, "0")` | left-pads the UPC to 13 digits |
+| `LEFT({material}, 3)` | first 3 characters of material |
+| `IF({product_type} = "SUN", "SUNGLASSES", "OPTICAL")` | branches on product type |
+| `JOIN(" ", {brand}, {material})` | brand + material with single space, blanks dropped |
+| `a = {b} & "x"` paired with `b = {a} & "y"` | rejected — circular reference warning |
+| `LEFT(42, 2)` | coerces silently → `"42"` then takes 2 chars → `"42"` |
+| `CONCAT({brand}, BLANK, {material})` | blank arg dropped from output |

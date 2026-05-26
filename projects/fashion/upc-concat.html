@@ -183,29 +183,6 @@ code, .mono { font-family: var(--font-mono); }
 
 /* ── Shell ── */
 .shell { padding: 22px 24px 80px; max-width: 1480px; margin: 0 auto; }
-.intro {
-  padding: 22px;
-  margin-bottom: 18px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-}
-.eyebrow {
-  margin-bottom: 12px;
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-h1 {
-  margin-bottom: 10px;
-  font-family: var(--font-display);
-  font-size: clamp(1.7rem, 3.4vw, 2.8rem);
-  line-height: 1;
-}
-.intro p { color: var(--text-muted); line-height: 1.6; max-width: 88ch; }
 
 /* ── Panels ── */
 .panel {
@@ -500,8 +477,12 @@ th {
   color: var(--text-muted);
   font-size: 0.68rem; font-weight: 700;
   letter-spacing: 0.05em; text-transform: uppercase;
-  cursor: pointer;
+  cursor: grab;
+  user-select: none;
 }
+th:active { cursor: grabbing; }
+th.col-dragging { opacity: 0.35; }
+th.col-drop-target { box-shadow: inset 2px 0 0 var(--accent); }
 td.blank-cell { color: var(--text-dim); font-style: italic; }
 td.tpl-cell { color: var(--accent); }
 tr.data-row:hover td { background: var(--accent-dim); }
@@ -577,10 +558,11 @@ tr.data-row:hover td { background: var(--accent-dim); }
   overflow-x: auto;
   padding: 0 16px;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
+.info-modal-tabs::-webkit-scrollbar { display: none; }
 .info-modal-tab {
   border: 0;
-  border-bottom: 2px solid transparent;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
@@ -588,11 +570,16 @@ tr.data-row:hover td { background: var(--accent-dim); }
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  padding: 12px 10px 10px;
+  padding: 12px 12px 12px;
   text-transform: uppercase;
+  white-space: nowrap;
+  transition: color 0.15s;
 }
 .info-modal-tab:hover { color: var(--text); }
-.info-modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.info-modal-tab.active {
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
 .modal-body { overflow: auto; padding: 18px 20px 24px; color: var(--text-muted); line-height: 1.6; }
 .info-modal-pane { display: none; }
 .info-modal-pane.active { display: block; }
@@ -616,6 +603,169 @@ tr.data-row:hover td { background: var(--accent-dim); }
 }
 .info-link:hover { border-color: var(--accent); background: var(--accent-dim); }
 .info-link-meta { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.72rem; }
+.step-list { counter-reset: step; padding-left: 0; list-style: none; margin: 4px 0 14px; }
+.step-list li {
+  position: relative;
+  padding: 9px 12px 9px 40px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  color: var(--text-muted);
+  line-height: 1.55;
+  counter-increment: step;
+}
+.step-list li::before {
+  content: counter(step);
+  position: absolute; left: 10px; top: 9px;
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent); color: var(--accent-fg);
+  border-radius: 50%;
+  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
+}
+.step-list li strong { display: block; color: var(--text); margin-bottom: 3px; font-weight: 600; }
+.chain { font-family: var(--font-mono); color: var(--accent); white-space: nowrap; }
+
+/* ── Panel info button (opens info modal at a step) ── */
+.panel-info-btn {
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700;
+  cursor: pointer; padding: 0;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+  margin-left: 4px;
+}
+.panel-info-btn:hover { color: var(--accent-fg); border-color: var(--accent); background: var(--accent); }
+
+/* ── Section visualization (collapsible, per-panel) ── */
+.section-viz {
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  overflow: hidden;
+}
+.section-viz-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+  padding: 7px 12px;
+  cursor: pointer; user-select: none;
+  font-family: var(--font-mono); font-size: 0.68rem;
+  color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em;
+}
+.section-viz-head:hover { background: var(--surface-raised); }
+.section-viz-head .chev {
+  width: 12px; height: 12px;
+  transition: transform var(--transition);
+  display: inline-block;
+}
+.section-viz.collapsed .section-viz-head .chev { transform: rotate(-90deg); }
+.section-viz-body { padding: 12px; border-top: 1px solid var(--border); background: var(--bg); }
+.section-viz.collapsed .section-viz-body { display: none; }
+
+/* ── Step viz primitives ── */
+.step-viz {
+  display: grid; gap: 8px;
+  padding: 10px 12px;
+  margin: 6px 0 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  font-family: var(--font-mono); font-size: 0.74rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+.viz-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.viz-row-tight { gap: 6px; }
+.viz-stack { display: grid; gap: 4px; }
+.viz-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  color: var(--text);
+  white-space: nowrap;
+  font-size: 0.72rem;
+}
+.viz-pill.viz-blank { color: var(--text-dim); text-decoration: line-through; opacity: 0.6; }
+.viz-pill.viz-hit { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.viz-pill.viz-tag { color: var(--accent); border-color: var(--accent-mid); background: var(--accent-dim); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.viz-arrow { color: var(--text-dim); font-size: 0.9rem; flex-shrink: 0; }
+.viz-arrow.viz-down { display: block; text-align: center; width: 100%; }
+.viz-rank { color: var(--accent); font-weight: 700; min-width: 14px; }
+.viz-field { color: var(--accent); font-weight: 600; }
+.viz-formula {
+  padding: 6px 8px;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text);
+}
+.viz-formula .fn { color: var(--accent); }
+.viz-formula .field { color: #6cb6ff; }
+[data-theme="light"] .viz-formula .field { color: #1b09bc; }
+.viz-formula .str { color: var(--warn); }
+.viz-note { color: var(--accent); font-size: 0.7rem; margin-left: 6px; }
+.viz-result-large {
+  padding: 6px 10px; border: 1px solid var(--accent); border-radius: var(--radius-xs);
+  background: var(--accent-dim); color: var(--accent); text-align: center;
+  font-weight: 600;
+}
+.viz-cluster {
+  padding: 7px 10px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xs);
+  background: var(--accent-dim);
+  display: grid; gap: 4px;
+}
+.viz-cluster-id { color: var(--accent); font-weight: 700; font-size: 0.7rem; }
+.viz-trail {
+  display: grid; gap: 3px;
+  margin-top: 4px; padding-top: 6px;
+  border-top: 1px dashed var(--border);
+  color: var(--text-muted); font-size: 0.7rem;
+}
+.viz-mapping { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.viz-line { color: var(--text); }
+.viz-line strong { color: var(--accent); font-weight: 700; }
+
+/* ── New collapsible draggable slot (replaces priority list) ── */
+.slot { padding: 0; cursor: default; }
+.slot.dragging { opacity: 0.35; }
+.slot.drag-over { border-color: var(--accent); }
+.slot-summary {
+  display: grid;
+  grid-template-columns: 18px 22px 1fr auto auto auto;
+  gap: 10px; align-items: center;
+  padding: 10px 12px;
+  cursor: grab;
+}
+.slot-summary:active { cursor: grabbing; }
+.slot .grip { color: var(--text-dim); font-family: var(--font-mono); user-select: none; font-size: 0.9rem; }
+.slot .rank { color: var(--accent); font-family: var(--font-mono); font-size: 0.78rem; }
+.slot-name { font-weight: 700; font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slot-name .slot-pattern-inline { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.7rem; font-weight: 400; margin-left: 6px; }
+.slot-toggle, .slot-remove {
+  background: transparent; border: 0; color: var(--text-muted); cursor: pointer;
+  padding: 3px 6px; border-radius: var(--radius-xs);
+  font-family: var(--font-mono); font-size: 0.78rem;
+  transition: transform var(--transition);
+}
+.slot-toggle:hover, .slot-remove:hover { background: var(--surface-raised); color: var(--text); }
+.slot.expanded .slot-toggle { transform: rotate(180deg); }
+.slot-detail {
+  display: none;
+  padding: 12px 12px 14px 50px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+.slot.expanded .slot-detail { display: block; }
 
 /* ── Toast ── */
 .toast {
@@ -632,6 +782,22 @@ tr.data-row:hover td { background: var(--accent-dim); }
 }
 .toast.show { opacity: 1; transform: translateY(0); }
 
+/* ── Run & Results split layout ── */
+.run-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.run-left { display: grid; gap: 10px; }
+.run-left #inputKeys { min-height: 220px; }
+.run-right { min-width: 0; }
+.run-right .filter-bar { flex-wrap: wrap; }
+
+@media (max-width: 860px) {
+  .run-layout { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 860px) {
   .schema-head { grid-template-columns: 20px 1fr 70px; }
   .schema-head .schema-fsrc, .schema-head .schema-ftype + * { display: none; }
@@ -645,84 +811,38 @@ tr.data-row:hover td { background: var(--accent-dim); }
 
 <script type="application/json" id="default-profile">
 {
-  "name": "Default Eyewear Profile",
+  "name": "Eyewear Starter",
   "version": 1,
-  "created": "2026-05-22T00:00:00.000Z",
-  "files": [
-    {
-      "id": "file_consolidated",
-      "label": "Consolidated Upload",
-      "expected_filename_pattern": "Consolidated_Upload*.xlsx",
-      "sheet": "OpenText",
-      "header_row": 1,
-      "key_columns": ["PRIMARY UPC", "SECONDARY UPC", "PRIMARY PID", "Art Base", "Grid Value", "Material", "Color", "Size"]
-    },
-    {
-      "id": "file_matricione",
-      "label": "Matricione File",
-      "expected_filename_pattern": "Matricione_File*.xlsx",
-      "sheet": "Report 1",
-      "header_row": 2,
-      "key_columns": ["Part Identifier (CPID)", "Grid", "Material Number (MODEL)"]
-    }
-  ],
-  "file_priority": ["file_consolidated", "file_matricione"],
+  "files": [],
+  "file_priority": [],
   "canonical_schema": [
-    { "name": "primary_upc", "type": "direct", "is_identity": true, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "PRIMARY UPC" }] },
-    { "name": "secondary_upc", "type": "direct", "is_identity": true, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "SECONDARY UPC" }] },
-    { "name": "cpid", "type": "direct", "is_identity": true, "priority_override": false,
-      "sources": [{ "file_id": "file_matricione", "column": "Part Identifier (CPID)" }] },
-    { "name": "art_base", "type": "direct", "is_identity": true, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Art Base" }] },
-    { "name": "pid", "type": "direct", "is_identity": true, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "PRIMARY PID" }] },
-    { "name": "material", "type": "direct", "is_identity": true, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Material" }, { "file_id": "file_matricione", "column": "Material Number (MODEL)" }] },
-    { "name": "grid", "type": "derived", "is_identity": true, "formula": "{color} & {size}" },
-    { "name": "brand", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "hierarchynode_description" }, { "file_id": "file_matricione", "column": "Product Line - Description (PRLNNA)" }] },
-    { "name": "product_type", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Product Type" }] },
-    { "name": "size", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Size" }] },
-    { "name": "color", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Color" }] },
-    { "name": "frame_color_desc", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Frame Color Description" }] },
-    { "name": "lens_color_desc", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Lens Color Description" }] },
-    { "name": "lens_features", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Lens Features" }] },
-    { "name": "gender", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Gender" }] },
-    { "name": "style_name", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Style Name" }] },
-    { "name": "eye_size", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Eye Size" }] },
-    { "name": "bridge_size", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Bridge Size" }] },
-    { "name": "temple_length", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Temple Length" }] },
-    { "name": "frame_material", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Frame Material" }] },
-    { "name": "country_of_origin", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Country of Origin" }] },
-    { "name": "msrp_us", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "MSRP US" }] },
-    { "name": "wholesale_us", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "Wholesale US" }] },
-    { "name": "msrp_ca", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "MSRP CA" }] },
-    { "name": "nrf_code", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "NRF Code" }] },
-    { "name": "nrf_description", "type": "direct", "is_identity": false, "priority_override": false,
-      "sources": [{ "file_id": "file_consolidated", "column": "NRF Description" }] },
-    { "name": "desc_short", "type": "derived", "is_identity": false,
-      "formula": "JOIN(\" \", {brand}, {material}, {eye_size})" },
-    { "name": "desc_full", "type": "derived", "is_identity": false,
-      "formula": "JOIN(\" \", {brand}, {material}, {eye_size}, {frame_color_desc}, {lens_color_desc})" }
+    { "name": "primary_upc",       "type": "direct",  "is_identity": true,  "priority_override": false, "sources": [] },
+    { "name": "secondary_upc",     "type": "direct",  "is_identity": true,  "priority_override": false, "sources": [] },
+    { "name": "cpid",              "type": "direct",  "is_identity": true,  "priority_override": false, "sources": [] },
+    { "name": "pid",               "type": "direct",  "is_identity": true,  "priority_override": false, "sources": [] },
+    { "name": "material",          "type": "direct",  "is_identity": true,  "priority_override": false, "sources": [] },
+    { "name": "grid",              "type": "derived", "is_identity": true,  "formula": "{color} & {size}" },
+    { "name": "brand",             "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "product_type",      "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "size",              "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "color",             "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "frame_color_desc",  "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "lens_color_desc",   "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "lens_features",     "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "gender",            "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "style_name",        "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "eye_size",          "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "bridge_size",       "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "temple_length",     "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "frame_material",    "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "country_of_origin", "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "msrp_us",           "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "wholesale_us",      "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "msrp_ca",           "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "nrf_code",          "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "nrf_description",   "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "desc_short",        "type": "derived", "is_identity": false, "formula": "JOIN(\" \", {brand}, {material}, {eye_size})" },
+    { "name": "desc_full",         "type": "derived", "is_identity": false, "formula": "JOIN(\" \", {brand}, {material}, {eye_size}, {frame_color_desc}, {lens_color_desc})" }
   ],
   "output_templates": [
     { "name": "Standard Description", "formula": "JOIN(\" \", {brand}, {material}, {eye_size}, {frame_color_desc}, {lens_color_desc})" },
@@ -758,12 +878,6 @@ tr.data-row:hover td { background: var(--accent-dim); }
 </header>
 
 <main class="shell">
-  <section class="intro">
-    <p class="eyebrow">Schema mapping</p>
-    <h1>UPC Concat</h1>
-    <p>Register files, map fields, and run resolution.</p>
-  </section>
-
   <div class="warn-list" id="warnList"></div>
 
   <!-- 1. SOURCES -->
@@ -773,6 +887,7 @@ tr.data-row:hover td { background: var(--accent-dim); }
         <span class="panel-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
         <span class="panel-num">01</span>
         <span class="panel-title">Sources</span>
+        <button class="panel-info-btn" data-panel-info="sources" title="What this step does" aria-label="How sources work">i</button>
         <span class="panel-sub" id="sourcesSub">0 files</span>
       </div>
       <div class="panel-tools">
@@ -780,21 +895,25 @@ tr.data-row:hover td { background: var(--accent-dim); }
       </div>
     </div>
     <div class="panel-body">
+      <div class="section-viz collapsed" data-viz-section="sources">
+        <div class="section-viz-head" data-viz-toggle>
+          <span>How this step works — register files &amp; rank priority</span>
+          <span class="chev">▾</span>
+        </div>
+        <div class="section-viz-body" data-viz-fill="sources"></div>
+      </div>
       <label class="dropzone" id="dropzone">
         <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple>
         <span>
           <span class="dz-title">Drop spreadsheets here</span>
-          <span class="dz-sub">.xlsx, .xls, .csv — auto-matched to profile slots by filename</span>
+          <span class="dz-sub">.xlsx, .xls, .csv — registered as new sources, or auto-matched to existing slots</span>
         </span>
       </label>
+      <div class="hint" style="margin-bottom:8px"><strong style="color:var(--text)">File priority</strong> — drag a file to reorder; the order is the default source order applied to every field.</div>
       <div class="slot-grid" id="slotGrid"></div>
       <div class="progress-wrap" id="progressWrap">
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
         <div class="progress-label" id="progressLabel"></div>
-      </div>
-      <div style="margin-top:16px">
-        <span class="lbl">File priority — default source order (drag to reorder)</span>
-        <div class="priority-list" id="priorityList"></div>
       </div>
     </div>
   </section>
@@ -806,6 +925,7 @@ tr.data-row:hover td { background: var(--accent-dim); }
         <span class="panel-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
         <span class="panel-num">02</span>
         <span class="panel-title">Canonical Schema</span>
+        <button class="panel-info-btn" data-panel-info="schema" title="What this step does" aria-label="How schema mapping works">i</button>
         <span class="panel-sub" id="schemaSub">0 fields</span>
       </div>
       <div class="panel-tools">
@@ -814,6 +934,13 @@ tr.data-row:hover td { background: var(--accent-dim); }
       </div>
     </div>
     <div class="panel-body">
+      <div class="section-viz collapsed" data-viz-section="schema">
+        <div class="section-viz-head" data-viz-toggle>
+          <span>How this step works — map each field as file → sheet → column</span>
+          <span class="chev">▾</span>
+        </div>
+        <div class="section-viz-body" data-viz-fill="schema"></div>
+      </div>
       <p class="hint" style="margin-bottom:10px">★ marks an identity field — used to join rows across files. Click a field to edit its sources or formula.</p>
       <div class="schema-table" id="schemaTable"></div>
     </div>
@@ -826,6 +953,7 @@ tr.data-row:hover td { background: var(--accent-dim); }
         <span class="panel-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
         <span class="panel-num">03</span>
         <span class="panel-title">Output Templates</span>
+        <button class="panel-info-btn" data-panel-info="templates" title="What this step does" aria-label="How templates work">i</button>
         <span class="panel-sub" id="templatesSub">0 templates</span>
       </div>
       <div class="panel-tools">
@@ -833,42 +961,25 @@ tr.data-row:hover td { background: var(--accent-dim); }
       </div>
     </div>
     <div class="panel-body">
+      <div class="section-viz collapsed" data-viz-section="templates">
+        <div class="section-viz-head" data-viz-toggle>
+          <span>How this step works — formulas concatenate canonical fields</span>
+          <span class="chev">▾</span>
+        </div>
+        <div class="section-viz-body" data-viz-fill="templates"></div>
+      </div>
       <div id="templateList"></div>
     </div>
   </section>
 
-  <!-- 4. INPUT -->
-  <section class="panel" id="panel-input">
+  <!-- 4. RUN & RESULTS (input + resolved table, columns reorderable) -->
+  <section class="panel" id="panel-run">
     <div class="panel-header" data-toggle>
       <div class="panel-htitle">
         <span class="panel-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
         <span class="panel-num">04</span>
-        <span class="panel-title">Input</span>
-        <span class="panel-sub">Paste keys, any identity type</span>
-      </div>
-    </div>
-    <div class="panel-body">
-      <div class="input-grid">
-        <div class="field">
-          <label for="inputKeys">Keys — one per line</label>
-          <textarea id="inputKeys" placeholder="97963819817&#10;198537000010&#10;91290164"></textarea>
-        </div>
-        <div class="detect-line" id="detectLine"><span class="badge">Paste keys to detect identity types</span></div>
-        <div class="row-actions">
-          <button class="btn btn-accent" id="runBtn">Run resolution</button>
-          <button class="btn btn-sm" id="rebuildBtn">Rebuild clusters</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 5. RESULTS -->
-  <section class="panel" id="panel-results">
-    <div class="panel-header" data-toggle>
-      <div class="panel-htitle">
-        <span class="panel-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
-        <span class="panel-num">05</span>
-        <span class="panel-title">Results</span>
+        <span class="panel-title">Run &amp; Results</span>
+        <button class="panel-info-btn" data-panel-info="input" title="What this step does" aria-label="How input + results work">i</button>
         <span class="panel-sub" id="resultsSub">No run yet</span>
       </div>
       <div class="panel-tools">
@@ -878,14 +989,42 @@ tr.data-row:hover td { background: var(--accent-dim); }
       </div>
     </div>
     <div class="panel-body">
-      <div class="filter-bar">
-        <input type="text" id="resultFilter" placeholder="Filter rows (text search)...">
-        <label class="check-inline"><input type="checkbox" id="filterBlanks"> Has blank fields</label>
-        <label class="check-inline"><input type="checkbox" id="filterResolved"> All fields resolved</label>
-        <label class="check-inline"><input type="checkbox" id="showClusterId"> Show cluster_id</label>
+      <div class="section-viz collapsed" data-viz-section="run">
+        <div class="section-viz-head" data-viz-toggle>
+          <span>How this step works — paste keys → detect identity → cluster lookup → resolve + trail</span>
+          <span class="chev">▾</span>
+        </div>
+        <div class="section-viz-body" data-viz-fill="run"></div>
       </div>
-      <div class="table-shell" id="resultsTable">
-        <div class="empty-state"><div><strong>No results yet.</strong><span>Attach files, paste keys, and run resolution.</span></div></div>
+
+      <div class="run-layout">
+        <!-- Left: input -->
+        <div class="run-left">
+          <div class="field">
+            <label for="inputKeys">Keys — one per line, any identity type</label>
+            <textarea id="inputKeys" placeholder="97963819817&#10;198537000010&#10;91290164"></textarea>
+          </div>
+          <div class="detect-line" id="detectLine"><span class="badge">Paste keys to detect identity types</span></div>
+          <div class="row-actions">
+            <button class="btn btn-accent" id="runBtn">Run resolution</button>
+            <button class="btn btn-sm" id="rebuildBtn">Rebuild clusters</button>
+          </div>
+        </div>
+
+        <!-- Right: results -->
+        <div class="run-right">
+          <div class="filter-bar">
+            <input type="text" id="resultFilter" placeholder="Filter rows...">
+            <label class="check-inline"><input type="checkbox" id="filterBlanks"> Has blank fields</label>
+            <label class="check-inline"><input type="checkbox" id="filterResolved"> All fields resolved</label>
+            <label class="check-inline"><input type="checkbox" id="showClusterId"> Show cluster_id</label>
+            <button class="btn btn-sm" id="resetColsBtn" title="Reset column order">Reset columns</button>
+            <span class="hint" style="margin-left:auto">Drag a column header to reorder.</span>
+          </div>
+          <div class="table-shell" id="resultsTable">
+            <div class="empty-state"><div><strong>No results yet.</strong><span>Attach files, paste keys, and run resolution.</span></div></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -943,17 +1082,57 @@ tr.data-row:hover td { background: var(--accent-dim); }
     <div class="modal-body">
       <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
         <h3>What this is</h3>
-        <p>Map product data across files into one canonical schema. Register source files, define a standard field vocabulary, map each field to one or more source columns, then resolve concatenated outputs from the clean schema.</p>
-        <h3>Quick start</h3>
-        <p>Attach source files, confirm key columns, map canonical fields, paste identity keys, and run resolution. Save or export the profile when the mapping is ready to reuse.</p>
+        <p>A browser-based schema-mapping engine for product data. Different source files name the same SKU differently — one workbook has it as a UPC, another as a CPID, another as a Grid or Art Base. UPC Concat lets you define one canonical field vocabulary, point each field at the columns where its value lives across every source, and resolve clean, concatenated outputs for any input key.</p>
+
+        <h3>How it works</h3>
+        <p>The tool decouples three things on purpose:</p>
+        <ul>
+          <li><strong>Sources</strong> — the workbooks you register. Each source is one sheet of one workbook with a header row.</li>
+          <li><strong>Canonical schema</strong> — your standard field vocabulary. <em>Direct</em> fields read a column; <em>derived</em> fields evaluate a formula referencing other fields.</li>
+          <li><strong>Mappings</strong> — for each canonical field, an ordered list of <span class="chain">file → sheet → column</span> sources. Resolution walks the list and takes the first non-blank value.</li>
+        </ul>
+        <p>Fields flagged ★ <strong>identity</strong> are used to join rows. On run, every row's identity values get indexed; rows that share <em>any</em> identity value collapse into one cluster, even when each file names the SKU differently. Paste any identity key and the tool finds the cluster, then walks priority across all of its rows to fill every canonical field.</p>
+
+        <h3>Steps</h3>
+        <ol class="step-list">
+          <li>
+            <strong>Register source files.</strong> Drop workbooks onto the dropzone or click <code>+ Register file</code>. For each, pick the sheet and the header row, then declare key columns (by header name, or by column letter when the header is blank).
+            <div data-viz-fill="register"></div>
+          </li>
+          <li>
+            <strong>Map each canonical field</strong> to its source as <span class="chain">file → sheet → column</span>. Open a field in the Schema panel; for direct fields, add one or more sources (a file you registered, plus the column to read from that file's sheet). Multiple sources are walked in priority order — first non-blank wins. For derived fields, write a formula referencing other fields with <code>{name}</code>.
+            <div data-viz-fill="map"></div>
+          </li>
+          <li>
+            <strong>Rank file priority</strong> (Sources panel) to set the default order applied to every field's source list. Override per-field when a specific field should prefer a different file.
+            <div data-viz-fill="priority"></div>
+          </li>
+          <li>
+            <strong>Define output templates</strong> (optional) — named formulas that concatenate canonical fields into ready-to-paste descriptions.
+            <div data-viz-fill="templates"></div>
+          </li>
+          <li>
+            <strong>Paste keys and run.</strong> Mixed identity types are fine — the tool detects each key's type and finds its cluster.
+            <div data-viz-fill="input"></div>
+          </li>
+          <li>
+            <strong>Inspect &amp; export.</strong> Expand any row's <em>trail</em> to see where every value came from (which file, sheet, column, priority). Copy TSV, or download <code>.csv</code> / <code>.xlsx</code> (with a per-cell source-trail sheet).
+            <div data-viz-fill="results"></div>
+          </li>
+        </ol>
+
         <h3>Privacy</h3>
-        <p>Everything runs locally in your browser. Profiles store schema and mapping rules, not workbook contents.</p>
+        <p>Everything runs locally in your browser. Profiles save schema and mapping rules, not workbook contents — files are re-attached each session.</p>
       </div>
       <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
         <h3>Three layers</h3>
-        <p><strong>Sources</strong> are registered files with sheet, header row, and declared key columns. <strong>Canonical schema</strong> is your standard field vocabulary. <strong>Field mappings</strong> connect each canonical field to <code>{file, column}</code> sources, walked in priority order so first non-blank wins.</p>
+        <p><strong>Sources</strong> are registered files — each one is a sheet of a workbook with a header row and a set of declared key columns. <strong>Canonical schema</strong> is your standard field vocabulary, made of direct fields (read from a column) and derived fields (computed from a formula). <strong>Field mappings</strong> connect each direct canonical field to one or more <span class="chain">file → sheet → column</span> sources, walked in priority order so the first non-blank value wins.</p>
         <h3>Identity &amp; clusters</h3>
-        <p>Fields flagged as identity are used to join rows. On run, rows across files that share any identity value become one SKU cluster.</p>
+        <p>Fields flagged ★ identity are used to join rows. On run, every source row's identity values get indexed; rows that share any identity value collapse into one SKU cluster, even when each file names the SKU differently. Leading-zero UPCs match across raw, stripped, and zero-padded forms.</p>
+        <h3>Priority</h3>
+        <p>File-level priority (Sources panel, drag to reorder) is the default source order applied to every direct field. Tick "override file priority" inside a field to reorder that field's sources independently — each source row shows whether it is <code>inherited</code> or <code>manual</code>.</p>
+        <h3>Profiles</h3>
+        <p>A profile captures schema, mappings, file priority, and templates — not the workbook data. Save to this browser, or export / import JSON to share a workflow with teammates. The shipped "Eyewear Starter" profile defines the canonical field vocabulary but no file slots — register your own.</p>
       </div>
       <div class="info-modal-pane" id="modal-tab-appendix" role="tabpanel">
         <h3>Expression language</h3>
@@ -1012,7 +1191,8 @@ App.State = {
   identityValueSets: {},    // fieldName -> Set(normVariant)
   resolveOrder: [],         // topo-ordered derived field objects
   results: [],
-  warnings: []
+  warnings: [],
+  columnOrder: null         // result-table column order (null = natural)
 };
 
 /* ── Utilities ───────────────────────────────────────────── */
@@ -1896,66 +2076,76 @@ App.UI = {
   Sources: {
     render() {
       const p = App.State.profile;
+      const attachedCount = Object.keys(App.State.files).length;
       document.getElementById("sourcesSub").textContent =
         p.files.length + " file" + (p.files.length === 1 ? "" : "s") + " · " +
-        Object.keys(App.State.files).length + " attached";
+        attachedCount + " attached";
+      /* keep file_priority in sync with files */
+      const fileIds = new Set(p.files.map(f => f.id));
+      p.file_priority = (p.file_priority || []).filter(id => fileIds.has(id));
+      p.files.forEach(f => { if (!p.file_priority.includes(f.id)) p.file_priority.push(f.id); });
+      const ordered = p.file_priority.map(id => p.files.find(f => f.id === id)).filter(Boolean);
       const grid = document.getElementById("slotGrid");
-      grid.innerHTML = p.files.map(fd => this.slotHTML(fd)).join("") ||
-        '<div class="empty-state"><span>No source files. Use “+ Register file”.</span></div>';
-      this.renderPriority();
+      grid.innerHTML = ordered.map((fd, i) => this.slotHTML(fd, i + 1)).join("") ||
+        '<div class="empty-state"><span>No source files yet — drop a workbook above or use “+ Register file”.</span></div>';
     },
-    slotHTML(fd) {
+    slotHTML(fd, rank) {
       const loaded = App.State.files[fd.id];
-      let status = '<span class="badge">empty slot</span>';
-      let metaHTML = "";
-      let broken = false;
+      let badge, broken = false;
       if (loaded) {
-        /* broken-column check */
         const missing = (fd.key_columns || []).filter(c =>
           App.FileRegistry.resolveColumn(loaded, c) == null);
         broken = missing.length > 0;
-        status = broken
+        const sheetTxt = loaded.sheet ? " · " + loaded.sheet : "";
+        badge = broken
           ? '<span class="badge err">' + missing.length + ' key col missing</span>'
-          : '<span class="badge ok">' + loaded.rows.length.toLocaleString() + ' rows</span>';
-        metaHTML =
+          : '<span class="badge ok">' + loaded.rows.length.toLocaleString() + ' rows' + U.esc(sheetTxt) + '</span>';
+      } else {
+        badge = '<span class="badge">empty slot</span>';
+      }
+      const expanded = fd._uiExpanded ? ' expanded' : '';
+      const filenameOrPattern = loaded ? loaded.filename : (fd.expected_filename_pattern || '');
+
+      let detailHTML;
+      if (loaded) {
+        detailHTML =
           '<div class="slot-meta">' +
-            '<div class="field"><label>Sheet</label><select data-slot-sheet="' + fd.id + '">' +
+            '<div class="field"><label>Sheet</label><select data-slot-sheet="' + U.esc(fd.id) + '">' +
               loaded.sheetNames.map(s => '<option ' + (s === fd.sheet ? "selected" : "") + '>' + U.esc(s) + '</option>').join("") +
             '</select></div>' +
-            '<div class="field"><label>Header row</label><input type="number" min="1" value="' + fd.header_row + '" data-slot-header="' + fd.id + '"></div>' +
-            '<button class="btn btn-sm" data-slot-reload="' + fd.id + '">Reload</button>' +
+            '<div class="field"><label>Header row</label><input type="number" min="1" value="' + fd.header_row + '" data-slot-header="' + U.esc(fd.id) + '"></div>' +
+            '<button class="btn btn-sm" data-slot-reload="' + U.esc(fd.id) + '">Reload</button>' +
           '</div>' +
           '<div class="keycols">' +
             (fd.key_columns || []).map(c => {
               const ok = App.FileRegistry.resolveColumn(loaded, c) != null;
               return '<span class="keycol-chip" style="' + (ok ? "" : "border-color:var(--danger)") + '">' +
-                U.esc(c) + '<button data-slot-delkey="' + fd.id + '" data-key="' + U.esc(c) + '">×</button></span>';
+                U.esc(c) + '<button data-slot-delkey="' + U.esc(fd.id) + '" data-key="' + U.esc(c) + '">×</button></span>';
             }).join("") +
-            '<span class="keycol-chip"><input type="text" placeholder="+ key col" data-slot-addkey="' + fd.id + '" style="border:0;background:none;min-height:auto;padding:0;width:90px"></span>' +
+            '<span class="keycol-chip"><input type="text" placeholder="+ key col" data-slot-addkey="' + U.esc(fd.id) + '" style="border:0;background:none;min-height:auto;padding:0;width:90px"></span>' +
           '</div>';
       } else {
-        metaHTML = '<div class="slot-meta"><span class="hint">Drop a file matching <code>' +
-          U.esc(fd.expected_filename_pattern || "*") + '</code> above, or it will auto-match by name.</span></div>' +
+        detailHTML =
+          '<div class="hint">Drop a file' +
+            (fd.expected_filename_pattern ? ' matching <code>' + U.esc(fd.expected_filename_pattern) + '</code>' : '') +
+            ' above, or use the Sheet selector after attaching one.</div>' +
           '<div class="keycols">' + (fd.key_columns || []).map(c =>
             '<span class="keycol-chip">' + U.esc(c) + '</span>').join("") + '</div>';
       }
-      return '<div class="slot ' + (loaded ? "attached " : "") + (broken ? "broken" : "") + '">' +
-        '<div class="slot-top">' +
-          '<div><span class="slot-name">' + U.esc(fd.label || fd.id) + '</span> ' +
-            '<span class="slot-pattern">' + U.esc(loaded ? loaded.filename : (fd.expected_filename_pattern || "")) + '</span></div>' +
-          '<div class="row-actions">' + status +
-            '<button class="btn btn-xs btn-danger" data-slot-remove="' + fd.id + '">Remove</button></div>' +
-        '</div>' + metaHTML + '</div>';
-    },
-    renderPriority() {
-      const el = document.getElementById("priorityList");
-      const p = App.State.profile;
-      el.innerHTML = p.file_priority.map((fid, i) => {
-        const fd = p.files.find(f => f.id === fid);
-        return '<div class="priority-item" draggable="true" data-prio="' + fid + '">' +
-          '<span class="grip">≡</span><span class="rank">' + (i + 1) + '</span>' +
-          '<span>' + U.esc(fd ? (fd.label || fd.id) : fid) + '</span></div>';
-      }).join("") || '<span class="hint">No files registered.</span>';
+
+      return '<div class="slot ' + (loaded ? "attached " : "") + (broken ? "broken " : "") + expanded + '" data-id="' + U.esc(fd.id) + '">' +
+        '<div class="slot-summary" draggable="true">' +
+          '<span class="grip" aria-hidden="true">⋮⋮</span>' +
+          '<span class="rank">' + rank + '</span>' +
+          '<span class="slot-name">' + U.esc(fd.label || fd.id) +
+            (filenameOrPattern ? '<span class="slot-pattern-inline">' + U.esc(filenameOrPattern) + '</span>' : '') +
+          '</span>' +
+          badge +
+          '<button class="slot-toggle" data-slot-toggle="' + U.esc(fd.id) + '" title="Expand details">▾</button>' +
+          '<button class="slot-remove" data-slot-remove="' + U.esc(fd.id) + '" title="Remove">✕</button>' +
+        '</div>' +
+        '<div class="slot-detail">' + detailHTML + '</div>' +
+      '</div>';
     }
   },
 
@@ -1975,9 +2165,11 @@ App.UI = {
         srcDesc = f._err ? '⚠ ' + U.esc(f._err) : U.esc(f.formula || "");
       } else {
         const sources = App.Resolver.orderedSources(f);
-        srcDesc = sources.map((s, k) => (k + 1) + ". " +
-          (App.State.profile.files.find(x => x.id === s.file_id)?.label || s.file_id) +
-          " → " + s.column).join("   ");
+        srcDesc = sources.map((s, k) => {
+          const fd = App.State.profile.files.find(x => x.id === s.file_id);
+          const sheet = fd && fd.sheet ? " → " + fd.sheet : "";
+          return (k + 1) + ". " + (fd?.label || s.file_id) + sheet + " → " + s.column;
+        }).join("   ");
         if (!sources.length) srcDesc = "no sources";
       }
       const open = f._uiOpen ? " open" : "";
@@ -2012,9 +2204,12 @@ App.UI = {
             : '<option selected>' + U.esc(s.column) + '</option>';
           return '<div class="src-row' + (broken ? " broken" : "") + '">' +
             '<span class="src-rank">' + (i + 1) + '</span>' +
-            '<select data-src-file="' + U.esc(f.name) + '" data-i="' + i + '">' +
-              files.map(fd => '<option value="' + fd.id + '"' + (fd.id === s.file_id ? " selected" : "") + '>' +
-                U.esc(fd.label || fd.id) + '</option>').join("") +
+            '<select data-src-file="' + U.esc(f.name) + '" data-i="' + i + '" title="file → sheet">' +
+              files.map(fd => {
+                const sheetTxt = fd.sheet ? " (" + fd.sheet + ")" : "";
+                return '<option value="' + fd.id + '"' + (fd.id === s.file_id ? " selected" : "") + '>' +
+                  U.esc((fd.label || fd.id) + sheetTxt) + '</option>';
+              }).join("") +
             '</select>' +
             '<select data-src-col="' + U.esc(f.name) + '" data-i="' + i + '">' + colOptions + '</select>' +
             '<span class="inherit-tag ' + (f.priority_override ? "override" : "inherited") + '">' +
@@ -2169,6 +2364,15 @@ App.UI = {
       const fields = App.State.profile.canonical_schema.map(f => f.name);
       const templates = App.State.profile.output_templates.map(t => t.name);
 
+      /* natural column order, then apply saved column order (if any) on top */
+      const naturalOrder = ["input_key", "detected_identity"]
+        .concat(showCluster ? ["cluster_id"] : [])
+        .concat(fields).concat(templates.map(t => "tpl:" + t)).concat(["trail"]);
+      const naturalSet = new Set(naturalOrder);
+      const saved = (App.State.columnOrder || []).filter(c => naturalSet.has(c));
+      const missing = naturalOrder.filter(c => !saved.includes(c));
+      const ordered = saved.concat(missing);
+
       let rows = results.map((r, i) => ({ r, i }));
       rows = rows.filter(({ r }) => {
         const hasBlank = fields.some(f => U.isBlank(r.ctx[f]));
@@ -2183,33 +2387,30 @@ App.UI = {
         return true;
       });
 
-      const head = ["input_key", "detected_identity"]
-        .concat(showCluster ? ["cluster_id"] : [])
-        .concat(fields).concat(templates.map(t => "tpl:" + t)).concat(["trail"]);
+      function cellHTML(col, r, i) {
+        if (col === "input_key") return '<td title="' + U.esc(r.input_key) + '">' + U.esc(r.input_key) + '</td>';
+        if (col === "detected_identity") return '<td>' + (r.matched ? U.esc(r.detected_identity) : '<span class="dim">unmatched</span>') + '</td>';
+        if (col === "cluster_id") return '<td>' + (r.cluster_id != null ? r.cluster_id : "—") + '</td>';
+        if (col === "trail") return '<td><button class="trail-btn" data-trail="' + i + '">trail ▾</button></td>';
+        if (col.indexOf("tpl:") === 0) {
+          const v = r.templates[col.slice(4)];
+          return '<td class="tpl-cell" title="' + U.esc(v) + '">' + U.esc(U.toStr(v) || "—") + '</td>';
+        }
+        const v = r.ctx[col];
+        return U.isBlank(v)
+          ? '<td class="blank-cell">BLANK</td>'
+          : '<td title="' + U.esc(v) + '">' + U.esc(v) + '</td>';
+      }
+
       let html = "<table><thead><tr>" +
-        head.map(h => "<th>" + U.esc(h) + "</th>").join("") + "</tr></thead><tbody>";
+        ordered.map(c => '<th draggable="true" data-col="' + U.esc(c) + '" title="Drag to reorder · click to sort">' + U.esc(c) + '</th>').join("") +
+        "</tr></thead><tbody>";
       rows.forEach(({ r, i }) => {
-        html += '<tr class="data-row">' +
-          '<td title="' + U.esc(r.input_key) + '">' + U.esc(r.input_key) + '</td>' +
-          '<td>' + (r.matched ? U.esc(r.detected_identity)
-            : '<span class="dim">unmatched</span>') + '</td>' +
-          (showCluster ? '<td>' + (r.cluster_id != null ? r.cluster_id : "—") + '</td>' : '') +
-          fields.map(f => {
-            const v = r.ctx[f];
-            return U.isBlank(v)
-              ? '<td class="blank-cell">BLANK</td>'
-              : '<td title="' + U.esc(v) + '">' + U.esc(v) + '</td>';
-          }).join("") +
-          templates.map(t => {
-            const v = r.templates[t];
-            return '<td class="tpl-cell" title="' + U.esc(v) + '">' + U.esc(U.toStr(v) || "—") + '</td>';
-          }).join("") +
-          '<td><button class="trail-btn" data-trail="' + i + '">trail ▾</button></td>' +
-        '</tr>';
+        html += '<tr class="data-row">' + ordered.map(c => cellHTML(c, r, i)).join("") + '</tr>';
       });
       html += "</tbody></table>";
       el.innerHTML = html;
-      el._colspan = head.length;
+      el._colspan = ordered.length;
     },
     toggleTrail(i, btn) {
       const tr = btn.closest("tr");
@@ -2378,7 +2579,148 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ── panel collapse ── */
   document.querySelectorAll(".panel-header[data-toggle]").forEach(h => {
-    h.addEventListener("click", () => h.closest(".panel").classList.toggle("collapsed"));
+    h.addEventListener("click", e => {
+      /* don't collapse when clicking interactive controls in the header */
+      if (e.target.closest("button, input, select")) return;
+      h.closest(".panel").classList.toggle("collapsed");
+    });
+  });
+
+  /* ── step visualizations (rendered inline in each section + inside the info modal) ── */
+  const VIZ = {
+    register: () =>
+      '<div class="step-viz">' +
+        '<div class="viz-line"><strong>Register</strong> a workbook — pick its sheet, header row, &amp; declare which columns can act as join keys.</div>' +
+        '<div class="viz-row">' +
+          '<div class="viz-pill">workbook.xlsx</div>' +
+          '<div class="viz-arrow">→</div>' +
+          '<div class="viz-stack">' +
+            '<div class="viz-pill viz-tag">sheet: Sheet1</div>' +
+            '<div class="viz-pill viz-tag">header row: 1</div>' +
+          '</div>' +
+          '<div class="viz-arrow">→</div>' +
+          '<div class="viz-stack">' +
+            '<div class="viz-pill">key column: UPC</div>' +
+            '<div class="viz-pill">key column: SKU</div>' +
+            '<div class="viz-pill">key column: G  (by letter)</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>',
+    map: () =>
+      '<div class="step-viz">' +
+        '<div class="viz-line">Each canonical field maps to one or more <strong>file → sheet → column</strong> sources:</div>' +
+        '<div class="viz-line">canonical field <span class="viz-field">brand</span></div>' +
+        '<div class="viz-mapping">' +
+          '<span class="viz-rank">1.</span>' +
+          '<span class="viz-pill">file: File-A</span><span class="viz-arrow">→</span>' +
+          '<span class="viz-pill">sheet: Sheet1</span><span class="viz-arrow">→</span>' +
+          '<span class="viz-pill">column: brand_desc</span>' +
+        '</div>' +
+        '<div class="viz-mapping">' +
+          '<span class="viz-rank">2.</span>' +
+          '<span class="viz-pill">file: File-B</span><span class="viz-arrow">→</span>' +
+          '<span class="viz-pill">sheet: Report</span><span class="viz-arrow">→</span>' +
+          '<span class="viz-pill">column: BRAND</span>' +
+        '</div>' +
+      '</div>',
+    priority: () =>
+      '<div class="step-viz">' +
+        '<div class="viz-line">Resolution walks each field\'s source list. <strong>First non-blank value wins.</strong></div>' +
+        '<div class="viz-row viz-row-tight">' +
+          '<span class="viz-rank">1</span>' +
+          '<span class="viz-pill viz-blank">File-A → "brand_desc"</span>' +
+          '<span class="viz-note">— blank, skip</span>' +
+        '</div>' +
+        '<div class="viz-row viz-row-tight">' +
+          '<span class="viz-rank">2</span>' +
+          '<span class="viz-pill viz-hit">File-B → "BRAND" = "COSTA"</span>' +
+          '<span class="viz-note">✓ wins</span>' +
+        '</div>' +
+      '</div>',
+    templates: () =>
+      '<div class="step-viz">' +
+        '<div class="viz-line">Output templates concatenate canonical fields:</div>' +
+        '<div class="viz-formula"><span class="fn">JOIN</span>(<span class="str">" "</span>, <span class="field">{brand}</span>, <span class="field">{material}</span>, <span class="field">{eye_size}</span>)</div>' +
+        '<div class="viz-row">' +
+          '<div class="viz-pill">{brand} = "COSTA"</div>' +
+          '<div class="viz-pill">{material} = "06S9129"</div>' +
+          '<div class="viz-pill">{eye_size} = "64"</div>' +
+        '</div>' +
+        '<div class="viz-arrow viz-down">↓</div>' +
+        '<div class="viz-result-large">"COSTA 06S9129 64"</div>' +
+      '</div>',
+    input: () =>
+      '<div class="step-viz">' +
+        '<div class="viz-line">Each pasted key is detected by identity type, then routed to its cluster:</div>' +
+        '<div class="viz-row">' +
+          '<div class="viz-stack">' +
+            '<div class="viz-pill">97963819817</div>' +
+            '<div class="viz-pill">CPID0048213</div>' +
+            '<div class="viz-pill">91290164</div>' +
+          '</div>' +
+          '<div class="viz-arrow">→</div>' +
+          '<div class="viz-stack">' +
+            '<div class="viz-pill viz-tag">primary_upc</div>' +
+            '<div class="viz-pill viz-tag">cpid</div>' +
+            '<div class="viz-pill viz-tag">grid</div>' +
+          '</div>' +
+          '<div class="viz-arrow">→</div>' +
+          '<div class="viz-cluster">' +
+            '<div class="viz-cluster-id">cluster #0</div>' +
+            '<div class="viz-pill">File-A row 47</div>' +
+            '<div class="viz-pill">File-B row 12</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>',
+    results: () =>
+      '<div class="step-viz">' +
+        '<div class="viz-line">Resolved values + per-cell <strong>trail</strong> showing where each came from:</div>' +
+        '<div class="viz-row">' +
+          '<div class="viz-pill viz-field">97963819817</div>' +
+          '<div class="viz-arrow">→</div>' +
+          '<div class="viz-stack">' +
+            '<div class="viz-pill viz-hit">brand = "COSTA"</div>' +
+            '<div class="viz-pill viz-hit">material = "06S9129"</div>' +
+            '<div class="viz-pill viz-hit">desc_full = "COSTA 06S9129 64 …"</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="viz-trail">' +
+          'brand ← File-A → "brand_desc" (priority 1)<br>' +
+          'material ← File-A → "Material" (priority 1)<br>' +
+          'desc_full ← derived: JOIN(" ", {brand}, {material}, {eye_size}, …)' +
+        '</div>' +
+      '</div>',
+    /* combined per-section */
+    sources: () => VIZ.register() + VIZ.priority(),
+    schema: () => VIZ.map(),
+    run: () => VIZ.input() + VIZ.results()
+  };
+  document.querySelectorAll("[data-viz-fill]").forEach(el => {
+    const key = el.dataset.vizFill;
+    if (VIZ[key]) el.innerHTML = VIZ[key]();
+  });
+
+  /* ── section-viz collapse toggles ── */
+  document.querySelectorAll("[data-viz-toggle]").forEach(h => {
+    h.addEventListener("click", () => h.closest(".section-viz").classList.toggle("collapsed"));
+  });
+
+  /* ── panel-info-btn: open info modal at relevant step in About tab ── */
+  const PANEL_STEP_INDEX = { sources: 0, schema: 1, templates: 3, input: 4, results: 5 };
+  document.querySelectorAll("[data-panel-info]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      document.getElementById("infoModal").classList.add("open");
+      document.querySelectorAll(".info-modal-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === "about"));
+      document.querySelectorAll(".info-modal-pane").forEach(p => p.classList.toggle("active", p.id === "modal-tab-about"));
+      const idx = PANEL_STEP_INDEX[btn.dataset.panelInfo];
+      if (idx != null) {
+        setTimeout(() => {
+          const items = document.querySelectorAll("#modal-tab-about .step-list li");
+          if (items[idx]) items[idx].scrollIntoView({ block: "start", behavior: "smooth" });
+        }, 50);
+      }
+    });
   });
 
   /* ── theme ── */
@@ -2503,41 +2845,49 @@ document.addEventListener("DOMContentLoaded", () => {
       App.State.profile.file_priority = App.State.profile.file_priority.filter(x => x !== id);
       delete App.State.files[id];
       App.UI.renderAll(); markDirtyAndRefresh(false);
+      return;
     }
     if (t.dataset.slotReload) {
       const file = App.State.files[t.dataset.slotReload];
       if (file) { await App.Ctrl.loadIntoSlot(t.dataset.slotReload, file.filename, file.wb); App.UI.Sources.render(); }
+      return;
     }
     if (t.dataset.slotDelkey) {
       const fd = App.State.profile.files.find(f => f.id === t.dataset.slotDelkey);
       fd.key_columns = (fd.key_columns || []).filter(c => c !== t.dataset.key);
       App.Ctrl.rebuildSlotIndices(fd.id);
       App.UI.Sources.render(); markDirtyAndRefresh(false);
+      return;
+    }
+    if (t.dataset.slotToggle) {
+      const fd = App.State.profile.files.find(f => f.id === t.dataset.slotToggle);
+      if (fd) { fd._uiExpanded = !fd._uiExpanded; App.UI.Sources.render(); }
     }
   });
 
-  /* ── file priority drag-reorder ── */
-  const prioList = document.getElementById("priorityList");
-  let dragEl = null;
-  prioList.addEventListener("dragstart", e => {
-    dragEl = e.target.closest(".priority-item");
-    if (dragEl) dragEl.classList.add("dragging");
+  /* ── slot drag-reorder (slots ARE the file priority list) ── */
+  let slotDragEl = null;
+  slotGrid.addEventListener("dragstart", e => {
+    const summary = e.target.closest(".slot-summary");
+    if (!summary) return;
+    slotDragEl = summary.closest(".slot");
+    if (slotDragEl) slotDragEl.classList.add("dragging");
   });
-  prioList.addEventListener("dragend", () => {
-    if (dragEl) dragEl.classList.remove("dragging");
-    dragEl = null;
+  slotGrid.addEventListener("dragend", () => {
+    if (slotDragEl) slotDragEl.classList.remove("dragging");
+    slotDragEl = null;
   });
-  prioList.addEventListener("dragover", e => {
+  slotGrid.addEventListener("dragover", e => {
+    if (!slotDragEl) return;
     e.preventDefault();
-    const after = [...prioList.querySelectorAll(".priority-item:not(.dragging)")]
+    const after = [...slotGrid.querySelectorAll(".slot:not(.dragging)")]
       .find(el => e.clientY < el.getBoundingClientRect().top + el.offsetHeight / 2);
-    if (!dragEl) return;
-    if (after) prioList.insertBefore(dragEl, after);
-    else prioList.appendChild(dragEl);
+    if (after) slotGrid.insertBefore(slotDragEl, after);
+    else slotGrid.appendChild(slotDragEl);
   });
-  prioList.addEventListener("drop", () => {
+  slotGrid.addEventListener("drop", () => {
     App.State.profile.file_priority =
-      [...prioList.querySelectorAll(".priority-item")].map(el => el.dataset.prio);
+      [...slotGrid.querySelectorAll(".slot")].map(el => el.dataset.id);
     App.UI.Sources.render();
     App.UI.Schema.render();
     markDirtyAndRefresh(false);
@@ -2723,31 +3073,75 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById(id).addEventListener("input", () => App.UI.Results.render()));
   document.getElementById("resultsTable").addEventListener("click", e => {
     const b = e.target.closest("[data-trail]");
-    if (b) App.UI.Results.toggleTrail(Number(b.dataset.trail), b);
+    if (b) { App.UI.Results.toggleTrail(Number(b.dataset.trail), b); return; }
+    /* drag may have just happened — skip sort if a column was reordered */
+    if (App.State._justDragged) { App.State._justDragged = false; return; }
     const th = e.target.closest("th");
-    /* sort by clicked column */
-    if (th && App.State.results.length) {
-      const idx = [...th.parentElement.children].indexOf(th);
-      const fields = ["input_key", "detected_identity"]
-        .concat(document.getElementById("showClusterId").checked ? ["cluster_id"] : [])
-        .concat(App.State.profile.canonical_schema.map(f => f.name))
-        .concat(App.State.profile.output_templates.map(t => "tpl:" + t.name));
-      const key = fields[idx];
-      if (key) {
-        const getv = r => key === "input_key" ? r.input_key
-          : key === "detected_identity" ? r.detected_identity
-          : key === "cluster_id" ? r.cluster_id
-          : key.startsWith("tpl:") ? U.toStr(r.templates[key.slice(4)])
-          : U.toStr(r.ctx[key]);
-        const dir = App.State._sortKey === key ? -(App.State._sortDir || 1) : 1;
-        App.State._sortKey = key; App.State._sortDir = dir;
-        App.State.results.sort((a, b2) => {
-          const va = getv(a), vb = getv(b2);
-          return (va < vb ? -1 : va > vb ? 1 : 0) * dir;
-        });
-        App.UI.Results.render();
-      }
+    if (th && App.State.results.length && th.dataset.col && th.dataset.col !== "trail") {
+      const key = th.dataset.col;
+      const getv = r => key === "input_key" ? r.input_key
+        : key === "detected_identity" ? r.detected_identity
+        : key === "cluster_id" ? r.cluster_id
+        : key.indexOf("tpl:") === 0 ? U.toStr(r.templates[key.slice(4)])
+        : U.toStr(r.ctx[key]);
+      const dir = App.State._sortKey === key ? -(App.State._sortDir || 1) : 1;
+      App.State._sortKey = key; App.State._sortDir = dir;
+      App.State.results.sort((a, b2) => {
+        const va = getv(a), vb = getv(b2);
+        return (va < vb ? -1 : va > vb ? 1 : 0) * dir;
+      });
+      App.UI.Results.render();
     }
+  });
+
+  /* ── draggable column reorder on results table ── */
+  const resultsTableEl = document.getElementById("resultsTable");
+  let thDragEl = null;
+  resultsTableEl.addEventListener("dragstart", e => {
+    const th = e.target.closest("th");
+    if (!th) return;
+    thDragEl = th;
+    th.classList.add("col-dragging");
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", th.dataset.col); } catch (_) {}
+  });
+  resultsTableEl.addEventListener("dragover", e => {
+    if (!thDragEl) return;
+    const th = e.target.closest("th");
+    if (!th || th === thDragEl) return;
+    e.preventDefault();
+    resultsTableEl.querySelectorAll("th.col-drop-target").forEach(x => x.classList.remove("col-drop-target"));
+    th.classList.add("col-drop-target");
+  });
+  resultsTableEl.addEventListener("dragleave", e => {
+    const th = e.target.closest("th");
+    if (th) th.classList.remove("col-drop-target");
+  });
+  resultsTableEl.addEventListener("drop", e => {
+    if (!thDragEl) return;
+    const th = e.target.closest("th");
+    if (!th || th === thDragEl) return;
+    e.preventDefault();
+    const headers = [...th.parentElement.children];
+    const cols = headers.map(h => h.dataset.col);
+    const fromIdx = headers.indexOf(thDragEl);
+    const toIdx = headers.indexOf(th);
+    const [moved] = cols.splice(fromIdx, 1);
+    cols.splice(toIdx, 0, moved);
+    App.State.columnOrder = cols;
+    App.State._justDragged = true;
+    setTimeout(() => { App.State._justDragged = false; }, 0);
+    App.UI.Results.render();
+  });
+  resultsTableEl.addEventListener("dragend", () => {
+    if (thDragEl) thDragEl.classList.remove("col-dragging");
+    resultsTableEl.querySelectorAll("th.col-drop-target").forEach(x => x.classList.remove("col-drop-target"));
+    thDragEl = null;
+  });
+  document.getElementById("resetColsBtn").addEventListener("click", () => {
+    App.State.columnOrder = null;
+    App.UI.Results.render();
+    App.UI.toast("Column order reset.");
   });
 
   /* ── export results ── */
