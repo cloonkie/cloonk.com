@@ -1945,6 +1945,7 @@ const BASE_CALCULATED_METRICS = [
 const AUTOSAVE_KEY = "sellout-standardizer-progress-v1";
 const CONFIG_HISTORY_KEY = "retail-data-standardizer-config-history-v1";
 const CONFIG_HISTORY_LIMIT = 12;
+const AUTO_INCLUDE_SHEET_LIMIT = 5;
 
 const state = {
   sources: [],
@@ -2381,14 +2382,16 @@ async function handleFiles(files) {
         await yieldToBrowser();
         const wb = XLSX.read(data, { type: "array", cellDates: true });
         const sheetNames = wb.SheetNames;
+        const defaultIncludeSheets = sheetNames.length <= AUTO_INCLUDE_SHEET_LIMIT;
         for (let sIdx = 0; sIdx < sheetNames.length; sIdx++) {
           const sheetName = sheetNames[sIdx];
           showLoadProgress(`${file.name} → ${sheetName}`, `${fileCount} · sheet ${sIdx + 1} / ${sheetNames.length}`);
           await yieldToBrowser();
           const ws = wb.Sheets[sheetName];
           const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
-          addSource(file.name, sheetName, rows);
+          addSource(file.name, sheetName, rows, { defaultIncluded: defaultIncludeSheets });
         }
+        if (!defaultIncludeSheets) toast(`${file.name} has ${sheetNames.length} sheets. Select the sheets you need from Input.`);
       }
     } catch (error) {
       toast(`Could not read ${file.name}: ${error.message}`);
@@ -2399,16 +2402,17 @@ async function handleFiles(files) {
   autoDetect();
   rebuild();
   hideLoadProgress();
-  toast(`Loaded ${state.sources.length} source${state.sources.length === 1 ? "" : "s"}.`);
+  const includedCount = getIncludedSources().length;
+  toast(`Loaded ${state.sources.length} source${state.sources.length === 1 ? "" : "s"}; ${includedCount} included.`);
 }
 
-function addSource(name, sheet, rows) {
+function addSource(name, sheet, rows, options = {}) {
   const cleanRows = normalizeRows(rows);
   if (!cleanRows.length) return;
   state.config.sheetIncludes = state.config.sheetIncludes || {};
   state.config.sourceOverrides = state.config.sourceOverrides || {};
   const exactKey = sheetKey(name, sheet);
-  const included = state.config.sheetIncludes[exactKey] ?? state.config.sheetIncludes[sheet] ?? true;
+  const included = state.config.sheetIncludes[exactKey] ?? state.config.sheetIncludes[sheet] ?? options.defaultIncluded ?? true;
   if (!state.config.sourceOverrides[exactKey]) {
     const suggested = suggestSourceOverrides(name, sheet);
     if (suggested.yearBasis || Object.keys(suggested.dimensions).length) {
