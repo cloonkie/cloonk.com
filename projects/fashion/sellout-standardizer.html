@@ -491,6 +491,65 @@ h1 {
 .file-status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
 .file-status-dot.active { background: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
 .file-status-dot.dormant { background: var(--warn); opacity: 0.6; }
+.workbook-pending {
+  border: 1px solid var(--warn);
+  border-radius: var(--radius-xs);
+  background: rgba(232, 185, 49, 0.06);
+  overflow: hidden;
+}
+.workbook-pending-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 9px;
+  border-bottom: 1px solid color-mix(in oklab, var(--warn) 40%, transparent);
+}
+.workbook-pending-title {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.workbook-pending-title strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+}
+.workbook-pending-title span {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+}
+.workbook-sheet-actions {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.workbook-sheet-list {
+  display: grid;
+  gap: 2px;
+  max-height: 160px;
+  overflow-y: auto;
+  padding: 7px;
+}
+.workbook-sheet-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+.workbook-sheet-option:hover { background: var(--accent-dim); color: var(--text); }
+.workbook-sheet-option input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+}
 .override-active-row {
   display: flex;
   align-items: flex-start;
@@ -894,13 +953,13 @@ th.metadata-col { background: var(--surface-raised); }
 td.metadata-col { background: transparent; }
 th.raw-mapped-metric {
   background-color: var(--surface-raised);
-  background-image: linear-gradient(rgba(125, 120, 111, 0.18), rgba(125, 120, 111, 0.18));
-  color: var(--text-dim);
-  box-shadow: inset 0 -2px 0 var(--text-dim);
+  background-image: linear-gradient(rgba(232, 185, 49, 0.12), rgba(232, 185, 49, 0.12));
+  color: var(--warn);
+  box-shadow: inset 0 -2px 0 var(--warn);
 }
-th.raw-mapped-metric .raw-header-map button { color: var(--text-dim); }
-td.raw-mapped-metric { background: rgba(125, 120, 111, 0.10); color: var(--text-dim); }
-tr:hover td.raw-mapped-metric { background: rgba(125, 120, 111, 0.18); color: var(--text-muted); }
+th.raw-mapped-metric .raw-header-map button { color: var(--warn); }
+td.raw-mapped-metric { background: rgba(232, 185, 49, 0.12); }
+tr:hover td.raw-mapped-metric { background: rgba(232, 185, 49, 0.20); }
 td { color: var(--text); }
 tr:hover td { background: var(--accent-dim); }
 .table-select {
@@ -979,6 +1038,21 @@ tr:hover td { background: var(--accent-dim); }
 .assign-pill:hover { border-color: var(--border-hover); color: var(--text); }
 .assign-pill.dimension { border-color: var(--accent); color: var(--accent); }
 .assign-pill.metric { border-color: var(--warn); color: var(--warn); }
+.assign-pill.is-assigned {
+  border-color: var(--border);
+  background: color-mix(in oklab, var(--surface-card) 72%, var(--text-dim));
+  color: var(--text-dim);
+  opacity: 0.72;
+}
+.assign-pill.is-current {
+  background: var(--accent-dim);
+  color: var(--text);
+  opacity: 1;
+}
+.assign-pill.metric.is-current {
+  background: rgba(232, 185, 49, 0.16);
+  color: var(--warn);
+}
 .custom-assign-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
@@ -1949,6 +2023,7 @@ const AUTO_INCLUDE_SHEET_LIMIT = 5;
 
 const state = {
   sources: [],
+  pendingWorkbooks: [],
   config: makeDefaultConfig(),
   headers: [],
   output: [],
@@ -2380,18 +2455,22 @@ async function handleFiles(files) {
         const data = await file.arrayBuffer();
         showLoadProgress(`Parsing workbook: ${file.name}`, fileCount);
         await yieldToBrowser();
-        const wb = XLSX.read(data, { type: "array", cellDates: true });
-        const sheetNames = wb.SheetNames;
-        const defaultIncludeSheets = sheetNames.length <= AUTO_INCLUDE_SHEET_LIMIT;
-        for (let sIdx = 0; sIdx < sheetNames.length; sIdx++) {
-          const sheetName = sheetNames[sIdx];
-          showLoadProgress(`${file.name} → ${sheetName}`, `${fileCount} · sheet ${sIdx + 1} / ${sheetNames.length}`);
-          await yieldToBrowser();
-          const ws = wb.Sheets[sheetName];
-          const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
-          addSource(file.name, sheetName, rows, { defaultIncluded: defaultIncludeSheets });
+        const metadata = XLSX.read(data, { type: "array", bookSheets: true });
+        const sheetNames = metadata.SheetNames || [];
+        if (sheetNames.length > AUTO_INCLUDE_SHEET_LIMIT) {
+          addPendingWorkbook(file.name, data, sheetNames);
+          toast(`${file.name} has ${sheetNames.length} sheets. Select the sheets you need from Input.`);
+        } else {
+          const wb = XLSX.read(data, { type: "array", cellDates: true });
+          for (let sIdx = 0; sIdx < sheetNames.length; sIdx++) {
+            const sheetName = sheetNames[sIdx];
+            showLoadProgress(`${file.name} → ${sheetName}`, `${fileCount} · sheet ${sIdx + 1} / ${sheetNames.length}`);
+            await yieldToBrowser();
+            const ws = wb.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
+            addSource(file.name, sheetName, rows, { defaultIncluded: true });
+          }
         }
-        if (!defaultIncludeSheets) toast(`${file.name} has ${sheetNames.length} sheets. Select the sheets you need from Input.`);
       }
     } catch (error) {
       toast(`Could not read ${file.name}: ${error.message}`);
@@ -2403,7 +2482,19 @@ async function handleFiles(files) {
   rebuild();
   hideLoadProgress();
   const includedCount = getIncludedSources().length;
-  toast(`Loaded ${state.sources.length} source${state.sources.length === 1 ? "" : "s"}; ${includedCount} included.`);
+  const pendingCount = state.pendingWorkbooks.length;
+  toast(`Loaded ${state.sources.length} source${state.sources.length === 1 ? "" : "s"}; ${includedCount} included${pendingCount ? `; ${pendingCount} workbook${pendingCount === 1 ? "" : "s"} awaiting sheet selection` : ""}.`);
+}
+
+function addPendingWorkbook(name, data, sheetNames) {
+  state.pendingWorkbooks = state.pendingWorkbooks || [];
+  state.pendingWorkbooks.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    name,
+    data,
+    sheetNames,
+    selectedSheets: []
+  });
 }
 
 function addSource(name, sheet, rows, options = {}) {
@@ -2426,6 +2517,37 @@ function addSource(name, sheet, rows, options = {}) {
     included,
     rows: cleanRows
   });
+}
+
+async function loadPendingWorkbook(id) {
+  const workbook = (state.pendingWorkbooks || []).find(item => item.id === id);
+  if (!workbook) return;
+  const selected = (workbook.selectedSheets || []).filter(sheet => workbook.sheetNames.includes(sheet));
+  if (!selected.length) { toast("Select at least one sheet first."); return; }
+  try {
+    showLoadProgress(`Parsing selected sheets: ${workbook.name}`, `${selected.length} / ${workbook.sheetNames.length}`);
+    await yieldToBrowser();
+    const wb = XLSX.read(workbook.data, { type: "array", cellDates: true, sheets: selected });
+    for (let sIdx = 0; sIdx < selected.length; sIdx++) {
+      const sheetName = selected[sIdx];
+      showLoadProgress(`${workbook.name} → ${sheetName}`, `sheet ${sIdx + 1} / ${selected.length}`);
+      await yieldToBrowser();
+      const ws = wb.Sheets[sheetName];
+      if (!ws) continue;
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
+      addSource(workbook.name, sheetName, rows, { defaultIncluded: true });
+    }
+    state.pendingWorkbooks = (state.pendingWorkbooks || []).filter(item => item.id !== id);
+    showLoadProgress("Detecting headers and building preview...", "");
+    await yieldToBrowser();
+    autoDetect();
+    rebuild();
+    toast(`Loaded ${selected.length} selected sheet${selected.length === 1 ? "" : "s"} from ${workbook.name}.`);
+  } catch (error) {
+    toast(`Could not load selected sheets: ${error.message}`);
+  } finally {
+    hideLoadProgress();
+  }
 }
 
 function autoDetect() {
@@ -2755,14 +2877,40 @@ function buildOutput() {
 }
 
 function renderFileList() {
-  if (els.dropzone) els.dropzone.hidden = state.sources.length > 0;
-  if (!state.sources.length) {
+  state.pendingWorkbooks = state.pendingWorkbooks || [];
+  if (els.dropzone) els.dropzone.hidden = state.sources.length > 0 || state.pendingWorkbooks.length > 0;
+  if (!state.sources.length && !state.pendingWorkbooks.length) {
     els.fileList.innerHTML = '<div class="empty-state" style="min-height:96px;padding:14px;"><strong>No sources yet</strong><span>Use Insert File or drop files above.</span></div>';
     return;
   }
   state.expandedOverrides = state.expandedOverrides instanceof Set ? state.expandedOverrides : new Set();
   const formatRows = n => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
-  els.fileList.innerHTML = state.sources.map(source => {
+  const pendingHtml = state.pendingWorkbooks.map(workbook => {
+    const selected = new Set(workbook.selectedSheets || []);
+    return `<div class="workbook-pending">
+      <div class="workbook-pending-header">
+        <div class="workbook-pending-title">
+          <strong title="${esc(workbook.name)}">${esc(workbook.name)}</strong>
+          <span>${workbook.sheetNames.length} sheets · ${selected.size} selected</span>
+        </div>
+        <div class="workbook-sheet-actions">
+          <button class="btn btn-sm" type="button" data-pending-select-all="${esc(workbook.id)}">Select all</button>
+          <button class="btn btn-sm" type="button" data-pending-clear="${esc(workbook.id)}">Clear</button>
+          <button class="btn btn-sm btn-accent" type="button" data-pending-load="${esc(workbook.id)}" ${selected.size ? "" : "disabled"}>Load selected</button>
+          <button class="btn btn-sm btn-danger" type="button" data-pending-remove="${esc(workbook.id)}">×</button>
+        </div>
+      </div>
+      <div class="workbook-sheet-list">
+        ${workbook.sheetNames.map(sheet => `
+          <label class="workbook-sheet-option">
+            <input type="checkbox" data-pending-sheet="${esc(workbook.id)}" value="${esc(sheet)}" ${selected.has(sheet) ? "checked" : ""}>
+            <span>${esc(sheet)}</span>
+          </label>
+        `).join("")}
+      </div>
+    </div>`;
+  }).join("");
+  const sourceHtml = state.sources.map(source => {
     const override = getSourceOverride(source) || { active: false, yearBasis: "", dimensions: {} };
     const isExpanded = state.expandedOverrides.has(source.id);
     const dimEntries = Object.entries(override.dimensions || {}).filter(([_, v]) => cleanHeader(v));
@@ -2815,6 +2963,7 @@ function renderFileList() {
       </div>
     `;
   }).join("");
+  els.fileList.innerHTML = pendingHtml + sourceHtml;
 }
 
 function renderCadenceSelectors() {
@@ -3677,6 +3826,24 @@ function closeAssignPopover() {
 
 function renderAssignPopover(headerIndex, anchor) {
   if (!els.assignPopover) return;
+  const currentValue = getHeaderAssignmentValue(headerIndex);
+  const assignedDimensionColumns = new Map(Object.entries(state.config.mappings || {})
+    .filter(([, idx]) => isMappedColumn(idx))
+    .map(([key, idx]) => [`dimension:${key}`, Number(idx)]));
+  const assignedMetricColumns = new Map(Object.entries(state.config.metricMappings || {})
+    .filter(([, idx]) => isMappedColumn(idx))
+    .map(([key, idx]) => [`metric:${key}`, Number(idx)]));
+  const optionStateClass = value => {
+    const assignedIndex = (value.startsWith("dimension:") ? assignedDimensionColumns : assignedMetricColumns).get(value);
+    if (assignedIndex === undefined) return "";
+    if (assignedIndex === headerIndex || value === currentValue) return " is-current";
+    return " is-assigned";
+  };
+  const optionTitle = value => {
+    const assignedIndex = (value.startsWith("dimension:") ? assignedDimensionColumns : assignedMetricColumns).get(value);
+    if (assignedIndex === undefined) return "";
+    return assignedIndex === headerIndex ? "Assigned to this column" : `Already assigned to COL_${assignedIndex + 1}`;
+  };
   const dimensionOptions = getStandardFields().map(field => ({ value: `dimension:${field.key}`, label: field.label }));
   const metricOptions = getActiveMappingTriples().map(({ cadence, yearBasis, metric }) => {
     const key = metricMapKey(cadence, yearBasis, metric.key);
@@ -3688,13 +3855,13 @@ function renderAssignPopover(headerIndex, anchor) {
     <div class="assign-popover-section">
       <span>Dimensions</span>
       <div class="assign-pill-list">
-        ${dimensionOptions.map(item => `<button class="assign-pill dimension" data-assign-value="${esc(item.value)}">${esc(item.label)}</button>`).join("")}
+        ${dimensionOptions.map(item => `<button class="assign-pill dimension${optionStateClass(item.value)}" data-assign-value="${esc(item.value)}" title="${esc(optionTitle(item.value))}">${esc(item.label)}</button>`).join("")}
       </div>
     </div>
     <div class="assign-popover-section">
       <span>Metrics</span>
       <div class="assign-pill-list">
-        ${metricOptions.map(item => `<button class="assign-pill metric" data-assign-value="${esc(item.value)}">${esc(item.label)}</button>`).join("") || '<span class="chip">No metric slots</span>'}
+        ${metricOptions.map(item => `<button class="assign-pill metric${optionStateClass(item.value)}" data-assign-value="${esc(item.value)}" title="${esc(optionTitle(item.value))}">${esc(item.label)}</button>`).join("") || '<span class="chip">No metric slots</span>'}
       </div>
     </div>
     <div class="assign-popover-section">
@@ -3889,6 +4056,15 @@ function defaultConfigName() {
   return base ? `${base} config` : `Config ${today()}`;
 }
 
+function configFileName(name) {
+  const safe = String(name || "Retail Data Standardizer Config")
+    .trim()
+    .replace(/[^a-z0-9]+/gi, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 80) || "Retail_Data_Standardizer_Config";
+  return `${safe}_${today()}.json`;
+}
+
 function getConfigHistory() {
   try {
     const raw = localStorage.getItem(CONFIG_HISTORY_KEY);
@@ -3921,8 +4097,9 @@ function saveCurrentConfig() {
   const name = prompt("Config name", defaultConfigName());
   if (name === null) return;
   const saved = saveConfigToHistory(name);
+  downloadBlob(configFileName(saved.name), "application/json", JSON.stringify(saved, null, 2));
   closeConfigMenu();
-  toast(`Saved config: ${saved.name}.`);
+  toast(`Saved config locally and downloaded: ${saved.name}.`);
 }
 
 function renderConfigHistory() {
@@ -4127,6 +4304,7 @@ function loadProgressLocal() {
     state.suppressAutosave = true;
     hydrateConfig(saved.config || {});
     state.sources = Array.isArray(saved.sources) ? saved.sources : [];
+    state.pendingWorkbooks = [];
     state.view = saved.view || "output";
     document.querySelectorAll(".view-tab").forEach(btn => btn.classList.toggle("active", btn.dataset.view === state.view));
     applyCollapseState();
@@ -4141,6 +4319,7 @@ function loadProgressLocal() {
 function clearAllData() {
   state.suppressAutosave = true;
   state.sources = [];
+  state.pendingWorkbooks = [];
   state.headers = [];
   state.output = [];
   hydrateConfig(makeDefaultConfig());
@@ -4242,6 +4421,33 @@ els.addPasteBtn.addEventListener("click", () => {
   toast("Pasted report added.");
 });
 els.fileList.addEventListener("click", e => {
+  const pendingSelectAll = e.target.closest("[data-pending-select-all]");
+  if (pendingSelectAll) {
+    const workbook = (state.pendingWorkbooks || []).find(item => item.id === pendingSelectAll.dataset.pendingSelectAll);
+    if (!workbook) return;
+    workbook.selectedSheets = workbook.sheetNames.slice();
+    renderFileList();
+    return;
+  }
+  const pendingClear = e.target.closest("[data-pending-clear]");
+  if (pendingClear) {
+    const workbook = (state.pendingWorkbooks || []).find(item => item.id === pendingClear.dataset.pendingClear);
+    if (!workbook) return;
+    workbook.selectedSheets = [];
+    renderFileList();
+    return;
+  }
+  const pendingLoad = e.target.closest("[data-pending-load]");
+  if (pendingLoad) {
+    loadPendingWorkbook(pendingLoad.dataset.pendingLoad);
+    return;
+  }
+  const pendingRemove = e.target.closest("[data-pending-remove]");
+  if (pendingRemove) {
+    state.pendingWorkbooks = (state.pendingWorkbooks || []).filter(item => item.id !== pendingRemove.dataset.pendingRemove);
+    rebuild();
+    return;
+  }
   const remove = e.target.closest("[data-remove]");
   if (remove) {
     state.sources = state.sources.filter(source => source.id !== remove.dataset.remove);
@@ -4285,6 +4491,17 @@ els.fileList.addEventListener("click", e => {
   }
 });
 els.fileList.addEventListener("change", e => {
+  const pendingSheet = e.target.closest("[data-pending-sheet]");
+  if (pendingSheet) {
+    const workbook = (state.pendingWorkbooks || []).find(item => item.id === pendingSheet.dataset.pendingSheet);
+    if (!workbook) return;
+    const selected = new Set(workbook.selectedSheets || []);
+    if (pendingSheet.checked) selected.add(pendingSheet.value);
+    else selected.delete(pendingSheet.value);
+    workbook.selectedSheets = workbook.sheetNames.filter(sheet => selected.has(sheet));
+    renderFileList();
+    return;
+  }
   const includeInput = e.target.closest("[data-include]");
   if (includeInput) {
     const source = state.sources.find(item => item.id === includeInput.dataset.include);
