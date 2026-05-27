@@ -701,6 +701,20 @@ body.mode-map .map-filter-rail {
   z-index: 95;
   width: 220px;
 }
+.map-store-panel {
+  position: relative;
+  min-height: 0;
+}
+body.mode-map .map-store-panel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 95;
+  width: min(340px, calc(100vw - 260px));
+}
+body.mode-map .map-store-panel .door-list {
+  max-height: min(420px, calc(100vh - 238px));
+}
 .map-filter-section {
   border: 1px solid var(--border);
   border-radius: 5px;
@@ -847,7 +861,21 @@ body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; fo
 .door-warn-callout .door-warn-msg { flex: 1; min-width: 200px; }
 .door-warn-callout .door-warn-msg strong { color: var(--draft); display: block; margin-bottom: 2px; }
 @media (max-width: 860px) { .door-list { max-height: 320px; } }
-@media (max-width: 720px) { body.mode-map .map-filter-rail { width: calc(100vw - 24px); } body.mode-map .door-detail { display: none; } }
+@media (max-width: 720px) {
+  body.mode-map .map-filter-rail,
+  body.mode-map .map-store-panel {
+    width: calc(100vw - 24px);
+  }
+  body.mode-map .map-store-panel {
+    top: auto;
+    right: 12px;
+    bottom: 12px;
+  }
+  body.mode-map .map-store-panel .door-list {
+    max-height: 220px;
+  }
+  body.mode-map .door-detail { display: none; }
+}
 .door-item { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 0.75rem; cursor: pointer; transition: background var(--transition); display: flex; justify-content: space-between; align-items: center; }
 .door-item:hover { background: var(--accent-dim); }
 .door-item.active { background: var(--accent-mid); border-left: 3px solid var(--accent); }
@@ -1302,6 +1330,7 @@ body.light .data-cell-note { background: #f4f2ee; }
   </div>
   <div class="map-layer-toolbar" id="mapLayerToolbar" aria-label="Map layers">
     <div class="toggle-pill" data-layer="doors" onclick="toggleResearchLayer('doors')" title="Show retailer-colored door pins"><div class="toggle-dot"></div>Doors</div>
+    <div class="toggle-pill" data-cluster-toggle onclick="toggleResearchClustering()" title="Group nearby stores into numbered clusters when zoomed out"><div class="toggle-dot"></div>Clusters</div>
     <div class="toggle-pill inactive" data-layer="brands" onclick="toggleResearchLayer('brands')" title="Size pins by brands carried while keeping retailer colors"><div class="toggle-dot"></div>Brand density</div>
     <div class="toggle-pill inactive" data-layer="heat" onclick="toggleResearchLayer('heat')" title="Heatmap showing store concentration"><div class="toggle-dot"></div>Store heatmap</div>
   </div>
@@ -3404,13 +3433,11 @@ function renderResearch(){
             <div class="map-filter-body" id="mapRetailerFilter"></div>
           </details>
           <details class="map-filter-section" open>
-            <summary>Groups</summary>
-            <div class="map-filter-body" id="mapRetailerGroupFilter"></div>
-          </details>
-          <details class="map-filter-section" open>
             <summary>Brands</summary>
             <div class="map-filter-body" id="mapBrandFilter"></div>
           </details>
+        </div>
+        <div class="map-store-panel">
           <details class="map-filter-section" ${window._doorListCollapsed===true?'':'open'}>
             <summary>Stores</summary>
             <div class="map-filter-body">
@@ -3450,16 +3477,22 @@ function toggleDoorListCollapse(){
 
 function renderMapFilterClones(){
   const showAsHost=document.getElementById('mapShowAsFilter');
-  const groupHost=document.getElementById('mapRetailerGroupFilter');
   const retHost=document.getElementById('mapRetailerFilter');
   const channelHost=document.getElementById('mapRetailerChannelFilter');
   const brandHost=document.getElementById('mapBrandFilter');
   if(showAsHost) showAsHost.innerHTML=renderMapShowAsFilter();
-  if(groupHost) groupHost.innerHTML=renderMapToggleFilter('fRetGroup','retailer-group');
-  if(retHost) retHost.innerHTML=renderMapToggleFilter('fRet','retailer');
+  if(retHost) retHost.innerHTML=renderMapRetailerOrGroupFilter();
   if(channelHost) channelHost.innerHTML=renderMapToggleFilter('fRetChannel','channel');
   if(brandHost) brandHost.innerHTML=renderMapToggleFilter('fBrand','brand');
   updateShowAsVisibility();
+}
+
+function renderMapRetailerOrGroupFilter(){
+  const on=isShowByGroupOn();
+  return `<div class="retailer-group-toggle map-embedded ${on?'is-on':''}" role="button" tabindex="0" data-map-group-toggle="1" aria-pressed="${on?'true':'false'}" title="Swap retailer pills for parent group pills">
+      <span>Show by Group</span>
+      <span class="refine-switch" aria-hidden="true"><span class="refine-switch-knob"></span></span>
+    </div>` + renderMapToggleFilter(on?'fRetGroup':'fRet', on?'retailer-group':'retailer');
 }
 
 function renderMapToggleFilter(sourceId,filterKind){
@@ -3519,12 +3552,14 @@ function onMapFilterClearKey(e,sourceId){
 }
 
 function handleMapFilterEvent(e){
-  const row=e.target.closest('[data-map-show-as],[data-map-source],[data-map-clear]');
+  const row=e.target.closest('[data-map-show-as],[data-map-source],[data-map-clear],[data-map-group-toggle]');
   if(!row || !row.closest('.map-filter-rail')) return;
   if(e.type==='keydown' && e.key!=='Enter' && e.key!==' ') return;
   e.preventDefault();
   e.stopPropagation();
-  if(row.dataset.mapShowAs){
+  if(row.dataset.mapGroupToggle){
+    toggleShowByGroupSwitch(e);
+  }else if(row.dataset.mapShowAs){
     setShowAs(row.dataset.mapShowAs);
   }else if(row.dataset.mapSource){
     toggleMapFilterValue(row.dataset.mapSource,row.dataset.mapValue);
@@ -3824,6 +3859,7 @@ if(window.mapboxgl) mapboxgl.accessToken=MAPBOX_TOKEN;
 /* ── Multi-door research map (urban-retail-access style) ──────
    One persistent Mapbox instance per Research-view entry. Three toggleable
    layers backed by a single GeoJSON source:
+     doors-clusters  zoomed-out store clusters with counts
      doors-heatmap   store density
      doors-brands    color by brand count at each door
      doors-circle    plain gold pin (default)
@@ -3833,7 +3869,26 @@ let _resMap=null;
 let _resMapStyleReady=false;
 let _resMapRetailer=null;
 let _layerVisible={doors:true,brands:false,heat:false};
-const LAYER_IDS={doors:['doors-circle'],brands:['doors-brands'],heat:['doors-heatmap']};
+let _clusterEnabled=true;
+const LAYER_IDS={doors:['doors-clusters','doors-cluster-count','doors-circle'],brands:['doors-brands'],heat:['doors-heatmap']};
+const RESEARCH_MAP_LAYER_ORDER=['doors-selected','doors-circle','doors-brands','doors-cluster-count','doors-clusters','doors-heatmap'];
+
+function onResearchClusterClick(e){
+  const feature=e.features && e.features[0];
+  if(!feature || !_resMap) return;
+  const clusterId=feature.properties.cluster_id;
+  const source=_resMap.getSource('doors');
+  if(!source || typeof source.getClusterExpansionZoom!=='function') return;
+  source.getClusterExpansionZoom(clusterId,(err,zoom)=>{
+    if(err) return;
+    _resMap.easeTo({
+      center:feature.geometry.coordinates,
+      zoom,
+      duration:650,
+      essential:true
+    });
+  });
+}
 
 function initResearchMap(){
   const el=document.getElementById('resMap');
@@ -3862,7 +3917,16 @@ function initResearchMap(){
 
 function addResearchMapLayers(){
   if(!_resMap.getSource('doors')){
-    _resMap.addSource('doors',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+    const sourceConfig={
+      type:'geojson',
+      data:{type:'FeatureCollection',features:[]}
+    };
+    if(_clusterEnabled){
+      sourceConfig.cluster=true;
+      sourceConfig.clusterMaxZoom=8;
+      sourceConfig.clusterRadius=46;
+    }
+    _resMap.addSource('doors',sourceConfig);
   }
   if(!_resMap.getLayer('doors-heatmap')){
     _resMap.addLayer({
@@ -3870,16 +3934,50 @@ function addResearchMapLayers(){
       maxzoom:14,
       layout:{visibility:_layerVisible.heat?'visible':'none'},
       paint:{
-        'heatmap-weight':1,
+        'heatmap-weight':['coalesce',['get','point_count'],1],
         'heatmap-intensity':['interpolate',['linear'],['zoom'],0,0.6,12,1.4],
         'heatmap-radius':['interpolate',['linear'],['zoom'],0,8,12,36],
         'heatmap-opacity':['interpolate',['linear'],['zoom'],11,0.8,14,0]
       }
     });
   }
+  if(!_resMap.getLayer('doors-clusters')){
+    _resMap.addLayer({
+      id:'doors-clusters',type:'circle',source:'doors',
+      filter:['has','point_count'],
+      layout:{visibility:(_layerVisible.doors && _clusterEnabled)?'visible':'none'},
+      paint:{
+        'circle-radius':['step',['get','point_count'],15,10,19,25,24,50,30],
+        'circle-color':['step',['get','point_count'],'#e8b931',10,'#d99b25',25,'#c66a2e',50,'#b5442d'],
+        'circle-opacity':0.92,
+        'circle-stroke-width':2,
+        'circle-stroke-color':'rgba(255,255,255,0.78)'
+      }
+    });
+  }
+  if(!_resMap.getLayer('doors-cluster-count')){
+    _resMap.addLayer({
+      id:'doors-cluster-count',type:'symbol',source:'doors',
+      filter:['has','point_count'],
+      layout:{
+        visibility:(_layerVisible.doors && _clusterEnabled)?'visible':'none',
+        'text-field':['get','point_count_abbreviated'],
+        'text-font':['DIN Offc Pro Medium','Arial Unicode MS Bold'],
+        'text-size':['step',['get','point_count'],12,25,13,50,14],
+        'text-allow-overlap':true,
+        'text-ignore-placement':true
+      },
+      paint:{
+        'text-color':'#111111',
+        'text-halo-color':'rgba(255,255,255,0.35)',
+        'text-halo-width':0.75
+      }
+    });
+  }
   if(!_resMap.getLayer('doors-brands')){
     _resMap.addLayer({
       id:'doors-brands',type:'circle',source:'doors',
+      filter:['!',['has','point_count']],
       layout:{visibility:_layerVisible.brands?'visible':'none'},
       paint:{
         'circle-radius':['interpolate',['linear'],['get','brandCount'],0,4,5,8,15,14,30,20],
@@ -3893,6 +3991,7 @@ function addResearchMapLayers(){
   if(!_resMap.getLayer('doors-circle')){
     _resMap.addLayer({
       id:'doors-circle',type:'circle',source:'doors',
+      filter:['!',['has','point_count']],
       layout:{visibility:_layerVisible.doors?'visible':'none'},
       paint:{
         'circle-radius':['interpolate',['linear'],['zoom'],3,3,12,8],
@@ -3936,6 +4035,21 @@ function addResearchMapLayers(){
     _resMap.on('mouseenter',id,()=>{ _resMap.getCanvas().style.cursor='pointer'; });
     _resMap.on('mouseleave',id,()=>{ _resMap.getCanvas().style.cursor=''; });
   });
+  _resMap.off('click','doors-clusters',onResearchClusterClick);
+  _resMap.on('click','doors-clusters',onResearchClusterClick);
+  _resMap.on('mouseenter','doors-clusters',()=>{ _resMap.getCanvas().style.cursor='pointer'; });
+  _resMap.on('mouseleave','doors-clusters',()=>{ _resMap.getCanvas().style.cursor=''; });
+}
+
+function rebuildResearchMapSource(){
+  if(!_resMap || !_resMapStyleReady) return;
+  RESEARCH_MAP_LAYER_ORDER.forEach(id=>{
+    if(_resMap.getLayer(id)) _resMap.removeLayer(id);
+  });
+  if(_resMap.getSource('doors')) _resMap.removeSource('doors');
+  addResearchMapLayers();
+  updateResearchMapData();
+  highlightDoorOnMap('__none__','__all__');
 }
 
 function updateResearchMapData(){
@@ -4018,13 +4132,25 @@ function toggleResearchLayer(name){
   syncMapLayerToggles();
   if(!_resMap) return;
   (LAYER_IDS[name]||[]).forEach(id=>{
-    if(_resMap.getLayer(id)) _resMap.setLayoutProperty(id,'visibility',_layerVisible[name]?'visible':'none');
+    const isClusterLayer=id==='doors-clusters' || id==='doors-cluster-count';
+    const visible=_layerVisible[name] && (!isClusterLayer || _clusterEnabled);
+    if(_resMap.getLayer(id)) _resMap.setLayoutProperty(id,'visibility',visible?'visible':'none');
   });
+}
+function toggleResearchClustering(){
+  _clusterEnabled=!_clusterEnabled;
+  try{ localStorage.setItem('door-tracker-map-clusters', _clusterEnabled?'1':'0'); }catch(e){}
+  syncMapLayerToggles();
+  rebuildResearchMapSource();
 }
 function syncMapLayerToggles(){
   document.querySelectorAll('.toggle-pill[data-layer]').forEach(p=>{
     const name=p.dataset.layer;
     if(p.dataset.layer===name) p.classList.toggle('inactive',!_layerVisible[name]);
+  });
+  document.querySelectorAll('.toggle-pill[data-cluster-toggle]').forEach(p=>{
+    p.classList.toggle('inactive',!_clusterEnabled);
+    p.setAttribute('aria-pressed',_clusterEnabled?'true':'false');
   });
 }
 async function copyMapScreenshot(){
@@ -5926,6 +6052,7 @@ function bootApp(){
     applyDefaultDSBrandFilter();
     applyDefaultLuxuryChannel();
     restoreShowByGroupState();
+    restoreResearchClusterState();
     setMode(savedMode==='map'?'map':'data');
     persistAutoState();
     scheduleAutoSnapshots();
@@ -5961,6 +6088,14 @@ function restoreShowByGroupState(){
          individual retailers when the toggle was persisted as on. */
       renderRefineToggles();
     }
+  }catch(e){}
+}
+
+function restoreResearchClusterState(){
+  try{
+    const v=localStorage.getItem('door-tracker-map-clusters');
+    _clusterEnabled = v !== '0';
+    syncMapLayerToggles();
   }catch(e){}
 }
 
