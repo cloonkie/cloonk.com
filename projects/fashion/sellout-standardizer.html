@@ -822,6 +822,15 @@ th.metric-col {
 td.metric-col { background: rgba(232, 185, 49, 0.12); }
 th.metadata-col { background: var(--surface-raised); }
 td.metadata-col { background: transparent; }
+th.raw-mapped-metric {
+  background-color: var(--surface-raised);
+  background-image: linear-gradient(rgba(125, 120, 111, 0.18), rgba(125, 120, 111, 0.18));
+  color: var(--text-dim);
+  box-shadow: inset 0 -2px 0 var(--text-dim);
+}
+th.raw-mapped-metric .raw-header-map button { color: var(--text-dim); }
+td.raw-mapped-metric { background: rgba(125, 120, 111, 0.10); color: var(--text-dim); }
+tr:hover td.raw-mapped-metric { background: rgba(125, 120, 111, 0.18); color: var(--text-muted); }
 td { color: var(--text); }
 tr:hover td { background: var(--accent-dim); }
 .table-select {
@@ -3525,6 +3534,7 @@ function getRawColumnLabels(rows) {
       key: assignment ? assignment.key : `col_${idx + 1}`,
       label: assignment ? assignment.label : `col_${idx + 1}`,
       assigned: !!assignment,
+      assignedMetric: !!(assignment && assignment.type === "metric"),
       roleClass: getAssignmentClass(assignment),
       originalIndex: originalIndexes[idx] ?? idx
     };
@@ -3545,7 +3555,7 @@ function renderRawTable() {
         <tr>
           <th>row</th>
           ${cols.map((col, idx) => `
-            <th class="${col.roleClass}" title="${esc(col.assigned ? "Assigned: " + col.label : col.label)}" data-raw-drop="${idx}" data-delete-column-original="${col.originalIndex}">
+            <th class="${col.roleClass}${col.assignedMetric ? " raw-mapped-metric" : ""}" title="${esc(col.assigned ? "Assigned: " + col.label : col.label)}" data-raw-drop="${idx}" data-delete-column-original="${col.originalIndex}">
               <div class="raw-header-map">
                 <button type="button" data-open-assign="${idx}" aria-label="Assign raw column ${idx + 1}">
                   <span>${esc(col.label)}</span>
@@ -3559,7 +3569,7 @@ function renderRawTable() {
         ${rowItems.map(item => `
           <tr>
             <td data-row-delete="${item.originalRow}" title="Right-click to delete row ${item.originalRow}">${item.originalRow}</td>
-            ${cols.map((col, idx) => `<td title="${esc(item.row[idx])}">${esc(item.row[idx])}</td>`).join("")}
+            ${cols.map((col, idx) => `<td class="${col.assignedMetric ? "raw-mapped-metric" : ""}" title="${esc(item.row[idx])}">${esc(item.row[idx])}</td>`).join("")}
           </tr>
         `).join("")}
       </tbody>
