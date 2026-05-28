@@ -81,8 +81,25 @@
   --warn: #b86d00;
 }
 html { font-size: 15px; }
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 0.28s ease,
+    background 0.28s ease,
+    border-color 0.28s ease,
+    color 0.28s ease,
+    fill 0.28s ease,
+    stroke 0.28s ease,
+    box-shadow 0.28s ease,
+    opacity 0.28s ease !important;
+}
 body {
-  min-height: 100vh;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
@@ -95,8 +112,7 @@ a { color: inherit; text-decoration: none; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 .header {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 20;
   display: flex;
   align-items: center;
@@ -241,7 +257,12 @@ a { color: inherit; text-decoration: none; }
 [data-theme="light"] .theme-toggle .icon-sun { display: none; }
 [data-theme="light"] .theme-toggle .icon-moon { display: block; }
 .info-btn { width: 32px; min-height: 32px; padding: 0; color: var(--text-muted); }
-.shell { padding: 22px 24px 72px; }
+.shell {
+  height: 100%;
+  min-height: 0;
+  padding: 14px 18px 18px;
+  overflow: hidden;
+}
 .intro {
   display: grid;
   grid-template-columns: minmax(260px, 0.9fr) minmax(420px, 1.6fr);
@@ -307,10 +328,60 @@ h1 {
 .drop-sub { color: var(--text-muted); font-size: 0.9rem; }
 .workspace {
   display: grid;
-  grid-template-columns: minmax(420px, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
+  height: 100%;
+  min-height: 0;
 }
+.workspace > .control-stack {
+  grid-column: 1;
+  grid-row: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  overflow: hidden;
+}
+#panelInput,
+#panelHeader,
+#panelMapping {
+  display: contents;
+}
+#panelInput > .panel-header { grid-column: 1; }
+#panelHeader > .panel-header { grid-column: 2; }
+#panelMapping > .panel-header { grid-column: 3; }
+#panelInput > .panel-header,
+#panelHeader > .panel-header,
+#panelMapping > .panel-header {
+  grid-row: 1;
+  min-width: 0;
+  min-height: 64px;
+  align-items: flex-start;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.workspace > .control-stack .panel-toggle {
+  display: none;
+}
+#panelInput > .panel-body,
+#panelHeader > .panel-body,
+#panelMapping > .panel-body {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.workspace > .control-stack > .flow-panel:not(.collapsed) > .panel-header {
+  border-color: var(--border-hover);
+  background: var(--surface-card);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.02);
+}
+.workspace > .panel[data-flow-step="preview"] { grid-column: 2; grid-row: 1; }
 .flow-num {
   width: 26px;
   height: 26px;
@@ -333,11 +404,18 @@ h1 {
   background: var(--accent-dim);
 }
 .panel {
+  min-height: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
   overflow: hidden;
 }
+.flow-panel {
+  display: flex;
+  flex-direction: column;
+}
+.control-stack > .flow-panel:not(.collapsed) { flex: 1 1 0; }
+.control-stack > .flow-panel.collapsed { min-height: 58px; }
 .panel-header {
   display: flex;
   align-items: center;
@@ -360,7 +438,29 @@ h1 {
   font-family: var(--font-mono);
   font-size: 0.7rem;
 }
-.panel-body { padding: 14px; }
+.panel-body {
+  min-height: 0;
+  padding: 14px;
+  overflow: auto;
+}
+.panel-body.control-stack {
+  align-content: start;
+  align-items: start;
+  grid-auto-rows: max-content;
+}
+.panel-body.control-stack > * {
+  width: 100%;
+}
+.workspace > .panel[data-flow-step="preview"] > .panel-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.workspace > .panel[data-flow-step="preview"] .table-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
 .control-stack { display: grid; gap: 12px; }
 .field { display: grid; gap: 7px; }
 .field label {
@@ -624,9 +724,11 @@ h1 {
   gap: 0;
   margin: -4px -4px 8px;
   border-bottom: 1px solid var(--border);
+  align-self: start;
 }
 .subtab {
   flex: 1;
+  min-height: 36px;
   background: transparent;
   border: 0;
   border-bottom: 2px solid transparent;
@@ -682,6 +784,22 @@ h1 {
 }
 .toolbar-toggle input { width: 14px; height: 14px; accent-color: var(--accent); cursor: pointer; }
 .toolbar-actions { display: inline-flex; gap: 6px; }
+.work-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-height: 28px;
+  margin: -4px 0 0;
+  padding: 0;
+}
+.work-actions:first-child { margin-bottom: -2px; }
+.work-actions .btn {
+  min-height: 26px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
 .add-field-popover {
   display: grid;
   gap: 8px;
@@ -833,6 +951,17 @@ th[data-col-key].col-drag-over { box-shadow: inset 3px 0 0 var(--accent); }
   padding-bottom: 8px;
   scroll-snap-type: x proximity;
 }
+#panelMapping .mapping-grid.scroll-map {
+  display: grid;
+  overflow: visible;
+  padding-bottom: 0;
+  scroll-snap-type: none;
+}
+#panelMapping .mapping-section { min-width: 0; }
+#panelMapping .map-row,
+#panelInput .inline-fields {
+  grid-template-columns: 1fr;
+}
 .mapping-section {
   min-width: min(360px, 86vw);
   display: grid;
@@ -886,6 +1015,7 @@ th[data-col-key].col-drag-over { box-shadow: inset 3px 0 0 var(--accent); }
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 12px;
+  flex: 0 0 auto;
 }
 .view-tabs { display: flex; gap: 0; }
 .view-tab {
@@ -906,6 +1036,7 @@ th[data-col-key].col-drag-over { box-shadow: inset 3px 0 0 var(--accent); }
   overflow: auto;
   max-height: 66vh;
   background: var(--bg);
+  min-height: 0;
 }
 table {
   width: 100%;
@@ -958,6 +1089,21 @@ th.raw-mapped-metric {
   box-shadow: inset 0 -2px 0 var(--warn);
 }
 th.raw-mapped-metric .raw-header-map button { color: var(--warn); }
+th.raw-row-index,
+td.raw-row-index {
+  position: sticky;
+  left: 0;
+  min-width: 64px;
+  max-width: 64px;
+  background: var(--surface-raised);
+  z-index: 2;
+  box-shadow: inset -1px 0 0 var(--border);
+}
+td.raw-row-index {
+  background: var(--bg);
+  color: var(--text-muted);
+}
+th.raw-row-index { z-index: 4; }
 td.raw-mapped-metric { background: rgba(232, 185, 49, 0.12); }
 tr:hover td.raw-mapped-metric { background: rgba(232, 185, 49, 0.20); }
 td { color: var(--text); }
@@ -1078,6 +1224,7 @@ tr:hover td { background: var(--accent-dim); }
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   background: var(--surface-card);
+  flex: 0 0 auto;
 }
 .output-controls[hidden] { display: none !important; }
 .output-controls summary {
@@ -1132,7 +1279,6 @@ tr:hover td { background: var(--accent-dim); }
 }
 .panel-header-meta { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
 .panel-header-meta .panel-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.panel-header-actions { display: inline-flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .panel-info-btn {
   width: 20px;
   height: 20px;
@@ -1232,6 +1378,8 @@ tr:hover td { background: var(--accent-dim); }
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  max-width: 100%;
+  min-height: 30px;
   padding: 5px 10px;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -1241,6 +1389,10 @@ tr:hover td { background: var(--accent-dim); }
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   cursor: pointer;
   user-select: none;
   transition: border-color var(--transition), background var(--transition), color var(--transition);
@@ -1428,7 +1580,69 @@ tr:hover td { background: var(--accent-dim); }
 }
 .toast.show { opacity: 1; transform: translateY(0); }
 @media (max-width: 1040px) {
-  .intro, .workspace { grid-template-columns: 1fr; }
+  body {
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    display: block;
+  }
+  .shell {
+    height: auto;
+    overflow: visible;
+  }
+  .intro, .workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    height: auto;
+  }
+  .workspace > .control-stack {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 18px;
+    overflow: visible;
+  }
+  #panelInput,
+  #panelHeader,
+  #panelMapping,
+  .workspace > .panel[data-flow-step="preview"] {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  #panelInput,
+  #panelHeader,
+  #panelMapping {
+    display: flex;
+    flex-direction: column;
+  }
+  #panelInput > .panel-header,
+  #panelHeader > .panel-header,
+  #panelMapping > .panel-header,
+  #panelInput > .panel-body,
+  #panelHeader > .panel-body,
+  #panelMapping > .panel-body {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  #panelInput > .panel-header,
+  #panelHeader > .panel-header,
+  #panelMapping > .panel-header {
+    min-height: 48px;
+    align-items: center;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .workspace > .control-stack .panel-toggle {
+    display: inline-flex;
+  }
+  #panelInput > .panel-body,
+  #panelHeader > .panel-body,
+  #panelMapping > .panel-body {
+    border: 0;
+    border-radius: 0;
+  }
 }
 @media (max-width: 720px) {
   .header { padding: 12px 16px; align-items: flex-start; flex-direction: column; }
@@ -1452,7 +1666,7 @@ tr:hover td { background: var(--accent-dim); }
     </div>
   </div>
   <div class="header-actions">
-    <button class="btn info-btn" id="infoBtn" aria-label="Open info and appendix" title="Info and appendix">
+    <button class="btn info-btn" id="infoBtn" aria-label="Open information and appendix" title="Information and appendix">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg>
     </button>
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
@@ -1461,14 +1675,14 @@ tr:hover td { background: var(--accent-dim); }
     </button>
     <button class="btn btn-danger" id="clearDataBtn">Clear Data</button>
     <div class="config-menu-wrap">
-      <button class="btn" id="configMenuBtn" type="button" aria-expanded="false" aria-haspopup="true">Config</button>
+      <button class="btn" id="configMenuBtn" type="button" aria-expanded="false" aria-haspopup="true">Configuration</button>
       <div class="config-menu" id="configMenu" hidden>
         <div class="config-menu-actions">
-          <button class="btn" id="saveConfigBtn" type="button">Save config</button>
-          <button class="btn" id="loadConfigBtn" type="button">Load config</button>
+          <button class="btn" id="saveConfigBtn" type="button">Save Configuration</button>
+          <button class="btn" id="loadConfigBtn" type="button">Load Configuration</button>
         </div>
         <details class="config-history" id="configHistory" open>
-          <summary>Load config history</summary>
+          <summary>Load Configuration History</summary>
           <div class="config-history-list" id="configHistoryList"></div>
         </details>
       </div>
@@ -1490,19 +1704,19 @@ tr:hover td { background: var(--accent-dim); }
           <div class="panel-header-meta">
             <div>
               <div class="panel-title-row">
-                <span class="panel-title">Input</span>
+                <span class="panel-title">Source</span>
                 <button class="panel-info-btn" data-panel-info="input" type="button" title="What this panel does" aria-label="How the Input panel works">i</button>
               </div>
               <div class="panel-sub" id="flowInputText">Files and pasted grids</div>
             </div>
           </div>
-          <div class="panel-header-actions">
-            <button class="btn btn-sm" id="insertFileBtn">Insert File</button>
-            <button class="btn btn-sm btn-danger" id="clearBtn">Clear</button>
-          </div>
         </div>
         <div class="panel-body control-stack">
           <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple style="display:none">
+          <div class="work-actions">
+            <button class="btn btn-sm" id="insertFileBtn">Insert File</button>
+            <button class="btn btn-sm btn-danger" id="clearBtn">Clear</button>
+          </div>
           <div class="load-progress" id="loadProgress" role="status" aria-live="polite">
             <span class="spinner"></span>
             <span class="load-progress-text" id="loadProgressText">Reading...</span>
@@ -1550,17 +1764,17 @@ tr:hover td { background: var(--accent-dim); }
           <div class="panel-header-meta">
             <div>
               <div class="panel-title-row">
-                <span class="panel-title">Mapping Setup</span>
+                <span class="panel-title">Headers</span>
                 <button class="panel-info-btn" data-panel-info="header" type="button" title="What this panel does" aria-label="How Header Detection works">i</button>
               </div>
               <div class="panel-sub" id="flowHeaderText">Headers + cadence layout</div>
             </div>
           </div>
-          <div class="panel-header-actions">
-            <button class="btn btn-sm" id="autoDetectBtn">Auto</button>
-          </div>
         </div>
         <div class="panel-body control-stack">
+          <div class="work-actions">
+            <button class="btn btn-sm" id="autoDetectBtn">Auto Detect</button>
+          </div>
           <div class="subtabs" role="tablist" aria-label="Mapping Setup sections">
             <button class="subtab active" type="button" data-subtab="rows" role="tab">Rows</button>
             <button class="subtab" type="button" data-subtab="cadences" role="tab">Cadences</button>
@@ -1643,14 +1857,11 @@ tr:hover td { background: var(--accent-dim); }
           <div class="panel-header-meta">
             <div>
               <div class="panel-title-row">
-                <span class="panel-title">Field Alignment</span>
+                <span class="panel-title">Map Fields</span>
                 <button class="panel-info-btn" data-panel-info="mapping" type="button" title="What this panel does" aria-label="How Field Mapping works">i</button>
               </div>
               <div class="panel-sub" id="flowMappingText">Drag across sections or use dropdowns</div>
             </div>
-          </div>
-          <div class="panel-header-actions">
-            <button class="btn btn-sm" id="remapBtn">Remap</button>
           </div>
         </div>
         <div class="panel-body">
@@ -1660,6 +1871,7 @@ tr:hover td { background: var(--accent-dim); }
               <span>Show unmapped only</span>
             </label>
             <div class="toolbar-actions">
+              <button class="btn btn-sm" id="remapBtn">Remap</button>
               <button class="btn btn-sm" id="addFieldBtn" type="button">+ Add field</button>
             </div>
           </div>
@@ -1690,16 +1902,11 @@ tr:hover td { background: var(--accent-dim); }
         <div class="panel-header-meta">
           <div>
             <div class="panel-title-row">
-              <span class="panel-title">Preview</span>
+              <span class="panel-title">Review Output</span>
               <button class="panel-info-btn" data-panel-info="preview" type="button" title="What this panel does" aria-label="How Preview works">i</button>
             </div>
             <div class="panel-sub"><span id="flowPreviewText">Final standardized output</span> · <span id="previewSub">Ready</span></div>
           </div>
-        </div>
-        <div class="panel-header-actions">
-          <button class="btn btn-sm" id="downloadCsvBtn" disabled>CSV</button>
-          <button class="btn btn-sm" id="downloadJsonBtn" disabled>JSON</button>
-          <button class="btn btn-sm btn-accent" id="downloadXlsxBtn" disabled>XLSX</button>
         </div>
       </div>
       <div class="panel-body">
@@ -1713,6 +1920,11 @@ tr:hover td { background: var(--accent-dim); }
           <div class="chips">
             <span class="chip" id="metricChip">0 metrics</span>
             <span class="chip" id="dimChip">0 dimensions</span>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-sm" id="downloadCsvBtn" disabled>CSV</button>
+            <button class="btn btn-sm" id="downloadJsonBtn" disabled>JSON</button>
+            <button class="btn btn-sm btn-accent" id="downloadXlsxBtn" disabled>XLSX</button>
           </div>
         </div>
         <details class="output-controls" id="outputControls"></details>
@@ -1823,8 +2035,8 @@ tr:hover td { background: var(--accent-dim); }
         <p>The LY toggle treats <code>LY</code> and <code>Last Year</code> labels as comparison values instead of cadences. Calculated metrics add formula-based rows when the needed mapped fields are available.</p>
         <h3>Sheets and Rows</h3>
         <p>Use sheet checkboxes to include workbook tabs. <code>Delete Rows</code> removes 1-based Excel row numbers before parsing.</p>
-        <h3>Configurations</h3>
-        <p>Exporting a config saves detected rows, cadence choices, and field mapping so the same retailer report shape can be normalized again.</p>
+        <h3>Configuration</h3>
+        <p>Saving a configuration preserves detected rows, cadence choices, and field mapping so the same retailer report shape can be normalized again.</p>
       </div>
       <div class="info-modal-pane" id="modal-tab-resources" role="tabpanel">
         <h3>Fashion Toolbox</h3>
@@ -2181,6 +2393,21 @@ function getCustomMetrics() {
   return Array.isArray(state.config.customMetrics) ? state.config.customMetrics : [];
 }
 
+function normalizedMetricLabel(label) {
+  return stripMetaLabels(label) || cleanHeader(label);
+}
+
+function normalizeMetricDefinition(metric) {
+  const label = normalizedMetricLabel(metric.label);
+  if (!label) return null;
+  const aliases = Array.from(new Set([label].concat(metric.aliases || []).map(normalizedMetricLabel).filter(Boolean)));
+  return {
+    ...metric,
+    label,
+    aliases
+  };
+}
+
 function getStandardFields() {
   return BASE_STANDARD_FIELDS.concat(getCustomDimensions().map(field => ({
     key: field.key,
@@ -2195,12 +2422,21 @@ function getFieldByKey() {
 }
 
 function getMetricOptions() {
-  return BASE_CADENCE_METRIC_OPTIONS.concat(getCustomMetrics().map(metric => ({
-    key: metric.key,
-    label: metric.label,
-    aliases: Array.isArray(metric.aliases) ? metric.aliases : [metric.label],
-    custom: true
-  })));
+  const options = [];
+  const seenKeys = new Set();
+  const seenLabels = new Set();
+  BASE_CADENCE_METRIC_OPTIONS.concat(getCustomMetrics().map(metric => ({ ...metric, custom: true }))).forEach(metric => {
+    if (!metric || DIMENSION_ONLY_KEYS.has(metric.key) || seenKeys.has(metric.key)) return;
+    const normalized = metric.custom ? normalizeMetricDefinition(metric) : metric;
+    if (!normalized) return;
+    const labelKey = normalize(normalized.label);
+    if (!metric.custom && seenLabels.has(labelKey)) return;
+    if (metric.custom && options.some(existing => bestAliasScore(normalized.label, existing.aliases) >= 1)) return;
+    seenKeys.add(normalized.key);
+    seenLabels.add(labelKey);
+    options.push(normalized);
+  });
+  return options.sort((a, b) => a.label.localeCompare(b.label) || a.key.localeCompare(b.key));
 }
 
 function getCalculatedMetricOptions() {
@@ -2613,6 +2849,10 @@ function metricMapKey(cadence, yearBasis, metricKey) {
   return `${cadence}|${yearBasis}|${metricKey}`;
 }
 
+function metricSlotLabel(cadence, metric, yearBasis) {
+  return `${yearBasis} ${cadence} ${metric.label}`;
+}
+
 function getActiveCadences() {
   return CADENCES.filter(c => (state.config.cadenceTypes || []).includes(c));
 }
@@ -2649,9 +2889,15 @@ function buildHeaders() {
   const cadenceIdx = state.config.cadenceRow ? state.config.cadenceRow - 1 : -1;
   const headerRow = workingRows[headerIdx] || [];
   const cadenceRow = cadenceIdx >= 0 ? (workingRows[cadenceIdx] || []) : [];
+  const maxCols = Math.max(headerRow.length, cadenceRow.length);
+  const filledCadenceRow = Array.from({ length: maxCols }, (_, idx) => {
+    const raw = cleanHeader(cadenceRow[idx]);
+    if (raw) return raw;
+    return idx > 0 ? cleanHeader(cadenceRow.slice(0, idx).reverse().find(cleanHeader)) : "";
+  });
   let inheritedCadenceInfo = null;
-  const cadenceInfoByCol = headerRow.map((_, idx) => {
-    const cadenceRaw = cleanHeader(cadenceRow[idx]);
+  const cadenceInfoByCol = Array.from({ length: maxCols }, (_, idx) => {
+    const cadenceRaw = cleanHeader(filledCadenceRow[idx]);
     if (cadenceRaw) {
       const info = detectCadenceInfo(cadenceRaw);
       if (info) { inheritedCadenceInfo = info; return info; }
@@ -2662,12 +2908,17 @@ function buildHeaders() {
   });
   let lastHeaderBase = "";
   const repeatedHeaderCounts = {};
-  state.headers = headerRow.map((label, idx) => {
-    const cadenceRaw = cleanHeader(cadenceRow[idx]);
+  state.headers = Array.from({ length: maxCols }, (_, idx) => {
+    const cadenceRaw = cleanHeader(filledCadenceRow[idx]);
+    const label = headerRow[idx];
     const rawLabel = cleanHeader(label);
     let header = rawLabel;
     if (rawLabel) {
       lastHeaderBase = rawLabel;
+      repeatedHeaderCounts[lastHeaderBase] = 0;
+    } else if (cadenceRaw) {
+      header = cadenceRaw;
+      lastHeaderBase = cadenceRaw;
       repeatedHeaderCounts[lastHeaderBase] = 0;
     } else if (lastHeaderBase) {
       repeatedHeaderCounts[lastHeaderBase] = (repeatedHeaderCounts[lastHeaderBase] || 0) + 1;
@@ -2922,22 +3173,22 @@ function renderFileList() {
       .join("");
     const hasSetup = !!(override.yearBasis || dimEntries.length);
     const isActive = !!override.active && hasSetup;
-    const statusDot = isActive ? '<span class="file-status-dot active" title="Configurations active"></span>'
-      : hasSetup ? '<span class="file-status-dot dormant" title="Configurations saved but inactive"></span>'
+    const statusDot = isActive ? '<span class="file-status-dot active" title="Configuration active"></span>'
+      : hasSetup ? '<span class="file-status-dot dormant" title="Configuration saved but inactive"></span>'
       : "";
     return `
       <div class="file-row-wrap${isExpanded ? " has-overrides" : ""}">
         <div class="file-row file-row-compact">
           <input type="checkbox" data-include="${esc(source.id)}" ${getSheetIncluded(source) ? "checked" : ""} aria-label="Include ${esc(source.sheet)}">
-          <div class="file-row-text"><strong title="${esc(source.name)}">${esc(source.name)}</strong><span> › ${esc(source.sheet)} · ${formatRows(source.rows.length)}${hasSetup ? " · cfg" : ""}</span></div>
+          <div class="file-row-text"><strong title="${esc(source.name)}">${esc(source.name)}</strong><span> › ${esc(source.sheet)} · ${formatRows(source.rows.length)}${hasSetup ? " · configuration" : ""}</span></div>
           ${statusDot}
-          <button class="btn btn-sm icon-btn" type="button" data-toggle-override="${esc(source.id)}" aria-expanded="${isExpanded ? "true" : "false"}" title="Configurations" aria-label="Configurations">⚙</button>
+          <button class="btn btn-sm icon-btn" type="button" data-toggle-override="${esc(source.id)}" aria-expanded="${isExpanded ? "true" : "false"}" title="Configuration" aria-label="Configuration">⚙</button>
           <button class="btn btn-sm icon-btn btn-danger" type="button" data-remove="${esc(source.id)}" title="Remove" aria-label="Remove">×</button>
         </div>
         <div class="file-overrides${isExpanded ? " open" : ""}" data-overrides-for="${esc(source.id)}">
           <label class="override-active-row">
             <input type="checkbox" data-override-active="${esc(source.id)}" ${isActive ? "checked" : ""}>
-            <span><strong>Apply configurations</strong> — off by default. Configurations stay dormant until this is enabled.</span>
+            <span><strong>Apply configuration</strong> — off by default. Settings stay dormant until this is enabled.</span>
           </label>
           <div class="override-block">
             <label>Year Basis (force all rows from this sheet)</label>
@@ -2948,7 +3199,7 @@ function renderFileList() {
             </select>
           </div>
           <div class="override-block">
-            <label>Dimension Configurations (force value on all rows)</label>
+            <label>Dimension Overrides (force value on all rows)</label>
             <div class="override-chips-row">${dimChips}</div>
             <div class="override-add-row">
               <select data-override-add-field="${esc(source.id)}">
@@ -3095,23 +3346,27 @@ function renderFlowStatus() {
   const mappedMetrics = countMappedMetrics();
   const mappedDims = countMappedDimensions();
   const hasHeaders = state.headers.length > 0;
+  const suggestedPanel = !included.length ? "panelInput" : (!hasHeaders ? "panelHeader" : "panelMapping");
   const flowData = [
     [els.flowInput, els.flowInputText, "panelInput", included.length > 0, included.length ? `${included.length} included sheet${included.length === 1 ? "" : "s"}` : "Load files or paste a grid"],
     [els.flowHeader, els.flowHeaderText, "panelHeader", hasHeaders, hasHeaders ? `${state.headers.length} columns from row ${state.config.headerRow}` : "Set header rows and cadences"],
     [els.flowMapping, els.flowMappingText, "panelMapping", mappedMetrics > 0, `${mappedDims} dimensions, ${mappedMetrics}/${triples.length} metrics mapped`],
     [els.flowPreview, els.flowPreviewText, null, state.output.length > 0, state.output.length ? `${state.output.length.toLocaleString()} output rows` : "Review output and pivot"]
   ];
-  state.config.collapsed = state.config.collapsed || {};
-  state.config.collapsedTouched = state.config.collapsedTouched || {};
   flowData.forEach(([step, textEl, panelId, ready, text]) => {
     step.classList.toggle("ready", !!ready);
     textEl.textContent = text;
-    if (panelId && ready && !state.config.collapsedTouched[panelId] && state.config.collapsed[panelId] !== true) {
-      state.config.collapsed[panelId] = true;
-      const el = document.getElementById(panelId);
-      if (el) el.classList.add("collapsed");
-    }
   });
+  if (!included.length && state.config.activeWorkflowPanel !== "panelInput") {
+    state.config.workflowPanelTouched = false;
+    setActiveWorkflowPanel("panelInput", { persist: false });
+    return;
+  }
+  if (!state.config.activeWorkflowPanel || !state.config.workflowPanelTouched) {
+    setActiveWorkflowPanel(suggestedPanel, { persist: false });
+  } else {
+    applyCollapseState();
+  }
 }
 
 function renderHeaderDefinition() {
@@ -3210,7 +3465,7 @@ function renderMappings() {
   const metricRowsHtml = triples.length ? (visibleTriples.length ? visibleTriples.map(({ cadence, yearBasis, metric }) => {
     const key = metricMapKey(cadence, yearBasis, metric.key);
     const id = `metricmap-${key.replace(/[^a-z0-9]+/gi, "-")}`;
-    const labelText = `${cadence} ${state.config.includeLy ? yearBasis + " " : ""}${metric.label}`;
+    const labelText = metricSlotLabel(cadence, metric, yearBasis);
     const mapped = isMappedColumn((state.config.metricMappings || {})[key]);
     return `
       <div class="map-row ${mapped ? "is-mapped" : ""}" draggable="true" data-drag-assign="metric:${esc(key)}">
@@ -3399,6 +3654,33 @@ function getOutputColumnRole(col) {
   return "metadata";
 }
 
+function toTitleLabel(value) {
+  return cleanHeader(value)
+    .replace(/_/g, " ")
+    .replace(/\w\S*/g, word => /^[A-Z0-9]+$/.test(word) ? word : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+}
+
+function getExportColumnLabel(key) {
+  const field = getStandardFields().find(item => item.key === key);
+  if (field) return toTitleLabel(field.label);
+  return toTitleLabel(key);
+}
+
+function getExportMetricValue(key) {
+  return toTitleLabel(getMetricLabel(key));
+}
+
+function getExportOutputRows() {
+  return getFilteredOutputRows().map(row => {
+    const out = {};
+    Object.entries(row).forEach(([key, value]) => {
+      const label = getExportColumnLabel(key);
+      out[label] = key === "metric" ? getExportMetricValue(value) : value;
+    });
+    return out;
+  });
+}
+
 function renderOutputControls() {
   if (!els.outputControls) return;
   els.outputControls.hidden = state.view !== "output";
@@ -3497,8 +3779,7 @@ function getAssignmentOptions() {
   const dimensionOptions = getStandardFields().map(field => ({ value: `dimension:${field.key}`, label: `Dimension: ${field.label}` }));
   const metricOptions = getActiveMappingTriples().map(({ cadence, yearBasis, metric }) => {
     const key = metricMapKey(cadence, yearBasis, metric.key);
-    const yearText = state.config.includeLy ? ` ${yearBasis}` : "";
-    return { value: `metric:${key}`, label: `Metric: ${cadence}${yearText} ${metric.label}` };
+    return { value: `metric:${key}`, label: `Metric: ${metricSlotLabel(cadence, metric, yearBasis)}` };
   });
   return dimensionOptions.concat(metricOptions);
 }
@@ -3545,20 +3826,21 @@ function addCustomFieldFromHeader(headerIndex, type) {
 }
 
 function addCustomFieldWithLabel(label, type) {
-  const baseKey = slugifyKey(label);
+  const cleanLabel = type === "metric" ? normalizedMetricLabel(label) : cleanHeader(label);
+  const baseKey = slugifyKey(cleanLabel);
   if (!baseKey) return null;
   if (type === "dimension") {
     const existing = getStandardFields().find(field => field.key === baseKey);
     if (existing) return existing;
     const key = uniqueKey(baseKey, new Set(getStandardFields().map(field => field.key)));
-    const field = { key, label, aliases: [label] };
+    const field = { key, label: cleanLabel, aliases: [cleanLabel] };
     state.config.customDimensions = getCustomDimensions().concat(field);
     return field;
   }
-  const existingMetric = getMetricOptions().find(metric => metric.key === baseKey);
+  const existingMetric = getMetricOptions().find(metric => metric.key === baseKey || bestAliasScore(cleanLabel, metric.aliases) >= 1);
   if (existingMetric) return existingMetric;
   const key = uniqueKey(baseKey, new Set(getMetricOptions().map(metric => metric.key)));
-  const metric = { key, label, aliases: [label] };
+  const metric = { key, label: cleanLabel, aliases: [cleanLabel] };
   state.config.customMetrics = getCustomMetrics().concat(metric);
   state.config.cadenceMetrics = Array.from(new Set([...(state.config.cadenceMetrics || []), key]));
   return metric;
@@ -3751,7 +4033,7 @@ function getColumnAssignment(headerIndex) {
   if (metricKey) {
     const parts = metricKey.split("|");
     const metric = getMetricOptions().find(item => item.key === parts[2]);
-    const label = metric ? `${parts[0]} ${state.config.includeLy ? parts[1] + " " : ""}${metric.label}` : metricKey;
+    const label = metric ? metricSlotLabel(parts[0], metric, parts[1]) : metricKey;
     return { key: metricKey, label, type: "metric" };
   }
   return null;
@@ -3794,7 +4076,7 @@ function renderRawTable() {
     <table>
       <thead>
         <tr>
-          <th>row</th>
+          <th class="raw-row-index">row</th>
           ${cols.map((col, idx) => `
             <th class="${col.roleClass}${col.assignedMetric ? " raw-mapped-metric" : ""}" title="${esc(col.assigned ? "Assigned: " + col.label : col.label)}" data-raw-drop="${idx}" data-delete-column-original="${col.originalIndex}">
               <div class="raw-header-map">
@@ -3808,8 +4090,8 @@ function renderRawTable() {
       </thead>
       <tbody>
         ${rowItems.map(item => `
-          <tr>
-            <td data-row-delete="${item.originalRow}" title="Right-click to delete row ${item.originalRow}">${item.originalRow}</td>
+          <tr data-raw-row="${item.originalRow}" title="Right-click to use row ${item.originalRow} as a header row">
+            <td class="raw-row-index" data-row-delete="${item.originalRow}" title="Right-click for row ${item.originalRow} actions">${item.originalRow}</td>
             ${cols.map((col, idx) => `<td class="${col.assignedMetric ? "raw-mapped-metric" : ""}" title="${esc(item.row[idx])}">${esc(item.row[idx])}</td>`).join("")}
           </tr>
         `).join("")}
@@ -3847,8 +4129,7 @@ function renderAssignPopover(headerIndex, anchor) {
   const dimensionOptions = getStandardFields().map(field => ({ value: `dimension:${field.key}`, label: field.label }));
   const metricOptions = getActiveMappingTriples().map(({ cadence, yearBasis, metric }) => {
     const key = metricMapKey(cadence, yearBasis, metric.key);
-    const yearText = state.config.includeLy ? ` ${yearBasis}` : "";
-    return { value: `metric:${key}`, label: `${cadence}${yearText} ${metric.label}` };
+    return { value: `metric:${key}`, label: metricSlotLabel(cadence, metric, yearBasis) };
   });
   const header = state.headers[headerIndex]?.raw || `Column ${headerIndex + 1}`;
   els.assignPopover.innerHTML = `
@@ -3905,8 +4186,7 @@ function renderHeaderTable() {
   const dimensionOptions = getStandardFields().map(field => ({ value: field.key, label: `${field.label} (${field.key})` }));
   const metricOptions = getActiveMappingTriples().map(({ cadence, yearBasis, metric }) => {
     const key = metricMapKey(cadence, yearBasis, metric.key);
-    const yearText = state.config.includeLy ? ` ${yearBasis}` : "";
-    return { value: key, label: `${cadence}${yearText} ${metric.label}` };
+    return { value: key, label: metricSlotLabel(cadence, metric, yearBasis) };
   });
   els.tableShell.innerHTML = `
     <table>
@@ -3997,14 +4277,14 @@ function downloadBlob(name, type, body) {
 }
 
 function exportXlsx() {
-  const rows = getFilteredOutputRows();
+  const rows = getExportOutputRows();
   if (!rows.length) return;
   if (!window.XLSX) {
     downloadBlob(`Sellout_Standardized_${today()}.csv`, "text/csv", makeCsv(rows));
     toast("XLSX library unavailable, exported CSV instead.");
     return;
   }
-  const numericKeys = new Set(["value", "source_row"]);
+  const numericKeys = new Set(["Value", "Source Row"]);
   const compact = rows.map(row => {
     const out = {};
     for (const key of Object.keys(row)) {
@@ -4031,12 +4311,12 @@ function today() {
 function exportConfig() {
   syncConfigFromControls();
   const config = {
-    name: "Retail Data Standardizer Config",
+    name: "Retail Data Standardizer Configuration",
     version: 1,
     exported_at: new Date().toISOString(),
     config: state.config
   };
-  downloadBlob(`Retail_Data_Standardizer_Config_${today()}.json`, "application/json", JSON.stringify(config, null, 2));
+  downloadBlob(`Retail_Data_Standardizer_Configuration_${today()}.json`, "application/json", JSON.stringify(config, null, 2));
 }
 
 function makeConfigEnvelope(name) {
@@ -4053,15 +4333,15 @@ function makeConfigEnvelope(name) {
 function defaultConfigName() {
   const firstSource = state.sources[0];
   const base = firstSource ? String(firstSource.name || firstSource.sheet || "").replace(/\.[^.]+$/, "") : "";
-  return base ? `${base} config` : `Config ${today()}`;
+  return base ? `${base} configuration` : `Configuration ${today()}`;
 }
 
 function configFileName(name) {
-  const safe = String(name || "Retail Data Standardizer Config")
+  const safe = String(name || "Retail Data Standardizer Configuration")
     .trim()
     .replace(/[^a-z0-9]+/gi, "_")
     .replace(/^_+|_+$/g, "")
-    .slice(0, 80) || "Retail_Data_Standardizer_Config";
+    .slice(0, 80) || "Retail_Data_Standardizer_Configuration";
   return `${safe}_${today()}.json`;
 }
 
@@ -4079,7 +4359,7 @@ function setConfigHistory(items) {
   try {
     localStorage.setItem(CONFIG_HISTORY_KEY, JSON.stringify(items.slice(0, CONFIG_HISTORY_LIMIT)));
   } catch (error) {
-    toast("Could not save config history locally.");
+    toast("Could not save configuration history locally.");
   }
 }
 
@@ -4094,23 +4374,23 @@ function saveConfigToHistory(name, config) {
 }
 
 function saveCurrentConfig() {
-  const name = prompt("Config name", defaultConfigName());
+  const name = prompt("Configuration name", defaultConfigName());
   if (name === null) return;
   const saved = saveConfigToHistory(name);
   downloadBlob(configFileName(saved.name), "application/json", JSON.stringify(saved, null, 2));
   closeConfigMenu();
-  toast(`Saved config locally and downloaded: ${saved.name}.`);
+  toast(`Saved configuration locally and downloaded: ${saved.name}.`);
 }
 
 function renderConfigHistory() {
   if (!els.configHistoryList) return;
   const history = getConfigHistory();
   if (!history.length) {
-    els.configHistoryList.innerHTML = '<div class="empty-state" style="min-height:72px;padding:12px;"><span>No saved configs yet.</span></div>';
+    els.configHistoryList.innerHTML = '<div class="empty-state" style="min-height:72px;padding:12px;"><span>No saved configurations yet.</span></div>';
     return;
   }
   els.configHistoryList.innerHTML = history.map(item => {
-    const date = item.saved_at ? new Date(item.saved_at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "Saved config";
+    const date = item.saved_at ? new Date(item.saved_at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "Saved configuration";
     return `<div class="config-history-item" data-config-id="${esc(item.id)}">
       <div>
         <div class="config-history-name" title="${esc(item.name)}">${esc(item.name)}</div>
@@ -4126,13 +4406,13 @@ function renderConfigHistory() {
 
 function applySavedConfig(id) {
   const item = getConfigHistory().find(cfg => cfg.id === id);
-  if (!item) { toast("Saved config not found."); return; }
+  if (!item) { toast("Saved configuration not found."); return; }
   hydrateConfig(item.config || {});
   applyCollapseState();
   rebuild();
   queueAutosave();
   closeConfigMenu();
-  toast(`Loaded config: ${item.name}.`);
+  toast(`Loaded configuration: ${item.name}.`);
 }
 
 function deleteSavedConfig(id) {
@@ -4140,7 +4420,7 @@ function deleteSavedConfig(id) {
   const item = history.find(cfg => cfg.id === id);
   setConfigHistory(history.filter(cfg => cfg.id !== id));
   renderConfigHistory();
-  toast(item ? `Deleted config: ${item.name}.` : "Deleted config.");
+  toast(item ? `Deleted configuration: ${item.name}.` : "Deleted configuration.");
 }
 
 function toggleConfigMenu() {
@@ -4167,9 +4447,9 @@ async function importConfig(file) {
     queueAutosave();
     const saved = saveConfigToHistory(parsed.name || file.name.replace(/\.json$/i, ""), config);
     closeConfigMenu();
-    toast(`Loaded and saved config: ${saved.name}.`);
+    toast(`Loaded and saved configuration: ${saved.name}.`);
   } catch (error) {
-    toast(`Could not import config: ${error.message}`);
+    toast(`Could not import configuration: ${error.message}`);
   }
 }
 
@@ -4180,7 +4460,9 @@ function hydrateConfig(config) {
   state.config.cadenceMetrics = Array.isArray(state.config.cadenceMetrics) ? state.config.cadenceMetrics : ["sale_dollars", "sale_units"];
   state.config.customDimensions = Array.isArray(state.config.customDimensions) ? state.config.customDimensions : [];
   state.config.customMetrics = Array.isArray(state.config.customMetrics) ? state.config.customMetrics : [];
-  state.config.customMetrics = state.config.customMetrics.filter(metric => !DIMENSION_ONLY_KEYS.has(metric.key));
+  state.config.customMetrics = state.config.customMetrics
+    .map(normalizeMetricDefinition)
+    .filter(metric => metric && !DIMENSION_ONLY_KEYS.has(metric.key));
   state.config.cadenceMetrics = state.config.cadenceMetrics.filter(key => !DIMENSION_ONLY_KEYS.has(key) && getMetricOptions().some(metric => metric.key === key));
   state.config.calculatedMetrics = Array.isArray(state.config.calculatedMetrics) ? state.config.calculatedMetrics : (state.config.calculateSt ? ["sell_through_pct"] : []);
   state.config.customCalculatedMetrics = Array.isArray(state.config.customCalculatedMetrics) ? state.config.customCalculatedMetrics : [];
@@ -4227,15 +4509,23 @@ function addCustomDimension(label) {
 }
 
 function addCustomMetric(label) {
-  const baseKey = slugifyKey(label);
-  if (!label || !baseKey) { toast("Enter a metric name first."); return false; }
+  const cleanLabel = normalizedMetricLabel(label);
+  const baseKey = slugifyKey(cleanLabel);
+  if (!cleanLabel || !baseKey) { toast("Enter a metric name first."); return false; }
   state.config.customMetrics = getCustomMetrics();
+  const existingMetric = getMetricOptions().find(metric => metric.key === baseKey || bestAliasScore(cleanLabel, metric.aliases) >= 1);
+  if (existingMetric) {
+    state.config.cadenceMetrics = Array.from(new Set([...(state.config.cadenceMetrics || []), existingMetric.key]));
+    rebuild();
+    toast(`Added metric slot: ${existingMetric.label}.`);
+    return true;
+  }
   const existing = new Set(getMetricOptions().map(metric => metric.key));
   const key = uniqueKey(baseKey, existing);
-  state.config.customMetrics.push({ key, label, aliases: [label] });
+  state.config.customMetrics.push({ key, label: cleanLabel, aliases: [cleanLabel] });
   state.config.cadenceMetrics = Array.from(new Set([...(state.config.cadenceMetrics || []), key]));
   rebuild();
-  toast(`Added custom metric: ${label}.`);
+  toast(`Added custom metric: ${cleanLabel}.`);
   return true;
 }
 
@@ -4259,11 +4549,19 @@ function closeAddFieldPopover() {
 }
 
 function applyCollapseState() {
-  const map = state.config.collapsed || {};
-  ["panelInput", "panelHeader", "panelMapping"].forEach(id => {
+  setActiveWorkflowPanel(state.config.activeWorkflowPanel || "panelInput", { persist: false });
+}
+
+function setActiveWorkflowPanel(activeId, options = {}) {
+  const ids = ["panelInput", "panelHeader", "panelMapping"];
+  const target = ids.includes(activeId) ? activeId : "panelInput";
+  ids.forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.classList.toggle("collapsed", !!map[id]);
+    if (el) el.classList.toggle("collapsed", id !== target);
   });
+  state.config.activeWorkflowPanel = target;
+  if (options.touched) state.config.workflowPanelTouched = true;
+  if (options.persist !== false) queueAutosave();
 }
 
 function queueAutosave() {
@@ -4343,8 +4641,11 @@ function toast(message) {
 function toggleTheme() {
   const html = document.documentElement;
   const next = html.getAttribute("data-theme") === "light" ? "dark" : "light";
+  html.classList.add("theme-transition");
   html.setAttribute("data-theme", next);
   try { localStorage.setItem("cloonk-theme", next); } catch (e) {}
+  clearTimeout(toggleTheme.timer);
+  toggleTheme.timer = setTimeout(() => html.classList.remove("theme-transition"), 320);
 }
 
 function initInfoModal() {
@@ -4528,7 +4829,7 @@ els.fileList.addEventListener("change", e => {
     const override = ensureSourceOverride(source);
     override.active = activeToggle.checked;
     rebuild();
-    toast(activeToggle.checked ? "Configurations active for this source." : "Configurations dormant.");
+    toast(activeToggle.checked ? "Configuration active for this source." : "Configuration dormant.");
   }
 });
 ["change", "input"].forEach(evt => {
@@ -4741,14 +5042,35 @@ els.tableShell.addEventListener("drop", e => {
   }
 });
 els.tableShell.addEventListener("contextmenu", e => {
-  const rowTarget = e.target.closest("[data-row-delete]");
+  const rowTarget = e.target.closest("[data-raw-row]");
   if (rowTarget) {
     e.preventDefault();
-    if (!confirmDelete(`Delete row ${rowTarget.dataset.rowDelete} from this import?`)) return;
-    state.config.deleteRows = mergeNumberSpec(state.config.deleteRows, Number(rowTarget.dataset.rowDelete));
+    const rowNumber = Number(rowTarget.dataset.rawRow);
+    const action = cleanHeader(prompt(`Row ${rowNumber} actions:\nH = Column Header Row\nG = Header Group Row\nD = Delete Row`, "H")).toLowerCase();
+    if (!action) return;
+    if (action === "h" || action === "header") {
+      state.config.headerRow = rowNumber;
+      els.headerRow.value = rowNumber;
+      rebuild();
+      toast(`Row ${rowNumber} set as column header row.`);
+      return;
+    }
+    if (action === "g" || action === "group") {
+      state.config.hasCadenceRow = true;
+      state.config.cadenceRow = rowNumber;
+      els.hasCadenceRow.checked = true;
+      els.cadenceRow.hidden = false;
+      els.cadenceRow.value = rowNumber;
+      rebuild();
+      toast(`Row ${rowNumber} set as header group row.`);
+      return;
+    }
+    if (action !== "d" && action !== "delete") return;
+    if (!confirmDelete(`Delete row ${rowNumber} from this import?`)) return;
+    state.config.deleteRows = mergeNumberSpec(state.config.deleteRows, rowNumber);
     els.deleteRows.value = state.config.deleteRows;
     rebuild();
-    toast(`Deleted row ${rowTarget.dataset.rowDelete}.`);
+    toast(`Deleted row ${rowNumber}.`);
     return;
   }
   const colTarget = e.target.closest("[data-raw-drop]");
@@ -4886,13 +5208,7 @@ els.outputControls.addEventListener("change", e => {
 document.querySelectorAll("[data-collapse]").forEach(btn => {
   btn.addEventListener("click", () => {
     const id = btn.dataset.collapse;
-    const panel = document.getElementById(id);
-    if (!panel) return;
-    panel.classList.toggle("collapsed");
-    state.config.collapsed = state.config.collapsed || {};
-    state.config.collapsedTouched = state.config.collapsedTouched || {};
-    state.config.collapsed[id] = panel.classList.contains("collapsed");
-    state.config.collapsedTouched[id] = true;
+    setActiveWorkflowPanel(id, { touched: true });
   });
 });
 document.querySelectorAll(".flow-panel > .panel-header").forEach(header => {
@@ -4900,11 +5216,7 @@ document.querySelectorAll(".flow-panel > .panel-header").forEach(header => {
     if (e.target.closest("button, a, input, select, textarea")) return;
     const panel = header.closest(".flow-panel");
     if (!panel || !panel.id) return;
-    panel.classList.toggle("collapsed");
-    state.config.collapsed = state.config.collapsed || {};
-    state.config.collapsedTouched = state.config.collapsedTouched || {};
-    state.config.collapsed[panel.id] = panel.classList.contains("collapsed");
-    state.config.collapsedTouched[panel.id] = true;
+    setActiveWorkflowPanel(panel.id, { touched: true });
   });
 });
 document.querySelectorAll(".view-tab").forEach(btn => {
@@ -4926,8 +5238,8 @@ document.querySelectorAll(".subtab").forEach(btn => {
     panel.querySelectorAll(".subtab-pane").forEach(p => p.classList.toggle("active", p.dataset.subtabPane === target));
   });
 });
-els.downloadCsvBtn.addEventListener("click", () => downloadBlob(`Sellout_Standardized_${today()}.csv`, "text/csv", makeCsv(getFilteredOutputRows())));
-els.downloadJsonBtn.addEventListener("click", () => downloadBlob(`Sellout_Standardized_${today()}.json`, "application/json", JSON.stringify(getFilteredOutputRows(), null, 2)));
+els.downloadCsvBtn.addEventListener("click", () => downloadBlob(`Sellout_Standardized_${today()}.csv`, "text/csv", makeCsv(getExportOutputRows())));
+els.downloadJsonBtn.addEventListener("click", () => downloadBlob(`Sellout_Standardized_${today()}.json`, "application/json", JSON.stringify(getExportOutputRows(), null, 2)));
 els.downloadXlsxBtn.addEventListener("click", exportXlsx);
 els.exportBtn.addEventListener("click", exportXlsx);
 els.configMenuBtn.addEventListener("click", e => {
