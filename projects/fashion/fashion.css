@@ -50,6 +50,20 @@
   --font-mono:      'DM Mono', 'Courier New', monospace;
 }
 :root { --font-mono: 'DM Mono', 'Courier New', monospace; }
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 0.28s ease,
+    background 0.28s ease,
+    border-color 0.28s ease,
+    color 0.28s ease,
+    fill 0.28s ease,
+    stroke 0.28s ease,
+    box-shadow 0.28s ease,
+    opacity 0.28s ease !important;
+}
 
 /* ─── Header: keep the cloonk nav, swap the right side ────────
    cloonk wordmark stays left. The site links are dropped on

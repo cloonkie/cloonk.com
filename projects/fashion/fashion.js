@@ -57,7 +57,7 @@
       sub: "Weekly Analytics",
       purpose:
         "Normalize weekly sell-out reports into one analytics-ready format. " +
-        "Flatten WTD, MTD, YTD headers, map dimensions, preview, and export saved configs.",
+        "Flatten WTD, MTD, YTD headers, map dimensions, preview, and export saved configurations.",
       eats: ".xlsx / .csv / paste",
       outputs: ".xlsx / .csv / .json",
       status: "Ready",
@@ -154,9 +154,26 @@
 
   window.FASHION_TOOLS = TOOLS;
 
+  function smoothThemeChange() {
+    const html = document.documentElement;
+    html.classList.add("theme-transition");
+    clearTimeout(smoothThemeChange.timer);
+    smoothThemeChange.timer = setTimeout(() => html.classList.remove("theme-transition"), 320);
+  }
+
+  function wireThemeTransition() {
+    const toggle = document.getElementById("nav-theme-toggle");
+    if (toggle) toggle.addEventListener("click", smoothThemeChange, { capture: true });
+    window.addEventListener("storage", e => {
+      if (e.key !== "cloonk-theme") return;
+      smoothThemeChange();
+    });
+  }
+
   function init() {
     renderFiles();
     wireCabinet();
+    wireThemeTransition();
   }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);

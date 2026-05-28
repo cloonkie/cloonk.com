@@ -52,6 +52,20 @@ body.light {
   --at-cap: rgba(176,48,32,0.10); --at-cap-border: rgba(176,48,32,0.4);
 }
 html { font-size: 16px; }
+body.theme-transition,
+body.theme-transition *,
+body.theme-transition *::before,
+body.theme-transition *::after {
+  transition:
+    background-color 0.28s ease,
+    background 0.28s ease,
+    border-color 0.28s ease,
+    color 0.28s ease,
+    fill 0.28s ease,
+    stroke 0.28s ease,
+    box-shadow 0.28s ease,
+    opacity 0.28s ease !important;
+}
 body { font-family: var(--font-body); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -5683,7 +5697,13 @@ function applyThemeToMaps(){
     }catch(e){}
   }
 }
+function smoothThemeChange(){
+  document.body.classList.add('theme-transition');
+  clearTimeout(smoothThemeChange.timer);
+  smoothThemeChange.timer=setTimeout(()=>document.body.classList.remove('theme-transition'),320);
+}
 function toggleTheme(){
+  smoothThemeChange();
   const l=document.body.classList.toggle('light');
   try{localStorage.setItem('cloonk-theme',l?'light':'dark')}catch(e){}
   applyThemeToMaps();
@@ -5691,6 +5711,7 @@ function toggleTheme(){
 window.addEventListener('storage',e=>{
   if(e.key!=='cloonk-theme') return;
   const l=e.newValue==='light';
+  smoothThemeChange();
   document.body.classList.toggle('light',l);
   applyThemeToMaps();
 });

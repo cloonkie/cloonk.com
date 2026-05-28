@@ -4647,6 +4647,14 @@ function toggleTheme() {
   clearTimeout(toggleTheme.timer);
   toggleTheme.timer = setTimeout(() => html.classList.remove("theme-transition"), 320);
 }
+window.addEventListener("storage", e => {
+  if (e.key !== "cloonk-theme") return;
+  const html = document.documentElement;
+  html.classList.add("theme-transition");
+  html.setAttribute("data-theme", e.newValue === "light" ? "light" : "dark");
+  clearTimeout(toggleTheme.timer);
+  toggleTheme.timer = setTimeout(() => html.classList.remove("theme-transition"), 320);
+});
 
 function initInfoModal() {
   const overlay = document.getElementById("infoModalOverlay");

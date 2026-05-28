@@ -69,6 +69,20 @@
   --danger: #b03020;
 }
 html { font-size: 15px; }
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 0.28s ease,
+    background 0.28s ease,
+    border-color 0.28s ease,
+    color 0.28s ease,
+    fill 0.28s ease,
+    stroke 0.28s ease,
+    box-shadow 0.28s ease,
+    opacity 0.28s ease !important;
+}
 body {
   min-height: 100vh;
   background: var(--bg);
@@ -1713,15 +1727,24 @@ function withStore(mode, callback) {
 
 function toggleTheme() {
   const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  smoothThemeChange();
   document.documentElement.setAttribute('data-theme', next);
   try { localStorage.setItem('cloonk-theme', next); } catch (e) {}
 }
 
 window.addEventListener('storage', e => {
   if (e.key === 'cloonk-theme') {
+    smoothThemeChange();
     document.documentElement.setAttribute('data-theme', e.newValue === 'light' ? 'light' : 'dark');
   }
 });
+
+function smoothThemeChange() {
+  const html = document.documentElement;
+  html.classList.add('theme-transition');
+  clearTimeout(smoothThemeChange.timer);
+  smoothThemeChange.timer = setTimeout(() => html.classList.remove('theme-transition'), 320);
+}
 
 function showToast(message) {
   const toast = document.getElementById('toast');

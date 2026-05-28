@@ -408,6 +408,20 @@
 [data-theme="light"] .theme-toggle .icon-moon { opacity: 1; position: relative; }
 
 html { font-size: 15px; }
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 0.28s ease,
+    background 0.28s ease,
+    border-color 0.28s ease,
+    color 0.28s ease,
+    fill 0.28s ease,
+    stroke 0.28s ease,
+    box-shadow 0.28s ease,
+    opacity 0.28s ease !important;
+}
 body {
   font-family: var(--font-body);
   background: var(--bg);
@@ -2071,14 +2085,22 @@ document.addEventListener('keydown', e => {
 function isLightTheme() {
   return document.documentElement.getAttribute('data-theme') === 'light';
 }
+function smoothThemeChange() {
+  const html = document.documentElement;
+  html.classList.add('theme-transition');
+  clearTimeout(smoothThemeChange.timer);
+  smoothThemeChange.timer = setTimeout(() => html.classList.remove('theme-transition'), 320);
+}
 function toggleTheme() {
   const next = isLightTheme() ? 'dark' : 'light';
+  smoothThemeChange();
   document.documentElement.setAttribute('data-theme', next);
   try { localStorage.setItem('cloonk-theme', next); } catch (e) {}
 }
 // If another cloonk tab toggles the theme, mirror it here.
 window.addEventListener('storage', (e) => {
   if (e.key !== 'cloonk-theme') return;
+  smoothThemeChange();
   document.documentElement.setAttribute(
     'data-theme', e.newValue === 'light' ? 'light' : 'dark'
   );
