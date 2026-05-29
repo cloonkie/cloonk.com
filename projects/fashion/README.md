@@ -141,6 +141,19 @@ Session persists across reloads in `localStorage['cloonk-doortracker-user']`. Th
 ### Guest mode
 The login modal also has a **Continue as guest** button. Guests get a blank anonymized template (`GUEST_SEED` — three generic retailers, three generic brands, five demo doors) and a sandboxed autosave key (`guest:latest` in the same IDB), so guest activity never touches the signed-in user's data. Restore points are tagged with `mode: 'guest' | 'user'` and filtered in the Snapshots list, so the two modes don't see each other's snapshots. Signing out as a guest wipes the sandbox so the next guest sees a fresh template. The user chip shows in the draft-orange color while in guest mode to make the state obvious.
 
+### Tenants — isolated datasets per team
+Each roster user has a `tenant` field. Users on the same tenant share a dataset; users on different tenants are isolated. The default tenant `dept` maps onto the original unprefixed save key, so the existing dept-store dataset needs **no migration** — anyone marked `tenant: 'dept'` (or with the field omitted) keeps reading the rows they always did. New tenants like `specialty` get their own IndexedDB row (`tenant:specialty:latest`) and their own Supabase rows (`mode: 'tenant:specialty'`); they start on an empty template and import their own data.
+
+To add a new team:
+
+1. **Roster.** Pick a tenant slug (lowercase, no spaces — e.g. `specialty`, `luxury`, `intl`). Add the team's users to `data/door-tracker-user-roster.local.js` with `tenant: 'specialty'` and the SHA-256 password hash.
+2. **Supabase (if using shared sync).** Insert the team's emails into `door_tracker_allowed_users` with the same tenant string. The `tenant` column was added to that table in [`supabase-door-tracker.sql`](supabase-door-tracker.sql).
+3. **Done.** First sign-in shows the empty template; the team imports their starter data via the login modal's Matrix / Door upload zones or the **Data → Import Sheets** flow.
+
+Switching a user between tenants is just editing their roster entry; the next reload reads the new tenant. History entries, restore points, and shared Supabase rows stay scoped to whichever tenant was active when they were written.
+
+**This is not data isolation against a malicious user** — the Supabase RLS policies still grant any roster member access to any tenant's rows if they query for them. The tenant key is enforced client-side. Treat it as workflow separation, not a security boundary. For a real boundary, extend the RLS policies to match `tenant` against the requesting user's row in `door_tracker_allowed_users`.
+
 ### Map
 [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/) renders door details. The access token is a public `pk.*` token URL-restricted to `cloonk.com` in the Mapbox dashboard. The map style follows the cloonk theme (`light-v11` / `dark-v11`) and re-styles live when the theme is toggled.
 

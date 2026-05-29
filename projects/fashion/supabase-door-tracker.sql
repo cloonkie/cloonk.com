@@ -1,8 +1,13 @@
 create table if not exists public.door_tracker_allowed_users (
   email text primary key,
   display_name text not null,
+  tenant text not null default 'dept',
   created_at timestamptz not null default now()
 );
+
+-- Backfill for installs that pre-date the tenant column.
+alter table public.door_tracker_allowed_users
+  add column if not exists tenant text not null default 'dept';
 
 create table if not exists public.door_tracker_state (
   key text primary key,
@@ -106,7 +111,13 @@ with check (
 
 -- Add each allowed editor here, or insert them in Supabase Table Editor.
 -- These emails must also exist as Supabase Auth users.
--- insert into public.door_tracker_allowed_users (email, display_name)
+-- `tenant` decides which dataset they see: same tenant = shared dataset,
+-- different tenant = isolated dataset. 'dept' is the legacy default and
+-- maps onto the original unprefixed state row (no migration needed).
+-- insert into public.door_tracker_allowed_users (email, display_name, tenant)
 -- values
---   ('kevin@example.com', 'Kevin')
--- on conflict (email) do update set display_name = excluded.display_name;
+--   ('kevin@example.com',           'Kevin',          'dept'),
+--   ('specialty-lead@example.com',  'Specialty Lead', 'specialty')
+-- on conflict (email) do update set
+--   display_name = excluded.display_name,
+--   tenant       = excluded.tenant;

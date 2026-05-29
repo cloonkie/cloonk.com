@@ -73,8 +73,23 @@ const STORE_LATEST='snapshots';
 const STORE_RESTORE='restorePoints';
 const SAVE_KEY='latest';
 const GUEST_SAVE_KEY='guest:latest';
-function currentSaveKey(){ return (currentUser && currentUser.isGuest) ? GUEST_SAVE_KEY : SAVE_KEY; }
-function currentSaveMode(){ return (currentUser && currentUser.isGuest) ? 'guest' : 'user'; }
+/* The legacy tenant keeps the original unprefixed key + 'user' mode so the
+   existing dept-store dataset (in IndexedDB and Supabase) needs no migration.
+   Any user with `tenant: 'dept'` (or no tenant field) reads/writes the
+   original rows. New tenants get isolated keys like 'tenant:specialty:latest'
+   and mode 'tenant:specialty'. */
+const LEGACY_TENANT='dept';
+function currentTenant(){ return (currentUser && currentUser.tenant) ? currentUser.tenant : LEGACY_TENANT; }
+function currentSaveKey(){
+  if (currentUser && currentUser.isGuest) return GUEST_SAVE_KEY;
+  const t=currentTenant();
+  return t===LEGACY_TENANT ? SAVE_KEY : 'tenant:'+t+':latest';
+}
+function currentSaveMode(){
+  if (currentUser && currentUser.isGuest) return 'guest';
+  const t=currentTenant();
+  return t===LEGACY_TENANT ? 'user' : 'tenant:'+t;
+}
 const AUTOSNAP_INTERVAL_MS=5*60*1000;
 const AUTOSNAP_MAX=10;
 let _autosaveQueued=false, _legacyMigrated=false, _autoSnapTimer=null;
@@ -1900,6 +1915,56 @@ function isDoorIncomplete(d){
   const noLocation=!(d.city||d.state||d.address);
   return placeholder || noLocation || doorNeedsCoordinateWarning(d);
 }
+
+/* A door is "orphan" when it has no store number — the Modify Door modal
+   uses doorNumber as the <select> option value, so a blank doorNumber
+   means there's no way to pick it for deletion through that flow. We
+   surface a direct delete button on these rows in the drawer instead. */
+function isOrphanDoor(d){
+  return !d || d.doorNumber==='' || d.doorNumber==null;
+}
+
+async function deleteOrphanDoor(ret,unassignedIdx){
+  if(!_pendingDrawerUnassigned){ toast('Drawer is no longer open.'); return; }
+  const target=_pendingDrawerUnassigned.unassignedDoors[unassignedIdx];
+  if(!target){ toast('Door not found.'); return; }
+  const norm=normalizeRetailer(ret);
+  const label=target.name ? `"${target.name}"` : '(unnamed)';
+  const msg=`Delete incomplete door ${label} from ${norm}? It has no store number and will be removed entirely.`;
+  const confirmed=window.fashionConfirm
+    ? await window.fashionConfirm(msg, { title:'Delete Door', confirmLabel:'Delete' })
+    : confirm(msg);
+  if(!confirmed) return;
+
+  /* Reference-identity first, composite-key as a defensive fallback. */
+  let globalIdx=doorLocations.findIndex(d=>d===target);
+  if(globalIdx<0){
+    globalIdx=doorLocations.findIndex(d=>
+      normalizeRetailer(d.retailer)===norm
+      && String(d.doorNumber||'')===String(target.doorNumber||'')
+      && String(d.name||'')===String(target.name||'')
+      && String(d.address||'')===String(target.address||'')
+    );
+  }
+  if(globalIdx<0){ toast('Door not found in storage.'); return; }
+  doorLocations.splice(globalIdx,1);
+
+  recordHistory(norm,'__door__',{
+    scope:'door',
+    action:'incomplete door deleted',
+    oldVal:`${target.name||'(unnamed)'} (no #)`,
+    newVal:'DELETED',
+    doorNumber:String(target.doorNumber||''),
+    user:currentUserName(),
+    note:'Deleted from drawer (no store number)'
+  });
+
+  populateFilters();
+  render();
+  queueAutosave();
+  if(activeStoreDrawer) openStoreDrawer(activeStoreDrawer.ret,activeStoreDrawer.brand);
+  toast(`Removed incomplete door from ${norm}.`);
+}
 const RETAILER_COLORS={
   'DLL':'#48CAE4',
   "Dillard's":'#48CAE4',
@@ -1990,33 +2055,47 @@ function renderDoorDetail(d,ret){
     </div>`;
   }
 
+  /* ── Brand offering — what this store actually carries — leads the panel.
+        Geographics follow as the supporting "where/why" context. ── */
+  const atStoreCount=allBrands.filter(b=>brandsAtDoorMap.has(b)).length;
+  const atRetCount=allBrands.filter(b=>!brandsAtDoorMap.has(b) && brandsAtRetailer.includes(b)).length;
+  html+=`<section class="store-section">
+    <header class="store-section__head">
+      <h5>Brand Offering</h5>
+      <span class="store-section__meta">${atStoreCount} here · ${atRetCount} at retailer</span>
+    </header>
+    <div class="brand-pills">${allBrands.map(b=>{
+      const atStore=brandsAtDoorMap.has(b);
+      const atRetailer=brandsAtRetailer.includes(b);
+      const bName=brandCodes[b]?brandCodes[b].name:'';
+      const count=getMatrixVal(norm,b);
+      const meta=brandsAtDoorMap.get(b) || {};
+      const metricText=(meta.metric_1!==undefined && meta.metric_1!=='' || meta.metric_2!==undefined && meta.metric_2!=='') ? ` · m1: ${meta.metric_1||'-'} · m2: ${meta.metric_2||'-'}` : '';
+      const cls=atStore ? ' at-store' : (atRetailer ? ' at-retailer' : ' absent');
+      const state=atStore ? `at this store${meta.status==='draft'?' (draft)':''}` : (atRetailer ? `at retailer, not this store (${count} door${count===1?'':'s'})` : 'not at retailer');
+      return `<div class="brand-pill${cls}" title="${esc(bName)} — ${state}${metricText}">${esc(b)}${atStore && meta.status==='draft'?' (draft)':''}${atRetailer && !atStore?` (${count})`:''}${metricText?` <span style="opacity:.75">${esc(metricText)}</span>`:''}</div>`;
+    }).join('')}</div>
+  </section>`;
+
   const tradeMetrics=getDoorTradeAreaMetrics(d,norm);
   if(tradeMetrics){
-    html+=`<div class="store-geographics">
-      <div class="store-geographics__title">Store Geographics</div>
-      ${renderStoreGeographyMetric('Population','population',tradeMetrics.population,'integer')}
-      ${renderStoreGeographyMetric('Median HH Income','median_household_income',tradeMetrics.median_household_income,'currency')}
-      ${renderStoreGeographyMetric('Population Density','population_density',tradeMetrics.population_density,'density')}
-      ${renderStoreGeographyMetric('Affluent HHs','affluent_households',tradeMetrics.affluent_households,'integer')}
-      ${renderStoreGeographyMetric('Nearby Doors','nearby_door_count',tradeMetrics.nearby_door_count ?? tradeMetrics.existing_door_count,'integer')}
-      ${renderStoreGeographyMetric('Opportunity Score','opportunity_score',tradeMetrics.opportunity_score,'score')}
-    </div>`;
+    html+=`<section class="store-section">
+      <header class="store-section__head">
+        <h5>Store Geographics</h5>
+        <span class="store-section__meta">vs. all stores</span>
+      </header>
+      <div class="store-geographics">
+        ${renderStoreGeographyMetric('Population','population',tradeMetrics.population,'integer')}
+        ${renderStoreGeographyMetric('Median HH Income','median_household_income',tradeMetrics.median_household_income,'currency')}
+        ${renderStoreGeographyMetric('Population Density','population_density',tradeMetrics.population_density,'density')}
+        ${renderStoreGeographyMetric('Affluent HHs','affluent_households',tradeMetrics.affluent_households,'integer')}
+        ${renderStoreGeographyMetric('Nearby Doors','nearby_door_count',tradeMetrics.nearby_door_count ?? tradeMetrics.existing_door_count,'integer')}
+        ${renderStoreGeographyMetric('Opportunity Score','opportunity_score',tradeMetrics.opportunity_score,'score')}
+      </div>
+    </section>`;
   }else if(_marketMetadata){
-    html+=`<div style="font-size:0.72rem;color:var(--text-dim);margin:8px 0 10px;font-style:italic">No store geographics found for this door in the static Census layer.</div>`;
+    html+=`<section class="store-section store-section--empty">No store geographics found for this door in the static Census layer.</section>`;
   }
-
-  html+=`<div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px;margin-top:12px">Brands at This Door / ${esc(norm)}</div>`;
-  html+=`<div class="brand-pills">${allBrands.map(b=>{
-    const atStore=brandsAtDoorMap.has(b);
-    const atRetailer=brandsAtRetailer.includes(b);
-    const bName=brandCodes[b]?brandCodes[b].name:'';
-    const count=getMatrixVal(norm,b);
-    const meta=brandsAtDoorMap.get(b) || {};
-    const metricText=(meta.metric_1!==undefined && meta.metric_1!=='' || meta.metric_2!==undefined && meta.metric_2!=='') ? ` · m1: ${meta.metric_1||'-'} · m2: ${meta.metric_2||'-'}` : '';
-    const cls=atStore ? ' at-store' : (atRetailer ? ' at-retailer' : ' absent');
-    const state=atStore ? `at this store${meta.status==='draft'?' (draft)':''}` : (atRetailer ? `at retailer, not this store (${count} door${count===1?'':'s'})` : 'not at retailer');
-    return `<div class="brand-pill${cls}" title="${esc(bName)} — ${state}${metricText}">${esc(b)}${atStore && meta.status==='draft'?' (draft)':''}${atRetailer && !atStore?` (${count})`:''}${metricText?` <span style="opacity:.75">${esc(metricText)}</span>`:''}</div>`;
-  }).join('')}</div>`;
 
   det.innerHTML=html;
   highlightDoorOnMap(d.doorNumber,norm);
@@ -2175,6 +2254,7 @@ function loadMarketData(){
     _marketHexData=(hex && hex.type==='FeatureCollection') ? hex : {type:'FeatureCollection',features:[]};
     _doorTradeAreaData=(trade && trade.type==='FeatureCollection') ? trade : {type:'FeatureCollection',features:[]};
     _marketMetadata=metadata;
+    invalidateGeoStatsCache();
     updateMarketMetaChip();
     if(_resMap && _resMapStyleReady) {
       addMarketMapLayers();
@@ -2204,38 +2284,99 @@ function getMarketMetricRange(metric){
   return max>min ? {min,max} : {min,max:min+1};
 }
 
-function getStoreGeographyMetricRange(metric){
+/* Quartile-based stats for store geographics. Replaces the older min/max
+   normalization, which got dragged toward zero by a handful of outlier
+   markets (Manhattan income, downtown density, etc.). Percentile rank +
+   IQR-based quartile binning are robust to those outliers — a store sees
+   how it compares to the typical store, not to the most extreme one. */
+const _geoStatsCache=new Map();
+let _geoStatsVersion=0;
+function invalidateGeoStatsCache(){ _geoStatsVersion++; _geoStatsCache.clear(); }
+
+function _percentileFromSorted(sorted,p){
+  if(!sorted.length) return 0;
+  const idx=(sorted.length-1)*p;
+  const lo=Math.floor(idx), hi=Math.ceil(idx);
+  return lo===hi ? sorted[lo] : sorted[lo]+(sorted[hi]-sorted[lo])*(idx-lo);
+}
+function getStoreGeographyMetricStats(metric){
+  const key=metric+'@'+_geoStatsVersion+':'+((_doorTradeAreaData && _doorTradeAreaData.features) ? _doorTradeAreaData.features.length : 0);
+  if(_geoStatsCache.has(key)) return _geoStatsCache.get(key);
   const values=(_doorTradeAreaData.features||[])
     .map(f=>Number(f.properties && f.properties[metric]))
-    .filter(Number.isFinite);
-  if(!values.length) return {min:0,max:1,avg:0};
-  const min=Math.min(...values);
-  const max=Math.max(...values);
-  const avg=values.reduce((sum,value)=>sum+value,0)/values.length;
-  return max>min ? {min,max,avg} : {min,max:min+1,avg};
+    .filter(Number.isFinite)
+    .sort((a,b)=>a-b);
+  const stats=values.length
+    ? {
+        sorted:values,
+        n:values.length,
+        min:values[0],
+        max:values[values.length-1],
+        q1:_percentileFromSorted(values,0.25),
+        q2:_percentileFromSorted(values,0.5),
+        q3:_percentileFromSorted(values,0.75)
+      }
+    : { sorted:[], n:0, min:0, max:0, q1:0, q2:0, q3:0 };
+  _geoStatsCache.set(key,stats);
+  return stats;
+}
+function getPercentileRank(value,sorted){
+  const n=Number(value);
+  if(!Number.isFinite(n) || !sorted.length) return null;
+  /* Lower bound of n in the sorted array — gives the fraction of stores
+     that score strictly below this one. */
+  let lo=0, hi=sorted.length;
+  while(lo<hi){
+    const mid=(lo+hi)>>1;
+    if(sorted[mid]<n) lo=mid+1; else hi=mid;
+  }
+  return lo/sorted.length;
+}
+function getQuartileBin(value,stats){
+  const n=Number(value);
+  if(!Number.isFinite(n) || !stats.n) return 0;
+  if(n<=stats.q1) return 1;
+  if(n<=stats.q2) return 2;
+  if(n<=stats.q3) return 3;
+  return 4;
 }
 
-function normalizeStoreGeographyMetric(value,metric){
-  const n=Number(value);
-  if(!Number.isFinite(n)) return 0;
-  const {min,max}=getStoreGeographyMetricRange(metric);
-  const span=Math.max(max-min,1);
-  return Math.max(0,Math.min(1,(n-min)/span));
-}
+const QUARTILE_LABELS=['','Bottom 25%','25–50%','50–75%','Top 25%'];
 
 function renderStoreGeographyMetric(label,metric,value,format){
-  const range=getStoreGeographyMetricRange(metric);
-  const pct=normalizeStoreGeographyMetric(value,metric)*100;
-  const tip=`${label}: ${formatMarketValue(value,format)}. Average across all store geographies: ${formatMarketValue(range.avg,format)}. Bar shows this store normalized between the current minimum (${formatMarketValue(range.min,format)}) and maximum (${formatMarketValue(range.max,format)}).`;
-  return `<div class="store-geo-metric" title="${esc(tip)}">
+  const stats=getStoreGeographyMetricStats(metric);
+  const valueText=formatMarketValue(value,format);
+  if(!stats.n){
+    return `<div class="store-geo-metric store-geo-metric--na">
+      <div class="store-geo-metric__top"><span>${esc(label)}</span><strong>${esc(valueText)}</strong></div>
+    </div>`;
+  }
+  const rank=getPercentileRank(value,stats.sorted);
+  const quart=getQuartileBin(value,stats);
+  if(rank==null || !quart){
+    return `<div class="store-geo-metric store-geo-metric--na">
+      <div class="store-geo-metric__top"><span>${esc(label)}</span><strong>${esc(valueText)}</strong></div>
+      <div class="store-geo-metric__range">no comparable data</div>
+    </div>`;
+  }
+  const pct=rank*100;
+  const quartLabel=QUARTILE_LABELS[quart];
+  const tip=`${label}: ${valueText} — ${quartLabel} (~${Math.round(pct)}th percentile across ${stats.n} stores). Median: ${formatMarketValue(stats.q2,format)}. Typical range (Q1–Q3): ${formatMarketValue(stats.q1,format)} – ${formatMarketValue(stats.q3,format)}.`;
+  return `<div class="store-geo-metric store-geo-metric--q${quart}" title="${esc(tip)}">
     <div class="store-geo-metric__top">
-      <span>${esc(label)}</span>
-      <strong>${esc(formatMarketValue(value,format))}</strong>
+      <span class="store-geo-metric__label">${esc(label)}</span>
+      <strong>${esc(valueText)}</strong>
+      <span class="store-geo-metric__quart">${quartLabel}</span>
     </div>
-    <div class="store-geo-metric__bar" aria-hidden="true"><span style="width:${pct.toFixed(1)}%"></span></div>
+    <div class="store-geo-metric__quartbar" aria-hidden="true">
+      <span class="quart-seg${quart===1?' is-active':''}"></span>
+      <span class="quart-seg${quart===2?' is-active':''}"></span>
+      <span class="quart-seg${quart===3?' is-active':''}"></span>
+      <span class="quart-seg${quart===4?' is-active':''}"></span>
+      <span class="quart-marker" style="left:${pct.toFixed(1)}%"></span>
+    </div>
     <div class="store-geo-metric__range">
-      <span>${esc(formatMarketValue(range.min,format))}</span>
-      <span>${esc(formatMarketValue(range.max,format))}</span>
+      <span>vs. median ${esc(formatMarketValue(stats.q2,format))}</span>
     </div>
   </div>`;
 }
@@ -2976,40 +3117,18 @@ function openStoreDrawer(ret,brand){
   }
   html+='</div>';
 
-  html+='<div id="drawerUnassignedPanel" style="display:none;margin-top:4px">';
-  html+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px"><div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim)">Unassigned Doors Available to Add</div><div style="font-size:0.68rem;color:var(--text-dim)">'+unassignedDoors.length+' doors</div></div>';
-  if(unassignedDoors.length){
-    html+=`<div class="helper-text" style="margin-bottom:8px">Stage additions or removals here, choose Assign or TBD for unassigned doors, then click Commit Change. Exiting without committing discards all staged selections.</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center">
-      <button class="btn btn-sm" id="drawerUnassignedSelectAllBtn" onclick="toggleDrawerDoorSelection('add')">Select All</button>
-      <select id="drawerAddMode" onchange="collectDrawerPendingAdds()" style="width:auto;min-width:120px">
-        <option value="confirmed">Assign</option>
-        <option value="tbd">TBD</option>
-      </select>
-      <span id="drawerCommitState" style="font-size:0.72rem;color:var(--text-muted);margin-left:auto">No pending changes</span>
+  /* Unassigned panel: build a placeholder + stash the data for a deferred
+     render. A retailer with ~1000 doors was paying ~1000 row HTML concats
+     up-front even though the panel was display:none. We now generate it
+     only on the first switch to the Unassigned tab. */
+  _pendingDrawerUnassigned={ret,brand,unassignedDoors};
+  html+=`<div id="drawerUnassignedPanel" style="display:none;margin-top:4px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">
+      <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim)">Unassigned Doors Available to Add</div>
+      <div style="font-size:0.68rem;color:var(--text-dim)">${unassignedDoors.length} doors</div>
     </div>
-    <div class="drawer-door-list" id="drawerUnassignedList">`;
-    unassignedDoors.forEach(dl=>{
-      const keyVal=buildDataKey(ret,dl.doorNumber,brand);
-      const searchText=[dl.doorNumber,dl.name,dl.address,dl.city,dl.state,dl.zip,dl.tier,keyVal].filter(Boolean).join(' ');
-      const warnBtn=doorNeedsCoordinateWarning(dl)
-        ? `<button type="button" class="door-warning-btn" title="Missing coordinates. Edit door details." onclick="${jsAttr(`event.stopPropagation();openEditDoorModal(${jsq(ret)},${jsq(String(dl.doorNumber))})`)}">&#9888;</button>`
-        : '';
-      html+=`<div class="drawer-door-row clickable" data-door-row="1" data-search="${esc(searchText.toLowerCase())}" onclick="onDrawerRowClick(event, 'add')">
-        <input type="checkbox" class="drawerAddChk drawer-door-hidden-input" value="${dl.doorNumber}" onchange="syncDrawerDoorChecks();collectDrawerPendingAdds()">
-        <div class="drawer-door-meta">
-          <div style="font-weight:600">#${dl.doorNumber} — ${esc(dl.name||'(no name)')}${warnBtn} <span style="font-size:0.6rem;padding:1px 5px;border-radius:3px;background:transparent;color:var(--text-dim);border:1px solid var(--border)">UNASSIGNED</span></div>
-          <div style="color:var(--text-muted);font-size:0.7rem;margin-top:2px">${esc(dl.address||'')} ${dl.city||dl.state?'· ':''}${esc(dl.city||'')}${dl.city&&dl.state?', ':''}${esc(dl.state||'')}</div>
-          <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim);margin-top:2px">${esc(keyVal)}</div>
-        </div>
-        <button type="button" class="drawer-door-check unassigned-check" onclick="event.stopPropagation();toggleDrawerCheckbox(this.closest('.drawer-door-row').querySelector('.drawerAddChk'))">✓</button>
-      </div>`;
-    });
-    html+='</div>';
-  }else{
-    html+='<div class="helper-text" style="padding:10px 0;border-bottom:1px solid var(--border)">All known doors for this retailer are already assigned to this brand.</div>';
-  }
-  html+='</div>';
+    <div id="drawerUnassignedBody" data-deferred="1"></div>
+  </div>`;
 
   const noteKey='note_'+ak;
   const existingNote=window._storeNotes&&window._storeNotes[noteKey]||'';
@@ -3197,12 +3316,66 @@ function commitDrawerChanges(ret, brand){
   toast(msg.length ? msg.join(' · ') : `Updated ${changed} door${changed===1?'':'s'}`);
 }
 
+let _pendingDrawerUnassigned=null;
+
+function buildDrawerUnassignedBodyHtml(ret,brand,unassignedDoors){
+  if(!unassignedDoors.length){
+    return '<div class="helper-text" style="padding:10px 0;border-bottom:1px solid var(--border)">All known doors for this retailer are already assigned to this brand.</div>';
+  }
+  let html=`<div class="helper-text" style="margin-bottom:8px">Stage additions or removals here, choose Assign or TBD for unassigned doors, then click Commit Change. Exiting without committing discards all staged selections.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center">
+      <button class="btn btn-sm" id="drawerUnassignedSelectAllBtn" onclick="toggleDrawerDoorSelection('add')">Select All</button>
+      <select id="drawerAddMode" onchange="collectDrawerPendingAdds()" style="width:auto;min-width:120px">
+        <option value="confirmed">Assign</option>
+        <option value="tbd">TBD</option>
+      </select>
+      <span id="drawerCommitState" style="font-size:0.72rem;color:var(--text-muted);margin-left:auto">No pending changes</span>
+    </div>
+    <div class="drawer-door-list" id="drawerUnassignedList">`;
+  unassignedDoors.forEach((dl,idx)=>{
+    const keyVal=buildDataKey(ret,dl.doorNumber,brand);
+    const searchText=[dl.doorNumber,dl.name,dl.address,dl.city,dl.state,dl.zip,dl.tier,keyVal].filter(Boolean).join(' ');
+    const isOrphan=isOrphanDoor(dl);
+    const warnBtn=doorNeedsCoordinateWarning(dl)
+      ? `<button type="button" class="door-warning-btn" title="Missing coordinates. Edit door details." onclick="${jsAttr(`event.stopPropagation();openEditDoorModal(${jsq(ret)},${jsq(String(dl.doorNumber))})`)}">&#9888;</button>`
+      : '';
+    const orphanBtn=isOrphan
+      ? `<button type="button" class="door-orphan-delete" title="Delete this incomplete door entirely" onclick="${jsAttr(`event.stopPropagation();deleteOrphanDoor(${jsq(ret)},${idx})`)}">&times;</button>`
+      : '';
+    const numLabel=(dl.doorNumber!==''&&dl.doorNumber!=null) ? `#${dl.doorNumber}` : '(no number)';
+    html+=`<div class="drawer-door-row clickable${isOrphan?' is-orphan':''}" data-door-row="1" data-search="${esc(searchText.toLowerCase())}" onclick="onDrawerRowClick(event, 'add')">
+      ${isOrphan
+        ? '<span class="drawer-door-hidden-input" aria-hidden="true"></span>'
+        : `<input type="checkbox" class="drawerAddChk drawer-door-hidden-input" value="${dl.doorNumber}" onchange="syncDrawerDoorChecks();collectDrawerPendingAdds()">`}
+      <div class="drawer-door-meta">
+        <div style="font-weight:600">${esc(numLabel)} — ${esc(dl.name||'(no name)')}${warnBtn}${orphanBtn} <span style="font-size:0.6rem;padding:1px 5px;border-radius:3px;background:transparent;color:var(--text-dim);border:1px solid var(--border)">${isOrphan?'INCOMPLETE':'UNASSIGNED'}</span></div>
+        <div style="color:var(--text-muted);font-size:0.7rem;margin-top:2px">${esc(dl.address||'')} ${dl.city||dl.state?'· ':''}${esc(dl.city||'')}${dl.city&&dl.state?', ':''}${esc(dl.state||'')}</div>
+        <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim);margin-top:2px">${esc(keyVal)}</div>
+      </div>
+      ${isOrphan
+        ? ''
+        : `<button type="button" class="drawer-door-check unassigned-check" onclick="event.stopPropagation();toggleDrawerCheckbox(this.closest('.drawer-door-row').querySelector('.drawerAddChk'))">✓</button>`}
+    </div>`;
+  });
+  html+='</div>';
+  return html;
+}
+
+function ensureDrawerUnassignedRendered(){
+  const body=document.getElementById('drawerUnassignedBody');
+  if(!body || body.dataset.deferred!=='1' || !_pendingDrawerUnassigned) return;
+  const {ret,brand,unassignedDoors}=_pendingDrawerUnassigned;
+  body.innerHTML=buildDrawerUnassignedBodyHtml(ret,brand,unassignedDoors);
+  body.removeAttribute('data-deferred');
+}
+
 function setDrawerDoorPanel(panel){
   const assigned=document.getElementById('drawerAssignedPanel');
   const unassigned=document.getElementById('drawerUnassignedPanel');
   const assignedBtn=document.getElementById('drawerAssignedToggle');
   const unassignedBtn=document.getElementById('drawerUnassignedToggle');
   const showAssigned=panel!=='unassigned';
+  if(!showAssigned) ensureDrawerUnassignedRendered();
   if(assigned) assigned.style.display=showAssigned?'block':'none';
   if(unassigned) unassigned.style.display=showAssigned?'none':'block';
   if(assignedBtn) assignedBtn.classList.toggle('active',showAssigned);
@@ -4460,14 +4633,18 @@ function loadSession(){
     if(!p || !p.username) return null;
     if(p.authProvider==='supabase') return null;
     if(p.isGuest) return { username:'guest', name:p.name || 'Guest', isGuest:true };
-    if(!USER_ROSTER[p.username]) return null;
-    return { username:p.username, name:USER_ROSTER[p.username].name };
+    const rosterEntry=USER_ROSTER[p.username];
+    if(!rosterEntry) return null;
+    /* Trust the live roster's tenant — if an admin rotates a user to a
+       different tenant, the user picks it up on their next reload rather
+       than holding on to the tenant cached in their localStorage. */
+    return { username:p.username, name:rosterEntry.name, tenant:rosterEntry.tenant || LEGACY_TENANT };
   }catch(e){ return null; }
 }
 function saveSession(){
   if(!currentUser) return;
   if(currentUser.authProvider==='supabase') return;
-  try{ localStorage.setItem(SESSION_KEY, JSON.stringify({username:currentUser.username, name:currentUser.name, isGuest:!!currentUser.isGuest, loginAt:new Date().toISOString()})); }catch(e){}
+  try{ localStorage.setItem(SESSION_KEY, JSON.stringify({username:currentUser.username, name:currentUser.name, tenant:currentUser.tenant, isGuest:!!currentUser.isGuest, loginAt:new Date().toISOString()})); }catch(e){}
 }
 function clearSession(){ try{ localStorage.removeItem(SESSION_KEY); }catch(e){} }
 
@@ -4476,11 +4653,11 @@ async function getSupabaseRosterUser(email){
   if(!client) return null;
   const normalized=normalizeEmail(email);
   const {data,error}=await client.from('door_tracker_allowed_users')
-    .select('email,display_name')
+    .select('email,display_name,tenant')
     .eq('email',normalized)
     .maybeSingle();
   if(error) throw error;
-  return data ? { username:data.email, name:data.display_name || data.email, authProvider:'supabase' } : null;
+  return data ? { username:data.email, name:data.display_name || data.email, tenant:data.tenant || LEGACY_TENANT, authProvider:'supabase' } : null;
 }
 async function loadSupabaseSession(){
   const client=getSupabaseClient();
@@ -4569,7 +4746,7 @@ async function handleLogin(){
     const inputHash=await sha256Hex(password);
     if(inputHash!==user.hash){ errEl.textContent='Wrong password.'; errEl.style.display='block'; btn.disabled=false; return; }
     window._doorTrackerBlankGuest=false;
-    currentUser={ username, name:user.name };
+    currentUser={ username, name:user.name, tenant:user.tenant || LEGACY_TENANT };
     saveSession();
     document.getElementById('loginPass').value='';
     hideLoginModal();

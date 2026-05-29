@@ -918,43 +918,109 @@ body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; fo
   border-color: var(--accent);
   outline: none;
 }
-.brand-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.brand-pills { display: flex; flex-wrap: wrap; gap: 6px; }
 .brand-pill { padding: 3px 10px; border-radius: 12px; font-size: 0.65rem; font-weight: 600; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--border); }
 .brand-pill.at-store { background: rgba(39,174,96,0.16); color: #2ecc71; border-color: rgba(39,174,96,0.42); }
 .brand-pill.at-retailer { background: rgba(232,185,49,0.16); color: #e8b931; border-color: rgba(232,185,49,0.42); }
 .brand-pill.absent { background: transparent; color: var(--text-dim); border-color: var(--border); opacity: 0.5; }
-.store-geographics { display: grid; gap: 5px; margin: 10px 0; }
-.store-geographics__title { font-size: 0.64rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); }
+
+/* Door-detail sections — one card per concern (brand offering, geographics) */
+.store-section { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+.store-section:first-of-type { border-top: 0; padding-top: 0; }
+.store-section__head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 10px; margin-bottom: 8px;
+}
+.store-section__head h5 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+.store-section__meta {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.store-section--empty {
+  font-size: 0.72rem; color: var(--text-dim); font-style: italic;
+}
+
+.store-geographics { display: grid; gap: 8px; }
+
+/* Quartile-based metric row — bar shows percentile rank across all stores,
+   four equal segments highlight the active quartile. Robust to outliers in
+   ways the old min/max bar wasn't. */
 .store-geo-metric {
-  padding: 6px 8px;
+  padding: 7px 9px;
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   background: var(--surface-raised);
 }
-.store-geo-metric__top,
-.store-geo-metric__range {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+.store-geo-metric__top {
+  display: flex; align-items: center; gap: 8px;
 }
-.store-geo-metric__top { color: var(--text-muted); font-size: 0.66rem; }
-.store-geo-metric__top strong { color: var(--text); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 600; }
-.store-geo-metric__bar {
-  height: 4px;
-  margin: 5px 0 3px;
-  border-radius: 999px;
+.store-geo-metric__label {
+  flex: 1; min-width: 0;
+  color: var(--text-muted);
+  font-size: 0.66rem;
+}
+.store-geo-metric__top strong {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.store-geo-metric__quart {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+.store-geo-metric__quartbar {
+  position: relative;
+  display: flex; gap: 2px;
+  margin: 7px 0 4px;
+}
+.quart-seg {
+  flex: 1; height: 4px;
+  border-radius: 2px;
   background: var(--border);
-  overflow: hidden;
+  transition: background var(--transition);
 }
-.store-geo-metric__bar span {
-  display: block;
-  height: 100%;
-  min-width: 2px;
-  border-radius: inherit;
-  background: var(--accent);
+.quart-seg.is-active { background: var(--accent); }
+.quart-marker {
+  position: absolute;
+  top: -2px; bottom: -2px;
+  width: 2px;
+  background: var(--text);
+  transform: translateX(-50%);
+  border-radius: 1px;
+  pointer-events: none;
 }
-.store-geo-metric__range { color: var(--text-dim); font-family: var(--font-mono); font-size: 0.54rem; }
+.store-geo-metric__range {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+}
+
+/* Quartile tint — restrained: only the badge picks up the per-quartile
+   color, so the panel doesn't read as a rainbow. */
+.store-geo-metric--q1 .store-geo-metric__quart { background: rgba(192,57,43,0.14); color: var(--danger); border-color: rgba(192,57,43,0.35); }
+.store-geo-metric--q2 .store-geo-metric__quart { background: rgba(230,126,34,0.14); color: var(--draft); border-color: rgba(230,126,34,0.35); }
+.store-geo-metric--q3 .store-geo-metric__quart { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-mid); }
+.store-geo-metric--q4 .store-geo-metric__quart { background: rgba(39,174,96,0.18); color: var(--success); border-color: rgba(39,174,96,0.42); }
+.store-geo-metric--na .store-geo-metric__top { opacity: 0.55; }
+.store-geo-metric--na .store-geo-metric__range { opacity: 0.55; }
 .tier-badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 0.6rem; font-weight: 700; margin-left: 6px; }
 .tier-badge.A { background: rgba(39,174,96,0.15); color: var(--success); }
 .tier-badge.B { background: rgba(232,185,49,0.15); color: var(--accent); }
@@ -1060,6 +1126,10 @@ body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; fo
   padding: 24px 20px;
   transition: right 0.3s ease;
   box-shadow: 0 18px 48px rgba(0,0,0,0.38);
+  /* Scroll the whole drawer when content overflows — previously content
+     past the viewport was clipped because only .drawer-door-list scrolled. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .drawer.open { right: 0; }
 .drawer h3 { font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 4px; }
@@ -1113,7 +1183,44 @@ body.light .search-box { background: #f4f2ee; }
 .helper-text { font-size:0.76rem; color:var(--text-muted); line-height:1.45; margin-top:6px; }
 .metric-chip { display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border-radius:999px; font-size:0.74rem; font-weight:700; border:1px solid var(--border); background:var(--surface-raised); color:var(--text-muted); }
 
-.drawer-door-row { padding:8px 0; border-bottom:1px solid var(--border); font-size:0.78rem; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; transition: background var(--transition), padding-left var(--transition); border-radius: var(--radius-xs); }
+.drawer-door-row {
+  padding:8px 0;
+  border-bottom:1px solid var(--border);
+  font-size:0.78rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  transition: background var(--transition), padding-left var(--transition);
+  border-radius: var(--radius-xs);
+  /* Skip layout/paint for offscreen rows — major win for retailers with
+     hundreds of doors in a single brand-retailer drawer. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 60px;
+}
+.drawer-door-row.is-orphan {
+  background: color-mix(in oklab, var(--surface) 80%, var(--draft-dim));
+  border-color: var(--draft);
+}
+.drawer-door-row.is-orphan + .drawer-door-row.is-orphan { border-top: 1px solid var(--border); }
+.door-orphan-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  padding: 0;
+  border: 1px solid var(--danger);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--danger);
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.door-orphan-delete:hover { background: var(--danger); color: var(--bg); }
 .drawer-door-list {
   max-height: 312px;
   overflow-y: auto;
