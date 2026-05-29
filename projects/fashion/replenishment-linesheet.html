@@ -27,6 +27,7 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <script src="../../js/favicon-rotator.js" defer></script>
 <script src="../../js/cursor.js" defer></script>
+<script src="fashion-decisions.js" defer></script>
 
 <link rel="preconnect" href="https://api.fontshare.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1720,9 +1721,15 @@ function deleteAutosaveSnapshot() {
   return withAutosaveStore('readwrite', store => store.delete(AUTOSAVE_KEY));
 }
 
-function clearLineSheet() {
+async function clearLineSheet() {
   if (!allItems.length) return;
-  if (!confirm('Clear the loaded line sheet and saved browser autosave?')) return;
+  const confirmed = window.fashionConfirm
+    ? await window.fashionConfirm('Clear the loaded line sheet and saved browser autosave?', {
+        title: 'Clear Line Sheet',
+        confirmLabel: 'Clear',
+      })
+    : confirm('Clear the loaded line sheet and saved browser autosave?');
+  if (!confirmed) return;
 
   clearTimeout(autosaveTimer);
   allItems = [];

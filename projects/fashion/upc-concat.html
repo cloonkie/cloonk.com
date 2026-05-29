@@ -13,6 +13,7 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <script src="../../js/favicon-rotator.js" defer></script>
 <script src="../../js/cursor.js" defer></script>
+<script src="fashion-decisions.js" defer></script>
 <link rel="preconnect" href="https://api.fontshare.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3147,8 +3148,14 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("dlXlsxBtn").addEventListener("click", () => App.Exporter.toXLSX());
 
   /* ── profile actions ── */
-  document.getElementById("profileSelect").addEventListener("change", e => {
-    if (App.Profile.isDirty() && !confirm("Discard unsaved changes and switch profile?")) {
+  document.getElementById("profileSelect").addEventListener("change", async e => {
+    const canSwitch = !App.Profile.isDirty() || (window.fashionConfirm
+      ? await window.fashionConfirm("Discard unsaved changes and switch profile?", {
+          title: "Switch Profile",
+          confirmLabel: "Switch",
+        })
+      : confirm("Discard unsaved changes and switch profile?"));
+    if (!canSwitch) {
       App.UI.renderProfileSelect(); return;
     }
     const v = e.target.value;
@@ -3160,8 +3167,14 @@ document.addEventListener("DOMContentLoaded", () => {
     App.State.files = {}; App.State.clusters = []; App.State.results = []; App.State.warnings = [];
     App.UI.renderAll(); App.UI.Results.render();
   });
-  document.getElementById("saveBtn").addEventListener("click", () => {
-    const name = prompt("Save profile as:", App.State.profile.name || "My Profile");
+  document.getElementById("saveBtn").addEventListener("click", async () => {
+    const name = window.fashionPrompt
+      ? await window.fashionPrompt("Save profile as:", {
+          title: "Profile Name",
+          defaultValue: App.State.profile.name || "My Profile",
+          confirmLabel: "Save",
+        })
+      : prompt("Save profile as:", App.State.profile.name || "My Profile");
     if (!name) return;
     App.Profile.save(name);
     App.UI.renderAll();
@@ -3184,8 +3197,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     e.target.value = "";
   });
-  document.getElementById("resetBtn").addEventListener("click", () => {
-    if (App.Profile.isDirty() && !confirm("Discard changes and reset to the bundled profile?")) return;
+  document.getElementById("resetBtn").addEventListener("click", async () => {
+    const canReset = !App.Profile.isDirty() || (window.fashionConfirm
+      ? await window.fashionConfirm("Discard changes and reset to the bundled profile?", {
+          title: "Reset Profile",
+          confirmLabel: "Reset",
+        })
+      : confirm("Discard changes and reset to the bundled profile?"));
+    if (!canReset) return;
     App.Profile.load(App.Profile.defaultProfile(), true);
     App.State.files = {}; App.State.clusters = []; App.State.results = []; App.State.warnings = [];
     App.UI.renderAll(); App.UI.Results.render();

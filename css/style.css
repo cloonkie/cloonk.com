@@ -362,8 +362,18 @@ footer {
   transform: translate(-50%, -50%);
   opacity: 0;
   white-space: nowrap;
-  transition: opacity 0.15s, background 0.2s;
+  transition: opacity 0.15s, background 0.2s, color 0.2s, border-color 0.2s;
   will-change: transform;
+}
+
+body.cursor-contrast .cursor-dot {
+  background: var(--bg);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+body.cursor-contrast .cursor-label {
+  background: var(--bg);
+  color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
 /* When hovering a link/button: hide dot, show label */
@@ -401,6 +411,10 @@ body.cursor-hover .cursor-label {
 body.cursor-pen .cursor-dot { opacity: 0; }
 body.cursor-pen .cursor-label { opacity: 0; }
 body.cursor-pen .cursor-pen-icon { opacity: 1; }
+body.cursor-contrast .cursor-pen-icon {
+  color: var(--bg);
+  filter: drop-shadow(0 0 1px var(--accent));
+}
 
 /* While actively pressing the mouse: collapse to the plain dot, no label/pen */
 body.cursor-clicking .cursor-label { opacity: 0; }

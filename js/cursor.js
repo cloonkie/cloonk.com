@@ -34,6 +34,17 @@
 
   /* Pen-mode targets: editable note areas. */
   const PEN_SEL = '.card-notes, textarea[data-cursor="pen"], [data-cursor="pen"]';
+  const CONTRAST_SEL = [
+    '[data-cursor-contrast]',
+    '.fashion-decision',
+    '.fashion-decision-backdrop',
+    '.btn-accent',
+  ].join(', ');
+
+  function updateCursorContrast(target) {
+    const el = target && target.closest ? target : document.elementFromPoint(mx, my);
+    document.body.classList.toggle('cursor-contrast', !!(el && el.closest(CONTRAST_SEL)));
+  }
 
   /* Returns the label text, or `null` to suppress the pill entirely
      (used for `data-cursor=""` opt-outs like Select All / Deselect All). */
@@ -94,7 +105,11 @@
     document.body.classList.add('cursor-hover');
   };
 
-  document.addEventListener('mousemove', (e) => { mx = e.clientX; my = e.clientY; }, { passive: true });
+  document.addEventListener('mousemove', (e) => {
+    mx = e.clientX;
+    my = e.clientY;
+    updateCursorContrast(e.target);
+  }, { passive: true });
 
   (function tick() {
     const t = `translate(calc(${mx}px - 50%), calc(${my}px - 50%))`;
@@ -105,6 +120,7 @@
   })();
 
   document.addEventListener('mouseover', (e) => {
+    updateCursorContrast(e.target);
     /* Pen mode wins over hover-label — note textareas show the pen icon. */
     if (e.target.closest(PEN_SEL)) {
       document.body.classList.add('cursor-pen');
@@ -126,10 +142,17 @@
   document.addEventListener('mouseout', (e) => {
     if (e.target.closest(PEN_SEL)) document.body.classList.remove('cursor-pen');
     if (e.target.closest(HOVER_SEL)) document.body.classList.remove('cursor-hover');
+    updateCursorContrast();
   }, { passive: true });
 
-  document.addEventListener('mouseleave', () => { dot.style.opacity = '0'; });
-  document.addEventListener('mouseenter', () => { dot.style.opacity = ''; });
+  document.addEventListener('mouseleave', () => {
+    dot.style.opacity = '0';
+    document.body.classList.remove('cursor-contrast');
+  });
+  document.addEventListener('mouseenter', () => {
+    dot.style.opacity = '';
+    updateCursorContrast();
+  });
 
   /* Active click — collapse to the plain dot for the duration of the press.
      The pen + label are suppressed so a select/deselect click reads as a

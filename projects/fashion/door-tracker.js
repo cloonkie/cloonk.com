@@ -1600,13 +1600,15 @@ function publishAllDrafts(){
   toast(`Published ${published} entries` + (drafts.length-published>0 ? ` (${drafts.length-published} still need door assignment)` : ''));
 }
 
-function assignDoorToDraft(ret,brand,idx){
+async function assignDoorToDraft(ret,brand,idx){
   const ak=k(ret,brand);
   const assigns=doorAssignments[ak];
   if(!assigns||!assigns[idx]) return;
   const rDoors=doorLocations.filter(d=>normalizeRetailer(d.retailer)===ret).sort((a,b)=>a.name.localeCompare(b.name));
   let opts=rDoors.map(d=>`#${d.doorNumber} — ${d.name}`).join('\n');
-  const pick=prompt('Enter door number to assign:\n'+opts);
+  const pick=window.fashionPrompt
+    ? await window.fashionPrompt(opts, { title:'Assign Door', confirmLabel:'Assign', defaultValue:'' })
+    : prompt('Enter door number to assign:\n'+opts);
   if(!pick) return;
   const num=parseInt(pick.replace('#',''));
   if(isNaN(num)){toast('Invalid door number');return;}
@@ -3340,10 +3342,16 @@ function toggleSelectAll(selector, checked){
   document.querySelectorAll(selector).forEach(el=>{ el.checked=checked; });
 }
 
-function openNewBrandPrompt(){
-  const code=(prompt('Enter new brand code (for example CH):')||'').trim().toUpperCase();
+async function openNewBrandPrompt(){
+  const rawCode=window.fashionPrompt
+    ? await window.fashionPrompt('Enter new brand code, for example CH.', { title:'New Brand Code', confirmLabel:'Next' })
+    : prompt('Enter new brand code (for example CH):');
+  const code=(rawCode||'').trim().toUpperCase();
   if(!code) return;
-  const name=(prompt('Enter brand name:')||'').trim();
+  const rawName=window.fashionPrompt
+    ? await window.fashionPrompt('Enter brand name.', { title:'New Brand Name', confirmLabel:'Add' })
+    : prompt('Enter brand name:');
+  const name=(rawName||'').trim();
   if(!name){ toast('Brand name is required.'); return; }
   if(!brandCodes[code]) brandCodes[code]={name, ds_active:true};
   else { brandCodes[code].name=name || brandCodes[code].name; brandCodes[code].ds_active=true; }
@@ -3356,20 +3364,24 @@ function openNewBrandPrompt(){
   openAddModal();
 }
 
-function openNewDoorPrompt(){
+async function openNewDoorPrompt(){
   const ret=document.getElementById('aRet').value;
   if(!ret){ toast('Select a retailer first.'); return; }
-  const doorRaw=(prompt('Enter retailer-assigned door number:')||'').trim();
+  const doorRaw=((window.fashionPrompt
+    ? await window.fashionPrompt('Enter retailer-assigned door number.', { title:'New Door Number', confirmLabel:'Next' })
+    : prompt('Enter retailer-assigned door number:'))||'').trim();
   if(!doorRaw) return;
-  const name=(prompt('Enter door/store name:')||'').trim();
+  const name=((window.fashionPrompt
+    ? await window.fashionPrompt('Enter door/store name.', { title:'Door Name', confirmLabel:'Next' })
+    : prompt('Enter door/store name:'))||'').trim();
   if(!name){ toast('Door name is required.'); return; }
-  const city=(prompt('Enter city:')||'').trim();
-  const state=(prompt('Enter state / province:')||'').trim();
-  const address=(prompt('Enter street address (optional):')||'').trim();
-  const zip=(prompt('Enter ZIP / postal code (optional):')||'').trim();
-  const latStr=(prompt('Enter latitude for the map (optional):')||'').trim();
-  const lngStr=(prompt('Enter longitude for the map (optional):')||'').trim();
-  const tier=(prompt('Enter tier (optional, e.g. A/B/C):')||'').trim().toUpperCase();
+  const city=((window.fashionPrompt ? await window.fashionPrompt('Enter city.', { title:'Door City', confirmLabel:'Next' }) : prompt('Enter city:'))||'').trim();
+  const state=((window.fashionPrompt ? await window.fashionPrompt('Enter state / province.', { title:'Door State', confirmLabel:'Next' }) : prompt('Enter state / province:'))||'').trim();
+  const address=((window.fashionPrompt ? await window.fashionPrompt('Enter street address, optional.', { title:'Door Address', confirmLabel:'Next' }) : prompt('Enter street address (optional):'))||'').trim();
+  const zip=((window.fashionPrompt ? await window.fashionPrompt('Enter ZIP / postal code, optional.', { title:'Door ZIP', confirmLabel:'Next' }) : prompt('Enter ZIP / postal code (optional):'))||'').trim();
+  const latStr=((window.fashionPrompt ? await window.fashionPrompt('Enter latitude for the map, optional.', { title:'Door Latitude', confirmLabel:'Next' }) : prompt('Enter latitude for the map (optional):'))||'').trim();
+  const lngStr=((window.fashionPrompt ? await window.fashionPrompt('Enter longitude for the map, optional.', { title:'Door Longitude', confirmLabel:'Next' }) : prompt('Enter longitude for the map (optional):'))||'').trim();
+  const tier=((window.fashionPrompt ? await window.fashionPrompt('Enter tier, optional, e.g. A/B/C.', { title:'Door Tier', confirmLabel:'Add' }) : prompt('Enter tier (optional, e.g. A/B/C):'))||'').trim().toUpperCase();
   const norm=normalizeRetailer(ret);
   if(doorLocations.some(d=>normalizeRetailer(d.retailer)===norm && String(d.doorNumber)===doorRaw)){ toast('That door already exists for this retailer.'); return; }
   const doorNumber = /^\d+$/.test(doorRaw) ? parseInt(doorRaw,10) : doorRaw;
@@ -3494,8 +3506,8 @@ function populateAddDoors(){
   });
 }
 
-function addEntry(){
-  if(addMode==='delete_door'){ deleteDoorFromModify(); return; }
+async function addEntry(){
+  if(addMode==='delete_door'){ await deleteDoorFromModify(); return; }
   const ret=document.getElementById('aRet').value;
   const note=document.getElementById('aNote').value.trim();
   if(!ret){toast('Retailer is required.');return;}
@@ -3563,7 +3575,7 @@ function addEntry(){
   }
 }
 
-function deleteDoorFromModify(){
+async function deleteDoorFromModify(){
   const ret=document.getElementById('aRet').value;
   const doorVal=document.getElementById('delDoor').value;
   const note=document.getElementById('aNote').value.trim();
@@ -3582,7 +3594,10 @@ function deleteDoorFromModify(){
   }
   const label=`#${door.doorNumber} — ${door.name || '(no name)'}`;
   const msg=`Delete ${label} from ${norm}? This will remove ${affected.length} brand assignment${affected.length===1?'':'s'} tied to this door.`;
-  if(!confirm(msg)) return;
+  const confirmed=window.fashionConfirm
+    ? await window.fashionConfirm(msg, { title:'Delete Door', confirmLabel:'Delete' })
+    : confirm(msg);
+  if(!confirmed) return;
 
   doorLocations=doorLocations.filter(d=>!(normalizeRetailer(d.retailer)===norm && String(d.doorNumber)===String(doorVal)));
   for(const [key,assigns] of Object.entries(doorAssignments)){

@@ -20,6 +20,7 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <script src="../../js/favicon-rotator.js" defer></script>
 <script src="../../js/cursor.js" defer></script>
+<script src="fashion-decisions.js" defer></script>
 <link rel="preconnect" href="https://api.fontshare.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3377,7 +3378,9 @@ function renderRowSkipPreview() {
 }
 
 function confirmDelete(message) {
-  return window.confirm(message);
+  return window.fashionConfirm
+    ? window.fashionConfirm(message, { title: "Confirm Delete", confirmLabel: "Delete" })
+    : Promise.resolve(window.confirm(message));
 }
 
 function headerOptionLabel(h) {
@@ -4858,8 +4861,14 @@ function saveConfigToHistory(name, config) {
   return envelope;
 }
 
-function saveCurrentConfig() {
-  const name = prompt("Configuration name", defaultConfigName());
+async function saveCurrentConfig() {
+  const name = window.fashionPrompt
+    ? await window.fashionPrompt("Name this reusable mapping setup.", {
+        title: "Configuration Name",
+        defaultValue: defaultConfigName(),
+        confirmLabel: "Save",
+      })
+    : prompt("Configuration name", defaultConfigName());
   if (name === null) return;
   const saved = saveConfigToHistory(name);
   downloadBlob(configFileName(saved.name), "application/json", JSON.stringify(saved, null, 2));
@@ -5600,12 +5609,23 @@ els.tableShell.addEventListener("drop", e => {
     queueAutosave();
   }
 });
-els.tableShell.addEventListener("contextmenu", e => {
+els.tableShell.addEventListener("contextmenu", async e => {
   const rowTarget = e.target.closest("[data-raw-row]");
   if (rowTarget) {
     e.preventDefault();
     const rowNumber = Number(rowTarget.dataset.rawRow);
-    const action = cleanHeader(prompt(`Row ${rowNumber} actions:\nH = Column Header Row\nG = Header Group Row\nD = Delete Row`, "H")).toLowerCase();
+    const actionValue = window.fashionChoice
+      ? await window.fashionChoice(`Choose what row ${rowNumber} should do for this import.`, {
+          title: `Row ${rowNumber} Actions`,
+          choices: [
+            { label: "Header Row", value: "h", kind: "confirm" },
+            { label: "Group Row", value: "g", kind: "confirm" },
+            { label: "Delete Row", value: "d", kind: "confirm" },
+            { label: "Cancel", value: "", kind: "cancel" },
+          ],
+        })
+      : prompt(`Row ${rowNumber} actions:\nH = Column Header Row\nG = Header Group Row\nD = Delete Row`, "H");
+    const action = cleanHeader(actionValue).toLowerCase();
     if (!action) return;
     if (action === "h" || action === "header") {
       state.config.headerRow = rowNumber;
@@ -5625,7 +5645,7 @@ els.tableShell.addEventListener("contextmenu", e => {
       return;
     }
     if (action !== "d" && action !== "delete") return;
-    if (!confirmDelete(`Delete row ${rowNumber} from this import?`)) return;
+    if (!await confirmDelete(`Delete row ${rowNumber} from this import?`)) return;
     state.config.deleteRows = mergeNumberSpec(state.config.deleteRows, rowNumber);
     els.deleteRows.value = state.config.deleteRows;
     rebuild();
@@ -5640,7 +5660,7 @@ els.tableShell.addEventListener("contextmenu", e => {
     const workingRows = source ? getRowsForSource(source, { keepDeletedColumns: true }).map(item => item.row) : [];
     const headerRow = workingRows[Math.max(0, Number(state.config.headerRow) - 1)] || [];
     const label = cleanHeader(headerRow[col]) || indexToColumnLabel(col);
-    if (!confirmDelete(`Delete column ${label} from this import?`)) return;
+    if (!await confirmDelete(`Delete column ${label} from this import?`)) return;
     adjustMappingsAfterColumnDelete(Number(colTarget.dataset.rawDrop));
     state.config.deleteColumns = mergeColumnSpec(state.config.deleteColumns, col);
     refreshDeleteColumnsLabel();
