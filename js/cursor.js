@@ -82,6 +82,7 @@
 
     if ('cursor' in el.dataset) {
       const v = el.dataset.cursor;
+      if (v === 'expand-collapse') return el.getAttribute('aria-expanded') === 'true' ? 'collapse' : 'expand';
       return v === '' ? null : v;
     }
 
