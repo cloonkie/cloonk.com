@@ -1940,7 +1940,7 @@ function renderDoorDetail(d,ret){
   const doorNum=d.doorNumber;
   const brandFilters=getSelectValues('fBrand');
 
-  const brandsAtDoor=[];
+  const brandsAtDoorMap=new Map();
   const brandsAtRetailer=[];
   for(const [key,assigns] of Object.entries(doorAssignments)){
     const [r,b]=key.split('|');
@@ -1950,17 +1950,19 @@ function renderDoorDetail(d,ret){
       assigns.forEach(a=>{
         if(a.doorNumber==doorNum){
           const state=getDataKeyState(norm,doorNum,b) || {};
-          brandsAtDoor.push({brand:b,status:a.status,metric_1:state.metric_1 ?? '',metric_2:state.metric_2 ?? ''});
+          const meta={brand:b,status:a.status,metric_1:state.metric_1 ?? '',metric_2:state.metric_2 ?? ''};
+          brandsAtDoorMap.set(b,meta);
         }
       });
     }
   }
   matrixData.forEach(m=>{ if((m[norm]||0)>0 && !brandsAtRetailer.includes(m.brand)){ brandsAtRetailer.push(m.brand); } });
 
-  const allBrands=(brandFilters.length ? matrixData.map(m=>m.brand).filter(b=>brandFilters.includes(b)) : matrixData.map(m=>m.brand))
+  const brandUniverse=[...new Set([...matrixData.map(m=>m.brand), ...brandsAtRetailer, ...brandsAtDoorMap.keys()])];
+  const allBrands=(brandFilters.length ? brandUniverse.filter(b=>brandFilters.includes(b)) : brandUniverse)
     .sort((a,b)=>{
-      const ap=brandsAtRetailer.includes(a)?0:1;
-      const bp=brandsAtRetailer.includes(b)?0:1;
+      const ap=brandsAtDoorMap.has(a)?0:(brandsAtRetailer.includes(a)?1:2);
+      const bp=brandsAtDoorMap.has(b)?0:(brandsAtRetailer.includes(b)?1:2);
       return ap-bp || a.localeCompare(b);
     });
   const det=document.getElementById('doorDetail');
@@ -1989,38 +1991,30 @@ function renderDoorDetail(d,ret){
 
   const tradeMetrics=getDoorTradeAreaMetrics(d,norm);
   if(tradeMetrics){
-    html+=`<div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px;margin-top:12px">Trade Area</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
-        <div class="brand-pill" title="ACS B01003_001E within configured trade area">Population: ${esc(formatMarketValue(tradeMetrics.population,'integer'))}</div>
-        <div class="brand-pill" title="ACS B19013_001E weighted within configured trade area">Income: ${esc(formatMarketValue(tradeMetrics.median_household_income,'currency'))}</div>
-        <div class="brand-pill" title="Households with income above $150K when ACS income bands are available">Affluent HHs: ${esc(formatMarketValue(tradeMetrics.affluent_households,'integer'))}</div>
-        <div class="brand-pill" title="Existing mapped doors in the same trade area">Nearby Doors: ${esc(formatMarketValue(tradeMetrics.nearby_door_count ?? tradeMetrics.existing_door_count,'integer'))}</div>
-        <div class="brand-pill" title="0-100 normalized market score">Opportunity: ${esc(formatMarketValue(tradeMetrics.opportunity_score,'score'))}</div>
-      </div>`;
+    html+=`<div class="store-geographics">
+      <div class="store-geographics__title">Store Geographics</div>
+      ${renderStoreGeographyMetric('Population','population',tradeMetrics.population,'integer')}
+      ${renderStoreGeographyMetric('Median HH Income','median_household_income',tradeMetrics.median_household_income,'currency')}
+      ${renderStoreGeographyMetric('Population Density','population_density',tradeMetrics.population_density,'density')}
+      ${renderStoreGeographyMetric('Affluent HHs','affluent_households',tradeMetrics.affluent_households,'integer')}
+      ${renderStoreGeographyMetric('Nearby Doors','nearby_door_count',tradeMetrics.nearby_door_count ?? tradeMetrics.existing_door_count,'integer')}
+      ${renderStoreGeographyMetric('Opportunity Score','opportunity_score',tradeMetrics.opportunity_score,'score')}
+    </div>`;
   }else if(_marketMetadata){
-    html+=`<div style="font-size:0.72rem;color:var(--text-dim);margin:8px 0 10px;font-style:italic">No trade-area metrics found for this door in the static Census layer.</div>`;
+    html+=`<div style="font-size:0.72rem;color:var(--text-dim);margin:8px 0 10px;font-style:italic">No store geographics found for this door in the static Census layer.</div>`;
   }
 
-  const visibleBrandsAtDoor=(brandFilters.length ? brandsAtDoor.filter(x=>brandFilters.includes(x.brand)) : brandsAtDoor)
-    .sort((a,b)=>a.brand.localeCompare(b.brand));
-  if(visibleBrandsAtDoor.length){
-    html+=`<div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px">Brands at This Door</div>`;
-    html+=`<div class="brand-pills">${visibleBrandsAtDoor.map(({brand,status,metric_1,metric_2})=>{
-      const bName=brandCodes[brand]?brandCodes[brand].name:'';
-      const isDraft=status==='draft';
-      const metricText=(metric_1!==''||metric_2!=='')?` · m1: ${metric_1||'-'} · m2: ${metric_2||'-'}`:'';
-      return `<div class="brand-pill${isDraft?' draft':''}" style="${isDraft?'border-color:var(--draft);color:var(--draft)':''}" title="${bName} — ${status}${metricText}">${brand}${isDraft?' (draft)':''}${metricText?` <span style="opacity:.75">${esc(metricText)}</span>`:''}</div>`;
-    }).join('')}</div>`;
-  } else {
-    html+=`<div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:8px;font-style:italic">No brands specifically assigned to this door yet.</div>`;
-  }
-
-  html+=`<div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px;margin-top:12px">All Brands at ${esc(norm)} (retailer level)</div>`;
+  html+=`<div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px;margin-top:12px">Brands at This Door / ${esc(norm)}</div>`;
   html+=`<div class="brand-pills">${allBrands.map(b=>{
-    const present=brandsAtRetailer.includes(b);
+    const atStore=brandsAtDoorMap.has(b);
+    const atRetailer=brandsAtRetailer.includes(b);
     const bName=brandCodes[b]?brandCodes[b].name:'';
     const count=getMatrixVal(norm,b);
-    return `<div class="brand-pill${present?'':' absent'}" title="${bName}: ${count} doors">${b}${present?' ('+count+')':''}</div>`;
+    const meta=brandsAtDoorMap.get(b) || {};
+    const metricText=(meta.metric_1!==undefined && meta.metric_1!=='' || meta.metric_2!==undefined && meta.metric_2!=='') ? ` · m1: ${meta.metric_1||'-'} · m2: ${meta.metric_2||'-'}` : '';
+    const cls=atStore ? ' at-store' : (atRetailer ? ' at-retailer' : ' absent');
+    const state=atStore ? `at this store${meta.status==='draft'?' (draft)':''}` : (atRetailer ? `at retailer, not this store (${count} door${count===1?'':'s'})` : 'not at retailer');
+    return `<div class="brand-pill${cls}" title="${esc(bName)} — ${state}${metricText}">${esc(b)}${atStore && meta.status==='draft'?' (draft)':''}${atRetailer && !atStore?` (${count})`:''}${metricText?` <span style="opacity:.75">${esc(metricText)}</span>`:''}</div>`;
   }).join('')}</div>`;
 
   det.innerHTML=html;
@@ -2200,6 +2194,40 @@ function getMarketMetricRange(metric){
   const min=Math.min(...values);
   const max=Math.max(...values);
   return max>min ? {min,max} : {min,max:min+1};
+}
+
+function getStoreGeographyMetricRange(metric){
+  const values=(_doorTradeAreaData.features||[])
+    .map(f=>Number(f.properties && f.properties[metric]))
+    .filter(Number.isFinite);
+  if(!values.length) return {min:0,max:1};
+  const min=Math.min(...values);
+  const max=Math.max(...values);
+  return max>min ? {min,max} : {min,max:min+1};
+}
+
+function normalizeStoreGeographyMetric(value,metric){
+  const n=Number(value);
+  if(!Number.isFinite(n)) return 0;
+  const {min,max}=getStoreGeographyMetricRange(metric);
+  const span=Math.max(max-min,1);
+  return Math.max(0,Math.min(1,(n-min)/span));
+}
+
+function renderStoreGeographyMetric(label,metric,value,format){
+  const range=getStoreGeographyMetricRange(metric);
+  const pct=normalizeStoreGeographyMetric(value,metric)*100;
+  return `<div class="store-geo-metric" title="${esc(label)} normalized across all store geographies">
+    <div class="store-geo-metric__top">
+      <span>${esc(label)}</span>
+      <strong>${esc(formatMarketValue(value,format))}</strong>
+    </div>
+    <div class="store-geo-metric__bar" aria-hidden="true"><span style="width:${pct.toFixed(1)}%"></span></div>
+    <div class="store-geo-metric__range">
+      <span>${esc(formatMarketValue(range.min,format))}</span>
+      <span>${esc(formatMarketValue(range.max,format))}</span>
+    </div>
+  </div>`;
 }
 
 function getHexOpacity(metricValue,minValue,maxValue){

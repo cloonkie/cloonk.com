@@ -172,7 +172,7 @@ $env:CENSUS_API_KEY="your-key"
 python scripts/update_census_market_layer.py
 ```
 
-The refresh script pulls ACS 5-Year Detailed Tables from the Census API, joins tract-level geometry to generated hexes and door trade areas, and writes static GeoJSON for the browser. It defaults to ACS 2024, tract geography, 5-mile trade areas, and 5-mile hex edges. Use `--geography block-group` when block-group runtime and file size are acceptable.
+The refresh script pulls ACS 5-Year Detailed Tables from the Census API, joins tract-level geometry to generated hexes and store geographies, and writes static GeoJSON for the browser. It defaults to ACS 2024, tract geography, 5-mile store geographies, and 5-mile hex edges. Use `--geography block-group` when block-group runtime and file size are acceptable.
 
 Variables used:
 
@@ -184,7 +184,7 @@ Variables used:
 | Households $150K-$199,999 | `B19001_016E` |
 | Households $200K+ | `B19001_017E` |
 
-The analysis uses door trade areas and hexes instead of city-level averages because city boundaries often overstate or understate a store's real customer catchment. A 5-mile fallback trade area keeps the metric anchored near each physical door, while hexes reveal sub-market variation across the active map area.
+The analysis uses store geographies and hexes instead of city-level averages because city boundaries often overstate or understate a store's real customer catchment. A 5-mile fallback store geography keeps the metric anchored near each physical door, while hexes reveal sub-market variation across the active map area.
 
 Data source note: Market data: Census ACS 5-Year. Last refreshed: see `data/market_metadata.json`.
 
