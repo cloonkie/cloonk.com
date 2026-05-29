@@ -46,6 +46,32 @@
     document.body.classList.toggle('cursor-contrast', !!(el && el.closest(CONTRAST_SEL)));
   }
 
+  function syncCursorState(target) {
+    const el = target && target.closest ? target : document.elementFromPoint(mx, my);
+    updateCursorContrast(el);
+
+    if (el && el.closest(PEN_SEL)) {
+      document.body.classList.add('cursor-pen');
+      document.body.classList.remove('cursor-hover');
+      return;
+    }
+    document.body.classList.remove('cursor-pen');
+
+    const hoverEl = el && el.closest(HOVER_SEL);
+    if (!hoverEl) {
+      document.body.classList.remove('cursor-hover');
+      return;
+    }
+
+    const text = getLabelText(hoverEl);
+    if (text === null) {
+      document.body.classList.remove('cursor-hover');
+      return;
+    }
+    label.textContent = text;
+    document.body.classList.add('cursor-hover');
+  }
+
   /* Returns the label text, or `null` to suppress the pill entirely
      (used for `data-cursor=""` opt-outs like Select All / Deselect All). */
   function getLabelText(el) {
@@ -105,11 +131,12 @@
     document.body.classList.add('cursor-hover');
   };
 
-  document.addEventListener('mousemove', (e) => {
+  document.addEventListener('pointermove', (e) => {
     mx = e.clientX;
     my = e.clientY;
-    updateCursorContrast(e.target);
-  }, { passive: true });
+    dot.style.opacity = '';
+    syncCursorState(e.target);
+  }, { passive: true, capture: true });
 
   (function tick() {
     const t = `translate(calc(${mx}px - 50%), calc(${my}px - 50%))`;
@@ -120,7 +147,7 @@
   })();
 
   document.addEventListener('mouseover', (e) => {
-    updateCursorContrast(e.target);
+    syncCursorState(e.target);
     /* Pen mode wins over hover-label — note textareas show the pen icon. */
     if (e.target.closest(PEN_SEL)) {
       document.body.classList.add('cursor-pen');
@@ -142,7 +169,7 @@
   document.addEventListener('mouseout', (e) => {
     if (e.target.closest(PEN_SEL)) document.body.classList.remove('cursor-pen');
     if (e.target.closest(HOVER_SEL)) document.body.classList.remove('cursor-hover');
-    updateCursorContrast();
+    syncCursorState();
   }, { passive: true });
 
   document.addEventListener('mouseleave', () => {
@@ -151,7 +178,7 @@
   });
   document.addEventListener('mouseenter', () => {
     dot.style.opacity = '';
-    updateCursorContrast();
+    syncCursorState();
   });
 
   /* Active click — collapse to the plain dot for the duration of the press.
