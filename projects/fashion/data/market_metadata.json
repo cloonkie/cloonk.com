@@ -1,0 +1,20 @@
+{
+  "census_dataset": "ACS 5-Year Detailed Tables",
+  "acs_year": 2024,
+  "date_refreshed": "2026-05-29",
+  "geography": "tract",
+  "variables_used": {
+    "total_population": "B01003_001E",
+    "median_household_income": "B19013_001E",
+    "total_households": "B19001_001E",
+    "households_150k_199k": "B19001_016E",
+    "households_200k_plus": "B19001_017E"
+  },
+  "radius_isochrone_assumptions": {
+    "preferred": "20-minute drive area when routing/isochrone support is available",
+    "used": "5-mile radius fallback",
+    "routing_available": false
+  },
+  "hex_edge_miles": 5.0,
+  "opportunity_score": "income_index*0.40 + density_index*0.25 + affluent_household_index*0.25 - door_density_index*0.10, clamped to 0-100"
+}

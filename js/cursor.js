@@ -1,13 +1,21 @@
 /* cursor.js — custom dot + pill cursor */
 (function () {
-  if (!window.matchMedia('(hover: hover)').matches) return;
+  /* Bail only on primarily-touch devices. (hover: hover) was too strict — on
+     hybrid laptops with both mouse + touchscreen, that media query sometimes
+     reports false even when a mouse is in use, killing the custom cursor. */
+  if (window.matchMedia('(pointer: coarse)').matches &&
+      !window.matchMedia('(any-pointer: fine)').matches) return;
 
   const dot   = document.createElement('div');
   const label = document.createElement('div');
+  const pen   = document.createElement('div');
   dot.className   = 'cursor-dot';
   label.className = 'cursor-label';
+  pen.className   = 'cursor-pen-icon';
+  pen.innerHTML   = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
   document.body.appendChild(dot);
   document.body.appendChild(label);
+  document.body.appendChild(pen);
 
   let mx = -100, my = -100;
 
@@ -20,10 +28,32 @@
     '.filter-btn', '.page-btn', '.tab-btn',
     '.detail-section-header',
     '.detail-artifact-select',
+    /* Fashion toolbox: line-sheet SKU cards are selectable. */
+    '.card[data-id]',
   ].join(', ');
 
+  /* Pen-mode targets: editable note areas. */
+  const PEN_SEL = '.card-notes, textarea[data-cursor="pen"], [data-cursor="pen"]';
+
+  /* Returns the label text, or `null` to suppress the pill entirely
+     (used for `data-cursor=""` opt-outs like Select All / Deselect All). */
   function getLabelText(el) {
-    if (el.dataset.cursor) return el.dataset.cursor;
+    if ('cursor' in el.dataset) {
+      const v = el.dataset.cursor;
+      return v === '' ? null : v;
+    }
+
+    /* Selectable SKU cards — label reflects current state. */
+    const card = el.closest('.card[data-id]');
+    if (card) return card.classList.contains('selected') ? 'deselect' : 'select';
+
+    /* Fashion tool chrome — applies across every page under /projects/fashion/. */
+    if (el.classList.contains('theme-toggle') || el.closest('.theme-toggle')) return 'switch';
+    if (el.classList.contains('info-btn') || el.closest('.info-btn')) return 'info';
+    if ((el.classList.contains('logo') || el.closest('.logo')) && el.closest('header.header')) return 'home';
+    if (el.classList.contains('mode-btn') || el.closest('.mode-btn')) return 'switch';
+    if (el.classList.contains('view-tab') || el.closest('.view-tab')) return 'switch';
+    if (el.classList.contains('menu-item') || el.closest('.menu-item')) return 'select';
 
     /* Section header: expand / collapse */
     if (el.closest('.detail-section-header')) {
@@ -51,23 +81,64 @@
     return 'view';
   }
 
+  window.refreshCloonkCursorLabel = function (target) {
+    if (document.body.classList.contains('cursor-pen')) return;
+    const el = target && target.closest ? target.closest(HOVER_SEL) : document.elementFromPoint(mx, my)?.closest(HOVER_SEL);
+    if (!el) return;
+    const text = getLabelText(el);
+    if (text === null) {
+      document.body.classList.remove('cursor-hover');
+      return;
+    }
+    label.textContent = text;
+    document.body.classList.add('cursor-hover');
+  };
+
   document.addEventListener('mousemove', (e) => { mx = e.clientX; my = e.clientY; }, { passive: true });
 
   (function tick() {
-    dot.style.transform   = `translate(calc(${mx}px - 50%), calc(${my}px - 50%))`;
-    label.style.transform = `translate(calc(${mx}px - 50%), calc(${my}px - 50%))`;
+    const t = `translate(calc(${mx}px - 50%), calc(${my}px - 50%))`;
+    dot.style.transform   = t;
+    label.style.transform = t;
+    pen.style.transform   = t;
     requestAnimationFrame(tick);
   })();
 
   document.addEventListener('mouseover', (e) => {
+    /* Pen mode wins over hover-label — note textareas show the pen icon. */
+    if (e.target.closest(PEN_SEL)) {
+      document.body.classList.add('cursor-pen');
+      document.body.classList.remove('cursor-hover');
+      return;
+    }
     const el = e.target.closest(HOVER_SEL);
-    if (el) { label.textContent = getLabelText(el); document.body.classList.add('cursor-hover'); }
+    if (!el) return;
+    const text = getLabelText(el);
+    if (text === null) {
+      /* Explicit data-cursor="" opt-out — keep the default dot, no label. */
+      document.body.classList.remove('cursor-hover');
+      return;
+    }
+    label.textContent = text;
+    document.body.classList.add('cursor-hover');
   }, { passive: true });
 
   document.addEventListener('mouseout', (e) => {
+    if (e.target.closest(PEN_SEL)) document.body.classList.remove('cursor-pen');
     if (e.target.closest(HOVER_SEL)) document.body.classList.remove('cursor-hover');
   }, { passive: true });
 
   document.addEventListener('mouseleave', () => { dot.style.opacity = '0'; });
   document.addEventListener('mouseenter', () => { dot.style.opacity = ''; });
+
+  /* Active click — collapse to the plain dot for the duration of the press.
+     The pen + label are suppressed so a select/deselect click reads as a
+     clean snap rather than a flickering label swap. Pointer events let one
+     handler cover mouse + touch + pen. */
+  document.addEventListener('pointerdown', () => {
+    document.body.classList.add('cursor-clicking');
+  }, { passive: true });
+  const _endClick = () => document.body.classList.remove('cursor-clicking');
+  document.addEventListener('pointerup', _endClick, { passive: true });
+  document.addEventListener('pointercancel', _endClick, { passive: true });
 })();

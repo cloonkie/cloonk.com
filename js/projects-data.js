@@ -1286,7 +1286,7 @@ window.PROJECTS = [
     "id": "fashion-toolbox",
     "title": "Fashion Toolbox",
     "short": "Enterprise-style merchandising analysis, in the browser.",
-    "desc": "A growing set of single-purpose, browser-based tools for assortment and replenishment work — built so the kind of analysis usually locked behind enterprise software runs locally, for free, with no login and nothing uploaded.\n\nThe toolbox is a filing-cabinet hub that springs open to the available tools: RP Line Sheet for replenishment review and Assortment Comparison for retailer overlap, with more to come. Every tool shares one design system and the cloonk theme.",
+    "desc": "A growing set of single-purpose, browser-based tools for assortment and replenishment work — built so the kind of analysis usually locked behind enterprise software runs locally, for free, with no login and nothing uploaded.\n\nThe toolbox is a filing-cabinet hub that springs open to the available tools: DIGI LINE SHEET for product review and Assortment Comparison for retailer overlap, with more to come. Every tool shares one design system and the cloonk theme.",
     "topic": "data analysis",
     "type": "Tools",
     "year": "2026",
@@ -1311,7 +1311,7 @@ window.PROJECTS = [
     },
     "results": {
       "before": ["Assortment and replenishment analysis required enterprise software or manual spreadsheet work", "Nothing shareable or self-serve", "Tool styling duplicated per file"],
-      "after": ["Free, login-free, browser-only tools — data never leaves the machine", "A shared fashion design system and a toolbox hub that scales as tools are added", "Two tools live: RP Line Sheet and Assortment Comparison"]
+      "after": ["Free, login-free, browser-only tools — data never leaves the machine", "A shared fashion design system and a toolbox hub that scales as tools are added", "Two tools live: DIGI LINE SHEET and Assortment Comparison"]
     },
     "takeaways": [
       { "title": "Accessible beats powerful when the power is gated", "body": "Most merchandising analysis isn't hard math — it's locked behind tools people can't reach. A small browser tool that runs locally and asks for nothing democratizes the work more than a more capable system nobody can open." }

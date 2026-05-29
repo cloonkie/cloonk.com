@@ -1,0 +1,14 @@
+{
+  "cities": [
+    { "slug": "new-york",     "name": "New York",     "code": "NYC", "filename": "index.html",         "lat": 40.7484,  "lng": -73.9857,  "zoom": 11 },
+    { "slug": "los-angeles",  "name": "Los Angeles",  "code": "LA",  "filename": "los-angeles.html",   "lat": 34.0522,  "lng": -118.2437, "zoom": 10 },
+    { "slug": "chicago",      "name": "Chicago",      "code": "CHI", "filename": "chicago.html",       "lat": 41.8781,  "lng": -87.6298,  "zoom": 11 },
+    { "slug": "houston",      "name": "Houston",      "code": "HOU", "filename": "houston.html",       "lat": 29.7604,  "lng": -95.3698,  "zoom": 10 },
+    { "slug": "phoenix",      "name": "Phoenix",      "code": "PHX", "filename": "phoenix.html",       "lat": 33.4484,  "lng": -112.074,  "zoom": 10 },
+    { "slug": "san-antonio",  "name": "San Antonio",  "code": "SAT", "filename": "san-antonio.html",   "lat": 29.4241,  "lng": -98.4936,  "zoom": 10 },
+    { "slug": "philadelphia", "name": "Philadelphia", "code": "PHL", "filename": "philadelphia.html",  "lat": 39.9526,  "lng": -75.1652,  "zoom": 11 },
+    { "slug": "san-diego",    "name": "San Diego",    "code": "SAN", "filename": "san-diego.html",     "lat": 32.7157,  "lng": -117.1611, "zoom": 10 },
+    { "slug": "dallas",       "name": "Dallas",       "code": "DAL", "filename": "dallas.html",        "lat": 32.7767,  "lng": -96.797,   "zoom": 10 },
+    { "slug": "fort-worth",   "name": "Fort Worth",   "code": "FTW", "filename": "fort-worth.html",    "lat": 32.7555,  "lng": -97.3308,  "zoom": 10 }
+  ]
+}

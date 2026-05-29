@@ -18,7 +18,7 @@ More tools land here over time. The header popover in each tool links to its sib
 
 ---
 
-## RP Line Sheet — Replenishment Review
+## DIGI LINE SHEET — product review
 
 ### What it does
 Loads a replenishment-style spreadsheet (one row per SKU) and renders each row as a card. You can filter, sort, search, annotate with notes, attach product photos, select the SKUs you want to keep, and export the selection back to `.xlsx`.
@@ -143,6 +143,50 @@ The login modal also has a **Continue as guest** button. Guests get a blank anon
 
 ### Map
 [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/) renders door details. The access token is a public `pk.*` token URL-restricted to `cloonk.com` in the Mapbox dashboard. The map style follows the cloonk theme (`light-v11` / `dark-v11`) and re-styles live when the theme is toggled.
+
+### Census market layer
+The Door Tracker map can load a static Census-backed market layer from:
+
+- `data/hex_market_data.geojson`
+- `data/door_trade_area_metrics.geojson`
+- `data/market_metadata.json`
+
+Refresh it manually from the repo root:
+
+```bash
+pip install geopandas pandas requests shapely
+python scripts/update_census_market_layer.py
+```
+
+If the Census API asks for a key, set one for the current shell before running the script:
+
+```bash
+export CENSUS_API_KEY="your-key"
+python scripts/update_census_market_layer.py
+```
+
+PowerShell:
+
+```powershell
+$env:CENSUS_API_KEY="your-key"
+python scripts/update_census_market_layer.py
+```
+
+The refresh script pulls ACS 5-Year Detailed Tables from the Census API, joins tract-level geometry to generated hexes and door trade areas, and writes static GeoJSON for the browser. It defaults to ACS 2024, tract geography, 5-mile trade areas, and 5-mile hex edges. Use `--geography block-group` when block-group runtime and file size are acceptable.
+
+Variables used:
+
+| Metric | ACS variable |
+| --- | --- |
+| Total population | `B01003_001E` |
+| Median household income | `B19013_001E` |
+| Total households | `B19001_001E` |
+| Households $150K-$199,999 | `B19001_016E` |
+| Households $200K+ | `B19001_017E` |
+
+The analysis uses door trade areas and hexes instead of city-level averages because city boundaries often overstate or understate a store's real customer catchment. A 5-mile fallback trade area keeps the metric anchored near each physical door, while hexes reveal sub-market variation across the active map area.
+
+Data source note: Market data: Census ACS 5-Year. Last refreshed: see `data/market_metadata.json`.
 
 ### Theme
 Same `cloonk-theme` localStorage key as the rest of the toolbox — toggling in any tool flips them all (and the main site).

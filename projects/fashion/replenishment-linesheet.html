@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RP Line Sheet — Replenishment Review | Kevin Zhang</title>
+<title>DIGI LINE SHEET — product review | Kevin Zhang</title>
 <meta name="description" content="A browser-based line-sheet review tool by Kevin Zhang — upload replenishment data, annotate SKUs, and export selected styles. Built for assortment and merchandising work.">
 <meta name="author" content="Kevin Zhang">
 <meta name="keywords" content="line sheet, replenishment, merchandising, assortment review, SKU selection, xlsx tool, fashion analytics, Kevin Zhang">
@@ -14,24 +14,26 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="cloonk — Kevin Zhang">
 <meta property="og:locale" content="en_US">
-<meta property="og:title" content="RP Line Sheet — Replenishment Review">
+<meta property="og:title" content="DIGI LINE SHEET — product review">
 <meta property="og:description" content="Upload replenishment data, annotate SKUs, and export selected styles. A browser-based merchandising tool.">
 <meta property="og:image" content="https://cloonk.com/favicon.svg">
 <meta property="og:url" content="https://cloonk.com/projects/fashion/replenishment-linesheet.html">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="RP Line Sheet — Replenishment Review">
+<meta name="twitter:title" content="DIGI LINE SHEET — product review">
 <meta name="twitter:description" content="Upload replenishment data, annotate SKUs, and export selected styles.">
 <meta name="twitter:image" content="https://cloonk.com/favicon.svg">
 
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<script src="/js/favicon-rotator.js" defer></script>
+<script src="../../js/favicon-rotator.js" defer></script>
+<script src="../../js/cursor.js" defer></script>
 
 <link rel="preconnect" href="https://api.fontshare.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700,800&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fashion.css">
 
 <script>
   /* Apply cloonk theme before paint — shared with the main site via the
@@ -45,67 +47,34 @@
 </script>
 
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-/* ─── cloonk theme — Dark (default) ─── */
+/* Tool-specific tokens layered on top of fashion.css */
 :root {
-  --bg: #0a0a0a;
-  --surface: #141412;          /* primary containers */
-  --surface-raised: #1c1c19;   /* toolbars, headers */
-  --surface-card: #1f1f1c;     /* cards pop forward */
-  --border: #2a2a26;
-  --border-hover: #3a3a36;
-  --text: #f5f2ec;             /* cloonk cream */
   --text-muted: #aaa59a;
   --text-dim: #7d786f;
-  --accent: #39ff14;           /* cloonk neon green */
-  --accent-hover: #5cff44;
   --accent-strong: #2bd108;
-  --accent-fg: #0a0a0a;        /* readable text on accent */
-  --accent-dim: rgba(57, 255, 20, 0.10);
   --accent-mid: rgba(57, 255, 20, 0.22);
   --rank-bg: #2a2a26;
   --rank-text: #f5f2ec;
   --rank-accent: #39ff14;
   --selected-border: #39ff14;
   --selected-glow: rgba(57, 255, 20, 0.10);
-  --danger: #ff5b4a;
   --success: #39ff14;
   --ribbon-from: #1c1c19;
   --ribbon-to: #2a2a26;
   --ribbon-fg: #f5f2ec;
-  --font-display: 'Cabinet Grotesk', sans-serif;
-  --font-body: 'Satoshi', sans-serif;
-  --font-mono: 'DM Mono', 'Courier New', monospace;
   --radius: 16px;
-  --radius-sm: 8px;
-  --radius-xs: 4px;
-  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ─── cloonk theme — Light ─── */
 [data-theme="light"] {
-  --bg: #f5f2ec;               /* cloonk cream */
-  --surface: #ede9e1;
-  --surface-raised: #e4dfd4;
-  --surface-card: #eae6dc;
-  --border: #d0ccc4;
-  --border-hover: #b6b2aa;
-  --text: #0a0a0a;
   --text-muted: #3f3f3a;
   --text-dim: #676760;
-  --accent: #1b09bc;           /* cloonk royal blue */
-  --accent-hover: #2e1cd6;
   --accent-strong: #14068f;
-  --accent-fg: #f5f2ec;
-  --accent-dim: rgba(27, 9, 188, 0.08);
   --accent-mid: rgba(27, 9, 188, 0.20);
   --rank-bg: #d0ccc4;
   --rank-text: #0a0a0a;
   --rank-accent: #1b09bc;
   --selected-border: #1b09bc;
   --selected-glow: rgba(27, 9, 188, 0.10);
-  --danger: #b03020;
   --success: #1e8a4a;
   --ribbon-from: #ede9e1;
   --ribbon-to: #d0ccc4;
@@ -408,20 +377,6 @@
 [data-theme="light"] .theme-toggle .icon-moon { opacity: 1; position: relative; }
 
 html { font-size: 15px; }
-html.theme-transition,
-html.theme-transition *,
-html.theme-transition *::before,
-html.theme-transition *::after {
-  transition:
-    background-color 0.28s ease,
-    background 0.28s ease,
-    border-color 0.28s ease,
-    color 0.28s ease,
-    fill 0.28s ease,
-    stroke 0.28s ease,
-    box-shadow 0.28s ease,
-    opacity 0.28s ease !important;
-}
 body {
   font-family: var(--font-body);
   background: var(--bg);
@@ -608,9 +563,19 @@ select:focus, .search-input:focus { border-color: var(--accent); }
   border-radius: var(--radius);
   overflow: hidden;
   cursor: pointer;
-  transition: all var(--transition);
+  /* Spec-only transitions — `all` was triggering paint on every property
+     change (incl. var-driven colors during theme flip) for every card. */
+  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+  /* Skip layout/paint for offscreen cards. Reserved height keeps the scroll
+     stable while the browser virtualizes the long grid. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 480px;
 }
 .card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+.card.is-pressing,
+.card.is-pressing:hover {
+  transition: none;
+}
 .card.selected {
   border-color: var(--selected-border);
   box-shadow: 0 0 0 1px var(--selected-border), 0 0 30px var(--selected-glow);
@@ -927,7 +892,7 @@ select:focus, .search-input:focus { border-color: var(--accent); }
 <!-- Header -->
 <header class="header">
   <div class="header-left">
-    <a class="logo" href="index.html">RP Line Sheet <span>Replenishment Review</span></a>
+    <a class="logo" href="index.html">DIGI LINE SHEET <span>product review</span></a>
     <div class="header-stats" id="headerStats" style="display:none">
       <span>Total <span class="stat-val" id="statTotal">0</span></span>
       <span>Selected <span class="stat-val" id="statSelected">0</span></span>
@@ -935,6 +900,13 @@ select:focus, .search-input:focus { border-color: var(--accent); }
     </div>
   </div>
   <div class="header-actions">
+    <button class="btn btn-sm" id="btnLoad" onclick="document.getElementById('fileInput').click()" data-cursor="load">↑ Load Sheet</button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
+    <button class="btn btn-sm" id="btnDownloadTemplate" onclick="downloadTemplate()" data-cursor="download">↓ Template</button>
+    <input type="file" id="imageFolder" accept="image/*" multiple style="display:none">
+    <button class="btn btn-sm" id="btnImages" style="display:none" onclick="document.getElementById('imageFolder').click()" data-cursor="load">↑ Images</button>
+    <button class="btn btn-sm btn-danger" id="btnClear" style="display:none" onclick="clearLineSheet()" data-cursor="clear">Clear</button>
+    <button class="btn btn-sm btn-accent" id="btnExport" style="display:none" onclick="exportSelects()" data-cursor="export">↓ Export Selects</button>
 
     <!-- Info button — opens the appendix/resources modal -->
     <button class="info-btn" id="infoBtn" aria-label="Open info & appendix" title="Info & Appendix">
@@ -956,13 +928,6 @@ select:focus, .search-input:focus { border-color: var(--accent); }
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
       </svg>
     </button>
-    <button class="btn btn-sm" id="btnLoad" onclick="document.getElementById('fileInput').click()">↑ Load Sheet</button>
-    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
-    <button class="btn btn-sm" id="btnDownloadTemplate" onclick="downloadTemplate()">↓ Template</button>
-    <input type="file" id="imageFolder" accept="image/*" multiple style="display:none">
-    <button class="btn btn-sm" id="btnImages" style="display:none" onclick="document.getElementById('imageFolder').click()">↑ Images</button>
-    <button class="btn btn-sm btn-danger" id="btnClear" style="display:none" onclick="clearLineSheet()">Clear</button>
-    <button class="btn btn-sm btn-accent" id="btnExport" style="display:none" onclick="exportSelects()">↓ Export Selects</button>
   </div>
 </header>
 
@@ -1015,8 +980,8 @@ select:focus, .search-input:focus { border-color: var(--accent); }
   </div>
   <div style="flex:1"></div>
   <div class="toolbar-group">
-    <button class="btn btn-sm" onclick="selectAll()">Select All Visible</button>
-    <button class="btn btn-sm" onclick="deselectAll()">Deselect All</button>
+    <button class="btn btn-sm" onclick="selectAll()" data-cursor="">Select All Visible</button>
+    <button class="btn btn-sm" onclick="deselectAll()" data-cursor="">Deselect All</button>
   </div>
 </div>
 
@@ -1043,7 +1008,7 @@ select:focus, .search-input:focus { border-color: var(--accent); }
     <strong id="selBarCount">0</strong> SKUs selected
   </div>
   <div class="selection-bar-actions">
-    <button class="btn btn-sm btn-danger" onclick="deselectAll()">Clear Selection</button>
+    <button class="btn btn-sm btn-danger" onclick="deselectAll()" data-cursor="">Clear Selection</button>
     <button class="btn btn-sm btn-accent" onclick="exportSelects()">↓ Export Selects</button>
   </div>
 </div>
@@ -1059,7 +1024,7 @@ select:focus, .search-input:focus { border-color: var(--accent); }
 <div class="info-modal-overlay" id="infoModalOverlay" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
   <div class="info-modal">
     <div class="info-modal-header">
-      <span class="info-modal-title" id="infoModalTitle">RP Line Sheet <span>— Appendix</span></span>
+      <span class="info-modal-title" id="infoModalTitle">DIGI LINE SHEET <span>— Appendix</span></span>
       <button class="info-modal-close" id="infoModalClose" aria-label="Close">&times;</button>
     </div>
 
@@ -1075,7 +1040,7 @@ select:focus, .search-input:focus { border-color: var(--accent); }
       <!-- About -->
       <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
         <h3>What this is</h3>
-        <p>RP Line Sheet is a browser-based replenishment review tool. Upload a line sheet, attach product photos, filter and sort the assortment, write notes, select the SKUs you want to keep, and export the selection back to <code>.xlsx</code>. The file never leaves your browser.</p>
+        <p>DIGI LINE SHEET is a browser-based product review tool. Upload a line sheet, attach product photos, filter and sort the assortment, write notes, select the SKUs you want to keep, and export the selection back to <code>.xlsx</code>. The file never leaves your browser.</p>
 
         <h3>Quick start</h3>
         <p>
@@ -1197,8 +1162,8 @@ select:focus, .search-input:focus { border-color: var(--accent); }
 
         <div class="info-link-group">Fashion Tools</div>
         <a class="info-link" href="replenishment-linesheet.html">
-          <span class="info-link-glyph">▤</span> RP Line Sheet
-          <span class="info-link-meta">Replenishment Review</span>
+          <span class="info-link-glyph">▤</span> DIGI LINE SHEET
+          <span class="info-link-meta">product review</span>
         </a>
         <a class="info-link" href="assortment-comparison.html">
           <span class="info-link-glyph">◎</span> Assortment Comparison
@@ -2001,9 +1966,20 @@ function toggleSelect(e, id) {
   if (e.target.tagName === 'TEXTAREA') return;
   // Don't toggle selection when clicking on image area
   if (e.target.closest('.has-image')) return;
+  const cardEl = e.currentTarget;
+  if (cardEl) cardEl.classList.add('is-pressing');
   if (selectedSet.has(id)) selectedSet.delete(id);
   else selectedSet.add(id);
-  renderCards();
+  // Toggle only the clicked card's class — avoid rebuilding the whole grid
+  // (was hundreds of ms per click with thousands of cards).
+  if (cardEl) {
+    cardEl.classList.toggle('selected', selectedSet.has(id));
+    if (typeof window.refreshCloonkCursorLabel === 'function') window.refreshCloonkCursorLabel(cardEl);
+    requestAnimationFrame(() => cardEl.classList.remove('is-pressing'));
+  }
+  document.getElementById('statSelected').textContent = selectedSet.size;
+  updateSelectionBar();
+  scheduleAutosave();
 }
 
 // ─── Lightbox ───
@@ -2082,28 +2058,40 @@ document.addEventListener('keydown', e => {
 
 // ─── Theme toggle (shared with cloonk.com via `cloonk-theme` key) ───
 // Icon swap is handled in CSS by the [data-theme="light"] selector.
+// Swap is a single viewport-level cross-fade via the View Transitions API,
+// so the 280-ms animation runs once for the whole page instead of firing
+// per-element on every card (which lagged on big sheets).
 function isLightTheme() {
   return document.documentElement.getAttribute('data-theme') === 'light';
 }
-function smoothThemeChange() {
-  const html = document.documentElement;
-  html.classList.add('theme-transition');
-  clearTimeout(smoothThemeChange.timer);
-  smoothThemeChange.timer = setTimeout(() => html.classList.remove('theme-transition'), 320);
-}
-function toggleTheme() {
-  const next = isLightTheme() ? 'dark' : 'light';
-  smoothThemeChange();
+let themePending = 0;
+function applyTheme(next) {
   document.documentElement.setAttribute('data-theme', next);
   try { localStorage.setItem('cloonk-theme', next); } catch (e) {}
 }
+function swapTheme(next) {
+  const root = document.documentElement;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  root.classList.add('theme-switching');
+  themePending++;
+  const settle = () => {
+    if (--themePending <= 0) {
+      themePending = 0;
+      root.classList.remove('theme-switching');
+    }
+  };
+  if (typeof document.startViewTransition === 'function' && !reduce) {
+    document.startViewTransition(() => applyTheme(next)).finished.finally(settle);
+  } else {
+    applyTheme(next);
+    requestAnimationFrame(() => requestAnimationFrame(settle));
+  }
+}
+function toggleTheme() { swapTheme(isLightTheme() ? 'dark' : 'light'); }
 // If another cloonk tab toggles the theme, mirror it here.
 window.addEventListener('storage', (e) => {
   if (e.key !== 'cloonk-theme') return;
-  smoothThemeChange();
-  document.documentElement.setAttribute(
-    'data-theme', e.newValue === 'light' ? 'light' : 'dark'
-  );
+  swapTheme(e.newValue === 'light' ? 'light' : 'dark');
 });
 
 // ─── HTML escape ───
@@ -2120,12 +2108,26 @@ function statusClass(status) {
 
 function selectAll() {
   getFiltered().forEach(it => selectedSet.add(it.id));
-  renderCards();
+  // Walk existing DOM instead of rebuilding the grid.
+  document.querySelectorAll('#cardGrid .card').forEach(el => {
+    const id = Number(el.dataset.id);
+    if (selectedSet.has(id)) el.classList.add('selected');
+  });
+  if (typeof window.refreshCloonkCursorLabel === 'function') window.refreshCloonkCursorLabel();
+  document.getElementById('statSelected').textContent = selectedSet.size;
+  updateSelectionBar();
+  scheduleAutosave();
 }
 
 function deselectAll() {
   selectedSet.clear();
-  renderCards();
+  document.querySelectorAll('#cardGrid .card.selected').forEach(el => {
+    el.classList.remove('selected');
+  });
+  if (typeof window.refreshCloonkCursorLabel === 'function') window.refreshCloonkCursorLabel();
+  document.getElementById('statSelected').textContent = 0;
+  updateSelectionBar();
+  scheduleAutosave();
 }
 
 function updateSelectionBar() {

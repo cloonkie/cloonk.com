@@ -106,6 +106,67 @@ html.theme-transition *::after {
 }
 .nav__section:hover { color: var(--accent); }
 
+/* ─── Tool headers — icon-only theme/info button look from .nav__theme-toggle.
+       Action buttons + logo + header padding are left to each tool's local
+       styles (intentional per-tool variation). High-specificity selectors +
+       !important to win against the tool-local `.btn, .theme-toggle` shared
+       rules that bundle the toggle into the button styling. ─────────────── */
+
+/* Theme + info buttons — borderless icons, same as .nav__theme-toggle */
+header.header .theme-toggle,
+header.header .info-btn {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  width: 32px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+header.header .theme-toggle:hover,
+header.header .info-btn:hover {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--text) !important;
+}
+header.header .theme-toggle svg {
+  width: 14px !important;
+  height: 14px !important;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* Tooltip icon is intentionally larger than theme toggle */
+header.header .info-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* Info-btn uses a filled-dot for the "i" tittle in some tools — keep that */
+header.header .info-btn svg circle[fill="currentColor"] { fill: currentColor; }
+
+/* ─── Sun / moon swap — handles both [data-theme] (cloonk standard) and
+       body.light (door tracker legacy). Without this, the door tracker's
+       moon icon stays hidden in light mode. ─────────────────────────── */
+header.header .theme-toggle .icon-moon { display: none; }
+[data-theme="light"] header.header .theme-toggle .icon-sun,
+body.light header.header .theme-toggle .icon-sun { display: none; }
+[data-theme="light"] header.header .theme-toggle .icon-moon,
+body.light header.header .theme-toggle .icon-moon { display: block; }
+
 /* ─── Page shell ─────────────────────────────────────────────  */
 .cabinet-stage {
   max-width: 860px;

@@ -17,8 +17,8 @@
     {
       file: "replenishment-linesheet.html",
       code: "RP-01",
-      name: "RP Line Sheet",
-      sub: "Replenishment Review",
+      name: "DIGI LINE SHEET",
+      sub: "product review",
       purpose:
         "Load a replenishment line sheet, filter and search the assortment, " +
         "annotate SKUs, attach product photos, and export just the styles you keep.",
