@@ -84,7 +84,7 @@
     <button type="button" class="mode-btn active" data-mode="data" onclick="setMode('data')" title="Tabular views: Matrix, Compact, Tabular, Data, Drafts">Data</button>
     <button type="button" class="mode-btn" data-mode="map" onclick="setMode('map')" title="Spatial view: Brand–Door Research map">Map</button>
   </div>
-  <button class="btn btn-sm map-screenshot-btn" id="mapScreenshotBtn" type="button" onclick="copyMapScreenshot()" aria-label="Copy map screenshot" title="Copy map screenshot">
+  <button class="btn btn-sm map-screenshot-btn" id="mapScreenshotBtn" type="button" onclick="copyMapScreenshot()" aria-label="Copy map screenshot" title="Copy map screenshot" data-cursor="screenshot">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4l1.7 2H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3.8l1.7-2h5z"/><circle cx="12" cy="13" r="3.5"/></svg>
   </button>
   <div class="toolbar-divider"></div>
@@ -99,7 +99,7 @@
   <button class="btn btn-sm" id="tBtn" onclick="toggleTranspose()" title="Swap rows/columns in Matrix view">⇄ Transpose</button>
   <div class="toolbar-spacer"></div>
   <div class="refine-wrap" id="refineWrap">
-    <button class="btn btn-sm menu-trigger refine-trigger" type="button" onclick="toggleRefinePanel()" aria-expanded="false" title="Show filters and search">
+    <button class="btn btn-sm menu-trigger refine-trigger" type="button" onclick="toggleRefinePanel()" aria-expanded="false" title="Show filters and search" data-cursor="expand">
       <span class="refine-trigger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
       Refine
       <span class="refine-badge" id="refineBadge">0</span>
@@ -168,8 +168,8 @@
     </div>
   </div>
   <div class="map-layer-toolbar" id="mapLayerToolbar" aria-label="Map layers">
-    <div class="toggle-pill" data-layer="doors" onclick="toggleResearchLayer('doors')" title="Show retailer-colored door pins"><div class="toggle-dot"></div>Doors</div>
-    <div class="toggle-pill" data-cluster-toggle onclick="toggleResearchClustering()" title="Group nearby stores into numbered clusters when zoomed out"><div class="toggle-dot"></div>Clusters</div>
+    <div class="toggle-pill" data-layer="doors" data-cursor-toggle aria-pressed="true" onclick="toggleResearchLayer('doors')" title="Show retailer-colored door pins"><div class="toggle-dot"></div>Doors</div>
+    <div class="toggle-pill" data-cluster-toggle data-cursor-toggle aria-pressed="true" onclick="toggleResearchClustering()" title="Group nearby stores into numbered clusters when zoomed out"><div class="toggle-dot"></div>Clusters</div>
     <div class="toggle-pill inactive" data-layer="brands" onclick="toggleResearchLayer('brands')" title="Size pins by brands carried while keeping retailer colors"><div class="toggle-dot"></div>Brand density</div>
     <div class="toggle-pill inactive" data-layer="heat" onclick="toggleResearchLayer('heat')" title="Heatmap showing store concentration"><div class="toggle-dot"></div>Store heatmap</div>
     <select class="market-layer-select" id="marketLayerSelect" onchange="setMarketLayer(this.value)" title="Static Census-backed market layer">

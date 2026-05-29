@@ -28,6 +28,8 @@
     '.filter-btn', '.page-btn', '.tab-btn',
     '.detail-section-header',
     '.detail-artifact-select',
+    '[data-cursor-toggle]',
+    '.toggle-pill',
     /* Fashion toolbox: line-sheet SKU cards are selectable. */
     '.card[data-id]',
   ].join(', ');
@@ -75,6 +77,9 @@
   /* Returns the label text, or `null` to suppress the pill entirely
      (used for `data-cursor=""` opt-outs like Select All / Deselect All). */
   function getLabelText(el) {
+    const toggle = el.closest('[data-cursor-toggle]');
+    if (toggle) return toggle.getAttribute('aria-pressed') === 'true' ? 'off' : 'on';
+
     if ('cursor' in el.dataset) {
       const v = el.dataset.cursor;
       return v === '' ? null : v;
@@ -131,7 +136,19 @@
     document.body.classList.add('cursor-hover');
   };
 
+  window.refreshCloonkCursorState = function (target) {
+    dot.style.opacity = '';
+    syncCursorState(target);
+  };
+
   document.addEventListener('pointermove', (e) => {
+    mx = e.clientX;
+    my = e.clientY;
+    dot.style.opacity = '';
+    syncCursorState(e.target);
+  }, { passive: true, capture: true });
+
+  document.addEventListener('wheel', (e) => {
     mx = e.clientX;
     my = e.clientY;
     dot.style.opacity = '';
@@ -179,6 +196,13 @@
   document.addEventListener('mouseenter', () => {
     dot.style.opacity = '';
     syncCursorState();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      dot.style.opacity = '';
+      syncCursorState();
+    }
   });
 
   /* Active click — collapse to the plain dot for the duration of the press.

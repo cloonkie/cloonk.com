@@ -2311,7 +2311,9 @@ function restoreMarketLayerState(){
 function bindMarketMapInteractions(){
   if(!_resMap || !_resMap.getLayer(MARKET_HEX_LAYER_ID) || _resMap._marketInteractionsBound) return;
   _resMap._marketInteractionsBound=true;
+  const refreshCursor=()=>{ if(window.refreshCloonkCursorState) window.refreshCloonkCursorState(_resMap.getCanvas()); };
   const show=e=>{
+    refreshCursor();
     const f=e.features && e.features[0];
     if(!f) return;
     const p=f.properties || {};
@@ -2323,11 +2325,15 @@ function bindMarketMapInteractions(){
   };
   _resMap.on('mousemove',MARKET_HEX_LAYER_ID,show);
   _resMap.on('click',MARKET_HEX_LAYER_ID,show);
-  _resMap.on('mouseenter',MARKET_HEX_LAYER_ID,()=>{ _resMap.getCanvas().style.cursor='pointer'; });
+  _resMap.on('mouseenter',MARKET_HEX_LAYER_ID,()=>{ _resMap.getCanvas().style.cursor='pointer'; refreshCursor(); });
   _resMap.on('mouseleave',MARKET_HEX_LAYER_ID,()=>{
     _resMap.getCanvas().style.cursor='';
     if(_marketPopup){ _marketPopup.remove(); _marketPopup=null; }
+    refreshCursor();
   });
+  _resMap.on('zoomstart',refreshCursor);
+  _resMap.on('zoom',refreshCursor);
+  _resMap.on('zoomend',refreshCursor);
 }
 
 function marketPopupHtml(p){
@@ -2631,12 +2637,16 @@ function toggleResearchClustering(){
 function syncMapLayerToggles(){
   document.querySelectorAll('.toggle-pill[data-layer]').forEach(p=>{
     const name=p.dataset.layer;
-    if(p.dataset.layer===name) p.classList.toggle('inactive',!_layerVisible[name]);
+    if(p.dataset.layer===name){
+      p.classList.toggle('inactive',!_layerVisible[name]);
+      p.setAttribute('aria-pressed',_layerVisible[name]?'true':'false');
+    }
   });
   document.querySelectorAll('.toggle-pill[data-cluster-toggle]').forEach(p=>{
     p.classList.toggle('inactive',!_clusterEnabled);
     p.setAttribute('aria-pressed',_clusterEnabled?'true':'false');
   });
+  if(window.refreshCloonkCursorLabel) window.refreshCloonkCursorLabel();
 }
 async function copyMapScreenshot(){
   if(!_resMap){
