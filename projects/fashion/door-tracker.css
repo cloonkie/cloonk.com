@@ -670,7 +670,7 @@ body.light .toggle-pill[data-layer="heat"]   { color: #b54514; }
 .toggle-pill:not(.inactive) .toggle-dot { background: currentColor; }
 #resMap { height: calc(100vh - 320px); min-height: 380px; width: 100%; border: 1px solid var(--border); border-radius: var(--radius-xs); margin-bottom: 14px; overflow: hidden; position: relative; }
 .research-map-shell { position: relative; }
-body.mode-map .research-map-shell { height: 100%; min-height: 0; }
+body.mode-map .research-map-shell { --map-side-panel-w: min(360px, calc(100vw - 24px)); --map-side-panel-h: min(42vh, calc((100vh - 170px) / 2)); height: 100%; min-height: 0; }
 body.mode-map #resMap { position: absolute; inset: 0; height: 100%; min-height: 0; margin-bottom: 0; border: 0; border-radius: 0; }
 body.mode-map .door-list {
   --map-door-row-h: 52px;
@@ -691,7 +691,7 @@ body.mode-map .door-list .door-item:nth-child(6n+1) {
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
-body.mode-map .door-detail { position: absolute; right: 12px; bottom: 12px; z-index: 95; width: min(360px, calc(100vw - 24px)); max-height: min(520px, calc(100vh - 136px)); overflow-y: auto; background: color-mix(in oklab, var(--surface) 92%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 10px 34px rgba(0,0,0,0.35); }
+body.mode-map .door-detail { position: absolute; right: 12px; bottom: 12px; z-index: 95; width: var(--map-side-panel-w); max-height: var(--map-side-panel-h); overflow-y: auto; background: color-mix(in oklab, var(--surface) 92%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 10px 34px rgba(0,0,0,0.35); }
 #resMap .mapboxgl-popup-content { background: var(--surface-card); color: var(--text); border-radius: var(--radius-xs); padding: 8px 10px; font-family: var(--font-body); font-size: 0.74rem; }
 #resMap .mapboxgl-popup-tip { border-top-color: var(--surface-card); border-bottom-color: var(--surface-card); }
 .research-grid { display: block; }
@@ -718,10 +718,12 @@ body.mode-map .map-store-panel {
   top: 12px;
   right: 12px;
   z-index: 95;
-  width: min(340px, calc(100vw - 260px));
+  width: var(--map-side-panel-w);
+  max-height: var(--map-side-panel-h);
+  overflow: hidden;
 }
 body.mode-map .map-store-panel .door-list {
-  max-height: min(420px, calc(100vh - 238px));
+  max-height: max(150px, calc(var(--map-side-panel-h) - 94px));
 }
 .map-filter-section {
   border: 1px solid var(--border);
@@ -889,19 +891,42 @@ body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; fo
 .door-item.active { background: var(--accent-mid); border-left: 3px solid var(--accent); }
 .door-item .door-name { font-weight: 600; }
 .door-item .door-meta { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-dim); }
-.door-detail { border: 1px solid var(--border); border-radius: var(--radius-xs); padding: 16px; }
+.door-detail { border: 1px solid var(--border); border-radius: var(--radius-xs); padding: 16px; position: relative; }
 .door-detail:empty { display: none; }
-.door-detail h4 { font-family: var(--font-display); font-size: 1rem; margin-bottom: 4px; }
+.door-detail h4 { font-family: var(--font-display); font-size: 1rem; margin: 0 28px 4px 0; }
 .door-detail .addr { color: var(--text-muted); font-size: 0.75rem; margin-bottom: 12px; }
+.door-detail-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-dim);
+  background: transparent;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.door-detail-close:hover,
+.door-detail-close:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+  outline: none;
+}
 .brand-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .brand-pill { padding: 3px 10px; border-radius: 12px; font-size: 0.65rem; font-weight: 600; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--border); }
 .brand-pill.at-store { background: rgba(39,174,96,0.16); color: #2ecc71; border-color: rgba(39,174,96,0.42); }
 .brand-pill.at-retailer { background: rgba(232,185,49,0.16); color: #e8b931; border-color: rgba(232,185,49,0.42); }
 .brand-pill.absent { background: transparent; color: var(--text-dim); border-color: var(--border); opacity: 0.5; }
-.store-geographics { display: grid; gap: 8px; margin: 12px 0 12px; }
-.store-geographics__title { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); }
+.store-geographics { display: grid; gap: 5px; margin: 10px 0; }
+.store-geographics__title { font-size: 0.64rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); }
 .store-geo-metric {
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   background: var(--surface-raised);
@@ -913,11 +938,11 @@ body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; fo
   justify-content: space-between;
   gap: 10px;
 }
-.store-geo-metric__top { color: var(--text-muted); font-size: 0.72rem; }
-.store-geo-metric__top strong { color: var(--text); font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; }
+.store-geo-metric__top { color: var(--text-muted); font-size: 0.66rem; }
+.store-geo-metric__top strong { color: var(--text); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 600; }
 .store-geo-metric__bar {
-  height: 5px;
-  margin: 7px 0 5px;
+  height: 4px;
+  margin: 5px 0 3px;
   border-radius: 999px;
   background: var(--border);
   overflow: hidden;
@@ -929,7 +954,7 @@ body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; fo
   border-radius: inherit;
   background: var(--accent);
 }
-.store-geo-metric__range { color: var(--text-dim); font-family: var(--font-mono); font-size: 0.58rem; }
+.store-geo-metric__range { color: var(--text-dim); font-family: var(--font-mono); font-size: 0.54rem; }
 .tier-badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 0.6rem; font-weight: 700; margin-left: 6px; }
 .tier-badge.A { background: rgba(39,174,96,0.15); color: var(--success); }
 .tier-badge.B { background: rgba(232,185,49,0.15); color: var(--accent); }

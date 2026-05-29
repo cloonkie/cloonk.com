@@ -1972,6 +1972,7 @@ function renderDoorDetail(d,ret){
   const hasCoords=d.lat!=null && d.lng!=null && !Number.isNaN(Number(d.lat)) && !Number.isNaN(Number(d.lng));
   const coordsText=hasCoords ? Number(d.lat).toFixed(4)+', '+Number(d.lng).toFixed(4) : 'No coordinates';
   let html=`
+    <button class="door-detail-close" type="button" onclick="closeDoorDetail()" aria-label="Close store details">×</button>
     <h4><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${esc(retColor)};margin-right:6px"></span>${esc(d.name||'(no name)')} <span class="tier-badge ${d.tier||''}">${d.tier||'–'}</span></h4>
     <div class="addr">${addrParts ? esc(addrParts) : '<span style="color:var(--text-dim);font-style:italic">No address on file</span>'}</div>
     <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);margin:4px 0 12px">${esc(norm)} · Door #${esc(String(d.doorNumber))} · ${esc(coordsText)}</div>
@@ -2019,6 +2020,13 @@ function renderDoorDetail(d,ret){
 
   det.innerHTML=html;
   highlightDoorOnMap(d.doorNumber,norm);
+}
+
+function closeDoorDetail(){
+  const det=document.getElementById('doorDetail');
+  if(det) det.innerHTML='';
+  document.querySelectorAll('.door-item').forEach(el=>el.classList.remove('active'));
+  highlightDoorOnMap('__none__','__all__');
 }
 
 /* ── Edit-door modal: lets the user fill in (or correct) info inline so
@@ -2200,10 +2208,11 @@ function getStoreGeographyMetricRange(metric){
   const values=(_doorTradeAreaData.features||[])
     .map(f=>Number(f.properties && f.properties[metric]))
     .filter(Number.isFinite);
-  if(!values.length) return {min:0,max:1};
+  if(!values.length) return {min:0,max:1,avg:0};
   const min=Math.min(...values);
   const max=Math.max(...values);
-  return max>min ? {min,max} : {min,max:min+1};
+  const avg=values.reduce((sum,value)=>sum+value,0)/values.length;
+  return max>min ? {min,max,avg} : {min,max:min+1,avg};
 }
 
 function normalizeStoreGeographyMetric(value,metric){
@@ -2217,7 +2226,8 @@ function normalizeStoreGeographyMetric(value,metric){
 function renderStoreGeographyMetric(label,metric,value,format){
   const range=getStoreGeographyMetricRange(metric);
   const pct=normalizeStoreGeographyMetric(value,metric)*100;
-  return `<div class="store-geo-metric" title="${esc(label)} normalized across all store geographies">
+  const tip=`${label}: ${formatMarketValue(value,format)}. Average across all store geographies: ${formatMarketValue(range.avg,format)}. Bar shows this store normalized between the current minimum (${formatMarketValue(range.min,format)}) and maximum (${formatMarketValue(range.max,format)}).`;
+  return `<div class="store-geo-metric" title="${esc(tip)}">
     <div class="store-geo-metric__top">
       <span>${esc(label)}</span>
       <strong>${esc(formatMarketValue(value,format))}</strong>
