@@ -1,10 +1,16 @@
 /* scroll-carousel.css — single-frame viewport carousel */
 
 /* ── Lock index to one viewport ── */
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
 body.index-body {
-  overflow: visible;
   height: 100vh;
   height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 /* ── Main between nav and footer ── */

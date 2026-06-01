@@ -148,13 +148,13 @@
     var dx = x - touchStartX;
     touchVelocity = x - touchLastX;
     touchLastX = x;
-    targetAngle = touchStartAngle - dx * 0.4;
+    targetAngle = touchStartAngle + dx * 0.4;
     e.preventDefault();
   }, { passive: false });
 
   wrap.addEventListener('touchend', function () {
     /* Flick momentum */
-    targetAngle -= touchVelocity * 2;
+    targetAngle += touchVelocity * 2;
   }, { passive: true });
 
   /* ── Mouse drag ── */
@@ -169,7 +169,7 @@
 
   window.addEventListener('mousemove', function (e) {
     if (!mouseDown) return;
-    targetAngle = mouseStartAngle - (e.clientX - mouseStartX) * 0.4;
+    targetAngle = mouseStartAngle + (e.clientX - mouseStartX) * 0.4;
   });
 
   window.addEventListener('mouseup', function () {
