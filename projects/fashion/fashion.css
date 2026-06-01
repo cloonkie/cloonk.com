@@ -907,7 +907,7 @@ body.light header.header .theme-toggle .icon-moon { display: block; }
   min-height: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 56px max(8px, calc((100vw - 1180px) / 2)) 42px 8px;
+  padding: 12px max(8px, calc((100vw - 1180px) / 2)) 32px 8px;
   scroll-snap-type: x proximity;
   scrollbar-color: var(--archive-accent-line) transparent;
   scrollbar-gutter: stable;
@@ -915,18 +915,17 @@ body.light header.header .theme-toggle .icon-moon { display: block; }
   counter-reset: archive;
 }
 
-.fashion--files .files::before {
-  content: "";
-  position: absolute;
-  top: 1px;
-  right: 0;
-  left: 0;
-  height: 8px;
-  border-bottom: 1px solid var(--archive-line);
-  background:
-    repeating-linear-gradient(90deg, var(--archive-accent-line) 0 1px, transparent 1px 24px);
-  opacity: 0.62;
-  pointer-events: none;
+.fashion--files .files::-webkit-scrollbar {
+  height: 4px;
+}
+
+.fashion--files .files::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fashion--files .files::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--archive-accent-line) 70%, transparent);
+  border-radius: 999px;
 }
 
 .fashion--files .files:empty {
@@ -942,99 +941,76 @@ body.light header.header .theme-toggle .icon-moon { display: block; }
 
 .fashion--files .file {
   height: 100%;
-  min-height: 442px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 58px 26px 24px 28px;
-  border: 1px solid color-mix(in srgb, var(--archive-line) 82%, var(--accent));
-  border-top: 4px solid var(--archive-accent-line);
-  border-radius: 8px 8px 0 0;
-  background:
-    linear-gradient(90deg, var(--archive-accent-wash), transparent 28%),
-    linear-gradient(180deg, color-mix(in srgb, var(--archive-paper-raised) 88%, transparent), var(--archive-paper)),
-    var(--archive-paper);
+  padding: clamp(18px, 2.2vh, 24px);
+  border: 1px solid var(--archive-line);
+  border-radius: 8px;
+  background: var(--archive-paper);
   color: var(--text);
-  box-shadow:
-    0 -1px 0 color-mix(in srgb, var(--accent) 12%, transparent) inset,
-    0 14px 0 -13px rgba(0,0,0,0.48);
+  box-shadow: none;
   counter-increment: archive;
   scroll-snap-align: start;
-  transform: translateY(calc(var(--i, 0) * 4px));
-  z-index: calc(20 - var(--i, 0));
+  transform: none;
+  z-index: 1;
 }
 
 .fashion--files .file {
-  animation: archiveSettle 0.44s ease backwards;
-  animation-delay: calc(var(--i, 0) * 55ms);
+  animation: none;
 }
 
 .fashion--files .file::before {
   content: counter(archive, decimal-leading-zero);
   position: absolute;
-  top: 18px;
-  right: 22px;
-  color: var(--accent);
+  right: 20px;
+  bottom: 18px;
+  color: var(--text-dim);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
 }
 
 .fashion--files .file__tab {
   position: absolute;
   margin: 0;
-  border: 1px solid var(--archive-line);
-  background:
-    linear-gradient(180deg, var(--archive-accent-wash), transparent),
-    var(--archive-paper-raised);
+  border: 0;
+  background: transparent;
   color: var(--archive-ink-soft);
   font-family: var(--font-mono);
   font-size: 0.62rem;
   font-weight: 500;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .fashion--files .file__tab--code {
-  top: -42px;
-  left: 18px;
-  min-width: 94px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  padding: 0 8px;
-  border-bottom: 0;
-  border-radius: 8px 8px 0 0;
+  top: 20px;
+  left: 20px;
   color: var(--accent);
 }
 
 .fashion--files .file__tab--category {
-  top: -42px;
-  right: 16px;
-  min-width: 118px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  padding: 0 12px;
-  border-color: var(--archive-accent-line);
-  border-radius: 8px 8px 0 0;
+  top: 20px;
+  right: 20px;
   text-align: center;
 }
 
 .fashion--files .file__top {
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 14px;
-  margin-bottom: 10px;
-  padding-bottom: 9px;
-  border-bottom: 1px solid color-mix(in srgb, var(--archive-line) 72%, var(--accent));
+  gap: 10px;
+  margin: 36px 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--archive-line);
 }
 
 .fashion--files .file__chapter {
-  color: var(--accent);
+  color: var(--archive-ink-soft);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -1051,10 +1027,10 @@ body.light header.header .theme-toggle .icon-moon { display: block; }
 
 .fashion--files .file__name {
   display: block;
-  font-size: clamp(1.45rem, 2.2vw, 2.15rem);
+  font-size: clamp(1.24rem, 1.8vw, 1.72rem);
   font-weight: 800;
   letter-spacing: 0;
-  line-height: 1;
+  line-height: 1.04;
 }
 
 .fashion--files .file__sub {
@@ -1068,22 +1044,16 @@ body.light header.header .theme-toggle .icon-moon { display: block; }
 }
 
 .fashion--files .file__purpose {
-  max-width: 70ch;
-  max-height: 8.6em;
-  overflow: hidden;
-  margin: 16px 0 22px;
-  color: var(--archive-ink-soft);
-  font-size: 0.92rem;
-  line-height: 1.55;
+  display: none;
 }
 
 .fashion--files .file__foot {
   margin-top: auto;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  gap: 10px;
   padding-top: 12px;
-  border-top: 1px solid color-mix(in srgb, var(--archive-line) 72%, var(--accent));
+  border-top: 1px solid var(--archive-line);
 }
 
 .fashion--files .file__io {
@@ -1112,14 +1082,10 @@ body.light header.header .theme-toggle .icon-moon { display: block; }
 
 .fashion--files .file:hover,
 .fashion--files .file:focus-visible {
-  transform: translateY(-18px);
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--accent) 20%, transparent), transparent 34%),
-    var(--archive-paper-raised);
+  transform: translateY(-4px);
+  background: var(--archive-paper-raised);
   border-color: var(--archive-accent-line);
-  box-shadow:
-    0 -10px 0 -1px var(--accent),
-    0 24px 54px color-mix(in srgb, var(--accent) 16%, rgba(0,0,0,0.32));
+  box-shadow: 0 12px 28px rgba(0,0,0,0.16);
   outline: none;
   z-index: 80;
 }
@@ -1139,13 +1105,13 @@ body.light header.header .theme-toggle .icon-moon { display: block; }
 
   .fashion--files .file {
     min-height: 0;
-    padding: 58px 20px 22px;
+    padding: 18px 20px 22px;
     transform: none;
   }
 
   .fashion--files .file:hover,
   .fashion--files .file:focus-visible {
-    transform: translateY(-10px);
+    transform: translateY(-3px);
   }
 }
 

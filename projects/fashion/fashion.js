@@ -137,21 +137,36 @@
 
     rail.setAttribute("tabindex", "0");
 
-    function moveRail(event) {
+    let wheelDelta = 0;
+    let wheelFrame = 0;
+
+    function flushWheel() {
+      wheelFrame = 0;
+      const maxScroll = rail.scrollWidth - rail.clientWidth;
+      if (maxScroll <= 0 || wheelDelta === 0) {
+        wheelDelta = 0;
+        return;
+      }
+
+      rail.scrollLeft = Math.max(0, Math.min(maxScroll, rail.scrollLeft + wheelDelta));
+      wheelDelta = 0;
+    }
+
+    rail.addEventListener("wheel", (event) => {
       const verticalIntent = Math.abs(event.deltaY) >= Math.abs(event.deltaX);
       if (!verticalIntent || event.deltaY === 0) return;
 
       const maxScroll = rail.scrollWidth - rail.clientWidth;
       if (maxScroll <= 0) return;
 
-      const next = Math.max(0, Math.min(maxScroll, rail.scrollLeft + event.deltaY));
-      if (next === rail.scrollLeft) return;
+      const atStart = rail.scrollLeft <= 0;
+      const atEnd = rail.scrollLeft >= maxScroll - 1;
+      if ((event.deltaY < 0 && atStart) || (event.deltaY > 0 && atEnd)) return;
 
       event.preventDefault();
-      rail.scrollLeft = next;
-    }
-
-    window.addEventListener("wheel", moveRail, { passive: false });
+      wheelDelta += event.deltaY;
+      if (!wheelFrame) wheelFrame = requestAnimationFrame(flushWheel);
+    }, { passive: false });
 
     rail.addEventListener("keydown", (event) => {
       const card = rail.querySelector(".file");
