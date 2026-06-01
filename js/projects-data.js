@@ -198,7 +198,7 @@ window.PROJECTS = [
     ],
     "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/UNDL%20IDP%20Final%20Report.pdf",
     "pdf_label": "UNDL Item Details Page Research",
-    "figma": "https://embed.figma.com/slides/8s86dGE2V3ADDe9NAxOc1B/UNDL-IDP-Final-Report?node-id=1-391&embed-host=share",
+    "figma": "https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/slides/8s86dGE2V3ADDe9NAxOc1B/UNDL-IDP-Final-Report",
     "sheets": null, "canva": null, "github": null, "live": null,
     "findings": [
       {
@@ -487,7 +487,7 @@ window.PROJECTS = [
       "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/nyc-tourism-final-1.jpg" }],
       "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/Final%20Presentation%20-%20NYCTourism%20Communicating%20User%20Research.pdf",
       "pdf_label": "NYC Tourism Redesign - Final Presentation",
-      "figma": "https://embed.figma.com/slides/ApwB2KG4pKoDg5tlS8Gr9v/Final-Presentation---NYCTourism-Communicating-User-Research?node-id=1-58&embed-host=share",
+      "figma": "https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/slides/ApwB2KG4pKoDg5tlS8Gr9v/Final-Presentation---NYCTourism-Communicating-User-Research",
       "sheets": null, "canva": null, "github": null, "live": null, "findings": null, "statMoments": null, "impact": null, "statements": null,
       "quotes": [
         {
@@ -565,7 +565,7 @@ window.PROJECTS = [
       "media": [{ "type": "image", "src": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/eyewear-db-1.jpg" }],
       "pdf": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/Eyewear%20Database%20Slides.pdf",
       "pdf_label": "Eyewear Database Slides",
-      "figma": "https://embed.figma.com/slides/4sktzXNoRfRS9Xn3GlDhZo/Eyewear-Database-Slides?node-id=3-29&embed-host=share",
+      "figma": "https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/slides/4sktzXNoRfRS9Xn3GlDhZo/Eyewear-Database-Slides",
       "sheets": null, "canva": null,
       "github": "https://github.com/cloonkie/Database-Design",
       "live": null, "findings": null, "statMoments": null, "impact": null, "statements": null,
