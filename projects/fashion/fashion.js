@@ -1,9 +1,9 @@
 /* ============================================================
    projects/fashion — shared behavior
    - TOOLS: the single manifest every fashion surface reads from
-     (the cabinet here; the sibling popover inside each tool once
+     (the archive here; the sibling popover inside each tool once
      they are retrofitted).
-   - Renders the cabinet's files and wires the spring-open drawer.
+   - Renders the archive's file cards.
    - fashionToast(): shared toast, used by the tools post-retrofit.
    Theme stays on the cloonk nav.js / `cloonk-theme` key — not
    duplicated here.
@@ -12,11 +12,13 @@
   "use strict";
 
   /* ── The manifest ──────────────────────────────────────────
-     Add a tool = add an entry. The cabinet rebuilds from this. */
+     Add a tool = add an entry. The archive rebuilds from this. */
   const TOOLS = [
     {
       file: "replenishment-linesheet.html",
-      code: "RP-01",
+      code: "DLS 001",
+      category: "PRODUCT",
+      chapter: "Product Review",
       name: "DIGI LINE SHEET",
       sub: "product review",
       purpose:
@@ -28,7 +30,9 @@
     },
     {
       file: "assortment-comparison.html",
-      code: "AC-02",
+      code: "AOR 002",
+      category: "ANALYTICS",
+      chapter: "Retailer Overlap",
       name: "Assortment Comparison",
       sub: "Retailer Overlap",
       purpose:
@@ -40,7 +44,9 @@
     },
     {
       file: "retailer-door-tracker.html",
-      code: "DT-03",
+      code: "DOOR 003",
+      category: "DISTRIBUTION",
+      chapter: "Door Distribution",
       name: "Door Tracker",
       sub: "Door Distribution",
       purpose:
@@ -52,8 +58,10 @@
     },
     {
       file: "sellout-standardizer.html",
-      code: "SO-04",
-      name: "Sell-Out Standardizer",
+      code: "STD 004",
+      category: "OPERATIONS",
+      chapter: "Report Normalization",
+      name: "Retail Data Standardizer",
       sub: "Weekly Analytics",
       purpose:
         "Normalize weekly sell-out reports into one analytics-ready format. " +
@@ -63,8 +71,24 @@
       status: "Ready",
     },
     {
+      file: "selling-analysis.html",
+      code: "SAR 005",
+      category: "ANALYTICS",
+      chapter: "Selling Analysis",
+      name: "Selling Analysis",
+      sub: "Sell-Through Diagnostic",
+      purpose:
+        "Diagnose YTD sell-out workbooks across data integrity, liquidation risk, " +
+        "velocity, momentum, promo dependence, and collection theme authoring.",
+      eats: ".xlsx / .json",
+      outputs: "live view / .json",
+      status: "Ready",
+    },
+    {
       file: "upc-concat.html",
-      code: "UC-05",
+      code: "UPC 006",
+      category: "OPERATIONS",
+      chapter: "Schema Mapping",
       name: "UPC Concat",
       sub: "Schema Mapping",
       purpose:
@@ -91,51 +115,61 @@
     const list = document.getElementById("files");
     if (!list) return;
     list.innerHTML = TOOLS.map((t, i) => `
-      <li>
-        <a class="file" href="${esc(t.file)}" data-cursor="open" style="--i:${i}; --tab-x:${TAB_X[i % TAB_X.length]};">
-          <span class="file__tab">${esc(t.code)}</span>
-          <span class="file__top">
-            <span class="file__name">${esc(t.name)}<span class="file__sub">${esc(t.sub)}</span></span>
-            <span class="file__status">${esc(t.status)}</span>
-          </span>
-          <span class="file__purpose">${esc(t.purpose)}</span>
-          <span class="file__foot">
-            <span class="file__io"><b>${esc(t.eats)}</b><span class="arrow">&rarr;</span><b>${esc(t.outputs)}</b></span>
-            <span class="file__open">Open file <span aria-hidden="true">&rarr;</span></span>
-          </span>
-        </a>
-      </li>`).join("");
+      <a class="file" href="${esc(t.file)}" data-cursor="open" style="--i:${i}; --tab-x:${TAB_X[i % TAB_X.length]};">
+        <span class="file__tab file__tab--code">${esc(t.code)}</span>
+        <span class="file__tab file__tab--category">${esc(t.category || "WORKFLOW")}</span>
+        <span class="file__top">
+          <span class="file__chapter">${esc(t.chapter || t.sub)}</span>
+          <span class="file__status">${esc(t.status)}</span>
+        </span>
+        <span class="file__name">${esc(t.name)}<span class="file__sub">${esc(t.sub)}</span></span>
+        <span class="file__purpose">${esc(t.purpose)}</span>
+        <span class="file__foot">
+          <span class="file__io"><span>Source</span><b>${esc(t.eats)}</b><span>Output</span><b>${esc(t.outputs)}</b></span>
+          <span class="file__open">Withdraw record <span aria-hidden="true">&rarr;</span></span>
+        </span>
+      </a>`).join("");
   }
 
-  function wireCabinet() {
-    const cabinet = document.getElementById("cabinet");
-    const face = document.getElementById("cabinetFace");
-    const hint = document.getElementById("cabinetHint");
-    if (!cabinet || !face) return;
+  function wireHorizontalRail() {
+    const rail = document.getElementById("files");
+    if (!rail) return;
 
-    const reduce = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    rail.setAttribute("tabindex", "0");
 
-    function setOpen(open) {
-      cabinet.classList.toggle("is-open", open);
-      cabinet.classList.toggle("is-closed", !open);
-      face.setAttribute("aria-expanded", String(open));
-      if (hint) hint.textContent = open ? "Close ↑" : "Pull to open ↓";
+    function moveRail(event) {
+      const verticalIntent = Math.abs(event.deltaY) >= Math.abs(event.deltaX);
+      if (!verticalIntent || event.deltaY === 0) return;
+
+      const maxScroll = rail.scrollWidth - rail.clientWidth;
+      if (maxScroll <= 0) return;
+
+      const next = Math.max(0, Math.min(maxScroll, rail.scrollLeft + event.deltaY));
+      if (next === rail.scrollLeft) return;
+
+      event.preventDefault();
+      rail.scrollLeft = next;
     }
 
-    face.addEventListener("click", () =>
-      setOpen(!cabinet.classList.contains("is-open"))
-    );
+    window.addEventListener("wheel", moveRail, { passive: false });
 
-    /* Auto-open so the tools are never hidden behind a click —
-       a beat after load for the spring, or instantly if the
-       visitor prefers reduced motion. */
-    if (reduce) {
-      setOpen(true);
-    } else {
-      setTimeout(() => setOpen(true), 560);
-    }
+    rail.addEventListener("keydown", (event) => {
+      const card = rail.querySelector(".file");
+      const step = card ? card.getBoundingClientRect().width + 24 : 360;
+      const keys = {
+        ArrowDown: step,
+        ArrowRight: step,
+        PageDown: rail.clientWidth * 0.88,
+        ArrowUp: -step,
+        ArrowLeft: -step,
+        PageUp: rail.clientWidth * -0.88,
+        Home: -rail.scrollWidth,
+        End: rail.scrollWidth,
+      };
+      if (!(event.key in keys)) return;
+      event.preventDefault();
+      rail.scrollBy({ left: keys[event.key], behavior: "smooth" });
+    });
   }
 
   /* Shared toast — exposed for the tools once retrofitted. */
@@ -172,7 +206,7 @@
 
   function init() {
     renderFiles();
-    wireCabinet();
+    wireHorizontalRail();
     wireThemeTransition();
   }
   if (document.readyState === "loading") {

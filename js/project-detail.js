@@ -205,7 +205,7 @@
         '<p class="detail-prose" style="color:var(--muted)">Results coming soon.</p>' : '');
 
   /* ── Artifact: priority → github → figma → sheets → canva → pdf ── */
-  var ARTIFACT_PRIORITY = ['live','github', 'figma', 'sheets', 'canva', 'pdf'];
+  var ARTIFACT_PRIORITY = ['live','github', 'figma', 'sheets', 'canva', 'pdf', 'pdfAppendix'];
 
   var ARTIFACT_LABELS = {
     live: 'Live Site',
@@ -213,7 +213,8 @@
     figma:  'Figma',
     sheets: 'Google Slides',
     canva:  'Canva',
-    pdf:    'PDF'
+    pdf:    'PDF',
+    pdfAppendix: 'Appendix PDF'
   };
 
   var ARTIFACT_OPEN_LABELS = {
@@ -222,7 +223,8 @@
     figma:  'Open in Figma ↗',
     sheets: 'Open in Slides ↗',
     canva:  'Open in Canva ↗',
-    pdf:    'Download PDF ↗'
+    pdf:    'Download PDF ↗',
+    pdfAppendix: 'Download Appendix ↗'
   };
 
   /* ── GitHub icon SVG ── */
@@ -243,10 +245,21 @@
     figma:  p.figma  || null,
     sheets: p.sheets || null,
     canva:  p.canva  || null,
-    pdf:    pdfRaw   || null
+    pdf:    pdfRaw   || null,
+    pdfAppendix: p.pdf_appendix || null
   };
 
+  if (p.pdf_appendix_label) ARTIFACT_LABELS.pdfAppendix = p.pdf_appendix_label;
+
   var availableTypes = ARTIFACT_PRIORITY.filter(function(t){ return artifactSources[t]; });
+
+  /* Per-project default artifact override — bubble the preferred type to the
+     front of availableTypes so it becomes the initial dropdown + panel. */
+  if (p.defaultArtifact && availableTypes.indexOf(p.defaultArtifact) > 0) {
+    availableTypes = [p.defaultArtifact].concat(
+      availableTypes.filter(function(t) { return t !== p.defaultArtifact; })
+    );
+  }
 
   /* ── Build GitHub card HTML ── */
   function buildGitHubCard(url) {
@@ -316,7 +329,8 @@
       + 'data-src-figma="'  + (artifactSources.figma  || '') + '" '
       + 'data-src-sheets="' + (artifactSources.sheets || '') + '" '
       + 'data-src-canva="'  + (artifactSources.canva  || '') + '" '
-      + 'data-src-pdf="'    + (artifactSources.pdf    || '') + '">'
+      + 'data-src-pdf="'    + (artifactSources.pdf    || '') + '" '
+      + 'data-src-pdf-appendix="' + (artifactSources.pdfAppendix || '') + '">'
       + ARTIFACT_OPEN_LABELS[linkType]
       + '</a>';
 
@@ -390,15 +404,28 @@
 
       var pairedQuoteHtml = quotesByFinding[i] ? renderQuote(quotesByFinding[i], true) : '';
 
+      // Render a labeled block only if its field is populated. Condensed findings
+      // (typically those without images) use a single `body` field instead of the
+      // observation/evidence/impact split.
+      function block(label, value) {
+        if (!value) return '';
+        return '<div class="finding__block"><span class="finding__label">' + label + '</span><p>' + value + '</p></div>';
+      }
+      function bodyBlock(value) {
+        if (!value) return '';
+        return '<div class="finding__block finding__block--body"><p>' + value + '</p></div>';
+      }
+
       return '<article class="finding" data-finding-index="' + i + '">'
         + '<div class="finding__content">'
           + '<div class="finding__number">' + num + '</div>'
           + '<h3 class="finding__title">' + f.title + '</h3>'
-          + '<div class="finding__block"><span class="finding__label">Observation</span><p>' + f.observation + '</p></div>'
-          + '<div class="finding__block"><span class="finding__label">Evidence</span><p>' + f.evidence + '</p></div>'
+          + bodyBlock(f.body)
+          + block('Observation', f.observation)
+          + block('Evidence', f.evidence)
           + pairedQuoteHtml
-          + '<div class="finding__block"><span class="finding__label">Impact</span><p>' + f.impact + '</p></div>'
-          + '<div class="finding__block"><span class="finding__label">Recommendation</span><p>' + f.recommendation + '</p></div>'
+          + block('Impact', f.impact)
+          + block('Recommendation', f.recommendation)
         + '</div>'
         + imageHtml
         + '</article>';
@@ -435,6 +462,24 @@
         + '</div>';
     }).join('');
     return '<div class="impact"><div class="impact__grid">' + rows + '</div></div>';
+  }
+
+  /* ── Further reading (external references / further reading list) ── */
+  function renderFurtherReading(project) {
+    if (!project.furtherReading || !project.furtherReading.length) return '';
+    var items = project.furtherReading.map(function(r) {
+      var meta = r.meta ? '<span class="further-reading__meta">' + r.meta + '</span>' : '';
+      var note = r.note ? '<p class="further-reading__note">' + r.note + '</p>' : '';
+      return '<a class="further-reading__item" href="' + r.url + '" target="_blank" rel="noopener">'
+        + '<div class="further-reading__row">'
+          + '<span class="further-reading__label">' + r.label + '</span>'
+          + meta
+          + '<span class="further-reading__arrow">↗</span>'
+        + '</div>'
+        + note
+        + '</a>';
+    }).join('');
+    return '<div class="further-reading">' + items + '</div>';
   }
 
   /* ── Closing quote (unpaired) ── */
@@ -504,14 +549,19 @@
         + '</a>'
     : '<a href="projects.html" class="detail-breadcrumb__next"><span>All Work →</span></a>';
 
+  var furtherReadingHTML = renderFurtherReading(p);
+  var hasFurtherReading  = !!furtherReadingHTML;
+
   var findingsNum    = '05';
   var impactNum      = String(5 + (hasFindings ? 1 : 0)).padStart(2, '0');
   var galleryNum     = String(5 + (hasFindings ? 1 : 0) + (hasImpact ? 1 : 0)).padStart(2, '0');
   var tkNum          = String(5 + (hasFindings ? 1 : 0) + (hasImpact ? 1 : 0) + (galleryItems.length ? 1 : 0)).padStart(2, '0');
+  var frNum          = String(5 + (hasFindings ? 1 : 0) + (hasImpact ? 1 : 0) + (galleryItems.length ? 1 : 0) + 1).padStart(2, '0');
 
-  var findingsSection = hasFindings ? section('s-findings', findingsNum, 'Findings', findingsHTML, true)  : '';
-  var impactSection   = hasImpact   ? section('s-impact',   impactNum,   'Impact',   impactHTML,   true)  : '';
-  var gallerySection  = galleryItems.length ? section('s-gallery', galleryNum, 'Gallery', galleryHTML, false) : '';
+  var findingsSection       = hasFindings ? section('s-findings', findingsNum, 'Findings', findingsHTML, true)  : '';
+  var impactSection         = hasImpact   ? section('s-impact',   impactNum,   'Impact',   impactHTML,   true)  : '';
+  var gallerySection        = galleryItems.length ? section('s-gallery', galleryNum, 'Gallery', galleryHTML, false) : '';
+  var furtherReadingSection = hasFurtherReading ? section('s-further-reading', frNum, 'Further reading', furtherReadingHTML, true) : '';
 
   /* ── Render ── */
   root.innerHTML =
@@ -551,6 +601,7 @@
         + (hasImpact ? '<button class="detail-section-nav__item" data-target="s-impact"><span class="detail-section-nav__dot"></span>Impact</button>' : '')
         + (galleryItems.length ? '<button class="detail-section-nav__item" data-target="s-gallery"><span class="detail-section-nav__dot"></span>Gallery</button>' : '')
         + '<button class="detail-section-nav__item" data-target="s-takeaways"><span class="detail-section-nav__dot"></span>Takeaways</button>'
+        + (hasFurtherReading ? '<button class="detail-section-nav__item" data-target="s-further-reading"><span class="detail-section-nav__dot"></span>Further reading</button>' : '')
       + '</nav>'
     + '</div>'
 
@@ -568,6 +619,7 @@
       + (statements[1]  ? renderStatement(statements[1], 1)   : '')
       + gallerySection
       + section('s-takeaways', tkNum, 'Takeaways', takeawaysHTML, true)
+      + furtherReadingSection
       + (statements[2]  ? renderStatement(statements[2], 2)   : '')
       + closingQuote
     + '</div>'
@@ -632,7 +684,7 @@
         panel.style.display = panel.dataset.type === type ? '' : 'none';
       });
       if (extLink) {
-        var key = 'src' + type.charAt(0).toUpperCase() + type.slice(1);
+        var key = type === 'pdfAppendix' ? 'srcPdfAppendix' : 'src' + type.charAt(0).toUpperCase() + type.slice(1);
         extLink.href        = extLink.dataset[key] || '#';
         extLink.textContent = ARTIFACT_OPEN_LABELS[type] || 'Open ↗';
       }

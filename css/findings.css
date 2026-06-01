@@ -1,19 +1,55 @@
 /* ---------- finding row ---------- */
-.finding {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  margin-bottom: 8rem;
-  align-items: start;
+.findings {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 70vh;
+  min-height: 520px;
+  display: flex;
+  gap: clamp(1rem, 2.5vw, 2.75rem);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 0 1.25rem;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
-.finding:nth-child(even) .finding__content { order: 2; }
-.finding:nth-child(even) .finding__media   { order: 1; }
+.findings::-webkit-scrollbar {
+  height: 8px;
+}
+
+.findings::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.findings::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.finding {
+  flex: 0 0 clamp(640px, 82vw, 1080px);
+  height: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(360px, 1.15fr) minmax(280px, 0.85fr);
+  gap: clamp(1.5rem, 3.5vw, 3.75rem);
+  margin-bottom: 0;
+  align-items: start;
+  scroll-snap-align: start;
+}
 
 /* ---------- left column ---------- */
 .finding__content {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
 .finding__number {
@@ -65,11 +101,16 @@
   position: sticky;
   top: 6rem;
   width: 100%;
+  height: 100%;
+  max-height: none;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
 }
 
 .finding__media img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: contain;
   display: block;
   border-radius: 4px;
 }
@@ -81,7 +122,7 @@
 /* Findings without a paired image: collapse to single column, constrain width */
 .finding:has(.finding__media--empty) {
   grid-template-columns: minmax(0, 1fr);
-  max-width: 64ch;
+  max-width: none;
 }
 .finding:has(.finding__media--empty) .finding__media--empty {
   display: none;
@@ -89,17 +130,33 @@
 
 /* ---------- responsive ---------- */
 @media (max-width: 768px) {
+  .findings {
+    height: 70vh;
+    min-height: 500px;
+  }
+
   .finding {
+    flex-basis: min(86vw, 560px);
     grid-template-columns: 1fr;
     gap: 2rem;
     margin-bottom: 5rem;
+    overflow-y: auto;
   }
 
-  .finding:nth-child(even) .finding__content { order: initial; }
-  .finding:nth-child(even) .finding__media   { order: initial; }
+  .finding__content {
+    max-height: none;
+    overflow: visible;
+  }
 
   .finding__media {
     position: static;
+    height: auto;
+    max-height: none;
+  }
+
+  .finding__media img {
+    height: auto;
+    max-height: 36vh;
   }
 }
 
@@ -285,34 +342,101 @@ body.storyline-off .statement-break {
    QUOTE — pull quote and inline-with-finding
    ============================================================ */
 .quote {
-  margin: 4rem 0;
-  padding-left: 2rem;
+  margin: 2.5rem 0;
+  padding-left: 1.5rem;
   border-left: 2px solid var(--accent);
 }
 
 .quote--inline {
-  margin: 2rem 0;
-  padding: 1.25rem 0 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  padding: 1rem 0 1rem 1.25rem;
 }
 
 .quote__text {
   font-family: var(--font-display);
-  font-size: clamp(1.5rem, 3vw, 2.5rem);
-  line-height: 1.3;
-  margin: 0 0 1rem 0;
+  font-size: clamp(1.125rem, 1.7vw, 1.5rem);
+  line-height: 1.4;
+  margin: 0 0 0.65rem 0;
   font-weight: 400;
 }
 
 .quote--inline .quote__text {
-  font-size: clamp(1.125rem, 1.8vw, 1.5rem);
+  font-size: clamp(1rem, 1.3vw, 1.2rem);
+  line-height: 1.45;
 }
 
 .quote__attribution {
   font-family: var(--font-body);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  opacity: 0.6;
+  opacity: 0.55;
+}
+
+/* ============================================================
+   FURTHER READING — external references list
+   ============================================================ */
+.further-reading {
+  display: grid;
+  gap: 0;
+}
+
+.further-reading__item {
+  display: block;
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--border);
+  color: inherit;
+  text-decoration: none;
+  transition: opacity 0.2s ease, padding-left 0.2s ease;
+}
+
+.further-reading__item:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.further-reading__item:hover {
+  opacity: 0.85;
+  padding-left: 0.5rem;
+}
+
+.further-reading__row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.further-reading__label {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.3;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.further-reading__meta {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+  white-space: nowrap;
+}
+
+.further-reading__arrow {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  opacity: 0.55;
+}
+
+.further-reading__note {
+  margin: 0.65rem 0 0;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  opacity: 0.7;
+  max-width: 70ch;
 }
 
 /* ============================================================

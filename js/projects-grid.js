@@ -12,7 +12,7 @@
 
   if (!grid || !window.PROJECTS) return;
 
-  const PER_PAGE = 6;
+  const PER_PAGE = 9;
 
   /* ── State ── */
   const sel = {

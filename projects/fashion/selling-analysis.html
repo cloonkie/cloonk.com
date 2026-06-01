@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selling Analysis | Kevin Zhang</title>
+<meta name="description" content="A local browser tool for sell-through diagnostics, inventory health, velocity, momentum, promo analysis, and collection theme authoring.">
+<meta name="author" content="Kevin Zhang">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="canonical" href="https://cloonk.com/projects/fashion/selling-analysis.html">
+<meta name="keywords" content="selling analysis, sell-through diagnostic, fashion analytics, inventory health, velocity matrix, promo dependence, YTD sell-out">
+<meta property="og:title" content="Selling Analysis | Fashion Toolbox">
+<meta property="og:description" content="Diagnose sell-through, inventory health, velocity, momentum, promo dependence, and collection themes locally in the browser.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://cloonk.com/favicon.svg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Selling Analysis | Fashion Toolbox">
+<meta name="twitter:description" content="A local browser diagnostic for YTD sell-out workbooks.">
+<meta name="twitter:image" content="https://cloonk.com/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script src="../../js/favicon-rotator.js" defer></script>
+<script src="../../js/cursor.js" defer></script>
+<script src="fashion-decisions.js" defer></script>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700,800&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fashion.css">
+<script>
+  try {
+    document.documentElement.setAttribute(
+      'data-theme',
+      localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark'
+    );
+  } catch (e) {}
+</script>
+<style>
+[hidden] { display: none !important; }
+:root {
+  --text-muted: #aaa59a;
+  --text-dim: #7d786f;
+  --accent-mid: rgba(57, 255, 20, 0.22);
+  --success: #39ff14;
+  --warn: #e8b931;
+}
+[data-theme="light"] {
+  --text-muted: #3f3f3a;
+  --text-dim: #676760;
+  --accent-mid: rgba(27, 9, 188, 0.20);
+  --success: #1e8a4a;
+  --warn: #b86d00;
+}
+html { font-size: 15px; }
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; }
+button { color: inherit; }
+a { color: inherit; text-decoration: none; }
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+code, .mono { font-family: var(--font-mono); }
+
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 28px;
+  background: color-mix(in oklab, var(--bg) 86%, transparent);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+}
+[data-theme="light"] .header { background: rgba(245, 242, 236, 0.88); }
+.header-left { display: flex; align-items: center; gap: 18px; min-width: 0; flex-wrap: wrap; }
+.logo {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: color var(--transition);
+}
+.logo:hover { color: var(--accent); }
+.logo span {
+  margin-left: 10px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.header-stats {
+  display: flex;
+  gap: 14px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+.header-stats .stat-val { color: var(--accent); }
+.header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
+/* ── Buttons / toggles ── */
+.btn, .theme-toggle {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.86rem;
+  letter-spacing: 0.01em;
+  transition: background var(--transition), border-color var(--transition), color var(--transition), opacity var(--transition);
+}
+.btn:hover, .theme-toggle:hover { background: var(--surface-raised); border-color: var(--border-hover); }
+.btn:disabled { cursor: not-allowed; opacity: 0.45; }
+.btn-accent { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 700; }
+.btn-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--accent-fg); }
+.btn-sm { min-height: 27px; padding: 4px 9px; font-size: 0.76rem; }
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+}
+.btn-ghost:hover { background: transparent; border-color: var(--border); color: var(--text); }
+.theme-toggle { width: 32px; padding: 0; color: var(--text-muted); }
+.theme-toggle svg, .info-btn svg {
+  width: 14px; height: 14px;
+  stroke: currentColor; fill: none;
+  stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+}
+.theme-toggle .icon-moon { display: none; }
+[data-theme="light"] .theme-toggle .icon-sun { display: none; }
+[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+.info-btn { width: 32px; min-height: 32px; padding: 0; color: var(--text-muted); }
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ── Shell ── */
+.app-shell {
+  width: min(1280px, calc(100vw - 40px));
+  margin: 0 auto;
+  padding: 0 0 80px;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   COVER MODE — choose a story
+   ════════════════════════════════════════════════════════════════════ */
+.cover { padding: clamp(40px, 8vh, 110px) 0 clamp(60px, 8vh, 90px); }
+.cover-mast { margin-bottom: clamp(36px, 6vw, 80px); }
+.cover-kicker {
+  margin: 0 0 16px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.cover h1 {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(3.4rem, 11vw, 9.4rem);
+  font-weight: 800;
+  line-height: 0.82;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.cover-dek {
+  max-width: 56ch;
+  margin: clamp(20px, 3vw, 28px) 0 0;
+  color: var(--text-muted);
+  font-size: clamp(1rem, 1.4vw, 1.24rem);
+  line-height: 1.58;
+}
+.cover-rule {
+  margin: clamp(36px, 6vw, 64px) 0 28px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.cover-rule__label {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.cover-rule__hint {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+.project-chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.project-chip {
+  position: relative;
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  align-items: baseline;
+  gap: 14px;
+  min-height: 80px;
+  padding: 20px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  font-weight: 400;
+  transition: background var(--transition), color var(--transition), padding var(--transition);
+}
+.project-chip:nth-child(odd) { padding-right: 22px; border-right: 1px solid var(--border); }
+.project-chip:nth-child(even) { padding-left: 22px; }
+.project-chip:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); padding-left: 12px; }
+.project-chip:nth-child(odd):hover { padding-left: 12px; padding-right: 14px; }
+.project-chip:nth-child(even):hover { padding-left: 30px; }
+.project-chip.is-active { background: var(--accent-dim); color: var(--text); }
+body[data-view="cover"] .project-chip.is-active { background: transparent; color: var(--text); }
+.project-chip .chip-num {
+  align-self: start;
+  margin-top: 4px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.project-chip .chip-body {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+.project-chip .chip-name {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(1.18rem, 2vw, 1.7rem);
+  font-weight: 800;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+.project-chip .chip-dek {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  max-width: 48ch;
+  text-wrap: pretty;
+}
+.project-chip .chip-status {
+  align-self: start;
+  margin-top: 8px;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.project-chip[data-ready="true"] .chip-status { border-color: var(--accent); color: var(--accent); }
+.project-chip[data-ready="false"] .chip-status { border-color: var(--warn); color: var(--warn); }
+body:not(.has-data) .project-chip .chip-status { display: none; }
+
+/* Hover preview — viz + 1-2 line description */
+.chip-preview {
+  grid-column: 2 / 4;
+  display: none;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+.project-chip:hover .chip-preview,
+.project-chip:focus-within .chip-preview {
+  display: grid;
+}
+.chip-viz {
+  width: 132px;
+  height: 56px;
+  display: block;
+  color: var(--text-muted);
+}
+.chip-viz svg { width: 100%; height: 100%; overflow: visible; }
+.chip-viz .viz-accent { fill: var(--accent); }
+.chip-viz .viz-warn { fill: var(--warn); }
+.chip-viz .viz-muted { fill: currentColor; }
+.chip-viz .stroke-accent { stroke: var(--accent); fill: none; }
+.chip-viz .stroke-warn { stroke: var(--warn); fill: none; }
+.chip-viz .stroke-muted { stroke: currentColor; fill: none; }
+.chip-viz .axis { stroke: currentColor; stroke-opacity: 0.3; }
+.chip-example {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  max-width: 48ch;
+}
+.chip-example em { color: var(--text); font-style: normal; font-weight: 700; }
+
+/* ════════════════════════════════════════════════════════════════════
+   STORY MODE
+   ════════════════════════════════════════════════════════════════════ */
+body[data-view="cover"] .story-view { display: none; }
+body[data-view="story"] .cover { display: none; }
+
+.story-view { padding: 0 0 60px; }
+
+.story-meta-bar {
+  position: sticky;
+  top: 60px;
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 0 0 clamp(24px, 4vw, 44px);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: blur(16px);
+  flex-wrap: wrap;
+}
+.meta-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  transition: color var(--transition);
+}
+.meta-back:hover { color: var(--accent); }
+.meta-back::before { content: "←"; font-size: 1.1em; }
+.meta-divider {
+  flex: 1 1 auto;
+  border-bottom: 1px dashed var(--border);
+  align-self: center;
+  min-width: 16px;
+  margin: 0;
+}
+.meta-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+.meta-pill b {
+  color: var(--text-dim);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.meta-pill .meta-val { color: var(--text); font-weight: 600; }
+.filter-drawer {
+  position: relative;
+}
+.filter-drawer summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 6px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color var(--transition), border-color var(--transition);
+}
+.filter-drawer summary::-webkit-details-marker { display: none; }
+.filter-drawer summary::after { content: " ▾"; }
+.filter-drawer[open] summary { color: var(--accent); border-color: var(--accent); }
+.filter-drawer[open] summary::after { content: " ▴"; }
+.filter-drawer .filter-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: min(420px, calc(100vw - 28px));
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: 0 18px 42px rgba(0,0,0,0.34);
+}
+
+/* ── Story article ── */
+.story-article { display: grid; gap: clamp(28px, 5vw, 56px); }
+
+.story-header { display: grid; gap: 14px; }
+.story-num {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.story-num::before { content: ""; }
+.story-num .story-num-sep { margin: 0 8px; color: var(--text-dim); }
+.story-title {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 7vw, 5.6rem);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+.story-dek {
+  max-width: 56ch;
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: clamp(1.04rem, 1.4vw, 1.28rem);
+  line-height: 1.55;
+}
+
+/* ── Prelude: pre-file dropzone, scoped to chosen story ── */
+.story-prelude {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 36px);
+  padding: clamp(22px, 4vw, 44px) 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+body.has-data .story-prelude { display: none; }
+
+.prelude-source { display: grid; gap: 12px; }
+.source-toggle {
+  display: inline-flex;
+  align-self: start;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-card);
+  padding: 3px;
+}
+.source-toggle__btn {
+  min-height: 30px;
+  padding: 5px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background var(--transition), color var(--transition);
+}
+.source-toggle__btn:hover { color: var(--text); }
+.source-toggle__btn.is-active {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+.dropzone {
+  position: relative;
+  min-height: 200px;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  border: 1px dashed var(--border-hover);
+  border-radius: 0;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent 56%),
+    transparent;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.paste-zone {
+  display: grid;
+  gap: 10px;
+  min-height: 200px;
+}
+.paste-zone textarea {
+  width: 100%;
+  min-height: 168px;
+  resize: vertical;
+  padding: 12px 14px;
+  border: 1px dashed var(--border-hover);
+  border-radius: 0;
+  background: var(--surface-card);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  outline: none;
+}
+.paste-zone textarea:focus { border-color: var(--accent); border-style: solid; }
+.paste-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.paste-hint {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+.dropzone:hover,
+.dropzone.dragging {
+  border-color: var(--accent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, transparent), transparent 48%),
+    var(--surface-raised);
+}
+.dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.drop-inner { text-align: center; pointer-events: none; max-width: 38ch; }
+.drop-title {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.6vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1;
+}
+.drop-sub {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.prelude-side { display: grid; align-content: start; gap: 18px; }
+.prelude-params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.prelude-params label {
+  flex: 1 1 140px;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  color: var(--text);
+}
+.prelude-params .lbl {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.prelude-params input[type="number"] {
+  width: 96px;
+  min-height: 30px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+[data-theme="light"] .prelude-params input[type="number"] { background: #f4f2ee; }
+.prelude-params input[type="number"]:focus { border-color: var(--accent); }
+
+.prelude-needs {
+  padding: 12px 0 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.6;
+}
+.prelude-needs strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-dim);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.prelude-needs ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; }
+.prelude-needs li { color: var(--text); }
+.prelude-needs li::before { content: "· "; color: var(--accent); margin-right: 4px; }
+
+.prelude-status {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+/* ── Vitals (KPI strip) — story-aware ── */
+#kpis {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 22px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.kpi {
+  min-width: 0;
+  padding: 6px 18px;
+  border-right: 1px solid var(--border);
+  background: transparent;
+  transition: padding var(--transition);
+}
+.kpi:last-child { border-right: 0; }
+.kpi-v {
+  overflow: hidden;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 2.2vw, 1.85rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kpi-k {
+  margin-top: 6px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+/* Hero KPI for each story — promoted to first row, full bleed */
+.kpi.kpi-hero {
+  grid-column: 1 / -1;
+  order: -1;
+  padding: 22px 0;
+  border-right: 0;
+  border-bottom: 1px solid var(--border);
+}
+.kpi.kpi-hero .kpi-v {
+  font-size: clamp(2.6rem, 7vw, 5.6rem);
+  font-weight: 800;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.kpi.kpi-hero .kpi-k {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+}
+body:not(.has-data) #kpis { display: none; }
+
+/* ── Filters ── */
+#filters { display: grid; gap: 8px; max-height: 60vh; overflow: auto; }
+#filters:empty::before {
+  content: "Load a workbook to populate filters.";
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+}
+details.filter {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+details.filter[open] { border-color: var(--border-hover); }
+details.filter summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 8px 10px;
+  font-weight: 700;
+  color: var(--text);
+}
+details.filter summary::-webkit-details-marker { display: none; }
+details.filter .opts {
+  max-height: 240px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 10px 10px;
+}
+details.filter label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  white-space: nowrap;
+}
+details.filter input[type="checkbox"] { accent-color: var(--accent); }
+.cnt { color: var(--accent); }
+
+/* ── Lens content (the rendered story body) ── */
+.lens-panel { display: grid; }
+.lens { display: none; }
+.lens.active { display: grid; gap: 18px; }
+body:not(.has-data) .lens-panel { display: none; }
+.lens p {
+  max-width: 72ch;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 1.04rem;
+  line-height: 1.72;
+}
+.lens p:first-of-type {
+  max-width: 60ch;
+  color: var(--text);
+  font-size: clamp(1.06rem, 1.4vw, 1.22rem);
+  line-height: 1.6;
+}
+.lens p:first-of-type::first-letter {
+  float: left;
+  margin: 0.04em 8px 0 0;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 3.4em;
+  font-weight: 800;
+  line-height: 0.9;
+}
+.lens h4 {
+  margin: 24px 0 6px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2vw, 1.8rem);
+  font-weight: 800;
+  letter-spacing: -0.005em;
+  text-transform: none;
+}
+.lens h4::before {
+  content: "§";
+  margin-right: 10px;
+  color: var(--accent);
+  font-weight: 400;
+}
+.note { color: var(--text-dim); font-style: italic; max-width: 60ch; }
+
+/* Layer-needed banner inside a lens */
+.layer-needed {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+  color: var(--warn);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.layer-needed::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--warn);
+}
+.layer-needed.is-ready { color: var(--accent); }
+.layer-needed.is-ready::before { background: var(--accent); }
+
+/* ── Tables (lens output) ── */
+table {
+  width: 100%;
+  margin: 6px 0 0;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+th, td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  white-space: nowrap;
+}
+th:first-child,
+td:first-child,
+td:nth-child(2),
+td:nth-child(3) { text-align: left; }
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg);
+  color: var(--text-dim);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+tbody tr:hover td { background: var(--accent-dim); }
+
+/* ── Velocity quadrant — hero treatment when on velocity story ── */
+.quad-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0 18px;
+}
+body[data-story="velocity"] .quad-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: none;
+  margin: 18px 0 28px;
+}
+.quad {
+  position: relative;
+  min-height: 168px;
+  padding: 22px 18px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.quad-n {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1;
+}
+.quad-name {
+  margin-top: 14px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.quad-rtl {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+.quad-desc {
+  margin-top: 10px;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+/* ── Theme authoring rows ── */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 8px;
+  max-height: 480px;
+  overflow: auto;
+  padding-right: 4px;
+}
+.theme-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.theme-col {
+  overflow: hidden;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.theme-row input {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+[data-theme="light"] .theme-row input { background: #f4f2ee; }
+.theme-row input:focus { border-color: var(--accent); }
+
+/* ── Story footer (prev / next / cover) ── */
+.story-footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 18px;
+  align-items: center;
+  margin: clamp(40px, 6vw, 80px) 0 0;
+  padding: 22px 0 0;
+  border-top: 1px solid var(--border);
+}
+.story-footer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  transition: color var(--transition);
+}
+.story-footer button:hover { color: var(--accent); }
+.story-footer .footer-prev { justify-self: start; }
+.story-footer .footer-cover { justify-self: center; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; }
+.story-footer .footer-next { justify-self: end; }
+
+/* ── Per-story flourish ── */
+body[data-story="liquidation"] .story-title,
+body[data-story="momentum"] .story-title { color: var(--text); }
+body[data-story="liquidation"] .story-num { color: var(--warn); }
+body[data-story="velocity"] .story-num { color: var(--accent); }
+body[data-story="promo"] .story-num { color: var(--warn); }
+
+/* ── Info modal ── */
+.info-modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+}
+.info-modal-overlay.open { display: flex; }
+.info-modal {
+  width: min(820px, 94vw);
+  max-height: 84vh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+}
+.info-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.info-modal-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; }
+.info-modal-title span { color: var(--accent); }
+.info-modal-close {
+  width: 32px; height: 32px;
+  border: 1px solid var(--border); border-radius: var(--radius-xs);
+  background: transparent; color: var(--text-muted); cursor: pointer; font-size: 1.3rem;
+}
+.info-modal-close:hover { color: var(--text); background: var(--surface-raised); }
+.info-modal-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.info-modal-tabs::-webkit-scrollbar { display: none; }
+.info-modal-tab {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 12px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+.info-modal-tab:hover { color: var(--text); }
+.info-modal-tab.active {
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.info-modal-body { overflow: auto; padding: 18px 20px 24px; color: var(--text-muted); line-height: 1.6; }
+.info-modal-pane { display: none; }
+.info-modal-pane.active { display: block; }
+.info-modal-body h3 { margin: 16px 0 6px; color: var(--text); font-family: var(--font-display); }
+.info-modal-body h3:first-child { margin-top: 0; }
+.info-modal-pane h4 {
+  margin: 16px 0 6px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+.info-modal-pane h4 .step-num {
+  margin-right: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.info-modal-body code { color: var(--accent); font-family: var(--font-mono); font-size: 0.86em; }
+.info-modal-body table { font-size: 0.78rem; margin: 8px 0; }
+.info-modal-body th, .info-modal-body td { white-space: normal; color: var(--text-muted); text-align: left; }
+.info-modal-pane ul { margin: 4px 0 10px 18px; }
+.info-modal-pane li { margin-bottom: 4px; }
+.info-link-list { display: grid; gap: 10px; margin-top: 12px; }
+.info-link {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text);
+  text-decoration: none;
+  background: var(--bg);
+}
+.info-link:hover { border-color: var(--accent); background: var(--accent-dim); }
+.info-link-meta { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.72rem; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; right: 20px; bottom: 20px; z-index: 1100;
+  max-width: min(380px, calc(100vw - 40px));
+  padding: 11px 14px;
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  opacity: 0; transform: translateY(8px); pointer-events: none;
+  transition: opacity var(--transition), transform var(--transition);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 980px) {
+  .project-chips { grid-template-columns: 1fr; }
+  .project-chip:nth-child(odd) { padding-right: 4px; border-right: 0; }
+  .project-chip:nth-child(even) { padding-left: 4px; }
+  .project-chip:nth-child(odd):hover,
+  .project-chip:nth-child(even):hover { padding-left: 12px; padding-right: 4px; }
+  .story-prelude { grid-template-columns: 1fr; }
+  #kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body[data-story="velocity"] .quad-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .header { padding: 14px 18px; }
+  .header-stats { display: none; }
+  .app-shell { width: min(100% - 28px, 1280px); }
+  .meta-divider { display: none; }
+  #kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quad-grid,
+  body[data-story="velocity"] .quad-grid { grid-template-columns: 1fr; }
+  table { display: block; overflow-x: auto; }
+}
+@media (max-width: 480px) {
+  #kpis { grid-template-columns: 1fr; }
+  .theme-row { grid-template-columns: 1fr; }
+  .project-chip { grid-template-columns: 38px 1fr; }
+  .project-chip .chip-status { grid-column: 2; justify-self: start; }
+  .project-chip .chip-preview { grid-column: 1 / -1; grid-template-columns: 100px minmax(0, 1fr); gap: 10px; }
+  .chip-viz { width: 100px; height: 44px; }
+}
+</style>
+</head>
+<body class="fashion selling-analysis-tool" data-view="cover" data-story="integrity">
+  <header class="header">
+    <div class="header-left">
+      <a class="logo" href="index.html" data-cursor="open">Selling Analysis <span>Sell-Through Diagnostic</span></a>
+      <div class="header-stats" id="headerStats">
+        <span>Rows <span class="stat-val" id="statRows">0</span></span>
+        <span>File <span class="stat-val" id="statFile">none</span></span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="snapInBtn" type="button" data-cursor="load">Import Snapshot</button>
+      <input type="file" id="snapIn" accept=".json" style="display:none">
+      <button class="btn btn-accent" id="snapOut" type="button" data-cursor="export">Export Snapshot</button>
+      <button class="btn info-btn" id="infoBtn" aria-label="Open information and appendix" title="Information and appendix">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg>
+      </button>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
+        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+
+    <!-- ══════════════════════════════ COVER VIEW ══════════════════════════════ -->
+    <section class="cover" aria-label="Story chooser">
+      <div class="cover-mast">
+        <p class="cover-kicker">Issue 01 · Sell-Through Diagnostic</p>
+        <h1>Pick the read.</h1>
+        <p class="cover-dek">A workbook tells different stories depending on which one you choose to read first. Start with a question — the rest of the flow shapes itself to it.</p>
+      </div>
+
+      <div class="cover-rule">
+        <span class="cover-rule__label">Stories</span>
+        <span class="cover-rule__hint">Tap a read to begin · the workbook drops in next</span>
+      </div>
+
+      <div class="project-chips" id="projectChips"></div>
+      <select id="projectSelect" class="visually-hidden" aria-label="Select analysis project"></select>
+    </section>
+
+    <!-- ══════════════════════════════ STORY VIEW ══════════════════════════════ -->
+    <section class="story-view" aria-label="Selected story">
+
+      <div class="story-meta-bar">
+        <button type="button" class="meta-back" id="backToCover" data-cursor="open">All stories</button>
+        <span class="meta-pill"><b>File</b><span class="meta-val" id="metaFile">none</span></span>
+        <span class="meta-pill"><b>Rows</b><span class="meta-val" id="metaRows">0</span></span>
+        <span class="meta-divider"></span>
+        <span class="meta-pill" id="metaStatus" hidden></span>
+        <details class="filter-drawer">
+          <summary>Filter</summary>
+          <div class="filter-panel">
+            <div id="filters"></div>
+          </div>
+        </details>
+      </div>
+
+      <article class="story-article">
+        <header class="story-header">
+          <p class="story-num"><span id="storyKicker">01</span><span class="story-num-sep">·</span><span id="storyKickerTag">Pre-flight</span></p>
+          <h2 class="story-title" id="storyTitle">Integrity Audit</h2>
+          <p class="story-dek" id="storyDek">Which rows can lie, and where they hide.</p>
+        </header>
+
+        <div class="story-prelude" id="storyPrelude">
+          <div class="prelude-source">
+            <div class="source-toggle" role="tablist" aria-label="Input mode">
+              <button type="button" id="modeDropBtn" class="source-toggle__btn is-active" role="tab" aria-selected="true">Drop file</button>
+              <button type="button" id="modePasteBtn" class="source-toggle__btn" role="tab" aria-selected="false">Paste data</button>
+            </div>
+            <label class="dropzone" id="dropzone" data-mode="drop">
+              <input type="file" id="file" accept=".xlsx,.xls,.csv,.tsv">
+              <span class="drop-inner">
+                <span class="drop-title">Drop the workbook</span>
+                <span class="drop-sub">.xlsx, .xls, .csv, or .tsv — parsed locally in your browser. Nothing leaves your machine.</span>
+              </span>
+            </label>
+            <div class="paste-zone" id="pasteZone" hidden>
+              <textarea id="pasteBox" placeholder="Paste from Excel: copy a range including headers, then paste here. Tabs and newlines become rows and columns."></textarea>
+              <div class="paste-actions">
+                <span class="paste-hint" id="pasteHint">0 rows detected</span>
+                <button type="button" class="btn btn-accent" id="loadPasteBtn">Load pasted data</button>
+              </div>
+            </div>
+          </div>
+          <aside class="prelude-side">
+            <div class="prelude-params">
+              <label>
+                <span class="lbl">Promo threshold</span>
+                <span><input type="number" id="promoThresh" value="20" min="0" max="90" step="5"> %</span>
+              </label>
+              <label>
+                <span class="lbl">Aged before</span>
+                <span><input type="number" id="agedYear" value="2020" min="1990" max="2030"></span>
+              </label>
+            </div>
+            <div class="prelude-needs" id="preludeNeeds">
+              <strong>What this read wants</strong>
+              <ul id="preludeNeedsList"></ul>
+            </div>
+            <p class="prelude-status" id="projectStatus"></p>
+            <p class="prelude-status" id="status">Load the YTD Sell-Out workbook to begin.</p>
+            <div class="analysis-guide" id="analysisGuide" hidden></div>
+          </aside>
+        </div>
+
+        <section id="kpis" aria-label="Issue at a glance"></section>
+
+        <div class="lens-panel">
+          <section id="lens-integrity" class="lens active"></section>
+          <section id="lens-liquidation" class="lens"></section>
+          <section id="lens-velocity" class="lens"></section>
+          <section id="lens-momentum" class="lens"></section>
+          <section id="lens-promo" class="lens"></section>
+          <section id="lens-theme" class="lens"></section>
+          <section id="lens-workbench" class="lens"></section>
+        </div>
+
+        <footer class="story-footer">
+          <button type="button" class="footer-prev" id="prevStory">← Previous read</button>
+          <button type="button" class="footer-cover" id="footerCover">All stories</button>
+          <button type="button" class="footer-next" id="nextStory">Next read →</button>
+        </footer>
+      </article>
+    </section>
+  </main>
+
+  <div class="info-modal-overlay" id="infoModalOverlay" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
+    <div class="info-modal">
+      <div class="info-modal-header">
+        <span class="info-modal-title" id="infoModalTitle">Selling Analysis <span>— Appendix</span></span>
+        <button class="info-modal-close" id="infoModalClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="info-modal-tabs" role="tablist">
+        <button class="info-modal-tab active" data-tab="about" role="tab">About</button>
+        <button class="info-modal-tab" data-tab="flow" role="tab">Flow</button>
+        <button class="info-modal-tab" data-tab="schema" role="tab">Schema</button>
+        <button class="info-modal-tab" data-tab="appendix" role="tab">Appendix</button>
+        <button class="info-modal-tab" data-tab="resources" role="tab">Resources</button>
+      </div>
+      <div class="info-modal-body">
+        <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
+          <h3>What this is</h3>
+          <p>A browser-based diagnostic for the YTD Sell-Out workbook. It cleans the raw dump, flags integrity issues, then surfaces liquidation risk, velocity, momentum, and promo behaviour over a filterable canonical record set.</p>
+          <h3>Story-first</h3>
+          <p>The page opens to a table of reads. Picking one shapes the rest: only that story's parameters are foregrounded, the file dropzone asks for the workbook in that story's voice, and the hero metric promoted in the vitals strip is the one that matters most for that read.</p>
+          <h3>Privacy</h3>
+          <p>All parsing happens locally in your browser. The workbook is never uploaded to a server.</p>
+        </div>
+        <div class="info-modal-pane" id="modal-tab-flow" role="tabpanel">
+          <h4><span class="step-num">01</span>Cover</h4>
+          <p>A table of every read the tool knows about. The question under each title is what that read answers — pick the one that matches yours.</p>
+          <h4><span class="step-num">02</span>Story prelude</h4>
+          <p>Once a story is chosen, the prelude shows the dropzone and the parameters that affect this read (promo threshold, aged-before). It also lists the metrics the read wants — useful before you upload.</p>
+          <h4><span class="step-num">03</span>File landed</h4>
+          <p>After the workbook is parsed, the prelude collapses. The vitals strip appears and the hero KPI for this read is promoted full-bleed. The story body fills in.</p>
+          <h4><span class="step-num">04</span>Move between reads</h4>
+          <p>The footer of every story leads to the next or previous read; the meta strip leads back to the cover. Filters live in a drawer so they never push the article out of focus.</p>
+        </div>
+        <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
+          <h3>Required workbook shape</h3>
+          <p>The tool scans the top of the workbook for the best header row, including clustered cadence rows above metric headers. Each story runs only when its required fields are present.</p>
+          <table>
+            <tr><th>Schema area</th><th>Fields</th></tr>
+            <tr><td>Identity</td><td><code>Retailer</code>, <code>Location</code>, <code>Brand</code>, <code>Collection Release</code>, <code>Frame Material</code>, <code>MSRP</code></td></tr>
+            <tr><td>TY metrics</td><td><code>TY YTD Units Sls</code>, <code>TY YTD Rtl Sls</code>, <code>TY WTD Units OH</code>, <code>TY YTD ST%</code></td></tr>
+            <tr><td>LY metrics</td><td><code>LY YTD Units Sls</code>, <code>LY YTD Rtl Sls</code>, <code>LY WTD Units OH</code>, <code>LY YTD ST%</code></td></tr>
+            <tr><td>Attributes</td><td><code>Newness</code>, <code>Brand Category</code>, <code>Material Code</code>, <code>Price Range</code></td></tr>
+            <tr><td>Optional UPC grain</td><td><code>UPC</code>, <code>Style</code>, <code>Lens Color</code>, <code>Frame Color</code>, <code>Temple Color</code>, <code>Theme</code></td></tr>
+          </table>
+        </div>
+        <div class="info-modal-pane" id="modal-tab-appendix" role="tabpanel">
+          <h3>Integrity flags</h3>
+          <p>Rows with one of the flags below are excluded from the metrics they would distort, but stay in the integrity counts.</p>
+          <ul>
+            <li><strong>MSRP missing / zero</strong> — excluded from AUR, promo, and markdown depth.</li>
+            <li><strong>Negative units / retail / on-hand</strong> — excluded from sales totals, AUR, and inventory health.</li>
+            <li><strong>ST% out of range</strong> — excluded from the velocity matrix.</li>
+            <li><strong>AUR above MSRP</strong> — excluded from promo penetration so above-list rows do not pull the share down.</li>
+          </ul>
+          <h3>Velocity matrix</h3>
+          <p>Rows are classified by a median split on ST% and TY units. <em>Star</em> = high ST × high volume; <em>Sleeper</em> = high ST × low volume; <em>Slow-bleeder</em> = low ST × high volume; <em>Dog</em> = low ST × low volume.</p>
+          <h3>Momentum decomposition</h3>
+          <p>YoY unit variance per brand is split into New (TY only), Dropped (LY only), and Continuing (both years). Continuing carries the delta; New is additive and Dropped is subtractive.</p>
+        </div>
+        <div class="info-modal-pane" id="modal-tab-resources" role="tabpanel">
+          <h3>Fashion Toolbox</h3>
+          <div class="info-link-list">
+            <a class="info-link" href="index.html"><strong>Fashion Toolbox</strong><span class="info-link-meta">Index</span></a>
+            <a class="info-link" href="sellout-standardizer.html"><strong>Sell-Out Standardizer</strong><span class="info-link-meta">Weekly Sell-Out</span></a>
+            <a class="info-link" href="assortment-comparison.html"><strong>Assortment Comparison</strong><span class="info-link-meta">Retailer Overlap</span></a>
+            <a class="info-link" href="retailer-door-tracker.html"><strong>Door Tracker</strong><span class="info-link-meta">Door Distribution</span></a>
+            <a class="info-link" href="upc-concat.html"><strong>UPC Concat</strong><span class="info-link-meta">Schema Mapping</span></a>
+            <a class="info-link" href="replenishment-linesheet.html"><strong>DIGI LINE SHEET</strong><span class="info-link-meta">Product Review</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  /* ─────────────────────────────────────────────────────────────────
+     Editorial story-first wiring. Sits on top of selling-analysis-app.js
+     without touching its render functions.
+     ───────────────────────────────────────────────────────────────── */
+  (function () {
+    'use strict';
+
+    /* ─── Per-story editorial copy (number, kicker, title, dek) ────── */
+    const STORY_META = {
+      integrity:    { kicker: 'Pre-flight',  title: 'Integrity Audit',         dek: 'Which rows can lie, and where they hide before any merchandising read.' },
+      liquidation:  { kicker: 'Risk',        title: 'Liquidation Radar',       dek: 'Retail tied up in inventory that has stopped moving — ranked by where it sleeps.' },
+      velocity:     { kicker: 'Performance', title: 'Velocity Matrix',         dek: 'Star, Sleeper, Slow-bleeder, Dog — a 2×2 read on sell-through against volume.' },
+      momentum:     { kicker: 'Trend',       title: 'YoY Momentum',            dek: 'Year-on-year decomposed into new collections, lost collections, and continuing business.' },
+      promo:        { kicker: 'Pricing',     title: 'Full-Price vs Promo',     dek: 'How much of the volume is full-price demand and how much is markdown depth.' },
+      theme:        { kicker: 'Author',      title: 'Theme Authoring',         dek: 'Tag collections with marketing themes so they filter everything else.' },
+      workbench:    { kicker: 'Workbench',   title: 'Bespoke Read',            dek: 'Layered fields for the read you opened — wired into readiness.' },
+    };
+    /* Hero KPI position per story (1-indexed: KPI cards are appended in fixed order):
+       1 Rows · 2 TY units · 3 TY retail · 4 YoY units · 5 Dead-stock · 6 Promo share */
+    const STORY_HERO = {
+      integrity: 1, liquidation: 5, velocity: 2, momentum: 4, promo: 6, theme: 1, workbench: 3,
+    };
+
+    /* ─── Mini-viz SVG + example sentence per story ───────────────── */
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const VIZ = {
+      integrity:
+        '<svg viewBox="0 0 132 56"><rect x="0" y="4"  width="98" height="6" class="viz-muted" opacity="0.85"/><rect x="0" y="14" width="46" height="6" class="viz-muted" opacity="0.35"/><rect x="0" y="24" width="30" height="6" class="viz-muted" opacity="0.35"/><rect x="0" y="34" width="72" height="6" class="viz-muted" opacity="0.35"/><rect x="0" y="44" width="18" height="6" class="viz-muted" opacity="0.35"/></svg>',
+      liquidation:
+        '<svg viewBox="0 0 132 56"><rect x="2"  y="6"  width="14" height="44" class="viz-warn"/><rect x="20" y="14" width="14" height="36" class="viz-warn" opacity="0.8"/><rect x="38" y="20" width="14" height="30" class="viz-warn" opacity="0.65"/><rect x="56" y="26" width="14" height="24" class="viz-muted" opacity="0.45"/><rect x="74" y="32" width="14" height="18" class="viz-muted" opacity="0.35"/><rect x="92" y="38" width="14" height="12" class="viz-muted" opacity="0.25"/><rect x="110" y="44" width="14" height="6" class="viz-muted" opacity="0.2"/></svg>',
+      velocity:
+        '<svg viewBox="0 0 132 56"><line x1="66" y1="0" x2="66" y2="56" class="axis"/><line x1="0" y1="28" x2="132" y2="28" class="axis"/><circle cx="22"  cy="14" r="4" class="viz-muted" opacity="0.45"/><circle cx="40"  cy="20" r="3" class="viz-muted" opacity="0.45"/><circle cx="92"  cy="10" r="6" class="viz-accent"/><circle cx="108" cy="18" r="5" class="viz-accent"/><circle cx="28"  cy="42" r="3" class="viz-muted" opacity="0.4"/><circle cx="50"  cy="46" r="4" class="viz-muted" opacity="0.4"/><circle cx="96"  cy="44" r="5" class="viz-warn" opacity="0.7"/></svg>',
+      momentum:
+        '<svg viewBox="0 0 132 56"><line x1="66" y1="0" x2="66" y2="56" class="axis"/><rect x="36" y="4"  width="30" height="6" class="viz-warn" opacity="0.8"/><rect x="66" y="14" width="42" height="6" class="viz-accent"/><rect x="66" y="24" width="56" height="6" class="viz-accent" opacity="0.85"/><rect x="50" y="34" width="16" height="6" class="viz-warn" opacity="0.85"/><rect x="66" y="44" width="22" height="6" class="viz-accent" opacity="0.7"/></svg>',
+      promo:
+        '<svg viewBox="0 0 132 56"><rect x="0"  y="22" width="80" height="12" class="viz-muted" opacity="0.55"/><rect x="80" y="22" width="52" height="12" class="viz-warn"/><text x="2" y="14" class="viz-muted" font-family="DM Mono,monospace" font-size="7" opacity="0.6">FULL</text><text x="84" y="14" class="viz-warn" font-family="DM Mono,monospace" font-size="7">PROMO</text></svg>',
+      theme:
+        '<svg viewBox="0 0 132 56"><rect x="2"  y="8"  width="40" height="14" rx="7" class="viz-accent" opacity="0.85"/><rect x="46" y="8"  width="28" height="14" rx="7" class="viz-muted" opacity="0.3"/><rect x="78" y="8"  width="52" height="14" rx="7" class="viz-accent" opacity="0.55"/><rect x="2"  y="30" width="28" height="14" rx="7" class="viz-muted" opacity="0.3"/><rect x="34" y="30" width="58" height="14" rx="7" class="viz-muted" opacity="0.3"/><rect x="96" y="30" width="34" height="14" rx="7" class="viz-accent" opacity="0.55"/></svg>',
+      assortment_productivity:
+        '<svg viewBox="0 0 132 56"><rect x="2"   y="2"  width="62" height="40" class="viz-accent" opacity="0.6"/><rect x="66"  y="2"  width="30" height="40" class="viz-muted" opacity="0.35"/><rect x="98"  y="2"  width="32" height="22" class="viz-muted" opacity="0.5"/><rect x="98"  y="26" width="32" height="16" class="viz-muted" opacity="0.25"/><rect x="2"   y="44" width="96" height="10" class="viz-muted" opacity="0.2"/><rect x="100" y="44" width="30" height="10" class="viz-warn" opacity="0.6"/></svg>',
+      size_curve:
+        '<svg viewBox="0 0 132 56"><path d="M 4 50 C 30 48, 44 30, 64 18 S 110 8, 128 6" class="stroke-accent" stroke-width="2"/><path d="M 4 52 C 30 50, 50 42, 70 36 S 110 28, 128 24" class="stroke-muted" stroke-opacity="0.4" stroke-width="2" stroke-dasharray="3 3"/></svg>',
+      door_clustering:
+        '<svg viewBox="0 0 132 56"><circle cx="20" cy="14" r="3" class="viz-accent"/><circle cx="28" cy="22" r="3" class="viz-accent"/><circle cx="14" cy="22" r="3" class="viz-accent"/><circle cx="22" cy="30" r="3" class="viz-accent"/><circle cx="78" cy="20" r="3" class="viz-warn"/><circle cx="86" cy="14" r="3" class="viz-warn"/><circle cx="84" cy="28" r="3" class="viz-warn"/><circle cx="94" cy="22" r="3" class="viz-warn"/><circle cx="50" cy="44" r="3" class="viz-muted" opacity="0.5"/><circle cx="58" cy="50" r="3" class="viz-muted" opacity="0.5"/><circle cx="64" cy="44" r="3" class="viz-muted" opacity="0.5"/><circle cx="116" cy="42" r="3" class="viz-muted" opacity="0.5"/><circle cx="124" cy="48" r="3" class="viz-muted" opacity="0.5"/></svg>',
+      markdown_sensitivity:
+        '<svg viewBox="0 0 132 56"><path d="M 4 52 L 130 6" class="stroke-accent" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.6"/><circle cx="12"  cy="48" r="2.5" class="viz-muted" opacity="0.45"/><circle cx="30"  cy="42" r="2.5" class="viz-muted" opacity="0.45"/><circle cx="48"  cy="34" r="2.5" class="viz-accent"/><circle cx="68"  cy="30" r="2.5" class="viz-accent"/><circle cx="86"  cy="22" r="2.5" class="viz-accent"/><circle cx="106" cy="14" r="2.5" class="viz-accent"/><circle cx="120" cy="10" r="2.5" class="viz-accent"/></svg>',
+      inventory_aging:
+        '<svg viewBox="0 0 132 56"><rect x="2"   y="32" width="16" height="20" class="viz-muted" opacity="0.4"/><rect x="22"  y="22" width="16" height="30" class="viz-muted" opacity="0.5"/><rect x="42"  y="14" width="16" height="38" class="viz-warn" opacity="0.65"/><rect x="62"  y="8"  width="16" height="44" class="viz-warn" opacity="0.85"/><rect x="82"  y="14" width="16" height="38" class="viz-muted" opacity="0.55"/><rect x="102" y="28" width="16" height="24" class="viz-muted" opacity="0.45"/></svg>',
+      demand_forecasting:
+        '<svg viewBox="0 0 132 56"><path d="M 4 40 L 22 36 L 40 30 L 58 26 L 76 24" class="stroke-muted" stroke-width="2" opacity="0.65"/><path d="M 76 24 L 96 18 L 116 14 L 128 10" class="stroke-accent" stroke-width="2" stroke-dasharray="3 3"/><circle cx="76" cy="24" r="3" class="viz-accent"/></svg>',
+      anomaly_detection:
+        '<svg viewBox="0 0 132 56"><circle cx="14" cy="32" r="2" class="viz-muted" opacity="0.45"/><circle cx="26" cy="30" r="2" class="viz-muted" opacity="0.45"/><circle cx="38" cy="34" r="2" class="viz-muted" opacity="0.45"/><circle cx="50" cy="28" r="2" class="viz-muted" opacity="0.45"/><circle cx="62" cy="30" r="2" class="viz-muted" opacity="0.45"/><circle cx="74" cy="36" r="2" class="viz-muted" opacity="0.45"/><circle cx="86" cy="32" r="2" class="viz-muted" opacity="0.45"/><circle cx="98" cy="34" r="2" class="viz-muted" opacity="0.45"/><circle cx="110" cy="6"  r="5" class="viz-warn"/><circle cx="120" cy="48" r="4" class="viz-warn" opacity="0.8"/></svg>',
+      retailer_scorecard:
+        '<svg viewBox="0 0 132 56"><polygon points="66,4 100,20 92,46 40,46 32,20" class="stroke-muted" stroke-opacity="0.3"/><polygon points="66,14 90,24 86,42 46,42 42,24" class="viz-accent" opacity="0.55"/><line x1="66" y1="4" x2="66" y2="46" class="axis" stroke-opacity="0.2"/><line x1="32" y1="20" x2="100" y2="20" class="axis" stroke-opacity="0.2"/></svg>',
+      collection_lifecycle:
+        '<svg viewBox="0 0 132 56"><path d="M 4 50 Q 40 50, 50 30 T 86 10 Q 110 20, 128 48" class="stroke-accent" stroke-width="2"/><circle cx="50" cy="30" r="3" class="viz-muted" opacity="0.45"/><circle cx="86" cy="10" r="3" class="viz-accent"/></svg>',
+      price_architecture:
+        '<svg viewBox="0 0 132 56"><rect x="2"   y="40" width="22" height="12" class="viz-muted" opacity="0.35"/><rect x="28"  y="30" width="22" height="22" class="viz-muted" opacity="0.45"/><rect x="54"  y="16" width="22" height="36" class="viz-accent"/><rect x="80"  y="22" width="22" height="30" class="viz-muted" opacity="0.55"/><rect x="106" y="34" width="22" height="18" class="viz-muted" opacity="0.4"/></svg>',
+    };
+    const VIZ_FALLBACK =
+      '<svg viewBox="0 0 132 56"><polyline points="2,46 18,38 32,42 46,30 62,32 78,22 94,26 110,18 126,12" class="stroke-accent" stroke-width="2"/></svg>';
+    const EXAMPLE = {
+      integrity:              'A horizontal flag chart. Each row is one integrity flag — <em>MSRP missing</em>, <em>neg units</em>, <em>ST out of range</em> — length is row count.',
+      liquidation:            'A Pareto of brand × retailer cells, ranked by retail $ tied up in dead stock. The first few bars usually carry most of the risk.',
+      velocity:               'A 2×2 quadrant of sell-through against TY units. Top right is Star, top left is Sleeper — chase candidates.',
+      momentum:               'Per-brand diverging bars decomposing YoY: new collections, dropped collections, and continuing business each pull the line.',
+      promo:                  'A 100% stacked bar of full-price vs promo unit share. The further the warn slab pushes left, the more discount-dependent the volume.',
+      theme:                  'Tag chips for each Collection / Release. Authored themes become a filter that propagates into every other read.',
+      assortment_productivity:'A treemap of brand × material rectangles sized by retail $. Outsized rectangles are over-allocated; thin ones may be earning their space.',
+      size_curve:             'The buy curve overlaid on the sell curve. Where they diverge is where size demand is leaving inventory behind.',
+      door_clustering:        'Doors plotted by mix and velocity, coloured by cluster. Same-coloured dots behave alike and can share allocation logic.',
+      markdown_sensitivity:   'A scatter of discount depth vs unit lift, with the response curve fit through it. Steeper slope = more markdown-elastic.',
+      inventory_aging:        'Tied retail by vintage year. The tallest bar is your oldest concentration — usually the first to exit.',
+      demand_forecasting:     'Recent units to date, dashed forward 4–13 weeks. The dot marks the present; the dashed line is the projection.',
+      anomaly_detection:      'Rows plotted on two metrics with outliers highlighted. The flagged dots are rows worth eyeballing before trusting the file.',
+      retailer_scorecard:     'A radar across mix, productivity, promo, growth, and inventory health. Lopsided shapes flag where a retailer is over- or under-indexed.',
+      collection_lifecycle:   'Each collection traced from launch through maturity to decay. The peak marker is where the collection sits today.',
+      price_architecture:     'Price-band columns sized by retail $. Missing tiers leave gaps in the bar chart; overloaded tiers crowd the middle.',
+    };
+    const EXAMPLE_FALLBACK = 'A focused chart shaped to this read, drawn from the rows after filters apply.';
+
+    const $ = id => document.getElementById(id);
+    const body = document.body;
+
+    /* ─── Info modal (unchanged) ─────────────────────────────────── */
+    const overlay = $('infoModalOverlay');
+    const tabs = overlay.querySelectorAll('.info-modal-tab');
+    const panes = overlay.querySelectorAll('.info-modal-pane');
+    function switchTab(name) {
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      panes.forEach(p => p.classList.toggle('active', p.id === 'modal-tab-' + name));
+    }
+    function openModal(tab) { overlay.classList.add('open'); if (tab) switchTab(tab); }
+    function closeModal() { overlay.classList.remove('open'); }
+    $('infoBtn').addEventListener('click', () => openModal('about'));
+    $('infoModalClose').addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal(); });
+    tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+
+    /* ─── Dropzone drag highlight ─────────────────────────────────── */
+    const dz = $('dropzone');
+    if (dz) {
+      ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => {
+        e.preventDefault(); dz.classList.add('dragging');
+      }));
+      ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, () => dz.classList.remove('dragging')));
+    }
+
+    /* ─── Snapshot import button proxies hidden file input ────────── */
+    $('snapInBtn')?.addEventListener('click', () => $('snapIn').click());
+
+    /* ─── Drop / Paste mode toggle + paste→File adapter ───────────── */
+    const modeDropBtn = $('modeDropBtn');
+    const modePasteBtn = $('modePasteBtn');
+    const pasteZone = $('pasteZone');
+    const pasteBox = $('pasteBox');
+    const pasteHint = $('pasteHint');
+    function setMode(mode) {
+      const isDrop = mode === 'drop';
+      modeDropBtn.classList.toggle('is-active', isDrop);
+      modePasteBtn.classList.toggle('is-active', !isDrop);
+      modeDropBtn.setAttribute('aria-selected', String(isDrop));
+      modePasteBtn.setAttribute('aria-selected', String(!isDrop));
+      dz.hidden = !isDrop;
+      pasteZone.hidden = isDrop;
+      if (!isDrop) setTimeout(() => pasteBox.focus(), 30);
+    }
+    modeDropBtn.addEventListener('click', () => setMode('drop'));
+    modePasteBtn.addEventListener('click', () => setMode('paste'));
+    function parsePasted(text) {
+      const lines = text.replace(/\r\n?/g, '\n').split('\n');
+      while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+      if (!lines.length) return [];
+      const tabbed = lines.some(l => l.indexOf('\t') >= 0);
+      const split = tabbed ? l => l.split('\t') : l => l.split(',');
+      return lines.map(split);
+    }
+    function updatePasteHint() {
+      const aoa = parsePasted(pasteBox.value);
+      const rows = aoa.length;
+      const cols = aoa.length ? Math.max(...aoa.map(r => r.length)) : 0;
+      pasteHint.textContent = rows
+        ? `${rows.toLocaleString()} row${rows === 1 ? '' : 's'} · ${cols} column${cols === 1 ? '' : 's'} detected`
+        : '0 rows detected';
+    }
+    pasteBox.addEventListener('input', updatePasteHint);
+    $('loadPasteBtn').addEventListener('click', () => {
+      const text = pasteBox.value;
+      if (!text.trim()) { pasteHint.textContent = 'Paste a range with headers first.'; return; }
+      if (typeof XLSX === 'undefined') { pasteHint.textContent = 'XLSX library not loaded yet.'; return; }
+      const aoa = parsePasted(text);
+      if (!aoa.length) { pasteHint.textContent = 'Could not detect rows.'; return; }
+      try {
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Sell-Out');
+        const buf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+        const file = new File([buf], 'pasted-data.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        $('file').files = dt.files;
+        $('file').dispatchEvent(new Event('change', { bubbles: true }));
+      } catch (err) {
+        pasteHint.textContent = 'Could not convert paste: ' + err.message;
+      }
+    });
+
+    /* ─── View-mode (cover ↔ story) toggles ───────────────────────── */
+    function enterStory() {
+      body.dataset.view = 'story';
+      window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    }
+    function backToCover() {
+      body.dataset.view = 'cover';
+      window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    }
+    $('backToCover').addEventListener('click', backToCover);
+    $('footerCover').addEventListener('click', backToCover);
+
+    /* Picking any project chip enters story mode. The selling-analysis-app.js
+       chip click handler still fires — it calls selectAnalysis, which toggles
+       the active lens. We piggy-back via event delegation. */
+    document.addEventListener('click', e => {
+      const chip = e.target.closest('.project-chip');
+      if (chip && body.dataset.view === 'cover') enterStory();
+    }, true);
+
+    /* ─── Watch the active lens, mirror its id onto body[data-story] ── */
+    const lensPanel = document.querySelector('.lens-panel');
+    function syncStoryFromActiveLens() {
+      const active = lensPanel.querySelector('.lens.active');
+      if (!active) return;
+      const id = active.id.replace(/^lens-/, '');
+      body.dataset.story = id;
+      paintStoryHeader(id);
+      promoteHeroKPI(id);
+    }
+    new MutationObserver(syncStoryFromActiveLens)
+      .observe(lensPanel, { attributes: true, attributeFilter: ['class'], subtree: true });
+
+    /* ─── Story header — number + kicker + title + dek ──────────── */
+    function paintStoryHeader(id) {
+      const meta = STORY_META[id] || lookupAnalysisMeta(id);
+      if (!meta) return;
+      const num = analysisNumber(id);
+      $('storyKicker').textContent = String(num || '').padStart(2, '0');
+      $('storyKickerTag').textContent = meta.kicker || meta.name || '';
+      $('storyTitle').textContent = meta.title || meta.name || '';
+      $('storyDek').textContent = meta.dek || meta.question || '';
+      paintPreludeNeeds(id);
+    }
+    function analysisNumber(id) {
+      const a = (window.SOA && window.SOA.ANALYSES) ? window.SOA.ANALYSES.find(x => x.id === id) : null;
+      return a ? a.priority : null;
+    }
+    function lookupAnalysisMeta(id) {
+      const a = (window.SOA && window.SOA.ANALYSES) ? window.SOA.ANALYSES.find(x => x.id === id) : null;
+      if (!a) return null;
+      return { kicker: 'Read', name: a.name, title: a.name, dek: a.question, question: a.question };
+    }
+
+    /* ─── Prelude needs list — what fields this read wants ────────── */
+    function paintPreludeNeeds(id) {
+      const list = $('preludeNeedsList');
+      if (!list) return;
+      const a = (window.SOA && window.SOA.ANALYSES) ? window.SOA.ANALYSES.find(x => x.id === id) : null;
+      if (!a) { list.innerHTML = ''; return; }
+      const labelFor = window.SOA && window.SOA.fieldLabel ? window.SOA.fieldLabel : (s => s);
+      list.innerHTML = '';
+      a.metrics.forEach(field => {
+        const li = document.createElement('li');
+        li.textContent = labelFor(field);
+        list.appendChild(li);
+      });
+    }
+
+    /* ─── Promote the hero KPI for the active story ─────────────── */
+    function promoteHeroKPI(id) {
+      const kpis = $('kpis');
+      if (!kpis || !kpis.children.length) return;
+      const heroIdx = STORY_HERO[id];
+      Array.from(kpis.children).forEach((kpi, i) => {
+        kpi.classList.toggle('kpi-hero', heroIdx === (i + 1));
+      });
+    }
+
+    /* ─── has-data class: drives the prelude → article transition ── */
+    new MutationObserver(() => {
+      const ready = $('kpis').children.length > 0;
+      body.classList.toggle('has-data', ready);
+      if (ready) promoteHeroKPI(body.dataset.story);
+      // Mirror status into the meta bar
+      const statusNode = $('status');
+      const metaStatus = $('metaStatus');
+      const fileVal = $('statFile')?.textContent;
+      $('metaFile').textContent = fileVal && fileVal !== 'none' ? fileVal : 'none';
+      $('metaRows').textContent = $('statRows')?.textContent || '0';
+      if (ready && statusNode) {
+        metaStatus.hidden = false;
+        metaStatus.innerHTML = `<b>Loaded</b><span class="meta-val">${statusNode.textContent.split(' · ')[0].replace(/^Loaded /, '')}</span>`;
+      } else {
+        metaStatus.hidden = true;
+      }
+    }).observe($('kpis'), { childList: true });
+
+    /* ─── Header stats mirror (rows/file) into meta bar ──────────── */
+    ['statRows', 'statFile'].forEach(id => {
+      const node = $(id);
+      if (!node) return;
+      new MutationObserver(() => {
+        $('metaRows').textContent = $('statRows').textContent || '0';
+        const f = $('statFile').textContent;
+        $('metaFile').textContent = f || 'none';
+      }).observe(node, { childList: true, characterData: true, subtree: true });
+    });
+
+    /* ─── Enrich chips with editorial markup after each render ────── */
+    const chipsHost = $('projectChips');
+    function enrichChips() {
+      if (!window.SOA) return;
+      const chips = chipsHost.querySelectorAll('.project-chip');
+      chips.forEach(chip => {
+        if (chip.dataset.enriched === 'true') return;
+        // Chips ship as plain "<Name>" text from selling-analysis-app.js — look up by name.
+        // Fall back to "N. Name" if the renderer ever changes back to numbered text.
+        const txt = chip.textContent.trim();
+        const numbered = txt.match(/^(\d+)\.\s+(.+)$/);
+        const name = numbered ? numbered[2] : txt;
+        const meta = window.SOA.ANALYSES.find(a => a.name === name);
+        if (!meta) return;
+        const num = String(meta.priority || '').padStart(2, '0');
+        chip.dataset.enriched = 'true';
+        chip.dataset.storyId = meta.id;
+        if (meta.ready != null) chip.dataset.ready = String(!!meta.ready);
+        const dek = (STORY_META[meta.id] && STORY_META[meta.id].dek) || meta.question || '';
+        const viz = VIZ[meta.id] || VIZ_FALLBACK;
+        const example = EXAMPLE[meta.id] || EXAMPLE_FALLBACK;
+        chip.innerHTML =
+          `<span class="chip-num">${num}</span>` +
+          `<span class="chip-body">` +
+            `<span class="chip-name">${name}</span>` +
+            `<span class="chip-dek">${dek}</span>` +
+          `</span>` +
+          `<span class="chip-status">${meta.ready === true ? 'Ready' : meta.ready === false ? 'Needs layer' : 'Open'}</span>` +
+          `<span class="chip-preview" aria-hidden="true">` +
+            `<span class="chip-viz">${viz}</span>` +
+            `<span class="chip-example">${example}</span>` +
+          `</span>`;
+      });
+    }
+    new MutationObserver(enrichChips).observe(chipsHost, { childList: true });
+    // First pass once SOA loads
+    function whenSOA(fn) {
+      if (window.SOA) return fn();
+      setTimeout(() => whenSOA(fn), 30);
+    }
+    whenSOA(() => {
+      enrichChips();
+      syncStoryFromActiveLens();
+    });
+
+    /* ─── Prev/next story navigation ─────────────────────────────── */
+    function changeStoryBy(delta) {
+      if (!window.SOA || !window.SOA.ANALYSES) return;
+      const list = window.SOA.ANALYSES;
+      const idx = list.findIndex(a => a.id === body.dataset.story);
+      if (idx < 0) return;
+      const next = list[(idx + delta + list.length) % list.length];
+      const chip = chipsHost.querySelector(`[data-story-id="${next.id}"]`);
+      if (chip) chip.click();
+    }
+    $('prevStory').addEventListener('click', () => changeStoryBy(-1));
+    $('nextStory').addEventListener('click', () => changeStoryBy(1));
+
+  })();
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="selling-analysis.js"></script>
+  <script src="selling-analysis-app.js"></script>
+</body>
+</html>

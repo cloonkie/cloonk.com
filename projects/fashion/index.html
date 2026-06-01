@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fashion Toolbox — Kevin Zhang | cloonk.com</title>
-  <meta name="description" content="A drawer of browser-based merchandising tools for line sheets, assortment overlap, door distribution, sell-out standardization, and product schema mapping. Work locally, export clean files." />
+  <meta name="description" content="Browser-based tools for merchandising workflows: line sheets, assortment overlap, door distribution, sell-out cleanup, and product schema mapping." />
   <meta name="author" content="Kevin Zhang" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
   <meta name="theme-color" content="#0a0a0a" />
@@ -13,7 +13,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="cloonk — Kevin Zhang" />
   <meta property="og:title" content="Fashion Toolbox — Kevin Zhang" />
-  <meta property="og:description" content="Browser-based merchandising tools for line sheets, assortment overlap, door distribution, sell-out standardization, and product schema mapping." />
+  <meta property="og:description" content="Browser-based tools for merchandising workflows: line sheets, assortment overlap, door distribution, sell-out cleanup, and product schema mapping." />
   <meta property="og:image" content="https://cloonk.com/favicon.svg" />
   <meta name="twitter:image" content="https://cloonk.com/favicon.svg" />
   <meta property="og:url" content="https://cloonk.com/projects/fashion/" />
@@ -32,8 +32,12 @@
       );
     } catch (e) {}
   </script>
+  <style>
+    /* Restore the clock — fashion.css hides it by default on fashion pages */
+    .fashion .nav__clock { display: inline-flex; }
+  </style>
 </head>
-<body class="fashion fashion--cabinet">
+<body class="fashion fashion--files">
 
   <nav>
     <div class="nav__left">
@@ -41,6 +45,7 @@
       <a class="nav__section" href="index.html">Fashion Toolbox</a>
     </div>
     <div class="nav__right">
+      <span class="nav__clock" id="nav-clock"></span>
       <button class="nav__theme-toggle" id="nav-theme-toggle" aria-label="Toggle light/dark mode">
         <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
@@ -56,35 +61,25 @@
   </nav>
 
   <main>
-    <section class="cabinet-stage">
+    <section class="file-stage">
       <p class="label">Merchandising Toolbox</p>
-      <p class="cabinet-note">
-        Browser-based tools for merchandising workflows: line sheets,
-        assortment overlap, door distribution, sell-out cleanup, and product
-        schema mapping. Work locally, export clean files. <strong>Nothing leaves
-        your machine.</strong>
+      <p class="file-note">
+        Browser-based tools for merchandising workflows: line sheets, assortment overlap,
+        door distribution, sell-out cleanup, and product schema mapping. Work locally,
+        export clean files. <strong>Nothing leaves your machine.</strong>
       </p>
 
-      <section class="cabinet is-closed" id="cabinet">
-        <div class="cabinet__body">
-          <ul class="files" id="files" aria-label="Tools"></ul>
-        </div>
-        <button class="cabinet__face" id="cabinetFace" data-cursor="pull"
-                aria-expanded="false" aria-controls="files">
-          <span class="cabinet__stencil">FILE — MERCH</span>
-          <span class="cabinet__handle" aria-hidden="true"></span>
-          <span class="cabinet__hint" id="cabinetHint">Pull to open ↓</span>
-        </button>
-      </section>
+      <div class="files" id="files" aria-label="Tools"></div>
 
       <noscript>
-        <ul class="files files--fallback" aria-label="Tools">
-          <li><a class="file" href="replenishment-linesheet.html"><span class="file__name">DIGI LINE SHEET<span class="file__sub">product review</span></span><span class="file__purpose">Annotate and export selected replenishment SKUs.</span></a></li>
-          <li><a class="file" href="assortment-comparison.html"><span class="file__name">Assortment Comparison<span class="file__sub">Retailer Overlap</span></span><span class="file__purpose">Compare retailer assortments by style, color, grid, brand, and units.</span></a></li>
-          <li><a class="file" href="retailer-door-tracker.html"><span class="file__name">Door Tracker<span class="file__sub">Door Distribution</span></span><span class="file__purpose">Track brand × retailer door distribution with map reveal and change history.</span></a></li>
-          <li><a class="file" href="sellout-standardizer.html"><span class="file__name">Sell-Out Standardizer<span class="file__sub">Weekly Analytics</span></span><span class="file__purpose">Flatten recurring sell-out reports into one analytics-ready export.</span></a></li>
-          <li><a class="file" href="upc-concat.html"><span class="file__name">UPC Concat<span class="file__sub">Schema Mapping</span></span><span class="file__purpose">Map product data across files into one canonical schema and resolve concatenated descriptions.</span></a></li>
-        </ul>
+        <div class="files files--fallback" aria-label="Tools">
+            <a class="file" href="replenishment-linesheet.html"><span class="file__tab file__tab--code">DLS 001</span><span class="file__tab file__tab--category">PRODUCT</span><span class="file__name">DIGI LINE SHEET<span class="file__sub">product review</span></span><span class="file__purpose">Annotate and export selected replenishment SKUs.</span></a>
+            <a class="file" href="assortment-comparison.html"><span class="file__tab file__tab--code">AOR 002</span><span class="file__tab file__tab--category">ANALYTICS</span><span class="file__name">Assortment Comparison<span class="file__sub">Retailer Overlap</span></span><span class="file__purpose">Compare retailer assortments by style, color, grid, brand, and units.</span></a>
+            <a class="file" href="retailer-door-tracker.html"><span class="file__tab file__tab--code">DOOR 003</span><span class="file__tab file__tab--category">DISTRIBUTION</span><span class="file__name">Door Tracker<span class="file__sub">Door Distribution</span></span><span class="file__purpose">Track brand x retailer door distribution with map reveal and change history.</span></a>
+            <a class="file" href="sellout-standardizer.html"><span class="file__tab file__tab--code">STD 004</span><span class="file__tab file__tab--category">OPERATIONS</span><span class="file__name">Retail Data Standardizer<span class="file__sub">Weekly Analytics</span></span><span class="file__purpose">Flatten recurring sell-out reports into one analytics-ready export.</span></a>
+            <a class="file" href="selling-analysis.html"><span class="file__tab file__tab--code">SAR 005</span><span class="file__tab file__tab--category">ANALYTICS</span><span class="file__name">Selling Analysis<span class="file__sub">Sell-Through Diagnostic</span></span><span class="file__purpose">Diagnose YTD sell-out workbooks across integrity, liquidation risk, velocity, momentum, promo, and themes.</span></a>
+            <a class="file" href="upc-concat.html"><span class="file__tab file__tab--code">UPC 006</span><span class="file__tab file__tab--category">OPERATIONS</span><span class="file__name">UPC Concat<span class="file__sub">Schema Mapping</span></span><span class="file__purpose">Map product data across files into one canonical schema and resolve concatenated descriptions.</span></a>
+        </div>
       </noscript>
     </section>
   </main>
@@ -106,5 +101,97 @@
   <script src="../../js/logo.js"></script>
   <script src="../../js/cursor.js"></script>
   <script src="fashion.js"></script>
+  <script>
+    /* Rail loop + wheel handler.
+       1. Clone the rail's children twice so the rail holds three identical
+          segments: [A][B][C]. Park scrollLeft at the start of [B].
+       2. On any scroll event, if the viewport crosses into [A] or [C],
+          silently teleport scrollLeft back by one segment — since A/B/C
+          are identical, the user sees no jump.
+       3. Wheel handler converts vertical wheel into horizontal scroll AND
+          pre-wraps via modulo so the loop feels seamless under fast scrolls.
+          stopPropagation keeps fashion.js's window-level handler from
+          double-scrolling the rail. */
+    (function () {
+      function setup() {
+        var rail = document.getElementById('files');
+        if (!rail) return;
+        attach();
+
+        function attach() {
+          var originals = Array.from(rail.children);
+          var N = originals.length;
+          if (N === 0) {
+            // fashion.js renderFiles() hasn't run yet — retry next frame
+            requestAnimationFrame(attach);
+            return;
+          }
+          if (N < 2) {
+            wireWheel(0);
+            return;
+          }
+          // Clone the original cards twice → [A][B][C]
+          for (var copy = 0; copy < 2; copy++) {
+            originals.forEach(function (c) {
+              var clone = c.cloneNode(true);
+              clone.setAttribute('aria-hidden', 'true');
+              clone.tabIndex = -1;
+              rail.appendChild(clone);
+            });
+          }
+          requestAnimationFrame(function () {
+            // Width of one segment = offset of the first card in copy [B]
+            //                        minus offset of the first card in copy [A]
+            var segmentWidth = rail.children[N].offsetLeft - rail.children[0].offsetLeft;
+            if (!segmentWidth) { wireWheel(0); return; }
+
+            // Park inside the middle segment
+            rail.scrollLeft = segmentWidth;
+
+            var wrapping = false;
+            rail.addEventListener('scroll', function () {
+              if (wrapping) return;
+              var sl = rail.scrollLeft;
+              if (sl >= 2 * segmentWidth) {
+                wrapping = true;
+                rail.scrollLeft = sl - segmentWidth;
+                requestAnimationFrame(function () { wrapping = false; });
+              } else if (sl < segmentWidth) {
+                wrapping = true;
+                rail.scrollLeft = sl + segmentWidth;
+                requestAnimationFrame(function () { wrapping = false; });
+              }
+            }, { passive: true });
+
+            wireWheel(segmentWidth);
+          });
+        }
+
+        function wireWheel(segmentWidth) {
+          rail.addEventListener('wheel', function (e) {
+            // Trackpad horizontal swipe — let the browser handle it natively.
+            if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            // Reversed: scroll wheel down moves the rail left (content slides right
+            // under the viewport); wheel up moves the rail right.
+            var next = rail.scrollLeft - e.deltaY;
+            if (segmentWidth) {
+              // Pre-wrap so a hard fling never gets clamped at the rail's edge
+              while (next >= 2 * segmentWidth) next -= segmentWidth;
+              while (next < segmentWidth) next += segmentWidth;
+            }
+            rail.scrollLeft = next;
+          }, { passive: false });
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setup);
+      } else {
+        setup();
+      }
+    })();
+  </script>
 </body>
 </html>
