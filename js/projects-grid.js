@@ -13,6 +13,7 @@
   if (!grid || !window.PROJECTS) return;
 
   const PER_PAGE = 9;
+  const FALLBACK_IMG = 'https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/projects%20no%20img.png';
 
   /* ── State ── */
   const sel = {
@@ -27,6 +28,7 @@
 
   /* ── Build all cards once ── */
   window.PROJECTS.forEach(p => {
+    const imgSrc = p.img || FALLBACK_IMG;
     const card = document.createElement('article');
     card.className = 'wk-card';
     card.dataset.topic       = p.topic;
@@ -38,8 +40,8 @@
     card.innerHTML = `
       <a href="project.html?id=${p.id}" class="wk-card__link">
         <div class="wk-card__img">
-          <img src="${p.img}" alt="${p.title}" loading="lazy"
-               onerror="this.style.display='none'" />
+          <img src="${imgSrc}" alt="${p.title}" loading="lazy"
+               onerror="this.src='${FALLBACK_IMG}'" />
           <div class="wk-card__img-bg"></div>
           <span class="wk-card__type">${p.type}</span>
         </div>
