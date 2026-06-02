@@ -1195,10 +1195,50 @@ body[data-story="promo"] .story-num { color: var(--warn); }
   #kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   body[data-story="velocity"] .quad-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+/* ── Hamburger nav (mobile) ── */
+.nav-burger {
+  display: none;
+  width: 38px; min-height: 34px;
+  align-items: center; justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.nav-burger:hover { color: var(--text); border-color: var(--border-hover); }
+.nav-burger svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; fill: none; }
+.nav-burger .icon-close { display: none; }
+body.nav-open .nav-burger .icon-open { display: none; }
+body.nav-open .nav-burger .icon-close { display: block; }
+
 @media (max-width: 720px) {
-  .header { padding: 14px 18px; flex-wrap: wrap; }
+  .header { padding: 14px 18px; }
   .header-stats { display: none; }
   .logo span { display: none; }
+  .nav-burger { display: inline-flex; }
+  .header-actions {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 16px;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 220px;
+    max-width: calc(100vw - 32px);
+    padding: 8px;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border-hover);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 18px 42px rgba(0,0,0,0.42);
+    z-index: 40;
+  }
+  body.nav-open .header-actions { display: flex; }
+  .header-actions .btn,
+  .header-actions .theme-toggle,
+  .header-actions .info-btn { width: 100%; justify-content: flex-start; }
   .app-shell { width: min(100% - 28px, 1280px); }
   .meta-divider { display: none; }
   #kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1345,7 +1385,11 @@ body[data-story="promo"] .story-num { color: var(--warn); }
         <span>File <span class="stat-val" id="statFile">none</span></span>
       </div>
     </div>
-    <div class="header-actions">
+    <button class="nav-burger" id="navBurger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="headerActions">
+      <svg class="icon-open" viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+      <svg class="icon-close" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+    </button>
+    <div class="header-actions" id="headerActions">
       <button class="btn" id="snapInBtn" type="button" data-cursor="load">Import Snapshot</button>
       <input type="file" id="snapIn" accept=".json" style="display:none">
       <button class="btn btn-accent" id="snapOut" type="button" data-cursor="export">Export Snapshot</button>
@@ -1880,6 +1924,24 @@ body[data-story="promo"] .story-num { color: var(--warn); }
         e.preventDefault(); dz.classList.add('dragging');
       }));
       ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, () => dz.classList.remove('dragging')));
+    }
+
+    /* ─── Hamburger nav (mobile) ──────────────────────────────────── */
+    const navBurger = $('navBurger');
+    function closeNav() { body.classList.remove('nav-open'); navBurger && navBurger.setAttribute('aria-expanded', 'false'); }
+    if (navBurger) {
+      navBurger.addEventListener('click', e => {
+        e.stopPropagation();
+        const open = body.classList.toggle('nav-open');
+        navBurger.setAttribute('aria-expanded', String(open));
+      });
+      // selecting any action closes the menu
+      $('headerActions')?.addEventListener('click', e => { if (e.target.closest('button, a')) closeNav(); });
+      // click outside or Escape closes
+      document.addEventListener('click', e => {
+        if (body.classList.contains('nav-open') && !e.target.closest('#headerActions') && !e.target.closest('#navBurger')) closeNav();
+      });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
     }
 
     /* ─── Snapshot import button proxies hidden file input ────────── */
