@@ -61,7 +61,6 @@
         <div class="menu-sep"></div>
         <button class="menu-item" type="button" onclick="downloadTemplate();closeHeaderMenus()" role="menuitem">Blank Template</button>
         <button class="menu-item" type="button" onclick="exportFullData();closeHeaderMenus()" role="menuitem">Export Data</button>
-        <button class="menu-item" type="button" onclick="downloadDemoData();closeHeaderMenus()" role="menuitem">Demo Data</button>
         <div class="menu-sep"></div>
         <button class="menu-item" type="button" onclick="openSnapshotsModal();closeHeaderMenus()" role="menuitem">Restore Points</button>
         <button class="menu-item" type="button" onclick="downloadJSON();closeHeaderMenus()" role="menuitem">Save JSON</button>
@@ -70,10 +69,10 @@
     </div>
     <button class="btn" onclick="openGlobalHistory()" title="View every change made across all retailers and brands" data-cursor="view">History</button>
     <input type="file" id="jsonUp" accept=".json" style="display:none" onchange="loadJSON(event)">
-    <button class="btn info-btn" onclick="openInfoModal()" aria-label="Open info" title="Learn what each feature does">
+    <button class="btn info-btn" onclick="openInfoModal()" aria-label="Open info" data-tooltip="Learn what each feature does">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.6" fill="currentColor"/></svg>
     </button>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" title="Toggle dark/light mode">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" data-tooltip="Toggle dark/light mode">
       <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
@@ -287,7 +286,6 @@
   <p>Two intakes — matrix totals and physical door locations. Each accepts a separate spreadsheet.</p>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px">
     <button class="btn btn-sm" type="button" onclick="downloadTemplate()">Blank Template</button>
-    <button class="btn btn-sm" type="button" onclick="downloadDemoData()">Demo Data</button>
   </div>
 
   <label>Matrix data</label>
@@ -309,12 +307,13 @@
 
 <!-- Info Modal -->
 <div class="overlay" id="ovInfo" onclick="closeInfo()"></div>
-<div class="modal" id="mInfo" style="max-width:600px">
+<div class="modal" id="mInfo" style="max-width:min(760px, calc(100vw - 28px))">
   <div class="info-modal-header">
     <span class="info-modal-title">Door Tracker <span>— Appendix</span></span>
   </div>
   <div class="info-modal-tabs" role="tablist">
     <button class="info-modal-tab active" data-tab="about" role="tab">About</button>
+    <button class="info-modal-tab" data-tab="flow" role="tab">Flow</button>
     <button class="info-modal-tab" data-tab="qa" role="tab">Q&amp;A</button>
     <button class="info-modal-tab" data-tab="schema" role="tab">Schema</button>
     <button class="info-modal-tab" data-tab="appendix" role="tab">Appendix</button>
@@ -323,16 +322,57 @@
   <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
     <div class="info-section">
       <h4>What this is</h4>
-      <p>Track brand by retailer door distribution, compare matrix totals against physical door locations, and manage pending changes before they count in verified-door totals.</p>
+      <p>Door Tracker is a local workspace for retailer distribution: matrix counts, physical door locations, brand-door assignments, draft changes, notes, history, and map review all live in one place.</p>
     </div>
     <div class="info-section">
-      <h4>Quick start</h4>
-      <p>Sign in or try demo data, import matrix and door-location files, refine the view, then open a cell or door drawer to inspect placement, map reveal, notes, drafts, and history.</p>
+      <h4>Mental model</h4>
+      <p>The matrix is the rolled-up promise, door locations are the store universe, and each retailer + door + brand row is the auditable truth. Confirmed assignments count; drafts and unresolved statuses stay visible without quietly changing totals.</p>
     </div>
     <div class="info-section">
       <h4>Privacy</h4>
       <p>Spreadsheet parsing and save files run locally in your browser. Use exported JSON save files for offline persistence or shared-drive handoff.</p>
     </div>
+  </div>
+  <div class="info-modal-pane" id="modal-tab-flow" role="tabpanel">
+    <div class="info-section">
+      <h4>Operating flow</h4>
+      <div class="step-viz">
+        <div class="viz-line"><strong>Door truth path</strong> — roll-up counts are checked against retailer-door-brand assignment rows.</div>
+        <div class="viz-row">
+          <div class="viz-stack">
+            <div class="viz-pill">matrix total</div>
+            <div class="viz-pill">door locations</div>
+          </div>
+          <div class="viz-arrow">→</div>
+          <div class="viz-stack">
+            <div class="viz-pill viz-tag">retailer</div>
+            <div class="viz-pill viz-tag">door #</div>
+            <div class="viz-pill viz-tag">brand</div>
+          </div>
+          <div class="viz-arrow">→</div>
+          <div class="viz-cluster">
+            <div class="viz-cluster-id">assignment state</div>
+            <div class="viz-pill viz-hit">confirmed counts</div>
+            <div class="viz-pill">TBD / exit drafts</div>
+          </div>
+        </div>
+      </div>
+      <ol class="step-list">
+        <li>Sign in, or use <strong>Try Demo Data</strong> from the initial screen to load an anonymized working set.</li>
+        <li>Import a matrix file, a door-location file, or both. Matching retailer + door number pairs update existing rows.</li>
+        <li>Use Matrix, Compact, Tabular, Data, Drafts, Store, and Research views to switch between roll-up, row-level, and map-first review.</li>
+        <li>Open a retailer-brand cell or a door drawer to inspect assignments, notes, map position, gender/metric fields, and history.</li>
+        <li>Draft additions, exits, TBD changes, or door edits before publishing them into confirmed counts.</li>
+        <li>Export the active view, save a JSON handoff file, or create a restore point before larger imports.</li>
+      </ol>
+    </div>
+    <table class="info-modal-table">
+      <tr><th>Moment</th><th>Best view</th></tr>
+      <tr><td>Executive count check</td><td>Matrix or Compact</td></tr>
+      <tr><td>Investigating one retailer</td><td>Tabular, Data, or Research</td></tr>
+      <tr><td>Cleaning locations</td><td>Store view and map reveal</td></tr>
+      <tr><td>Approving changes</td><td>Drafts, History, and Snapshots</td></tr>
+    </table>
   </div>
   <div class="info-modal-pane" id="modal-tab-qa" role="tabpanel">
     <div class="info-section">
@@ -355,6 +395,22 @@
       <h4>Why do some doors show a warning?</h4>
       <p>A warning means the door is missing map coordinates. Click the warning icon or edit details to add latitude and longitude. Doors named <strong>E-COMMERCE</strong> count as doors and do not require coordinates.</p>
     </div>
+    <div class="info-section">
+      <h4>What counts as a confirmed door?</h4>
+      <p>A door counts when its assignment status is <strong>Confirmed</strong>. TBD, N/A, Exit, and draft-only changes stay in the record so teams can review them without inflating distribution.</p>
+    </div>
+    <div class="info-section">
+      <h4>Why can matrix totals differ from imported counts?</h4>
+      <p>Legacy matrix totals are stored as roll-ups, while the live count is derived from assignment rows. If an import includes door-level rows, the confirmed assignment rows become the source of truth for current counts.</p>
+    </div>
+    <div class="info-section">
+      <h4>What is the difference between Save JSON and Snapshots?</h4>
+      <p><strong>Save JSON</strong> creates a portable file for handoff or backup. <strong>Snapshots</strong> are restore points inside the browser, useful before imports, batch edits, or cleanup sessions.</p>
+    </div>
+    <div class="info-section">
+      <h4>How should e-commerce be handled?</h4>
+      <p>Use a dedicated E-COMMERCE door when the retailer has a digital placement that should count as distribution. It is treated as a door but does not require coordinates or map cleanup.</p>
+    </div>
   </div>
   <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
     <div class="info-section">
@@ -367,94 +423,139 @@
     </div>
     <div class="info-section">
       <h4>Entity relations</h4>
-      <p style="font-size:0.74rem;color:var(--text-muted);margin-bottom:8px">How the local data model fits together. Lines indicate keyed relationships.</p>
+      <p style="font-size:0.74rem;color:var(--text-muted);margin-bottom:8px">How the local data model fits together. Lines indicate keyed relationships and which objects feed counts, drafts, history, and restore points.</p>
       <div class="schema-diagram" id="schemaDiagram">
-        <svg viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Entity relation diagram">
+        <svg viewBox="0 0 820 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Entity relation diagram">
           <defs>
             <marker id="schemaArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
             </marker>
           </defs>
           <g class="schema-edges" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.55">
-            <path d="M 110 110 L 220 110" marker-end="url(#schemaArrow)"/>
-            <path d="M 110 200 L 220 200" marker-end="url(#schemaArrow)"/>
-            <path d="M 330 130 L 330 180" marker-end="url(#schemaArrow)"/>
-            <path d="M 330 240 L 330 290" marker-end="url(#schemaArrow)"/>
-            <path d="M 440 200 L 540 200" marker-end="url(#schemaArrow)"/>
-            <path d="M 440 310 L 540 310" marker-end="url(#schemaArrow)"/>
-            <path d="M 330 350 L 330 400" marker-end="url(#schemaArrow)"/>
-            <path d="M 540 110 L 440 110" marker-end="url(#schemaArrow)"/>
+            <path d="M 126 80 L 200 80" marker-end="url(#schemaArrow)"/>
+            <path d="M 126 160 L 200 160" marker-end="url(#schemaArrow)"/>
+            <path d="M 320 100 L 320 134" marker-end="url(#schemaArrow)"/>
+            <path d="M 430 174 L 508 174" marker-end="url(#schemaArrow)"/>
+            <path d="M 662 100 L 662 134" marker-end="url(#schemaArrow)"/>
+            <path d="M 320 214 L 320 248" marker-end="url(#schemaArrow)"/>
+            <path d="M 508 294 L 430 294" marker-end="url(#schemaArrow)"/>
+            <path d="M 662 214 L 662 248" marker-end="url(#schemaArrow)"/>
+            <path d="M 430 294 L 508 374" marker-end="url(#schemaArrow)"/>
+            <path d="M 320 328 L 320 374" marker-end="url(#schemaArrow)"/>
+            <path d="M 662 328 L 662 374" marker-end="url(#schemaArrow)"/>
+            <path d="M 200 420 L 126 420" marker-end="url(#schemaArrow)"/>
+          </g>
+          <g class="schema-labels" font-family="DM Mono, monospace" font-size="8">
+            <text x="145" y="72">belongs to</text>
+            <text x="145" y="152">uses</text>
+            <text x="338" y="122">has doors</text>
+            <text x="445" y="166">ret+door+brand</text>
+            <text x="678" y="122">has rows</text>
+            <text x="338" y="240">roll-up</text>
+            <text x="444" y="286">publishes</text>
+            <text x="678" y="240">drafts</text>
+            <text x="466" y="350">audits</text>
+            <text x="338" y="360">saved in</text>
+            <text x="678" y="360">saved in</text>
           </g>
           <g class="schema-nodes" font-family="DM Mono, monospace" font-size="9">
-            <g transform="translate(20,80)">
-              <rect width="90" height="60" rx="6"/>
-              <text x="45" y="18" text-anchor="middle" class="schema-title">RetailerGroup</text>
+            <g transform="translate(20,50)">
+              <rect width="106" height="60" rx="6"/>
+              <text x="53" y="18" text-anchor="middle" class="schema-title">RetailerGroup</text>
               <text x="6" y="34">label PK</text>
               <text x="6" y="46">members[]</text>
             </g>
-            <g transform="translate(20,170)">
-              <rect width="90" height="60" rx="6"/>
-              <text x="45" y="18" text-anchor="middle" class="schema-title">Channel</text>
+            <g transform="translate(20,130)">
+              <rect width="106" height="60" rx="6"/>
+              <text x="53" y="18" text-anchor="middle" class="schema-title">Channel</text>
               <text x="6" y="34">name PK</text>
               <text x="6" y="46">retailers[]</text>
             </g>
-            <g transform="translate(220,80)">
-              <rect width="110" height="60" rx="6"/>
-              <text x="55" y="18" text-anchor="middle" class="schema-title">Retailer</text>
+            <g transform="translate(200,50)">
+              <rect width="120" height="60" rx="6"/>
+              <text x="60" y="18" text-anchor="middle" class="schema-title">Retailer</text>
               <text x="6" y="34">name PK</text>
               <text x="6" y="46">group · channel</text>
             </g>
-            <g transform="translate(220,180)">
-              <rect width="110" height="64" rx="6"/>
-              <text x="55" y="18" text-anchor="middle" class="schema-title">Door</text>
+            <g transform="translate(200,134)">
+              <rect width="120" height="80" rx="6"/>
+              <text x="60" y="18" text-anchor="middle" class="schema-title">DoorLocation</text>
               <text x="6" y="34">retailer+# PK</text>
               <text x="6" y="46">name · lat/lng</text>
               <text x="6" y="58">tier · address</text>
+              <text x="6" y="70">city · state · zip</text>
             </g>
-            <g transform="translate(220,290)">
-              <rect width="110" height="62" rx="6"/>
-              <text x="55" y="18" text-anchor="middle" class="schema-title">DoorAssign</text>
-              <text x="6" y="34">ret|brand PK</text>
-              <text x="6" y="46">doorNumber</text>
-              <text x="6" y="58">status · date</text>
+            <g transform="translate(200,248)">
+              <rect width="120" height="80" rx="6"/>
+              <text x="60" y="18" text-anchor="middle" class="schema-title">MatrixRollup</text>
+              <text x="6" y="34">brand+ret PK</text>
+              <text x="6" y="46">category</text>
+              <text x="6" y="58">doors imported</text>
+              <text x="6" y="70">legacy count</text>
             </g>
-            <g transform="translate(220,400)">
-              <rect width="110" height="50" rx="6"/>
-              <text x="55" y="18" text-anchor="middle" class="schema-title">History</text>
-              <text x="6" y="34">ret|brand PK</text>
-              <text x="6" y="46">entries[]</text>
+            <g transform="translate(200,374)">
+              <rect width="120" height="66" rx="6"/>
+              <text x="60" y="18" text-anchor="middle" class="schema-title">SnapshotPayload</text>
+              <text x="6" y="34">latest state</text>
+              <text x="6" y="46">restorePoints[]</text>
+              <text x="6" y="58">JSON handoff</text>
             </g>
-            <g transform="translate(540,80)">
-              <rect width="100" height="60" rx="6"/>
-              <text x="50" y="18" text-anchor="middle" class="schema-title">Brand</text>
+            <g transform="translate(508,50)">
+              <rect width="120" height="60" rx="6"/>
+              <text x="60" y="18" text-anchor="middle" class="schema-title">Brand</text>
               <text x="6" y="34">code PK</text>
               <text x="6" y="46">name · ds_active</text>
             </g>
-            <g transform="translate(540,180)">
-              <rect width="110" height="62" rx="6"/>
-              <text x="55" y="18" text-anchor="middle" class="schema-title">DataKeyState</text>
-              <text x="6" y="34">retDoorBrand PK</text>
-              <text x="6" y="46">status · grade</text>
+            <g transform="translate(508,134)">
+              <rect width="154" height="80" rx="6"/>
+              <text x="77" y="18" text-anchor="middle" class="schema-title">AssignmentState</text>
+              <text x="6" y="34">ret+door+brand PK</text>
+              <text x="6" y="46">status · grade · gender</text>
               <text x="6" y="58">metric_1/2 · note</text>
+              <text x="6" y="70">confirmed drives counts</text>
             </g>
-            <g transform="translate(540,290)">
-              <rect width="110" height="50" rx="6"/>
-              <text x="55" y="18" text-anchor="middle" class="schema-title">User</text>
-              <text x="6" y="34">username PK</text>
-              <text x="6" y="46">name · hash</text>
+            <g transform="translate(508,248)">
+              <rect width="154" height="80" rx="6"/>
+              <text x="77" y="18" text-anchor="middle" class="schema-title">DoorAssignments</text>
+              <text x="6" y="34">ret+brand bucket</text>
+              <text x="6" y="46">doorNumber</text>
+              <text x="6" y="58">draft/confirmed</text>
+              <text x="6" y="70">publish queue</text>
             </g>
-            <g transform="translate(680,80)">
-              <rect width="70" height="50" rx="6"/>
-              <text x="35" y="18" text-anchor="middle" class="schema-title">Category</text>
+            <g transform="translate(508,374)">
+              <rect width="154" height="66" rx="6"/>
+              <text x="77" y="18" text-anchor="middle" class="schema-title">History</text>
+              <text x="6" y="34">ret+door+brand key</text>
+              <text x="6" y="46">field changes[]</text>
+              <text x="6" y="58">user · timestamp</text>
+            </g>
+            <g transform="translate(704,50)">
+              <rect width="96" height="60" rx="6"/>
+              <text x="48" y="18" text-anchor="middle" class="schema-title">Category</text>
               <text x="6" y="34">CAT_ORDER</text>
+              <text x="6" y="46">brand sort</text>
+            </g>
+            <g transform="translate(704,248)">
+              <rect width="96" height="66" rx="6"/>
+              <text x="48" y="18" text-anchor="middle" class="schema-title">User</text>
+              <text x="6" y="34">username PK</text>
+              <text x="6" y="46">tenant</text>
+              <text x="6" y="58">authProvider</text>
+            </g>
+            <g transform="translate(20,390)">
+              <rect width="106" height="60" rx="6"/>
+              <text x="53" y="18" text-anchor="middle" class="schema-title">Persistence</text>
+              <text x="6" y="34">IndexedDB</text>
+              <text x="6" y="46">optional sync</text>
             </g>
           </g>
         </svg>
       </div>
       <div style="font-size:0.66rem;color:var(--text-dim);margin-top:8px;line-height:1.6">
-        <div><strong>Storage:</strong> All persisted in IndexedDB <code>door-tracker-autosave</code> (stores: <code>snapshots</code>, <code>restorePoints</code>).</div>
-        <div><strong>Identity keys:</strong> <code>buildDataKey(ret,door,brand)</code> joins retailer + door # + brand code into one string. Used for cell state and per-cell history.</div>
-        <div><strong>Aggregates:</strong> <code>matrixData[brand][retailer]</code> is the legacy roll-up; live counts are derived from <code>dataKeyState</code> filtered by <code>status === 'confirmed'</code>.</div>
+        <div><strong>Storage:</strong> State is persisted in IndexedDB <code>door-tracker-autosave</code> (stores: <code>snapshots</code>, <code>restorePoints</code>) with optional shared sync when configured.</div>
+        <div><strong>Identity keys:</strong> <code>buildDataKey(ret,door,brand)</code> joins retailer + door # + brand code. That key anchors <code>dataKeyState</code>, per-cell history, notes, metrics, and confirmed-count logic.</div>
+        <div><strong>Aggregates:</strong> <code>matrixData</code> preserves imported brand-retailer roll-ups; live distribution counts are derived from <code>dataKeyState</code> rows where <code>status === 'confirmed'</code>.</div>
+        <div><strong>Drafts:</strong> <code>doorAssignments</code> stores retailer-brand assignment buckets used by the drawer and draft queue; publish actions keep it in lockstep with <code>dataKeyState</code>.</div>
       </div>
     </div>
     <table class="info-modal-table">
@@ -466,6 +567,22 @@
       <tr><td>Research</td><td>Doors-first location list with placement detail and map reveal.</td></tr>
       <tr><td>Store</td><td>Editable door locations: name, number, address, lat/lng, tier.</td></tr>
     </table>
+    <div class="info-section">
+      <h4>Assignment state</h4>
+      <p>Each door-brand assignment is keyed by retailer, door number, and brand code. The state object carries the review status plus optional selling-context fields used by downstream analysis.</p>
+    </div>
+    <table class="info-modal-table">
+      <tr><th>Field</th><th>Meaning</th></tr>
+      <tr><td><code>retailer</code>, <code>doorNumber</code>, <code>brand</code></td><td>Identity fields for a single placement row.</td></tr>
+      <tr><td><code>status</code></td><td>Confirmed, TBD, N/A, or Exit. Confirmed is the only status included in verified counts.</td></tr>
+      <tr><td><code>grade</code>, <code>gender</code></td><td>Optional merchandising dimensions used for filtering and handoff context.</td></tr>
+      <tr><td><code>metric_1</code>, <code>metric_2</code></td><td>Optional numeric fields for recent sales, door rank, velocity, or retailer-specific KPIs.</td></tr>
+      <tr><td><code>note</code>, <code>history</code></td><td>Human-readable review trail attached to the placement key.</td></tr>
+    </table>
+    <div class="info-section">
+      <h4>Import tolerance</h4>
+      <p>Headers are normalized before matching, so casing and common spacing differences are tolerated. Unknown fields are ignored by the core matrix but can remain in the original workbook for reference.</p>
+    </div>
   </div>
   <div class="info-modal-pane" id="modal-tab-appendix" role="tabpanel">
     <div class="info-section">
@@ -484,6 +601,43 @@
       <h4>Map reveal</h4>
       <p>Door details include a Mapbox map. Picking a door zooms in; selecting a retailer fits the map to that retailer's doors, or all doors when retailer All is selected.</p>
     </div>
+    <div class="info-section">
+      <h4>Status semantics</h4>
+    </div>
+    <table class="info-modal-table">
+      <tr><th>Status</th><th>Use</th><th>Counts?</th></tr>
+      <tr><td>Confirmed</td><td>Door is active for the brand and should appear in verified distribution.</td><td>Yes</td></tr>
+      <tr><td>TBD</td><td>Placement is pending buyer, market, or internal confirmation.</td><td>No</td></tr>
+      <tr><td>N/A</td><td>Door exists but does not apply to this brand/category decision.</td><td>No</td></tr>
+      <tr><td>Exit</td><td>Door was removed or is being proposed for removal from the brand.</td><td>No</td></tr>
+    </table>
+    <div class="info-section">
+      <h4>Import rules</h4>
+      <ul>
+        <li>Retailer + door number is the primary match for door-location updates.</li>
+        <li>Retailer + brand is the matrix roll-up; retailer + door + brand is the assignment-level truth.</li>
+        <li>Blank coordinates are allowed, but they trigger a map-cleanup warning unless the door is e-commerce.</li>
+        <li>Repeated imports update matching keys and append genuinely new retailer-door or retailer-door-brand rows.</li>
+      </ul>
+    </div>
+    <div class="info-section">
+      <h4>Map and data quality</h4>
+      <ul>
+        <li>Map reveal depends on valid latitude and longitude, not address text.</li>
+        <li>Door tiers are descriptive and do not change count logic.</li>
+        <li>Use Store view for location cleanup before relying on geographic coverage.</li>
+        <li>Use History and Snapshots before batch edits so an import can be reviewed or rolled back.</li>
+      </ul>
+    </div>
+    <div class="info-section">
+      <h4>Common failure modes</h4>
+      <ul>
+        <li>Door numbers differ across files because one workbook uses leading zeroes and the other does not.</li>
+        <li>Retailer names vary by banner, parent, or punctuation, creating duplicate retailer groups.</li>
+        <li>A matrix row has a count but no door-level assignments, so the row can summarize distribution without map detail.</li>
+        <li>An assignment is saved as draft but not published, so it appears in Drafts and History before it changes counts.</li>
+      </ul>
+    </div>
   </div>
   <div class="info-modal-pane" id="modal-tab-resources" role="tabpanel">
     <div class="info-section">
@@ -492,6 +646,7 @@
         <a class="info-link" href="index.html"><strong>Fashion Toolbox</strong><span class="info-link-meta">Index</span></a>
         <a class="info-link" href="replenishment-linesheet.html"><strong>DIGI LINE SHEET</strong><span class="info-link-meta">product review</span></a>
         <a class="info-link" href="assortment-comparison.html"><strong>Assortment Comparison</strong><span class="info-link-meta">Retailer Overlap</span></a>
+        <a class="info-link" href="selling-analysis.html"><strong>Selling Analysis</strong><span class="info-link-meta">SKU performance</span></a>
         <a class="info-link" href="sellout-standardizer.html"><strong>Sell-Out Standardizer</strong><span class="info-link-meta">Weekly Sell-Out</span></a>
         <a class="info-link" href="upc-concat.html"><strong>UPC Concat</strong><span class="info-link-meta">Schema Mapping</span></a>
       </div>

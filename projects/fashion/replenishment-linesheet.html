@@ -536,6 +536,36 @@ select:focus, .search-input:focus { border-color: var(--accent); }
 }
 .upload-zone input { display: none; }
 .upload-hint { font-size: 0.75rem; color: var(--text-dim); margin-top: 10px; }
+.landing-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.landing-pill {
+  min-height: 34px;
+  padding: 7px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-family: var(--font-body);
+  margin-top: 8px;
+  font-size: 0.78rem;
+  transition: border-color var(--transition), background var(--transition), color var(--transition);
+}
+.landing-pill:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent-hover);
+}
+.landing-pill--primary {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
 .download-template {
   margin-top: 8px;
   font-size: 0.78rem;
@@ -910,7 +940,7 @@ select:focus, .search-input:focus { border-color: var(--accent); }
     <button class="btn btn-sm btn-accent" id="btnExport" style="display:none" onclick="exportSelects()" data-cursor="export">↓ Export Selects</button>
 
     <!-- Info button — opens the appendix/resources modal -->
-    <button class="info-btn" id="infoBtn" aria-label="Open info & appendix" title="Info & Appendix">
+    <button class="info-btn" id="infoBtn" aria-label="Open info & appendix" data-tooltip="Info & Appendix">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <circle cx="12" cy="12" r="9"/>
         <line x1="12" y1="11" x2="12" y2="16"/>
@@ -918,7 +948,7 @@ select:focus, .search-input:focus { border-color: var(--accent); }
       </svg>
     </button>
 
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" data-tooltip="Toggle light/dark mode">
       <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
         <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
@@ -995,7 +1025,10 @@ select:focus, .search-input:focus { border-color: var(--accent); }
     <input type="file" id="fileInputLanding" accept=".xlsx,.xls,.csv">
     <span style="font-size:0.9rem; color: var(--accent-strong);">Drop .xlsx here or click to browse</span>
   </div>
-  <button class="download-template" onclick="downloadTemplate()">↓ Download blank template (.xlsx)</button>
+  <div class="landing-actions">
+    <button class="landing-pill" onclick="downloadTemplate()">Download template</button>
+    <button class="landing-pill landing-pill--primary" onclick="loadSampleData()">Try sample data</button>
+  </div>
 </div>
 
 <!-- Grid -->
@@ -2199,13 +2232,55 @@ function exportSelects() {
 function downloadTemplate() {
   if (!isSheetJsReady()) return;
   const headers = ['Brand','SKU','UPC','Image','Rank','Status','Style','Material','Grid','Color','Polarized','Size','MSRP','EOL Date','Release','YTD Sls U','Order Level','On Hand U','5-Wk Avg S/T %','Custom 1','Custom 2','Notes'];
-  const sample = ['Oakley','2751331','888392325914','https://pub-f8ea8c9907004ea4a7c47342c902da2b.r2.dev/888392325914.jpg',1,'Active','OO4129-0258','0OO4129','41290258','PURPLE',false,58,193,'2026-11-22','2018 R1',341,244,194,0.04,'','',''];
+  const sample = ['Brand Alpha','SKU-1001','900000100001','',1,'Active','ALP-100','Metal','G-101','Black',false,54,145,'2026-11-22','Core 2026',341,244,194,0.44,'Core door','Replenish','Synthetic example row'];
   const ws = XLSX.utils.aoa_to_sheet([headers, sample]);
   ws['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 2, 14) }));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
   XLSX.writeFile(wb, 'RP_Line_Sheet_Template.xlsx');
   showToast('Template downloaded');
+}
+
+function getLineSheetSampleRows() {
+  return [
+    { Brand:'Brand Alpha', SKU:'SKU-1001', UPC:'900000100001', Image:'', Rank:1, Status:'Active', Style:'ALP-100', Material:'Metal', Grid:'G-101', Color:'Black', Polarized:false, Size:54, MSRP:145, 'EOL Date':'2026-11-22', Release:'Core 2026', 'YTD Sls U':341, 'Order Level':244, 'On Hand U':194, '5-Wk Avg S/T %':0.44, 'Assortment Role':'Core door', 'Planner Flag':'Replenish', Notes:'Healthy velocity with enough stock for review' },
+    { Brand:'Brand Alpha', SKU:'SKU-1002', UPC:'900000100002', Image:'', Rank:2, Status:'Active', Style:'ALP-120', Material:'Acetate', Grid:'G-104', Color:'Tortoise', Polarized:true, Size:52, MSRP:165, 'EOL Date':'2026-12-15', Release:'Seasonal 2026', 'YTD Sls U':218, 'Order Level':188, 'On Hand U':82, '5-Wk Avg S/T %':0.51, 'Assortment Role':'Seasonal read', 'Planner Flag':'Watch depth', Notes:'Strong sell-through, narrow size coverage' },
+    { Brand:'Brand Alpha', SKU:'SKU-1003', UPC:'900000100003', Image:'', Rank:8, Status:'Review', Style:'ALP-140', Material:'Mixed', Grid:'G-140', Color:'Smoke', Polarized:false, Size:56, MSRP:155, 'EOL Date':'2026-08-01', Release:'Test 2026', 'YTD Sls U':64, 'Order Level':96, 'On Hand U':118, '5-Wk Avg S/T %':0.18, 'Assortment Role':'Test', 'Planner Flag':'Reduce', Notes:'Low turn and above-plan on hand' },
+    { Brand:'Brand Beta', SKU:'SKU-2001', UPC:'900000200001', Image:'', Rank:3, Status:'Active', Style:'BET-210', Material:'Acetate', Grid:'G-210', Color:'Navy', Polarized:false, Size:53, MSRP:120, 'EOL Date':'2027-01-30', Release:'Core 2026', 'YTD Sls U':289, 'Order Level':210, 'On Hand U':76, '5-Wk Avg S/T %':0.57, 'Assortment Role':'Core door', 'Planner Flag':'Replenish', Notes:'Good replenishment candidate' },
+    { Brand:'Brand Beta', SKU:'SKU-2002', UPC:'900000200002', Image:'', Rank:6, Status:'Active', Style:'BET-230', Material:'Metal', Grid:'G-230', Color:'Gold', Polarized:false, Size:51, MSRP:132, 'EOL Date':'2026-10-18', Release:'Core 2026', 'YTD Sls U':122, 'Order Level':138, 'On Hand U':141, '5-Wk Avg S/T %':0.31, 'Assortment Role':'Volume support', 'Planner Flag':'Hold', Notes:'Stable but not urgent' },
+    { Brand:'Brand Beta', SKU:'SKU-2003', UPC:'900000200003', Image:'', Rank:11, Status:'Exit', Style:'BET-205', Material:'Acetate', Grid:'G-205', Color:'Crystal', Polarized:false, Size:50, MSRP:118, 'EOL Date':'2026-06-30', Release:'Archive', 'YTD Sls U':44, 'Order Level':0, 'On Hand U':97, '5-Wk Avg S/T %':0.12, 'Assortment Role':'Archive', 'Planner Flag':'Exit', Notes:'Clear remaining inventory' },
+    { Brand:'Brand Gamma', SKU:'SKU-3001', UPC:'900000300001', Image:'', Rank:4, Status:'Active', Style:'GAM-300', Material:'Injected', Grid:'G-300', Color:'Olive', Polarized:true, Size:58, MSRP:98, 'EOL Date':'2027-03-15', Release:'Launch 2026', 'YTD Sls U':176, 'Order Level':152, 'On Hand U':45, '5-Wk Avg S/T %':0.63, 'Assortment Role':'Performance', 'Planner Flag':'Replenish', Notes:'Fastest recent sell-through' },
+    { Brand:'Brand Gamma', SKU:'SKU-3002', UPC:'900000300002', Image:'', Rank:7, Status:'Review', Style:'GAM-315', Material:'Injected', Grid:'G-315', Color:'Matte Blue', Polarized:true, Size:60, MSRP:104, 'EOL Date':'2026-09-20', Release:'Launch 2026', 'YTD Sls U':93, 'Order Level':86, 'On Hand U':111, '5-Wk Avg S/T %':0.28, 'Assortment Role':'Performance', 'Planner Flag':'Monitor', Notes:'Polarized mix needs door review' },
+    { Brand:'Brand Delta', SKU:'SKU-4001', UPC:'900000400001', Image:'', Rank:5, Status:'Active', Style:'DEL-410', Material:'Titanium', Grid:'G-410', Color:'Silver', Polarized:false, Size:55, MSRP:210, 'EOL Date':'2027-02-10', Release:'Limited 2026', 'YTD Sls U':81, 'Order Level':60, 'On Hand U':24, '5-Wk Avg S/T %':0.49, 'Assortment Role':'Premium capsule', 'Planner Flag':'Protect', Notes:'Low depth but healthy premium productivity' },
+    { Brand:'Brand Echo', SKU:'SKU-5001', UPC:'900000500001', Image:'', Rank:9, Status:'Test', Style:'ECH-500', Material:'Bio acetate', Grid:'G-500', Color:'Sage', Polarized:false, Size:49, MSRP:135, 'EOL Date':'2026-11-05', Release:'Test 2026', 'YTD Sls U':37, 'Order Level':48, 'On Hand U':52, '5-Wk Avg S/T %':0.22, 'Assortment Role':'New concept', 'Planner Flag':'Read', Notes:'Sample row with newer concept status' },
+    { Brand:'Brand Echo', SKU:'SKU-5002', UPC:'', Image:'', Rank:12, Status:'Review', Style:'ECH-520', Material:'Bio acetate', Grid:'G-520', Color:'Amber', Polarized:false, Size:51, MSRP:135, 'EOL Date':'', Release:'Test 2026', 'YTD Sls U':18, 'Order Level':30, 'On Hand U':68, '5-Wk Avg S/T %':0.09, 'Assortment Role':'New concept', 'Planner Flag':'Validate UPC', Notes:'Missing UPC included to test cleanup workflows' },
+    { Brand:'Brand Delta', SKU:'SKU-4002', UPC:'900000400002', Image:'', Rank:10, Status:'Active', Style:'DEL-430', Material:'Titanium', Grid:'G-430', Color:'Gunmetal', Polarized:true, Size:57, MSRP:225, 'EOL Date':'2027-04-01', Release:'Limited 2026', 'YTD Sls U':69, 'Order Level':54, 'On Hand U':33, '5-Wk Avg S/T %':0.39, 'Assortment Role':'Premium capsule', 'Planner Flag':'Hold', Notes:'' }
+  ];
+}
+
+function downloadSampleData() {
+  if (!isSheetJsReady()) return;
+  const rows = getLineSheetSampleRows();
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = Object.keys(rows[0]).map(k => ({ wch: Math.max(k.length + 2, 14) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Line Sheet Sample');
+  XLSX.writeFile(wb, 'RP_Line_Sheet_Sample_Data.xlsx');
+  showToast('Sample data downloaded');
+}
+
+function loadSampleData() {
+  loadData(getLineSheetSampleRows(), {}, {
+    filters: {
+      brand: '',
+      status: '',
+      polarized: '',
+      sort: 'rank-asc',
+      selection: '',
+      search: '',
+    },
+  });
+  showToast('Loaded anonymized sample line sheet');
 }
 
 // ─── Toast ───

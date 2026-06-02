@@ -125,13 +125,16 @@ code, .mono { font-family: var(--font-mono); }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 7px 12px;
+  gap: 6px;
+  padding: 8px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
   white-space: nowrap;
   transition: background var(--transition), border-color var(--transition), color var(--transition), opacity var(--transition);
 }
@@ -140,8 +143,9 @@ code, .mono { font-family: var(--font-mono); }
 .btn-accent { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 700; }
 .btn-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--accent-fg); }
 .btn-danger { color: var(--danger); }
-.btn-sm { min-height: 27px; padding: 4px 9px; font-size: 0.76rem; }
+.btn-sm { min-height: 27px; padding: 5px 10px; font-size: 0.72rem; }
 .btn-xs { min-height: 23px; padding: 2px 7px; font-size: 0.72rem; gap: 4px; }
+.header-actions .btn:not(.info-btn) { padding: 5px 10px; font-size: 0.72rem; }
 .theme-toggle { width: 32px; padding: 0; color: var(--text-muted); }
 .theme-toggle svg, .info-btn svg {
   width: 14px; height: 14px;
@@ -839,10 +843,10 @@ tr.data-row:hover td { background: var(--accent-dim); }
     <button class="btn btn-sm" id="importProfileBtn" data-cursor="load">Import</button>
     <button class="btn btn-sm" id="resetBtn" data-cursor="reset">Reset</button>
     <input type="file" id="profileFileInput" accept=".json" style="display:none">
-    <button class="btn info-btn" id="infoBtn" aria-label="Info and reference" title="Info and reference">
+    <button class="btn info-btn" id="infoBtn" aria-label="Info and reference" data-tooltip="Info and reference">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg>
     </button>
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode" data-tooltip="Toggle light/dark mode">
       <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
@@ -859,7 +863,7 @@ tr.data-row:hover td { background: var(--accent-dim); }
         <span class="panel-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
         <span class="panel-num">01</span>
         <span class="panel-title">Sources</span>
-        <button class="panel-info-btn" data-panel-info="sources" title="What this step does" aria-label="How sources work">i</button>
+        <button class="panel-info-btn" data-panel-info="sources" data-tooltip="What this step does" aria-label="How sources work">i</button>
         <span class="panel-sub" id="sourcesSub">0 files</span>
       </div>
       <div class="panel-tools">
@@ -897,7 +901,7 @@ tr.data-row:hover td { background: var(--accent-dim); }
         <span class="panel-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
         <span class="panel-num">02</span>
         <span class="panel-title">Canonical Schema</span>
-        <button class="panel-info-btn" data-panel-info="schema" title="What this step does" aria-label="How schema mapping works">i</button>
+        <button class="panel-info-btn" data-panel-info="schema" data-tooltip="What this step does" aria-label="How schema mapping works">i</button>
         <span class="panel-sub" id="schemaSub">0 fields</span>
       </div>
       <div class="panel-tools">
@@ -925,7 +929,7 @@ tr.data-row:hover td { background: var(--accent-dim); }
         <span class="panel-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
         <span class="panel-num">03</span>
         <span class="panel-title">Output Templates</span>
-        <button class="panel-info-btn" data-panel-info="templates" title="What this step does" aria-label="How templates work">i</button>
+        <button class="panel-info-btn" data-panel-info="templates" data-tooltip="What this step does" aria-label="How templates work">i</button>
         <span class="panel-sub" id="templatesSub">0 templates</span>
       </div>
       <div class="panel-tools">
@@ -951,7 +955,7 @@ tr.data-row:hover td { background: var(--accent-dim); }
         <span class="panel-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
         <span class="panel-num">04</span>
         <span class="panel-title">Run &amp; Results</span>
-        <button class="panel-info-btn" data-panel-info="input" title="What this step does" aria-label="How input + results work">i</button>
+        <button class="panel-info-btn" data-panel-info="input" data-tooltip="What this step does" aria-label="How input + results work">i</button>
         <span class="panel-sub" id="resultsSub">No run yet</span>
       </div>
       <div class="panel-tools">

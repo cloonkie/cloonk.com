@@ -114,27 +114,29 @@ code, .mono { font-family: var(--font-mono); }
 
 /* ── Buttons / toggles ── */
 .btn, .theme-toggle {
-  min-height: 34px;
+  min-height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 7px 16px;
+  gap: 6px;
+  padding: 8px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
   white-space: nowrap;
-  font-size: 0.86rem;
-  letter-spacing: 0.01em;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
   transition: background var(--transition), border-color var(--transition), color var(--transition), opacity var(--transition);
 }
 .btn:hover, .theme-toggle:hover { background: var(--surface-raised); border-color: var(--border-hover); }
 .btn:disabled { cursor: not-allowed; opacity: 0.45; }
 .btn-accent { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 700; }
 .btn-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--accent-fg); }
-.btn-sm { min-height: 27px; padding: 4px 9px; font-size: 0.76rem; }
+.btn-sm { min-height: 27px; padding: 5px 10px; font-size: 0.72rem; }
+.header-actions .btn:not(.info-btn) { padding: 5px 10px; font-size: 0.72rem; }
 .btn-ghost {
   background: transparent;
   border-color: transparent;
@@ -1348,10 +1350,10 @@ body[data-story="promo"] .story-num { color: var(--warn); }
       <input type="file" id="snapIn" accept=".json" style="display:none">
       <button class="btn btn-accent" id="snapOut" type="button" data-cursor="export">Export Snapshot</button>
       <button class="btn btn-ghost" id="clearDataBtn" type="button" data-cursor="reset" title="Clear loaded data and start fresh">Clear data</button>
-      <button class="btn info-btn" id="infoBtn" aria-label="Open information and appendix" title="Information and appendix">
+      <button class="btn info-btn" id="infoBtn" aria-label="Open information and appendix" data-tooltip="Information and appendix">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg>
       </button>
-      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" data-tooltip="Toggle light/dark mode">
         <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
@@ -1505,21 +1507,51 @@ body[data-story="promo"] .story-num { color: var(--warn); }
       <div class="info-modal-body">
         <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
           <h3>What this is</h3>
-          <p>A browser-based diagnostic for the YTD Sell-Out workbook. It cleans the raw dump, flags integrity issues, then surfaces liquidation risk, velocity, momentum, and promo behaviour over a filterable canonical record set.</p>
-          <h3>Story-first</h3>
-          <p>The page opens to a table of reads. Picking one shapes the rest: only that story's parameters are foregrounded, the file dropzone asks for the workbook in that story's voice, and the hero metric promoted in the vitals strip is the one that matters most for that read.</p>
+          <p>A browser-based diagnostic for YTD sell-out workbooks. It parses raw retail rows into a canonical record set, flags integrity issues, then turns the same dataset into focused reads: data integrity, liquidation risk, velocity, momentum, promo dependence, and collection theme authoring.</p>
+          <h3>Mental model</h3>
+          <p>Each read is a lens over the same normalized records. The parser standardizes headers and metrics first; the selected read then chooses which fields, thresholds, and hero KPI matter. Nothing is recomputed from hidden server logic.</p>
           <h3>Privacy</h3>
           <p>All parsing happens locally in your browser. The workbook is never uploaded to a server.</p>
         </div>
         <div class="info-modal-pane" id="modal-tab-flow" role="tabpanel">
-          <h4><span class="step-num">01</span>Cover</h4>
-          <p>A table of every read the tool knows about. The question under each title is what that read answers — pick the one that matches yours.</p>
-          <h4><span class="step-num">02</span>Story prelude</h4>
-          <p>Once a story is chosen, the prelude shows the dropzone and the parameters that affect this read (promo threshold, aged-before). It also lists the metrics the read wants — useful before you upload.</p>
-          <h4><span class="step-num">03</span>File landed</h4>
-          <p>After the workbook is parsed, the prelude collapses. The vitals strip appears and the hero KPI for this read is promoted full-bleed. The story body fills in.</p>
-          <h4><span class="step-num">04</span>Move between reads</h4>
-          <p>The footer of every story leads to the next or previous read; the meta strip leads back to the cover. Filters live in a drawer so they never push the article out of focus.</p>
+          <h3>Steps</h3>
+          <div class="step-viz">
+            <div class="viz-line"><strong>Analysis path</strong> — one normalized record set feeds multiple diagnostic reads.</div>
+            <div class="viz-row">
+              <div class="viz-pill">raw sell-out workbook</div>
+              <div class="viz-arrow">→</div>
+              <div class="viz-stack">
+                <div class="viz-pill viz-tag">header scan</div>
+                <div class="viz-pill viz-tag">metric cleanup</div>
+              </div>
+              <div class="viz-arrow">→</div>
+              <div class="viz-cluster">
+                <div class="viz-cluster-id">reads</div>
+                <div class="viz-pill viz-hit">velocity</div>
+                <div class="viz-pill">liquidation</div>
+                <div class="viz-pill">momentum</div>
+              </div>
+            </div>
+            <div class="viz-trail">integrity flags stay attached to rows so every read can exclude bad inputs consistently.</div>
+          </div>
+          <ol class="step-list">
+            <li><strong>Pick a read.</strong> The cover lists every diagnostic question the tool can answer. Choose the read that matches the decision you are trying to make.</li>
+            <li><strong>Check the column contract.</strong> The prelude lists required and optional fields for the active read. Paste mode includes a synthetic sample that matches the chosen read.</li>
+            <li><strong>Load or paste data.</strong> Drop an Excel workbook, paste a table, or load the built-in sample. The parser searches for the strongest header row and maps aliases into canonical fields.</li>
+            <li><strong>Review vitals.</strong> KPI tiles summarize records, rows excluded by integrity rules, and the hero metric for the active read.</li>
+            <li><strong>Use the story body.</strong> Each lens renders tables, matrices, flags, or copy-ready theme language from the normalized records.</li>
+            <li><strong>Move across reads.</strong> Footer navigation keeps the same loaded data while switching the diagnostic lens.</li>
+          </ol>
+          <h3>Read catalog</h3>
+          <table>
+            <tr><th>Read</th><th>Question answered</th></tr>
+            <tr><td>Integrity</td><td>Can this workbook be trusted for analysis?</td></tr>
+            <tr><td>Liquidation</td><td>Where is inventory aging faster than sales?</td></tr>
+            <tr><td>Velocity</td><td>Which items are stars, sleepers, slow-bleeders, or dogs?</td></tr>
+            <tr><td>Momentum</td><td>What part of YoY movement is new, dropped, or continuing product?</td></tr>
+            <tr><td>Promo</td><td>Which brands or products depend most on markdown/promo depth?</td></tr>
+            <tr><td>Theme</td><td>Which product attributes can become a collection story?</td></tr>
+          </table>
         </div>
         <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
           <h3>Required workbook shape</h3>
@@ -1531,6 +1563,15 @@ body[data-story="promo"] .story-num { color: var(--warn); }
             <tr><td>LY metrics</td><td><code>LY YTD Units Sls</code>, <code>LY YTD Rtl Sls</code>, <code>LY WTD Units OH</code>, <code>LY YTD ST%</code></td></tr>
             <tr><td>Attributes</td><td><code>Newness</code>, <code>Brand Category</code>, <code>Material Code</code>, <code>Price Range</code></td></tr>
             <tr><td>Optional UPC grain</td><td><code>UPC</code>, <code>Style</code>, <code>Lens Color</code>, <code>Frame Color</code>, <code>Temple Color</code>, <code>Theme</code></td></tr>
+          </table>
+          <h3>Canonical record</h3>
+          <p>The normalized row keeps identity fields wide and metric fields numeric. Percent fields accept whole-number or decimal input; currency and comma formatting are stripped before calculation.</p>
+          <table>
+            <tr><th>Parser behavior</th><th>Detail</th></tr>
+            <tr><td>Header aliases</td><td>Common retailer report labels are mapped to canonical field names.</td></tr>
+            <tr><td>Numeric cleanup</td><td>Currency symbols, commas, and percent signs are removed before number conversion.</td></tr>
+            <tr><td>Blank handling</td><td>Missing optional fields stay blank; missing required fields make the active read unavailable.</td></tr>
+            <tr><td>Sample paste</td><td>The paste box generates only the fields needed for the active read.</td></tr>
           </table>
         </div>
         <div class="info-modal-pane" id="modal-tab-appendix" role="tabpanel">
@@ -1546,6 +1587,22 @@ body[data-story="promo"] .story-num { color: var(--warn); }
           <p>Rows are classified by a median split on ST% and TY units. <em>Star</em> = high ST × high volume; <em>Sleeper</em> = high ST × low volume; <em>Slow-bleeder</em> = low ST × high volume; <em>Dog</em> = low ST × low volume.</p>
           <h3>Momentum decomposition</h3>
           <p>YoY unit variance per brand is split into New (TY only), Dropped (LY only), and Continuing (both years). Continuing carries the delta; New is additive and Dropped is subtractive.</p>
+          <h3>Core formulas</h3>
+          <table>
+            <tr><th>Metric</th><th>Definition</th></tr>
+            <tr><td>AUR</td><td><code>retail sales / units sold</code>, only when units are positive.</td></tr>
+            <tr><td>Promo depth</td><td><code>1 - AUR / MSRP</code>, bounded by integrity checks.</td></tr>
+            <tr><td>Sell-through</td><td>Uses reported ST% when available; otherwise derived reads rely on unit and on-hand context.</td></tr>
+            <tr><td>Inventory risk</td><td>High on-hand plus low sell-through and/or aged release signals.</td></tr>
+            <tr><td>Momentum</td><td><code>TY units - LY units</code>, then classified into new/dropped/continuing buckets.</td></tr>
+          </table>
+          <h3>Interpretation caveats</h3>
+          <ul>
+            <li>Median splits are relative to the loaded file, not an external benchmark.</li>
+            <li>Promo dependence is only as reliable as MSRP and sales-dollar quality.</li>
+            <li>Theme authoring benefits from richer attribute columns; sparse color/material fields reduce story quality.</li>
+            <li>Integrity exclusions protect metric quality but do not delete rows from the audit trail.</li>
+          </ul>
         </div>
         <div class="info-modal-pane" id="modal-tab-resources" role="tabpanel">
           <h3>Fashion Toolbox</h3>

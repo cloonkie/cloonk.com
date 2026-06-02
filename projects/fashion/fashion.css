@@ -158,6 +158,213 @@ header.header .info-btn svg {
 /* Info-btn uses a filled-dot for the "i" tittle in some tools — keep that */
 header.header .info-btn svg circle[fill="currentColor"] { fill: currentColor; }
 
+/* ─── Tooltips
+       Native title bubbles cannot be styled, so static tool controls use
+       data-tooltip for a consistent fashion-tool hover/focus treatment. ─── */
+[data-tooltip] {
+  position: relative;
+}
+[data-tooltip]::before,
+[data-tooltip]::after {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 8px);
+  z-index: 80;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -2px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+[data-tooltip]::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  background: var(--surface-raised);
+  border-left: 1px solid var(--border-hover);
+  border-top: 1px solid var(--border-hover);
+  transform: translate(-50%, -2px) rotate(45deg);
+}
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  width: max-content;
+  max-width: min(240px, calc(100vw - 32px));
+  padding: 7px 9px;
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-xs);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.35;
+  text-align: center;
+  white-space: normal;
+}
+[data-tooltip]:hover::before,
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::before,
+[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+[data-tooltip]:hover::before,
+[data-tooltip]:focus-visible::before {
+  transform: translate(-50%, 0) rotate(45deg);
+}
+.header-actions [data-tooltip]:last-child::after,
+.header-actions [data-tooltip]:last-child::before {
+  left: auto;
+  right: 0;
+  transform: translate(0, -2px);
+}
+.header-actions [data-tooltip]:last-child::before {
+  right: 12px;
+  transform: translate(0, -2px) rotate(45deg);
+}
+.header-actions [data-tooltip]:last-child:hover::after,
+.header-actions [data-tooltip]:last-child:focus-visible::after {
+  transform: translate(0, 0);
+}
+.header-actions [data-tooltip]:last-child:hover::before,
+.header-actions [data-tooltip]:last-child:focus-visible::before {
+  transform: translate(0, 0) rotate(45deg);
+}
+
+/* ─── Appendix step lists
+       Shared version of the UPC CONCAT numbered-card list treatment. ───── */
+.step-list {
+  counter-reset: step;
+  padding-left: 0;
+  list-style: none;
+  margin: 4px 0 14px;
+}
+.step-list li {
+  position: relative;
+  padding: 9px 12px 9px 40px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  color: var(--text-muted);
+  line-height: 1.55;
+  counter-increment: step;
+}
+.step-list li::before {
+  content: counter(step);
+  position: absolute;
+  left: 10px;
+  top: 9px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.step-list li strong {
+  display: block;
+  color: var(--text);
+  margin-bottom: 3px;
+  font-weight: 600;
+}
+
+/* ─── Mini process imagery
+       UPC CONCAT introduced these compact schema/process diagrams. Keep the
+       primitives shared so other fashion tools can use the same visual language
+       without carrying image assets or page-specific SVGs. ─────────────── */
+.step-viz {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  margin: 8px 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+.viz-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.viz-row-tight { gap: 6px; }
+.viz-stack { display: grid; gap: 4px; }
+.viz-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  color: var(--text);
+  white-space: nowrap;
+  font-size: 0.72rem;
+}
+.viz-pill.viz-hit {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.viz-pill.viz-tag {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+  background: var(--accent-dim);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.viz-arrow { color: var(--text-dim); font-size: 0.9rem; flex-shrink: 0; }
+.viz-arrow.viz-down { display: block; text-align: center; width: 100%; }
+.viz-rank { color: var(--accent); font-weight: 700; min-width: 14px; }
+.viz-field { color: var(--accent); font-weight: 600; }
+.viz-line { color: var(--text); }
+.viz-line strong { color: var(--accent); font-weight: 700; }
+.viz-formula {
+  padding: 6px 8px;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text);
+}
+.viz-formula .fn { color: var(--accent); }
+.viz-formula .field { color: #6cb6ff; }
+[data-theme="light"] .viz-formula .field,
+body.light .viz-formula .field { color: #1b09bc; }
+.viz-formula .str { color: var(--warn, #e8b931); }
+.viz-result-large {
+  padding: 6px 10px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xs);
+  background: var(--accent-dim);
+  color: var(--accent);
+  text-align: center;
+  font-weight: 600;
+}
+.viz-cluster {
+  padding: 7px 10px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xs);
+  background: var(--accent-dim);
+  display: grid;
+  gap: 4px;
+}
+.viz-cluster-id { color: var(--accent); font-weight: 700; font-size: 0.7rem; }
+.viz-trail {
+  display: grid;
+  gap: 3px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
 /* ─── Sun / moon swap — handles both [data-theme] (cloonk standard) and
        body.light (door tracker legacy). Without this, the door tracker's
        moon icon stays hidden in light mode. ─────────────────────────── */

@@ -185,13 +185,16 @@ a { color: inherit; text-decoration: none; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 7px 12px;
+  gap: 6px;
+  padding: 8px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
   transition: background var(--transition), border-color var(--transition), color var(--transition), opacity var(--transition);
   white-space: nowrap;
 }
@@ -200,7 +203,8 @@ a { color: inherit; text-decoration: none; }
 .btn-accent { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 700; }
 .btn-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--accent-fg); }
 .btn-danger { color: var(--danger); }
-.btn-sm { min-height: 28px; padding: 5px 10px; font-size: 0.78rem; }
+.btn-sm { min-height: 28px; padding: 5px 10px; font-size: 0.72rem; }
+.header-actions .btn:not(.info-btn) { padding: 5px 10px; font-size: 0.72rem; }
 .theme-toggle { width: 32px; padding: 0; color: var(--text-muted); }
 .theme-toggle svg, .info-btn svg {
   width: 14px;
@@ -1682,10 +1686,10 @@ tr:hover td { background: var(--accent-dim); }
     </div>
     <button class="btn btn-accent" id="exportBtn" disabled data-cursor="export">Export Output</button>
     <input type="file" id="configInput" accept=".json" style="display:none">
-    <button class="btn info-btn" id="infoBtn" aria-label="Open information and appendix" title="Information and appendix">
+    <button class="btn info-btn" id="infoBtn" aria-label="Open information and appendix" data-tooltip="Information and appendix">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg>
     </button>
-    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" data-tooltip="Toggle light/dark mode">
       <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
@@ -1705,7 +1709,7 @@ tr:hover td { background: var(--accent-dim); }
             <div>
               <div class="panel-title-row">
                 <span class="panel-title">Source</span>
-                <button class="panel-info-btn" data-panel-info="input" type="button" title="What this panel does" aria-label="How the Input panel works">i</button>
+                <button class="panel-info-btn" data-panel-info="input" type="button" data-tooltip="What this panel does" aria-label="How the Input panel works">i</button>
               </div>
               <div class="panel-sub" id="flowInputText">Files and pasted grids</div>
             </div>
@@ -1765,7 +1769,7 @@ tr:hover td { background: var(--accent-dim); }
             <div>
               <div class="panel-title-row">
                 <span class="panel-title">Headers</span>
-                <button class="panel-info-btn" data-panel-info="header" type="button" title="What this panel does" aria-label="How Header Detection works">i</button>
+                <button class="panel-info-btn" data-panel-info="header" type="button" data-tooltip="What this panel does" aria-label="How Header Detection works">i</button>
               </div>
               <div class="panel-sub" id="flowHeaderText">Headers + cadence layout</div>
             </div>
@@ -1858,7 +1862,7 @@ tr:hover td { background: var(--accent-dim); }
             <div>
               <div class="panel-title-row">
                 <span class="panel-title">Map Fields</span>
-                <button class="panel-info-btn" data-panel-info="mapping" type="button" title="What this panel does" aria-label="How Field Mapping works">i</button>
+                <button class="panel-info-btn" data-panel-info="mapping" type="button" data-tooltip="What this panel does" aria-label="How Field Mapping works">i</button>
               </div>
               <div class="panel-sub" id="flowMappingText">Drag across sections or use dropdowns</div>
             </div>
@@ -1903,7 +1907,7 @@ tr:hover td { background: var(--accent-dim); }
           <div>
             <div class="panel-title-row">
               <span class="panel-title">Review Output</span>
-              <button class="panel-info-btn" data-panel-info="preview" type="button" title="What this panel does" aria-label="How Preview works">i</button>
+              <button class="panel-info-btn" data-panel-info="preview" type="button" data-tooltip="What this panel does" aria-label="How Preview works">i</button>
             </div>
             <div class="panel-sub"><span id="flowPreviewText">Final standardized output</span> · <span id="previewSub">Ready</span></div>
           </div>
@@ -1969,9 +1973,34 @@ tr:hover td { background: var(--accent-dim); }
     <div class="info-modal-body">
       <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
         <h3>What this is</h3>
-        <p>Normalize wide retailer sell-out reports into one analytics-ready table. The tool flattens stacked headers such as WTD / MTD / YTD over duplicated metrics, keeps product fields as dimensions, and saves repeatable mappings.</p>
-        <h3>Quick start</h3>
-        <p>Upload recurring reports or paste an Excel range, confirm the cadence and metric header rows, map product fields, then preview and export the standardized output.</p>
+        <p>Normalize wide retailer sell-out reports into one analytics-ready table. The tool flattens stacked headers such as WTD / MTD / YTD over repeated metrics, keeps product fields as dimensions, and saves repeatable mappings for recurring report formats.</p>
+        <h3>Mental model</h3>
+        <p>The app separates <strong>source sheets</strong>, <strong>header detection</strong>, <strong>canonical field mappings</strong>, and <strong>export formats</strong>. Once a source shape is mapped, you can reload the same configuration and process the next reporting cycle with much less manual cleanup.</p>
+        <div class="step-viz">
+          <div class="viz-line"><strong>Standardization path</strong> — stacked retailer reports become a long metric table with source lineage.</div>
+          <div class="viz-row">
+            <div class="viz-stack">
+              <div class="viz-pill">WTD / YTD header row</div>
+              <div class="viz-pill">Sale U / Sale $ columns</div>
+            </div>
+            <div class="viz-arrow">→</div>
+            <div class="viz-stack">
+              <div class="viz-pill viz-tag">dimension map</div>
+              <div class="viz-pill viz-tag">metric map</div>
+            </div>
+            <div class="viz-arrow">→</div>
+            <div class="viz-formula"><span class="field">cadence</span> + <span class="field">metric</span> + <span class="field">value</span></div>
+          </div>
+          <div class="viz-result-large">analytics-ready long format</div>
+        </div>
+        <h3>Steps</h3>
+        <ol class="step-list">
+          <li><strong>Insert reports</strong> as files or pasted ranges. Each workbook sheet becomes a source.</li>
+          <li><strong>Confirm header rows</strong> so cadence labels and metric labels are interpreted correctly.</li>
+          <li><strong>Map dimensions and metrics</strong> to the canonical field list.</li>
+          <li><strong>Preview output</strong> and inspect the Headers/Raw debug tabs when something looks off.</li>
+          <li><strong>Export CSV, JSON, XLSX, stakeholder workbook, or pivot workbook</strong> depending on the downstream use.</li>
+        </ol>
         <h3>Privacy</h3>
         <p>All parsing happens locally in your browser. Imported spreadsheets are not uploaded to a server.</p>
       </div>
@@ -2037,16 +2066,46 @@ tr:hover td { background: var(--accent-dim); }
           <tr><td>Metric fact</td><td><code>cadence</code>, <code>year_basis</code>, <code>metric</code>, <code>value</code>, <code>value_source</code></td></tr>
         </table>
         <p>Metric rows include <code>sale_units</code>, <code>sale_dollars</code>, <code>on_hand_units</code>, custom metric keys, and optional calculated <code>sell_through_pct</code>.</p>
+        <h3>Source lineage</h3>
+        <p>Every output row carries source metadata so exported records can be traced back to the original workbook, sheet, and row. Header debug output also carries detected cadence and year-basis for each source column.</p>
+        <table>
+          <tr><th>Source layer</th><th>What it preserves</th></tr>
+          <tr><td>Workbook</td><td>Original filename and included sheets.</td></tr>
+          <tr><td>Header detection</td><td>Group row, column header row, deleted rows, and inferred cadence/year-basis.</td></tr>
+          <tr><td>Mapping</td><td>Canonical field key, source column, role as dimension/metric/calculation.</td></tr>
+          <tr><td>Export</td><td>Value plus the field/metric source used to produce it.</td></tr>
+        </table>
       </div>
       <div class="info-modal-pane" id="modal-tab-appendix" role="tabpanel">
         <h3>Stacked Headers</h3>
         <p>When a row above the metric headers contains timing labels such as <code>WTD</code>, <code>MTD</code>, <code>QTD</code>, or <code>YTD</code>, the app carries that cadence across repeated columns like <code>Sale U</code> and <code>Sale $</code>.</p>
         <h3>LY and Calculated Metrics</h3>
         <p>The LY toggle treats <code>LY</code> and <code>Last Year</code> labels as comparison values instead of cadences. Calculated metrics add formula-based rows when the needed mapped fields are available.</p>
+        <table>
+          <tr><th>Calculation</th><th>Definition</th></tr>
+          <tr><td>AUR</td><td><code>sale_dollars / sale_units</code>, only when units are positive.</td></tr>
+          <tr><td>ST%</td><td><code>sale_units / (sale_units + on_hand_units)</code>, when both mapped inputs are available.</td></tr>
+          <tr><td>Custom calculated metric</td><td>Formula based on mapped dimension/metric keys, emitted as a metric row.</td></tr>
+        </table>
         <h3>Sheets and Rows</h3>
         <p>Use sheet checkboxes to include workbook tabs. <code>Delete Rows</code> removes 1-based Excel row numbers before parsing.</p>
         <h3>Configuration</h3>
         <p>Saving a configuration preserves detected rows, cadence choices, and field mapping so the same retailer report shape can be normalized again.</p>
+        <h3>Export formats</h3>
+        <ul>
+          <li><strong>CSV</strong> — fastest handoff for BI tools and spreadsheet review.</li>
+          <li><strong>JSON</strong> — structured output for scripts or app handoff.</li>
+          <li><strong>XLSX</strong> — workbook version of the standardized output.</li>
+          <li><strong>Stakeholder Workbook</strong> — formatted workbook intended for non-technical review.</li>
+          <li><strong>Pivot Workbook</strong> — output inserted into a pivot-ready workbook structure.</li>
+        </ul>
+        <h3>Common failure modes</h3>
+        <ul>
+          <li>Metric values do not export until at least one dimension and one metric are mapped.</li>
+          <li>Stacked reports need the group row and header row set separately.</li>
+          <li>Totals/subtotal rows should be removed with <code>Delete Rows</code> before parsing.</li>
+          <li>Saved configurations describe report shape; they do not store private workbook contents.</li>
+        </ul>
       </div>
       <div class="info-modal-pane" id="modal-tab-resources" role="tabpanel">
         <h3>Fashion Toolbox</h3>

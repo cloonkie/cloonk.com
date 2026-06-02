@@ -441,21 +441,31 @@ const GUEST_SEED={
   brandCodes:{
     'BR-A':{name:'Brand Alpha',ds_active:true},
     'BR-B':{name:'Brand Beta',ds_active:true},
-    'BR-C':{name:'Brand Gamma',ds_active:true}
+    'BR-C':{name:'Brand Gamma',ds_active:true},
+    'BR-D':{name:'Brand Delta',ds_active:false},
+    'BR-E':{name:'Brand Echo',ds_active:true}
   },
   doorLocations:[
-    {retailer:'Retailer One',doorNumber:101,name:'Store 101',city:'New York',state:'NY',lat:40.7589,lng:-73.9851,tier:'A'},
-    {retailer:'Retailer One',doorNumber:102,name:'Store 102',city:'Los Angeles',state:'CA',lat:34.0522,lng:-118.2437,tier:'A'},
-    {retailer:'Retailer Two',doorNumber:201,name:'Store 201',city:'Chicago',state:'IL',lat:41.8781,lng:-87.6298,tier:'B'},
-    {retailer:'Retailer Two',doorNumber:202,name:'Store 202',city:'Houston',state:'TX',lat:29.7604,lng:-95.3698,tier:'B'},
-    {retailer:'Retailer Three',doorNumber:301,name:'Store 301',city:'Miami',state:'FL',lat:25.7617,lng:-80.1918,tier:'A'}
+    {retailer:'Retailer One',doorNumber:101,name:'Demo Door 101',address:'100 Market Walk',city:'New York',state:'NY',zip:'10001',lat:40.7505,lng:-73.9965,tier:'A'},
+    {retailer:'Retailer One',doorNumber:102,name:'Demo Door 102',address:'200 Canyon Ave',city:'Los Angeles',state:'CA',zip:'90015',lat:34.0407,lng:-118.2468,tier:'A'},
+    {retailer:'Retailer One',doorNumber:103,name:'Demo Door 103',address:'300 Harbor Dr',city:'San Diego',state:'CA',zip:'92101',lat:32.7157,lng:-117.1611,tier:'B'},
+    {retailer:'Retailer Two',doorNumber:201,name:'Demo Door 201',address:'400 Lake St',city:'Chicago',state:'IL',zip:'60601',lat:41.8853,lng:-87.6216,tier:'A'},
+    {retailer:'Retailer Two',doorNumber:202,name:'Demo Door 202',address:'500 Congress Ave',city:'Austin',state:'TX',zip:'78701',lat:30.2672,lng:-97.7431,tier:'B'},
+    {retailer:'Retailer Two',doorNumber:203,name:'Demo Door 203',address:'600 Main Plaza',city:'Houston',state:'TX',zip:'77002',lat:29.7604,lng:-95.3698,tier:'C'},
+    {retailer:'Retailer Three',doorNumber:301,name:'Demo Door 301',address:'700 Biscayne Blvd',city:'Miami',state:'FL',zip:'33132',lat:25.7781,lng:-80.1868,tier:'A'},
+    {retailer:'Retailer Three',doorNumber:302,name:'Demo Door 302',address:'800 Peachtree St',city:'Atlanta',state:'GA',zip:'30308',lat:33.7711,lng:-84.3877,tier:'B'},
+    {retailer:'Retailer Three',doorNumber:303,name:'Demo Door 303',address:'900 River Rd',city:'Nashville',state:'TN',zip:'37203',lat:36.1527,lng:-86.7891,tier:'C'},
+    {retailer:'Retailer Four',doorNumber:401,name:'Demo Door 401',address:'1000 Pine St',city:'Seattle',state:'WA',zip:'98101',lat:47.6114,lng:-122.3351,tier:'A'},
+    {retailer:'Retailer Four',doorNumber:402,name:'Demo Door 402',address:'1100 Pearl St',city:'Denver',state:'CO',zip:'80202',lat:39.7392,lng:-104.9903,tier:'B'}
   ],
   matrixData:[
     {brand:'BR-A',category:'LUXURY'},
     {brand:'BR-B',category:'LIFESTYLE'},
-    {brand:'BR-C',category:'PREMIUM'}
+    {brand:'BR-C',category:'PREMIUM'},
+    {brand:'BR-D',category:'SPORT'},
+    {brand:'BR-E',category:'FAST'}
   ],
-  retailers:['Retailer One','Retailer Two','Retailer Three'],
+  retailers:['Retailer One','Retailer Two','Retailer Three','Retailer Four'],
   retailerInfo:{
     'Retailer One':{brm:2,ecom:1},
     'Retailer Two':{brm:2,ecom:1},
@@ -469,10 +479,18 @@ const EXTERNAL_BLANK_SEED={
   retailers:[]
 };
 const GUEST_DOOR_KEY_SEED=[
-  ['Retailer One','BR-A',101,'New York','confirmed','Example assignment'],
-  ['Retailer One','BR-B',102,'Los Angeles','confirmed',''],
-  ['Retailer Two','BR-A',201,'Chicago','tbd',''],
-  ['Retailer Three','BR-C',301,'Miami','confirmed','']
+  ['Retailer One','BR-A',101,'New York','confirmed','Core A-tier placement','ALL',128,0.62],
+  ['Retailer One','BR-A',102,'Los Angeles','confirmed','West region mirror door','Mens Only',74,0.48],
+  ['Retailer One','BR-B',102,'Los Angeles','confirmed','Lifestyle capsule','ALL',43,0.34],
+  ['Retailer One','BR-C',103,'San Diego','tbd','Under review for seasonal add','Ladies Only',22,0.19],
+  ['Retailer Two','BR-A',201,'Chicago','confirmed','High-priority replenishment door','Ladies Only',92,0.55],
+  ['Retailer Two','BR-C',202,'Austin','confirmed','Premium test','ALL',67,0.41],
+  ['Retailer Two','BR-D',203,'Houston','closed','Exited after low velocity','ALL',8,0.07],
+  ['Retailer Three','BR-C',301,'Miami','confirmed','A-tier resort market','ALL',156,0.71],
+  ['Retailer Three','BR-E',302,'Atlanta','tbd','Fast-turn test door','Mens Only',88,0.53],
+  ['Retailer Three','BR-B',303,'Nashville','confirmed','Regional lifestyle read','ALL',43,0.34],
+  ['Retailer Four','BR-A',401,'Seattle','confirmed','Northwest flagship','ALL',111,0.58],
+  ['Retailer Four','BR-E',402,'Denver','confirmed','New concept placement','Ladies Only',54,0.36]
 ];
 
 function initFromSeed(){
@@ -491,10 +509,10 @@ function initFromSeed(){
   dataKeyState={};
 
   (srcKeys||[]).forEach(row=>{
-    const [ret,brand,doorNumber,location,status,note]=row;
+    const [ret,brand,doorNumber,location,status,note,gender,metric1,metric2]=row;
     const normalizedDoor=(doorNumber==null || doorNumber==='' || doorNumber==='TBD') ? '-' : doorNumber;
     const doorInfo=normalizedDoor==='-' ? null : getDoorInfo(ret,normalizedDoor);
-    dataKeyState[buildDataKey(ret,normalizedDoor,brand)]={status:normalizeStatus(status),grade:(doorInfo&&doorInfo.tier)||'-',note:note||'',retailer:ret,doorNumber:normalizedDoor,brand:brand};
+    dataKeyState[buildDataKey(ret,normalizedDoor,brand)]={status:normalizeStatus(status),grade:(doorInfo&&doorInfo.tier)||'-',gender:normalizeGender(gender),note:note||'',metric_1:metric1 ?? '',metric_2:metric2 ?? '',retailer:ret,doorNumber:normalizedDoor,brand:brand};
     syncAssignmentFromDataKey(ret,normalizedDoor,brand);
     if(!brandCodes[brand]) brandCodes[brand]={name:brand,ds_active:true};
   });
@@ -3974,22 +3992,30 @@ function isSheetJsReady(){
 function getTemplateDemoRows(){
   return {
     matrixRows:[
-      {Retailer:'Retailer A',Brand:'BR-A',Category:'LIFESTYLE',Doors:2,'Door Number':101,Status:'confirmed',Grade:'A',Gender:'ALL',metric_1:128,metric_2:0.62,Notes:'Example: units and sell-through'},
-      {Retailer:'Retailer A',Brand:'BR-A',Category:'LIFESTYLE',Doors:2,'Door Number':102,Status:'confirmed',Grade:'B',Gender:'Mens Only',metric_1:74,metric_2:0.48,Notes:'Example: units and sell-through'},
-      {Retailer:'Retailer B',Brand:'BR-A',Category:'LIFESTYLE',Doors:1,'Door Number':201,Status:'confirmed',Grade:'A',Gender:'Ladies Only',metric_1:92,metric_2:0.55,Notes:'Example: units and sell-through'},
-      {Retailer:'Retailer A',Brand:'BR-B',Category:'PREMIUM',Doors:1,'Door Number':101,Status:'confirmed',Grade:'A',Gender:'ALL',metric_1:43,metric_2:0.34,Notes:'Example: units and sell-through'},
-      {Retailer:'Retailer C',Brand:'BR-C',Category:'SPORT',Doors:2,'Door Number':301,Status:'confirmed',Grade:'A',Gender:'ALL',metric_1:156,metric_2:0.71,Notes:'Example: units and sell-through'},
-      {Retailer:'Retailer C',Brand:'BR-C',Category:'SPORT',Doors:2,'Door Number':302,Status:'confirmed',Grade:'B',Gender:'Mens Only',metric_1:88,metric_2:0.53,Notes:'Example: units and sell-through'},
-      {Retailer:'Retailer B',Brand:'BR-C',Category:'SPORT',Doors:1,'Door Number':202,Status:'confirmed',Grade:'B',Gender:'ALL',metric_1:67,metric_2:0.41,Notes:'Example: units and sell-through'}
+      {Retailer:'Retailer One',Brand:'BR-A',Category:'LUXURY',Doors:3,'Door Number':101,Status:'confirmed',Grade:'A',Gender:'ALL',metric_1:128,metric_2:0.62,Notes:'Synthetic units and sell-through'},
+      {Retailer:'Retailer One',Brand:'BR-A',Category:'LUXURY',Doors:3,'Door Number':102,Status:'confirmed',Grade:'A',Gender:'Mens Only',metric_1:74,metric_2:0.48,Notes:'Synthetic units and sell-through'},
+      {Retailer:'Retailer One',Brand:'BR-C',Category:'PREMIUM',Doors:1,'Door Number':103,Status:'tbd',Grade:'B',Gender:'Ladies Only',metric_1:22,metric_2:0.19,Notes:'Under review'},
+      {Retailer:'Retailer Two',Brand:'BR-A',Category:'LUXURY',Doors:1,'Door Number':201,Status:'confirmed',Grade:'A',Gender:'Ladies Only',metric_1:92,metric_2:0.55,Notes:'Synthetic units and sell-through'},
+      {Retailer:'Retailer Two',Brand:'BR-C',Category:'PREMIUM',Doors:1,'Door Number':202,Status:'confirmed',Grade:'B',Gender:'ALL',metric_1:67,metric_2:0.41,Notes:'Synthetic units and sell-through'},
+      {Retailer:'Retailer Two',Brand:'BR-D',Category:'SPORT',Doors:0,'Door Number':203,Status:'closed',Grade:'C',Gender:'ALL',metric_1:8,metric_2:0.07,Notes:'Exited after low velocity'},
+      {Retailer:'Retailer Three',Brand:'BR-C',Category:'PREMIUM',Doors:1,'Door Number':301,Status:'confirmed',Grade:'A',Gender:'ALL',metric_1:156,metric_2:0.71,Notes:'Synthetic units and sell-through'},
+      {Retailer:'Retailer Three',Brand:'BR-E',Category:'FAST',Doors:1,'Door Number':302,Status:'tbd',Grade:'B',Gender:'Mens Only',metric_1:88,metric_2:0.53,Notes:'New concept test'},
+      {Retailer:'Retailer Three',Brand:'BR-B',Category:'LIFESTYLE',Doors:1,'Door Number':303,Status:'confirmed',Grade:'C',Gender:'ALL',metric_1:43,metric_2:0.34,Notes:'Regional lifestyle read'},
+      {Retailer:'Retailer Four',Brand:'BR-A',Category:'LUXURY',Doors:1,'Door Number':401,Status:'confirmed',Grade:'A',Gender:'ALL',metric_1:111,metric_2:0.58,Notes:'Northwest flagship'},
+      {Retailer:'Retailer Four',Brand:'BR-E',Category:'FAST',Doors:1,'Door Number':402,Status:'confirmed',Grade:'B',Gender:'Ladies Only',metric_1:54,metric_2:0.36,Notes:'New concept placement'}
     ],
     doorRows:[
-      {Retailer:'Retailer A','Door Number':101,Name:'Example Store 101',Address:'100 Main St',City:'New York',State:'NY',ZIP:'10001',Lat:40.7505,Lng:-73.9965,Tier:'A'},
-      {Retailer:'Retailer A','Door Number':102,Name:'Example Store 102',Address:'200 Market St',City:'Los Angeles',State:'CA',ZIP:'90015',Lat:34.0407,Lng:-118.2468,Tier:'B'},
-      {Retailer:'Retailer A','Door Number':103,Name:'Example Store 103',Address:'300 Harbor Dr',City:'San Diego',State:'CA',ZIP:'92101',Lat:32.7157,Lng:-117.1611,Tier:'C'},
-      {Retailer:'Retailer B','Door Number':201,Name:'Example Store 201',Address:'400 Lake St',City:'Chicago',State:'IL',ZIP:'60601',Lat:41.8853,Lng:-87.6216,Tier:'A'},
-      {Retailer:'Retailer B','Door Number':202,Name:'Example Store 202',Address:'500 Congress Ave',City:'Austin',State:'TX',ZIP:'78701',Lat:30.2672,Lng:-97.7431,Tier:'B'},
-      {Retailer:'Retailer C','Door Number':301,Name:'Example Store 301',Address:'600 Biscayne Blvd',City:'Miami',State:'FL',ZIP:'33132',Lat:25.7781,Lng:-80.1868,Tier:'A'},
-      {Retailer:'Retailer C','Door Number':302,Name:'Example Store 302',Address:'700 Peachtree St',City:'Atlanta',State:'GA',ZIP:'30308',Lat:33.7711,Lng:-84.3877,Tier:'B'}
+      {Retailer:'Retailer One','Door Number':101,Name:'Demo Door 101',Address:'100 Market Walk',City:'New York',State:'NY',ZIP:'10001',Lat:40.7505,Lng:-73.9965,Tier:'A'},
+      {Retailer:'Retailer One','Door Number':102,Name:'Demo Door 102',Address:'200 Canyon Ave',City:'Los Angeles',State:'CA',ZIP:'90015',Lat:34.0407,Lng:-118.2468,Tier:'A'},
+      {Retailer:'Retailer One','Door Number':103,Name:'Demo Door 103',Address:'300 Harbor Dr',City:'San Diego',State:'CA',ZIP:'92101',Lat:32.7157,Lng:-117.1611,Tier:'B'},
+      {Retailer:'Retailer Two','Door Number':201,Name:'Demo Door 201',Address:'400 Lake St',City:'Chicago',State:'IL',ZIP:'60601',Lat:41.8853,Lng:-87.6216,Tier:'A'},
+      {Retailer:'Retailer Two','Door Number':202,Name:'Demo Door 202',Address:'500 Congress Ave',City:'Austin',State:'TX',ZIP:'78701',Lat:30.2672,Lng:-97.7431,Tier:'B'},
+      {Retailer:'Retailer Two','Door Number':203,Name:'Demo Door 203',Address:'600 Main Plaza',City:'Houston',State:'TX',ZIP:'77002',Lat:29.7604,Lng:-95.3698,Tier:'C'},
+      {Retailer:'Retailer Three','Door Number':301,Name:'Demo Door 301',Address:'700 Biscayne Blvd',City:'Miami',State:'FL',ZIP:'33132',Lat:25.7781,Lng:-80.1868,Tier:'A'},
+      {Retailer:'Retailer Three','Door Number':302,Name:'Demo Door 302',Address:'800 Peachtree St',City:'Atlanta',State:'GA',ZIP:'30308',Lat:33.7711,Lng:-84.3877,Tier:'B'},
+      {Retailer:'Retailer Three','Door Number':303,Name:'Demo Door 303',Address:'900 River Rd',City:'Nashville',State:'TN',ZIP:'37203',Lat:36.1527,Lng:-86.7891,Tier:'C'},
+      {Retailer:'Retailer Four','Door Number':401,Name:'Demo Door 401',Address:'1000 Pine St',City:'Seattle',State:'WA',ZIP:'98101',Lat:47.6114,Lng:-122.3351,Tier:'A'},
+      {Retailer:'Retailer Four','Door Number':402,Name:'Demo Door 402',Address:'1100 Pearl St',City:'Denver',State:'CO',ZIP:'80202',Lat:39.7392,Lng:-104.9903,Tier:'B'}
     ]
   };
 }
@@ -4209,6 +4235,37 @@ function downloadDemoData(){
   XLSX.utils.book_append_sheet(wb,doorWs,'Door Locations');
   XLSX.writeFile(wb,'Door_Tracker_Demo_Data.xlsx');
   toast('Demo data downloaded');
+}
+function loadDemoData(){
+  brandCodes=JSON.parse(JSON.stringify(GUEST_SEED.brandCodes||{}));
+  doorLocations=JSON.parse(JSON.stringify(GUEST_SEED.doorLocations||[]));
+  matrixData=JSON.parse(JSON.stringify(GUEST_SEED.matrixData||[]));
+  retailers=(GUEST_SEED.retailers||[]).slice();
+  history={};
+  doorAssignments={};
+  dataKeyState={};
+  window._storeNotes={};
+
+  (GUEST_DOOR_KEY_SEED||[]).forEach(row=>{
+    const [ret,brand,doorNumber,location,status,note,gender,metric1,metric2]=row;
+    const normalizedDoor=(doorNumber==null || doorNumber==='' || doorNumber==='TBD') ? '-' : doorNumber;
+    const doorInfo=normalizedDoor==='-' ? null : getDoorInfo(ret,normalizedDoor);
+    dataKeyState[buildDataKey(ret,normalizedDoor,brand)]={status:normalizeStatus(status),grade:(doorInfo&&doorInfo.tier)||'-',gender:normalizeGender(gender),note:note||'',metric_1:metric1 ?? '',metric_2:metric2 ?? '',retailer:ret,doorNumber:normalizedDoor,brand:brand};
+    syncAssignmentFromDataKey(ret,normalizedDoor,brand);
+    if(!brandCodes[brand]) brandCodes[brand]={name:brand,ds_active:true};
+  });
+  ensureAllSlots();
+  populateFilters();
+  updateViewSpecificControls();
+  currentView='matrix';
+  setSelectValues('fBrand',[]);
+  setSelectValues('fRet',[]);
+  setSelectValues('fCat',[]);
+  setSelectValues('fStatus',[]);
+  render();
+  queueAutosave();
+  closeImport();
+  toast('Loaded anonymized demo data');
 }
 
 function populateStatusGradeFilters(){
