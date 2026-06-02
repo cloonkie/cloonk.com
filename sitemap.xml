@@ -87,6 +87,11 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://cloonk.com/projects/fashion/selling-analysis.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://cloonk.com/projects/fashion/upc-concat.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
