@@ -274,6 +274,11 @@ header.header .info-btn svg circle[fill="currentColor"] { fill: currentColor; }
   font-weight: 600;
 }
 
+.info-link[aria-current="page"] {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
 /* ─── Mini process imagery
        UPC CONCAT introduced these compact schema/process diagrams. Keep the
        primitives shared so other fashion tools can use the same visual language
