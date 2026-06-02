@@ -1353,6 +1353,9 @@ body.light .data-cell-note { background: #f4f2ee; }
 .history-feed-pair { font-weight: 700; color: var(--accent); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.06em; }
 
 @media (max-width: 768px) {
+  /* the dense matrix scrolls inside .matrix-wrap; clip the page so full-screen
+     fixed overlays can't stretch to the scroll canvas and scroll the whole page */
+  html, body { overflow-x: clip; max-width: 100%; }
   .header { padding: 10px 12px; }
   .toolbar { padding: 6px 12px; }
   .matrix-wrap { padding: 10px 12px; }
@@ -1361,4 +1364,9 @@ body.light .data-cell-note { background: #f4f2ee; }
   .refine-wrap.open .refine-panel { width: calc(100vw - 24px); }
   .refine-panel__inner { min-width: calc(100vw - 24px); }
   body.mode-data.refine-open .matrix-wrap { margin-right: 0; border-right: 0; }
+  /* the 6-tab view bar would overflow a phone — let it scroll on its own row */
+  .view-tabs { flex: 1 1 100%; min-width: 0; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .view-tabs::-webkit-scrollbar { height: 0; }
+  .view-tab { flex: 0 0 auto; }
+  .logo { font-size: 1.12rem; }
 }

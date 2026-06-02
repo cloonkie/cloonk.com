@@ -533,6 +533,9 @@ body.has-data .story-prelude { display: none; }
   outline: none;
 }
 .paste-zone textarea:focus { border-color: var(--accent); border-style: solid; }
+/* Ghost sample sits in the box at low opacity until the user types their own */
+.paste-zone textarea.is-ghost { opacity: 0.4; font-style: italic; }
+.paste-zone textarea.is-ghost:focus { opacity: 1; font-style: normal; }
 .paste-actions {
   display: flex;
   align-items: center;
@@ -623,9 +626,26 @@ body.has-data .story-prelude { display: none; }
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-.prelude-needs ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; }
-.prelude-needs li { color: var(--text); }
-.prelude-needs li::before { content: "· "; color: var(--accent); margin-right: 4px; }
+.prelude-needs ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.prelude-needs li { display: flex; align-items: center; gap: 7px; color: var(--text); }
+.prelude-needs li::before {
+  content: "";
+  flex: none;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-dim);
+}
+/* Required columns signified in yellow (warn) — matches the layer-needed banner */
+.prelude-needs li[data-req="true"]::before { background: var(--warn); }
+.prelude-needs li .need-tag {
+  margin-left: auto;
+  color: var(--text-dim);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.prelude-needs li[data-req="true"] .need-tag { color: var(--warn); }
 
 .prelude-status {
   margin: 0;
@@ -692,6 +712,8 @@ body.has-data .story-prelude { display: none; }
   letter-spacing: 0.1em;
 }
 body:not(.has-data) #kpis { display: none; }
+/* Clear-data button only matters once a workbook is loaded */
+body:not(.has-data) #clearDataBtn { display: none; }
 
 /* ── Filters ── */
 #filters { display: grid; gap: 8px; max-height: 60vh; overflow: auto; }
@@ -815,10 +837,11 @@ th, td {
   text-align: right;
   white-space: nowrap;
 }
-th:first-child,
-td:first-child,
-td:nth-child(2),
-td:nth-child(3) { text-align: left; }
+/* First three columns are identity/text → left-align BOTH header and cell so
+   th and td stay aligned (previously only td:nth-child(2,3) were left). */
+th:first-child,  td:first-child,
+th:nth-child(2), td:nth-child(2),
+th:nth-child(3), td:nth-child(3) { text-align: left; }
 thead th {
   position: sticky;
   top: 0;
@@ -831,6 +854,91 @@ thead th {
   text-transform: uppercase;
 }
 tbody tr:hover td { background: var(--accent-dim); }
+
+/* ── Live SVG charts (lens output — mirror the preview vizzes) ── */
+.lens-chart { margin: 12px 0 22px; }
+.lens-chart__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.lens-chart__cap {
+  margin-bottom: 9px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lens-chart__head .lens-chart__cap { margin-bottom: 0; }
+.chart-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-card);
+}
+.chart-toggle__btn {
+  min-height: 24px;
+  padding: 3px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background var(--transition), color var(--transition);
+}
+.chart-toggle__btn:hover { color: var(--text); }
+.chart-toggle__btn.is-active { background: var(--accent); color: var(--accent-fg); }
+.lens-chart__svg { width: 100%; }
+.lens-chart svg { width: 100%; height: auto; overflow: visible; display: block; }
+.lens-chart text { fill: var(--text-muted); font-family: var(--font-mono); }
+.lens-chart .lbl-strong { fill: var(--text); }
+.lens-chart .viz-accent { fill: var(--accent); }
+.lens-chart .viz-warn { fill: var(--warn); }
+.lens-chart .viz-muted { fill: var(--text-dim); }
+.lens-chart .stroke-accent { stroke: var(--accent); fill: none; }
+.lens-chart .stroke-warn { stroke: var(--warn); fill: none; }
+.lens-chart .stroke-muted { stroke: var(--text-muted); fill: none; }
+.lens-chart .axis { stroke: var(--text-dim); stroke-opacity: 0.35; }
+/* ── Interactive chart marks: hover to expand + tooltip ── */
+.lens-chart [data-tip] { cursor: pointer; }
+.lens-chart circle[data-tip] { transition: r 0.12s ease; }
+.lens-chart circle[data-tip]:hover { r: 7; }
+.lens-chart rect[data-tip], .lens-chart path[data-tip] { transition: opacity 0.12s ease; }
+.lens-chart rect[data-tip]:hover,
+.lens-chart path[data-tip]:hover { opacity: 1 !important; stroke: var(--text); stroke-width: 1; }
+.chart-tip {
+  position: fixed;
+  z-index: 1200;
+  pointer-events: none;
+  max-width: 280px;
+  padding: 8px 11px;
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-xs);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.42);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 0.1s ease;
+}
+.chart-tip.show { opacity: 1; transform: none; }
+.chart-tip strong { display: block; color: var(--accent); font-weight: 700; margin-bottom: 2px; }
+.chart-tip span { display: block; color: var(--text-muted); }
 
 /* ── Velocity quadrant — hero treatment when on velocity story ── */
 .quad-grid {
@@ -1085,8 +1193,9 @@ body[data-story="promo"] .story-num { color: var(--warn); }
   body[data-story="velocity"] .quad-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 720px) {
-  .header { padding: 14px 18px; }
+  .header { padding: 14px 18px; flex-wrap: wrap; }
   .header-stats { display: none; }
+  .logo span { display: none; }
   .app-shell { width: min(100% - 28px, 1280px); }
   .meta-divider { display: none; }
   #kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1101,6 +1210,126 @@ body[data-story="promo"] .story-num { color: var(--warn); }
   .project-chip .chip-status { grid-column: 2; justify-self: start; }
   .project-chip .chip-preview { grid-column: 1 / -1; grid-template-columns: 100px minmax(0, 1fr); gap: 10px; }
   .chip-viz { width: 100px; height: 44px; }
+}
+
+/* ── Paste-mode: per-read schema + sample data + result preview ── */
+.paste-schema {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-card);
+}
+.schema-head,
+.schema-sample__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.schema-title {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.schema-title em { color: var(--accent); font-style: normal; }
+.schema-sub {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.schema-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.schema-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  transition: border-color var(--transition), background var(--transition);
+}
+[data-theme="light"] .schema-chip { background: #f4f2ee; }
+.schema-chip:hover { border-color: var(--border-hover); background: var(--accent-dim); }
+/* Needed columns are signified in yellow (warn), matching the layer-needed banner */
+.schema-chip[data-req="true"] { border-color: var(--warn); color: var(--warn); }
+.schema-chip[data-req="true"]::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--warn);
+}
+.schema-chip .chip-tag {
+  color: var(--text-dim);
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.schema-chip[data-req="true"] .chip-tag { color: var(--warn); }
+.schema-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+}
+.schema-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.schema-legend .dot { width: 7px; height: 7px; border-radius: 50%; }
+.schema-legend .dot-need { background: var(--warn); }
+.schema-legend .dot-opt { background: var(--text-dim); }
+.schema-sample { display: grid; gap: 8px; }
+.sample-scroll { max-height: 232px; overflow: auto; border: 1px solid var(--border); }
+.sample-scroll table { margin: 0; font-size: 0.68rem; }
+/* raw-data preview: left-align every column so header + cell line up */
+.sample-scroll th, .sample-scroll td { padding: 6px 9px; white-space: nowrap; text-align: left; }
+.sample-scroll thead th { background: var(--surface); color: var(--accent); }
+.result-preview {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px dashed var(--border-hover);
+}
+.result-preview__label {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.result-preview__body {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+.result-viz { width: 132px; height: 56px; display: block; color: var(--text-muted); }
+.result-viz svg { width: 100%; height: 100%; overflow: visible; }
+.result-viz .viz-accent { fill: var(--accent); }
+.result-viz .viz-warn { fill: var(--warn); }
+.result-viz .viz-muted { fill: currentColor; }
+.result-viz .stroke-accent { stroke: var(--accent); fill: none; }
+.result-viz .stroke-warn { stroke: var(--warn); fill: none; }
+.result-viz .stroke-muted { stroke: currentColor; fill: none; }
+.result-viz .axis { stroke: currentColor; stroke-opacity: 0.3; }
+.result-example { margin: 0; color: var(--text-muted); font-size: 0.84rem; line-height: 1.45; }
+.result-example em { color: var(--text); font-style: normal; font-weight: 700; }
+@media (max-width: 480px) {
+  .result-preview__body { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -1117,6 +1346,7 @@ body[data-story="promo"] .story-num { color: var(--warn); }
       <button class="btn" id="snapInBtn" type="button" data-cursor="load">Import Snapshot</button>
       <input type="file" id="snapIn" accept=".json" style="display:none">
       <button class="btn btn-accent" id="snapOut" type="button" data-cursor="export">Export Snapshot</button>
+      <button class="btn btn-ghost" id="clearDataBtn" type="button" data-cursor="reset" title="Clear loaded data and start fresh">Clear data</button>
       <button class="btn info-btn" id="infoBtn" aria-label="Open information and appendix" title="Information and appendix">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg>
       </button>
@@ -1184,6 +1414,24 @@ body[data-story="promo"] .story-num { color: var(--warn); }
               </span>
             </label>
             <div class="paste-zone" id="pasteZone" hidden>
+              <div class="paste-schema" id="pasteSchema">
+                <div class="schema-head">
+                  <span class="schema-title">Columns <em id="schemaForName">this read</em> needs</span>
+                  <button type="button" class="btn btn-sm" id="copyHeadersBtn">Copy header row</button>
+                </div>
+                <div class="schema-chips" id="schemaChips"></div>
+                <div class="schema-legend">
+                  <span><i class="dot dot-need"></i>Required — the read won't run without it</span>
+                  <span><i class="dot dot-opt"></i>Adds depth — optional, enriches the result</span>
+                </div>
+                <div class="schema-sample">
+                  <div class="schema-sample__head">
+                    <span class="schema-sub">Sample data — pre-organize your sheet to match</span>
+                    <button type="button" class="btn btn-sm" id="insertSampleBtn">Insert sample ↓</button>
+                  </div>
+                  <div class="sample-scroll"><div id="sampleTable"></div></div>
+                </div>
+              </div>
               <textarea id="pasteBox" placeholder="Paste from Excel: copy a range including headers, then paste here. Tabs and newlines become rows and columns."></textarea>
               <div class="paste-actions">
                 <span class="paste-hint" id="pasteHint">0 rows detected</span>
@@ -1202,12 +1450,19 @@ body[data-story="promo"] .story-num { color: var(--warn); }
                 <span><input type="number" id="agedYear" value="2020" min="1990" max="2030"></span>
               </label>
             </div>
+            <div class="result-preview" id="resultPreview">
+              <span class="result-preview__label">What the result looks like</span>
+              <div class="result-preview__body">
+                <span class="result-viz" id="resultViz"></span>
+                <p class="result-example" id="resultExample"></p>
+              </div>
+            </div>
             <div class="prelude-needs" id="preludeNeeds">
-              <strong>What this read wants</strong>
+              <strong>Columns this read needs</strong>
               <ul id="preludeNeedsList"></ul>
             </div>
             <p class="prelude-status" id="projectStatus"></p>
-            <p class="prelude-status" id="status">Load the YTD Sell-Out workbook to begin.</p>
+            <p class="prelude-status" id="status">Drop a workbook to begin — or open <b>Paste data</b> and hit <b>Load pasted data</b> to try the built-in sample.</p>
             <div class="analysis-guide" id="analysisGuide" hidden></div>
           </aside>
         </div>
@@ -1367,6 +1622,16 @@ body[data-story="promo"] .story-num { color: var(--warn); }
         '<svg viewBox="0 0 132 56"><path d="M 4 50 Q 40 50, 50 30 T 86 10 Q 110 20, 128 48" class="stroke-accent" stroke-width="2"/><circle cx="50" cy="30" r="3" class="viz-muted" opacity="0.45"/><circle cx="86" cy="10" r="3" class="viz-accent"/></svg>',
       price_architecture:
         '<svg viewBox="0 0 132 56"><rect x="2"   y="40" width="22" height="12" class="viz-muted" opacity="0.35"/><rect x="28"  y="30" width="22" height="22" class="viz-muted" opacity="0.45"/><rect x="54"  y="16" width="22" height="36" class="viz-accent"/><rect x="80"  y="22" width="22" height="30" class="viz-muted" opacity="0.55"/><rect x="106" y="34" width="22" height="18" class="viz-muted" opacity="0.4"/></svg>',
+      market_basket:
+        '<svg viewBox="0 0 132 56"><line x1="30" y1="20" x2="64" y2="30" class="stroke-muted" stroke-opacity="0.5"/><line x1="64" y1="30" x2="100" y2="16" class="stroke-accent" stroke-width="2"/><line x1="64" y1="30" x2="96" y2="44" class="stroke-muted" stroke-opacity="0.5"/><circle cx="30" cy="20" r="5" class="viz-muted" opacity="0.5"/><circle cx="64" cy="30" r="6" class="viz-accent"/><circle cx="100" cy="16" r="5" class="viz-accent"/><circle cx="96" cy="44" r="4" class="viz-muted" opacity="0.5"/></svg>',
+      cannibalization:
+        '<svg viewBox="0 0 132 56"><line x1="0" y1="50" x2="132" y2="50" class="axis"/><path d="M 6 44 L 60 12" class="stroke-accent" stroke-width="2"/><path d="M 72 12 L 126 44" class="stroke-warn" stroke-width="2"/><circle cx="60" cy="12" r="3" class="viz-accent"/><circle cx="72" cy="12" r="3" class="viz-warn"/></svg>',
+      whitespace:
+        '<svg viewBox="0 0 132 56"><rect x="4" y="6" width="18" height="18" class="viz-accent" opacity="0.6"/><rect x="26" y="6" width="18" height="18" class="viz-muted" opacity="0.3"/><rect x="48" y="6" width="18" height="18" class="stroke-warn" stroke-dasharray="2 2"/><rect x="70" y="6" width="18" height="18" class="viz-accent" opacity="0.6"/><rect x="92" y="6" width="18" height="18" class="stroke-warn" stroke-dasharray="2 2"/><rect x="4" y="30" width="18" height="18" class="viz-muted" opacity="0.3"/><rect x="26" y="30" width="18" height="18" class="stroke-warn" stroke-dasharray="2 2"/><rect x="48" y="30" width="18" height="18" class="viz-accent" opacity="0.6"/><rect x="70" y="30" width="18" height="18" class="viz-muted" opacity="0.3"/><rect x="92" y="30" width="18" height="18" class="viz-accent" opacity="0.6"/></svg>',
+      replenishment:
+        '<svg viewBox="0 0 132 56"><rect x="2" y="6" width="92" height="8" class="viz-accent"/><rect x="2" y="18" width="70" height="8" class="viz-accent" opacity="0.8"/><rect x="2" y="30" width="52" height="8" class="viz-muted" opacity="0.5"/><rect x="2" y="42" width="34" height="8" class="viz-muted" opacity="0.4"/><path d="M 104 12 l 6 -6 l 6 6" class="stroke-accent" stroke-width="2"/><path d="M 104 24 l 6 -6 l 6 6" class="stroke-accent" stroke-width="2" opacity="0.7"/></svg>',
+      scenario_planner:
+        '<svg viewBox="0 0 132 56"><path d="M 6 28 L 50 28" class="stroke-muted" stroke-width="2"/><path d="M 50 28 L 100 10" class="stroke-accent" stroke-width="2"/><path d="M 50 28 L 100 28" class="stroke-muted" stroke-width="2" stroke-dasharray="3 3"/><path d="M 50 28 L 100 46" class="stroke-warn" stroke-width="2"/><circle cx="50" cy="28" r="4" class="viz-accent"/><circle cx="100" cy="10" r="3" class="viz-accent"/><circle cx="100" cy="28" r="3" class="viz-muted" opacity="0.5"/><circle cx="100" cy="46" r="3" class="viz-warn"/></svg>',
     };
     const VIZ_FALLBACK =
       '<svg viewBox="0 0 132 56"><polyline points="2,46 18,38 32,42 46,30 62,32 78,22 94,26 110,18 126,12" class="stroke-accent" stroke-width="2"/></svg>';
@@ -1387,8 +1652,148 @@ body[data-story="promo"] .story-num { color: var(--warn); }
       retailer_scorecard:     'A radar across mix, productivity, promo, growth, and inventory health. Lopsided shapes flag where a retailer is over- or under-indexed.',
       collection_lifecycle:   'Each collection traced from launch through maturity to decay. The peak marker is where the collection sits today.',
       price_architecture:     'Price-band columns sized by retail $. Missing tiers leave gaps in the bar chart; overloaded tiers crowd the middle.',
+      market_basket:          'An affinity network of brands or styles that sell together. Thicker links are pairs that co-occur in the same baskets more than chance.',
+      cannibalization:        'New-versus-old unit lines for similar products. Where the new line rises as the old one falls, the new item is eating its predecessor.',
+      whitespace:             'A grid of attributes × retailers. Dashed empty cells are whitespace — a combination that sells elsewhere but is missing or thin here.',
+      replenishment:          'A ranked list of chase candidates, up-arrows on the urgent few. Bars are scored by velocity, cover, and margin together.',
+      scenario_planner:       'A decision tree branching from today into mark-down, replenish, and exit paths — each tip annotated with projected units and retail.',
     };
     const EXAMPLE_FALLBACK = 'A focused chart shaped to this read, drawn from the rows after filters apply.';
+    /* SOA analysis id → VIZ/EXAMPLE key (those maps predate the engine ids) */
+    const VIZ_ALIAS = {
+      productivity: 'assortment_productivity', sizeCurve: 'size_curve',
+      doorClustering: 'door_clustering', markdownSensitivity: 'markdown_sensitivity',
+      exitPlanner: 'inventory_aging', forecasting: 'demand_forecasting',
+      anomalyDetection: 'anomaly_detection', retailerScorecard: 'retailer_scorecard',
+      collectionLifecycle: 'collection_lifecycle', priceArchitecture: 'price_architecture',
+      marketBasket: 'market_basket', scenarioPlanner: 'scenario_planner',
+    };
+    const vizKey = id => VIZ_ALIAS[id] || id;
+    const vizFor = id => VIZ[vizKey(id)] || VIZ_FALLBACK;
+    const exampleFor = id => EXAMPLE[vizKey(id)] || EXAMPLE_FALLBACK;
+
+    /* ─── Real-world header string per canonical field (for paste templates) ─ */
+    const SAMPLE_HEADERS = {
+      retailer: 'Retailer', location: 'Location', brand: 'Brand',
+      door: 'Door', week: 'Week Ending', collection: 'Collection Release',
+      frameMaterial: 'Frame Material', size: 'Size', msrp: 'MSRP',
+      buyUnits: 'Buy Units', tyUnits: 'TY YTD Units Sls', tyRtl: 'TY YTD Rtl Sls',
+      tyOH: 'TY WTD Units OH', tyST: 'TY YTD ST%', lyUnits: 'LY YTD Units Sls',
+      lyRtl: 'LY YTD Rtl Sls', lyOH: 'LY WTD Units OH', lyST: 'LY YTD ST%',
+      newness: 'Newness', brandCategory: 'Brand Category', materialCode: 'Material Code',
+      priceRange: 'Price Range', upc: 'UPC', style: 'Style', lensColor: 'Lens Color',
+      frameColor: 'Frame Color', templeColor: 'Temple Color', theme: 'Theme',
+      transactionId: 'Transaction ID', margin: 'Margin', doorCount: 'Door Count',
+    };
+    /* ─── Sample dataset — generated, ~50 rows, deep enough to render every read.
+       Deterministic (seeded) so it is identical across loads. A varied body
+       (5 retailers · 10 doors · 5 brands · 18 weeks · vintages 2018–2025 · a
+       promo/full-price mix) plus injected edge cases: integrity flags, dead/aged
+       stock, dropped & new collections, a cannibalization pair, an anomaly. ── */
+    const SAMPLE = (function buildSample() {
+      function mulberry32(a) {
+        return function () {
+          a |= 0; a = a + 0x6D2B79F5 | 0;
+          let t = Math.imul(a ^ a >>> 15, 1 | a);
+          t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+          return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+      }
+      const R = mulberry32(20240601);
+      const rnd = (a, b) => a + (b - a) * R();
+      const ri = (a, b) => Math.round(rnd(a, b));
+      const pick = arr => arr[Math.floor(R() * arr.length)];
+      const wpick = (arr, w) => { let s = w.reduce((x, y) => x + y, 0), t = R() * s; for (let i = 0; i < arr.length; i++) { t -= w[i]; if (t <= 0) return arr[i]; } return arr[arr.length - 1]; };
+      const st2 = x => (Math.round(x * 100) / 100).toFixed(2);
+
+      const retailers = ['Retailer A', 'Retailer B', 'Retailer C', 'Retailer D', 'Retailer E'];
+      const region = { 'Retailer A': 'Region North', 'Retailer B': 'Region South', 'Retailer C': 'Region East', 'Retailer D': 'Region West', 'Retailer E': 'Region Central' };
+      const doorsBy = { 'Retailer A': ['D001', 'D002'], 'Retailer B': ['D003', 'D004'], 'Retailer C': ['D005', 'D006'], 'Retailer D': ['D007', 'D008'], 'Retailer E': ['D009', 'D010'] };
+      const brands = ['BR1', 'BR2', 'BR3', 'BR4', 'BR5'];
+      const tier = { BR1: 'Tier 1', BR2: 'Tier 1', BR3: 'Tier 2', BR4: 'Tier 2', BR5: 'Tier 3' };
+      const baseMsrp = { BR1: 280, BR2: 230, BR3: 185, BR4: 150, BR5: 95 };
+      const materials = ['Acetate', 'Metal', 'Nylon', 'Titanium'];
+      const matCode = { Acetate: 'MC1', Metal: 'MC2', Nylon: 'MC3', Titanium: 'MC4' };
+      const sizes = ['50', '52', '54', '56', '58'];
+      const themes = ['Heritage', 'Performance', 'Minimal', 'Statement'];
+      const lensC = ['Grey', 'Brown Gradient', 'Green G15', 'Mirror Blue', 'Polarized'];
+      const frameC = ['Black', 'Havana', 'Gold', 'Crystal', 'Matte Navy'];
+      const templeC = ['Black', 'Havana', 'Gold', 'Silver', 'Navy'];
+      const band = m => m < 100 ? '$50-99' : m < 150 ? '$100-149' : m < 200 ? '$150-199' : m < 250 ? '$200-249' : m < 300 ? '$250-299' : '$300+';
+      const weeks = []; { const d = new Date(Date.UTC(2025, 0, 4)); for (let i = 0; i < 18; i++) { weeks.push(d.toISOString().slice(0, 10)); d.setUTCDate(d.getUTCDate() + 7); } }
+
+      const rows = [];
+      let styleN = 1000;
+      function add(o) { o.upc = String(1000000000001 + rows.length); rows.push(o); }
+
+      // ── varied body ──
+      for (let i = 0; i < 40; i++) {
+        const brand = pick(brands), ret = pick(retailers), mat = pick(materials);
+        const year = wpick([2022, 2023, 2024, 2025], [2, 3, 3, 2]);
+        const collection = brand + ' ' + String.fromCharCode(65 + (i % 5)) + ' ' + year;
+        const msrp = ri(baseMsrp[brand] * 0.85, baseMsrp[brand] * 1.15);
+        const stT = rnd(0.08, 0.92);
+        const tyOH = ri(6, 160);
+        const tyUnits = Math.max(1, Math.round(tyOH * stT / (1.02 - stT)));
+        const promo = R() < 0.35;
+        const aur = promo ? msrp * rnd(0.45, 0.78) : msrp * rnd(0.9, 1.0);
+        const tyRtl = Math.round(tyUnits * aur);
+        const isNew = year >= 2025;
+        const lyUnits = isNew ? 0 : Math.max(0, Math.round(tyUnits * rnd(0.55, 1.45)));
+        const lyOH = Math.round(tyOH * rnd(0.6, 1.2));
+        const lyRtl = Math.round(lyUnits * aur * rnd(0.95, 1.06));
+        add({
+          retailer: ret, location: region[ret], brand, door: pick(doorsBy[ret]),
+          week: weeks[i % weeks.length], collection, frameMaterial: mat, size: wpick(sizes, [1, 3, 5, 4, 2]),
+          msrp: String(msrp), buyUnits: String(tyUnits + tyOH), tyUnits: String(tyUnits),
+          tyRtl: String(tyRtl), tyOH: String(tyOH), tyST: st2(stT),
+          lyUnits: String(lyUnits), lyRtl: String(lyRtl), lyOH: String(lyOH),
+          lyST: (lyUnits + lyOH) ? st2(lyUnits / (lyUnits + lyOH)) : '0',
+          newness: year >= 2024 ? 'New' : 'Carryover', brandCategory: tier[brand], materialCode: matCode[mat],
+          priceRange: band(msrp), style: brand + '-' + (++styleN), lensColor: pick(lensC),
+          frameColor: pick(frameC), templeColor: pick(templeC), theme: themes[brands.indexOf(brand) % themes.length],
+          transactionId: '', margin: String(Math.round(tyRtl * rnd(0.35, 0.55))), doorCount: String(ri(5, 42)),
+        });
+      }
+
+      // ── injected edge cases (coherent defaults via base) ──
+      function base(o) {
+        const brand = o.brand || 'BR3', ret = o.retailer || 'Retailer A';
+        return Object.assign({
+          retailer: ret, location: region[ret], brand, door: doorsBy[ret][0], week: weeks[0],
+          collection: brand + ' X 2024', frameMaterial: 'Acetate', size: '54', msrp: '180',
+          buyUnits: '50', tyUnits: '20', tyRtl: '3200', tyOH: '30', tyST: '0.40', lyUnits: '18',
+          lyRtl: '2900', lyOH: '25', lyST: '0.42', newness: 'Carryover', brandCategory: tier[brand],
+          materialCode: 'MC1', priceRange: '$150-199', style: brand + '-S' + (++styleN), lensColor: 'Grey',
+          frameColor: 'Black', templeColor: 'Black', theme: 'Heritage', transactionId: '',
+          margin: '1400', doorCount: '18',
+        }, o);
+      }
+      add(base({ brand: 'BR1', retailer: 'Retailer A', collection: 'BR1 Audit 2024', msrp: '', tyUnits: '-4', tyRtl: '-150', tyOH: '-6', tyST: '1.60', priceRange: '$250-299' }));         // integrity flags
+      add(base({ brand: 'BR5', retailer: 'Retailer B', collection: 'BR5 Overlist 2024', msrp: '90', tyUnits: '25', tyRtl: '3000', tyOH: '10', tyST: '0.62', priceRange: '$50-99' }));     // AUR > MSRP
+      add(base({ brand: 'BR3', retailer: 'Retailer C', collection: 'BR3 Legacy 2019', msrp: '185', tyUnits: '0', tyRtl: '0', tyOH: '130', tyST: '0', lyUnits: '9', lyRtl: '1500', lyOH: '80', lyST: '0.10' }));  // dead + aged
+      add(base({ brand: 'BR2', retailer: 'Retailer A', collection: 'BR2 Vault 2018', msrp: '230', tyUnits: '0', tyRtl: '0', tyOH: '90', tyST: '0', lyUnits: '4', priceRange: '$200-249' }));                       // dead + aged
+      add(base({ brand: 'BR5', retailer: 'Retailer D', door: 'D007', collection: 'BR5 Relic 2019', msrp: '95', tyUnits: '0', tyRtl: '0', tyOH: '70', tyST: '0', lyUnits: '6', priceRange: '$50-99' }));            // dead + aged
+      add(base({ brand: 'BR1', retailer: 'Retailer B', door: 'D003', collection: 'BR1 Archive 2018', msrp: '280', tyUnits: '0', tyRtl: '0', tyOH: '55', tyST: '0', lyUnits: '7', priceRange: '$250-299' }));      // dead + aged
+      add(base({ brand: 'BR1', retailer: 'Retailer D', door: 'D008', collection: 'BR1 Clearance 2024', msrp: '280', tyUnits: '70', tyRtl: '9100', tyOH: '18', tyST: '0.80', priceRange: '$250-299' }));            // deep promo
+      add(base({ brand: 'BR2', retailer: 'Retailer B', door: 'D004', collection: 'BR2 Sunset 2023', msrp: '230', tyUnits: '0', tyRtl: '0', tyOH: '0', tyST: '0', lyUnits: '80', lyRtl: '16000', lyOH: '30', lyST: '0.55', priceRange: '$200-249' }));  // dropped
+      add(base({ brand: 'BR4', retailer: 'Retailer E', door: 'D009', collection: 'BR4 Classic 2023', materialCode: 'MC2', frameMaterial: 'Metal', msrp: '150', tyUnits: '22', tyRtl: '3100', tyOH: '40', tyST: '0.36', lyUnits: '64', lyRtl: '9000', lyOH: '50', lyST: '0.40' }));  // cannibalized (old)
+      add(base({ brand: 'BR4', retailer: 'Retailer E', door: 'D010', collection: 'BR4 Reissue 2025', materialCode: 'MC2', frameMaterial: 'Metal', msrp: '160', tyUnits: '58', tyRtl: '8400', tyOH: '24', tyST: '0.71', lyUnits: '0', lyRtl: '0', lyOH: '0', lyST: '0', newness: 'New' }));            // cannibalizer (new)
+      add(base({ brand: 'BR1', retailer: 'Retailer C', door: 'D005', collection: 'BR1 Hero 2025', msrp: '300', tyUnits: '210', tyRtl: '59000', tyOH: '8', tyST: '0.96', lyUnits: '0', newness: 'New', priceRange: '$300+' }));  // anomaly
+
+      // ── transaction baskets: group consecutive rows (1–3) so brands co-occur ──
+      let bi = 0, bt = 0;
+      while (bi < rows.length) {
+        const n = 1 + Math.floor(R() * 3), id = 'T-' + (1000 + (++bt));
+        for (let k = 0; k < n && bi < rows.length; k++, bi++) rows[bi].transactionId = id;
+      }
+
+      const SV = {};
+      Object.keys(SAMPLE_HEADERS).forEach(f => { SV[f] = rows.map(r => r[f] == null ? '' : String(r[f])); });
+      return { values: SV, rows: rows.length };
+    })();
+    const SAMPLE_VALUES = SAMPLE.values;
+    const SAMPLE_ROWS = SAMPLE.rows;
 
     const $ = id => document.getElementById(id);
     const body = document.body;
@@ -1421,6 +1826,18 @@ body[data-story="promo"] .story-num { color: var(--warn); }
     /* ─── Snapshot import button proxies hidden file input ────────── */
     $('snapInBtn')?.addEventListener('click', () => $('snapIn').click());
 
+    /* ─── Clear data / start fresh ────────────────────────────────── */
+    $('clearDataBtn')?.addEventListener('click', () => {
+      const api = window.SOA_APP;
+      if (!api || typeof api.clearData !== 'function') return;
+      const hadData = api.clearData();
+      // reset the paste box hint mirror and refresh the schema for the active read
+      const box = $('pasteBox');
+      if (box) box.dispatchEvent(new Event('input', { bubbles: true }));
+      renderPasteSchema(body.dataset.story);
+      showToast(hadData ? 'Data cleared — drop a new workbook to start fresh' : 'No data loaded');
+    });
+
     /* ─── Drop / Paste mode toggle + paste→File adapter ───────────── */
     const modeDropBtn = $('modeDropBtn');
     const modePasteBtn = $('modePasteBtn');
@@ -1435,7 +1852,8 @@ body[data-story="promo"] .story-num { color: var(--warn); }
       modePasteBtn.setAttribute('aria-selected', String(!isDrop));
       dz.hidden = !isDrop;
       pasteZone.hidden = isDrop;
-      if (!isDrop) setTimeout(() => pasteBox.focus(), 30);
+      // entering paste mode: make sure the ghost sample is showing for this read
+      if (!isDrop) setGhostSample(body.dataset.story);
     }
     modeDropBtn.addEventListener('click', () => setMode('drop'));
     modePasteBtn.addEventListener('click', () => setMode('paste'));
@@ -1447,7 +1865,32 @@ body[data-story="promo"] .story-num { color: var(--warn); }
       const split = tabbed ? l => l.split('\t') : l => l.split(',');
       return lines.map(split);
     }
+
+    /* ─── Ghost sample: the read's sample sits in the box at low opacity
+       until the user types their own data. Load with an untouched/empty box
+       just loads the sample. ─────────────────────────────────────────── */
+    function setGhostSample(id) {
+      if (!pasteBox) return;
+      if (pasteBox.dataset.edited === 'true') return;   // user has their own data
+      const { header, rows } = sampleMatrix(id || body.dataset.story);
+      pasteBox.value = tsv([header].concat(rows));
+      pasteBox.dataset.ghost = 'true';
+      pasteBox.classList.add('is-ghost');
+      updatePasteHint();
+    }
+    function clearGhost() {
+      if (pasteBox.dataset.ghost === 'true') {
+        pasteBox.value = '';
+        pasteBox.dataset.ghost = 'false';
+        pasteBox.classList.remove('is-ghost');
+        updatePasteHint();
+      }
+    }
     function updatePasteHint() {
+      if (pasteBox.dataset.ghost === 'true') {
+        pasteHint.textContent = 'Sample shown · Load pasted data uses it, or type to replace';
+        return;
+      }
       const aoa = parsePasted(pasteBox.value);
       const rows = aoa.length;
       const cols = aoa.length ? Math.max(...aoa.map(r => r.length)) : 0;
@@ -1455,26 +1898,48 @@ body[data-story="promo"] .story-num { color: var(--warn); }
         ? `${rows.toLocaleString()} row${rows === 1 ? '' : 's'} · ${cols} column${cols === 1 ? '' : 's'} detected`
         : '0 rows detected';
     }
-    pasteBox.addEventListener('input', updatePasteHint);
-    $('loadPasteBtn').addEventListener('click', () => {
-      const text = pasteBox.value;
-      if (!text.trim()) { pasteHint.textContent = 'Paste a range with headers first.'; return; }
-      if (typeof XLSX === 'undefined') { pasteHint.textContent = 'XLSX library not loaded yet.'; return; }
-      const aoa = parsePasted(text);
-      if (!aoa.length) { pasteHint.textContent = 'Could not detect rows.'; return; }
+    // typing into the ghost clears it so the user starts fresh
+    pasteBox.addEventListener('focus', clearGhost);
+    pasteBox.addEventListener('input', () => {
+      const has = pasteBox.value.trim().length > 0;
+      pasteBox.dataset.edited = has ? 'true' : 'false';
+      if (has) { pasteBox.dataset.ghost = 'false'; pasteBox.classList.remove('is-ghost'); }
+      updatePasteHint();
+    });
+    // leaving an empty box restores the ghost sample
+    pasteBox.addEventListener('blur', () => {
+      if (!pasteBox.value.trim()) { pasteBox.dataset.edited = 'false'; setGhostSample(body.dataset.story); }
+    });
+
+    function loadAOA(aoa, label) {
+      if (typeof XLSX === 'undefined') { pasteHint.textContent = 'XLSX library not loaded yet.'; return false; }
+      if (!aoa.length) { pasteHint.textContent = 'Could not detect rows.'; return false; }
       try {
         const ws = XLSX.utils.aoa_to_sheet(aoa);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Sell-Out');
         const buf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
-        const file = new File([buf], 'pasted-data.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const file = new File([buf], (label || 'pasted-data') + '.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const dt = new DataTransfer();
         dt.items.add(file);
         $('file').files = dt.files;
         $('file').dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
       } catch (err) {
         pasteHint.textContent = 'Could not convert paste: ' + err.message;
+        return false;
       }
+    }
+    $('loadPasteBtn').addEventListener('click', () => {
+      const isGhost = pasteBox.dataset.ghost === 'true';
+      const hasText = pasteBox.value.trim().length > 0;
+      // No data added → load the built-in sample for this read
+      if (!hasText || isGhost) {
+        const { header, rows } = sampleMatrix(body.dataset.story);
+        if (loadAOA([header].concat(rows), 'sample-data')) showToast('Loaded sample data — the result is rendered below');
+        return;
+      }
+      loadAOA(parsePasted(pasteBox.value), 'pasted-data');
     });
 
     /* ─── View-mode (cover ↔ story) toggles ───────────────────────── */
@@ -1492,9 +1957,12 @@ body[data-story="promo"] .story-num { color: var(--warn); }
     /* Picking any project chip enters story mode. The selling-analysis-app.js
        chip click handler still fires — it calls selectAnalysis, which toggles
        the active lens. We piggy-back via event delegation. */
+    let selectedStoryId = 'integrity';
     document.addEventListener('click', e => {
       const chip = e.target.closest('.project-chip');
-      if (chip && body.dataset.view === 'cover') enterStory();
+      if (!chip) return;
+      if (chip.dataset.storyId) selectedStoryId = chip.dataset.storyId;
+      if (body.dataset.view === 'cover') enterStory();
     }, true);
 
     /* ─── Watch the active lens, mirror its id onto body[data-story] ── */
@@ -1502,7 +1970,11 @@ body[data-story="promo"] .story-num { color: var(--warn); }
     function syncStoryFromActiveLens() {
       const active = lensPanel.querySelector('.lens.active');
       if (!active) return;
-      const id = active.id.replace(/^lens-/, '');
+      let id = active.id.replace(/^lens-/, '');
+      // Analyses without a dedicated lens share the generic workbench lens —
+      // recover the real analysis id so the header + paste schema stay specific.
+      if (id === 'workbench' && selectedStoryId && selectedStoryId !== 'workbench') id = selectedStoryId;
+      else selectedStoryId = id;
       body.dataset.story = id;
       paintStoryHeader(id);
       promoteHeroKPI(id);
@@ -1520,6 +1992,7 @@ body[data-story="promo"] .story-num { color: var(--warn); }
       $('storyTitle').textContent = meta.title || meta.name || '';
       $('storyDek').textContent = meta.dek || meta.question || '';
       paintPreludeNeeds(id);
+      renderPasteSchema(id);
     }
     function analysisNumber(id) {
       const a = (window.SOA && window.SOA.ANALYSES) ? window.SOA.ANALYSES.find(x => x.id === id) : null;
@@ -1535,16 +2008,141 @@ body[data-story="promo"] .story-num { color: var(--warn); }
     function paintPreludeNeeds(id) {
       const list = $('preludeNeedsList');
       if (!list) return;
-      const a = (window.SOA && window.SOA.ANALYSES) ? window.SOA.ANALYSES.find(x => x.id === id) : null;
-      if (!a) { list.innerHTML = ''; return; }
-      const labelFor = window.SOA && window.SOA.fieldLabel ? window.SOA.fieldLabel : (s => s);
+      const { fields, required } = neededFields(id);
       list.innerHTML = '';
-      a.metrics.forEach(field => {
+      if (!fields.length) { return; }
+      fields.forEach(field => {
+        const isReq = required.has(field);
         const li = document.createElement('li');
-        li.textContent = labelFor(field);
+        li.dataset.req = String(isReq);
+        const name = document.createElement('span');
+        name.textContent = sampleHeader(field);
+        const tag = document.createElement('span');
+        tag.className = 'need-tag';
+        tag.textContent = isReq ? 'required' : 'optional';
+        li.appendChild(name);
+        li.appendChild(tag);
         list.appendChild(li);
       });
     }
+
+    /* ─── Paste-mode schema: ordered headers this read needs ───────── */
+    function neededFields(id) {
+      const a = (window.SOA && window.SOA.ANALYSES) ? window.SOA.ANALYSES.find(x => x.id === id) : null;
+      if (!a) return { fields: [], required: new Set() };
+      const required = new Set(a.required);
+      const seen = new Set();
+      const fields = [];
+      // required first, then any extra metric columns that add depth
+      a.required.concat(a.metrics).forEach(f => {
+        if (seen.has(f)) return;
+        seen.add(f);
+        fields.push(f);
+      });
+      // the parser needs at least one identity column; if a read is all-numeric
+      // (e.g. Scenario Planner), anchor the sample with Brand so it can load.
+      const NUMERIC = new Set(['msrp', 'buyUnits', 'tyUnits', 'tyRtl', 'tyOH', 'tyST',
+        'lyUnits', 'lyRtl', 'lyOH', 'lyST', 'margin', 'doorCount']);
+      if (!fields.some(f => !NUMERIC.has(f))) fields.unshift('brand');
+      return { fields, required };
+    }
+    function sampleHeader(f) { return SAMPLE_HEADERS[f] || (window.SOA && window.SOA.fieldLabel ? window.SOA.fieldLabel(f) : f); }
+    function sampleMatrix(id) {
+      const { fields } = neededFields(id);
+      const header = fields.map(sampleHeader);
+      const rows = [];
+      for (let i = 0; i < SAMPLE_ROWS; i++) {
+        rows.push(fields.map(f => {
+          const vals = SAMPLE_VALUES[f];
+          return vals ? vals[i % vals.length] : '';
+        }));
+      }
+      return { header, rows };
+    }
+    function renderPasteSchema(id) {
+      const chipsHost = $('schemaChips');
+      const tableHost = $('sampleTable');
+      const nameNode = $('schemaForName');
+      if (!chipsHost || !tableHost) return;
+      const { fields, required } = neededFields(id);
+      const meta = STORY_META[id] || lookupAnalysisMeta(id);
+      if (nameNode) nameNode.textContent = (meta && (meta.title || meta.name)) || 'this read';
+      // chips — one per needed column, required ones highlighted
+      chipsHost.innerHTML = '';
+      fields.forEach(f => {
+        const isReq = required.has(f);
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'schema-chip';
+        chip.dataset.req = String(isReq);
+        chip.dataset.header = sampleHeader(f);
+        chip.innerHTML = `${sampleHeader(f)}<span class="chip-tag">${isReq ? 'required' : 'adds depth'}</span>`;
+        chip.title = 'Click to copy this column name';
+        chip.addEventListener('click', () => copyText(chip.dataset.header, `Copied "${chip.dataset.header}"`));
+        chipsHost.appendChild(chip);
+      });
+      // sample table preview
+      const { header, rows } = sampleMatrix(id);
+      const t = document.createElement('table');
+      const thead = document.createElement('thead');
+      const htr = document.createElement('tr');
+      header.forEach(h => { const th = document.createElement('th'); th.textContent = h; htr.appendChild(th); });
+      thead.appendChild(htr); t.appendChild(thead);
+      const tb = document.createElement('tbody');
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        r.forEach(c => { const td = document.createElement('td'); td.textContent = c; tr.appendChild(td); });
+        tb.appendChild(tr);
+      });
+      t.appendChild(tb);
+      tableHost.innerHTML = '';
+      tableHost.appendChild(t);
+      // result preview — viz + plain-language example of the output
+      const viz = $('resultViz');
+      const ex = $('resultExample');
+      if (viz) viz.innerHTML = vizFor(id);
+      if (ex) ex.innerHTML = exampleFor(id);
+      // refresh the ghost sample so it matches this read's columns (unless edited)
+      setGhostSample(id);
+    }
+    function tsv(matrix) { return matrix.map(r => r.join('\t')).join('\n'); }
+    function copyText(text, okMsg) {
+      const done = () => showToast(okMsg || 'Copied');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+      } else { fallbackCopy(text, done); }
+    }
+    function fallbackCopy(text, cb) {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      if (cb) cb();
+    }
+    let toastTimer = 0;
+    function showToast(msg) {
+      const t = $('toast');
+      if (!t) return;
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+    /* Copy the whole header row · insert headers+sample rows into the box */
+    $('copyHeadersBtn')?.addEventListener('click', () => {
+      const { header } = sampleMatrix(body.dataset.story);
+      copyText(header.join('\t'), 'Header row copied — paste into Excel');
+    });
+    $('insertSampleBtn')?.addEventListener('click', () => {
+      const { header, rows } = sampleMatrix(body.dataset.story);
+      const box = $('pasteBox');
+      if (!box) return;
+      box.value = tsv([header].concat(rows));
+      box.dispatchEvent(new Event('input', { bubbles: true }));
+      box.focus();
+      showToast('Sample inserted — press Load pasted data to preview');
+    });
 
     /* ─── Promote the hero KPI for the active story ─────────────── */
     function promoteHeroKPI(id) {
@@ -1605,8 +2203,8 @@ body[data-story="promo"] .story-num { color: var(--warn); }
         chip.dataset.storyId = meta.id;
         if (meta.ready != null) chip.dataset.ready = String(!!meta.ready);
         const dek = (STORY_META[meta.id] && STORY_META[meta.id].dek) || meta.question || '';
-        const viz = VIZ[meta.id] || VIZ_FALLBACK;
-        const example = EXAMPLE[meta.id] || EXAMPLE_FALLBACK;
+        const viz = vizFor(meta.id);
+        const example = exampleFor(meta.id);
         chip.innerHTML =
           `<span class="chip-num">${num}</span>` +
           `<span class="chip-body">` +

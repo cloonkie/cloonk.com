@@ -674,11 +674,327 @@
     };
   }
 
+  /* ---- stats helpers (for the extended reads) ---------------------------- */
+  function mean(arr) { const a = arr.filter(x => x != null); return a.length ? a.reduce((s, x) => s + x, 0) / a.length : null; }
+  function stdev(arr) {
+    const a = arr.filter(x => x != null);
+    if (a.length < 2) return 0;
+    const m = a.reduce((s, x) => s + x, 0) / a.length;
+    return Math.sqrt(a.reduce((s, x) => s + (x - m) * (x - m), 0) / (a.length - 1));
+  }
+  function linreg(pts) {
+    const n = pts.length;
+    if (n < 2) return { slope: 0, intercept: n ? pts[0][1] : 0 };
+    let sx = 0, sy = 0, sxx = 0, sxy = 0;
+    pts.forEach(([x, y]) => { sx += x; sy += y; sxx += x * x; sxy += x * y; });
+    const d = n * sxx - sx * sx;
+    const slope = d ? (n * sxy - sx * sy) / d : 0;
+    return { slope, intercept: (sy - slope * sx) / n };
+  }
+  const parseLow = s => { const m = String(s).match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : 0; };
+
+  /* ======================================================================= *
+   *  LENS 5 — Assortment Productivity
+   * ======================================================================= */
+  function assortmentProductivity(rows, opts) {
+    const dim = (opts && opts.groupBy) || 'brand';
+    const g = groupBy(rows, r => (r[dim] == null || r[dim] === '') ? '—' : r[dim]);
+    const out = [];
+    g.forEach((rs, k) => {
+      const valid = rs.filter(r => r._validSale);
+      const rtl = sum(valid, r => r.tyRtl), units = sum(valid, r => r.tyUnits), oh = sum(rs, r => r.tyOH);
+      out.push({
+        key: k, skus: rs.length, units, rtl, oh,
+        rtlPerSku: rs.length ? rtl / rs.length : 0,
+        cover: units ? oh / units : null,
+        stProxy: (units + oh) ? units / (units + oh) : null,
+      });
+    });
+    out.sort((a, b) => b.rtl - a.rtl);
+    return out;
+  }
+
+  /* ======================================================================= *
+   *  LENS 6 — Size Curve
+   * ======================================================================= */
+  function sizeCurveAnalysis(rows) {
+    const g = groupBy(rows.filter(r => r.size != null && r.size !== ''), r => r.size);
+    const out = [];
+    g.forEach((rs, k) => out.push({
+      size: String(k),
+      units: sum(rs, r => (r.tyUnits > 0 ? r.tyUnits : 0)),
+      oh: sum(rs, r => r.tyOH),
+      buy: sum(rs, r => r.buyUnits),
+    }));
+    out.sort((a, b) => parseLow(a.size) - parseLow(b.size));
+    const tU = sum(out, o => o.units) || 1, tO = sum(out, o => o.oh) || 1, tB = sum(out, o => o.buy);
+    out.forEach(o => { o.sellShare = o.units / tU; o.ohShare = o.oh / tO; o.buyShare = tB ? o.buy / tB : null; });
+    return out;
+  }
+
+  /* ======================================================================= *
+   *  LENS 7 — Price Architecture
+   * ======================================================================= */
+  function priceArchitectureAnalysis(rows) {
+    const g = groupBy(rows.filter(r => r.priceRange != null && r.priceRange !== ''), r => r.priceRange);
+    const out = [];
+    g.forEach((rs, k) => {
+      const valid = rs.filter(r => r._validSale);
+      const units = sum(valid, r => r.tyUnits), rtl = sum(valid, r => r.tyRtl);
+      out.push({ band: String(k), skus: rs.length, units, rtl, oh: sum(rs, r => r.tyOH), aur: units ? rtl / units : null });
+    });
+    out.sort((a, b) => parseLow(a.band) - parseLow(b.band));
+    return out;
+  }
+
+  /* ======================================================================= *
+   *  LENS 8 — Inventory Aging & Exit
+   * ======================================================================= */
+  function inventoryAging(rows) {
+    const g = groupBy(rows.filter(r => r._hasOH), r => r.relYear != null ? String(r.relYear) : 'Unknown');
+    const out = [];
+    g.forEach((rs, k) => out.push({
+      year: k, oh: sum(rs, r => r.tyOH),
+      tiedRetail: sum(rs, r => (r.tyOH || 0) * (r.msrp || 0)),
+      dead: rs.filter(r => r._dead).length, skus: rs.length,
+    }));
+    out.sort((a, b) => (a.year === 'Unknown' ? 9999 : parseInt(a.year, 10)) - (b.year === 'Unknown' ? 9999 : parseInt(b.year, 10)));
+    return out;
+  }
+
+  /* ======================================================================= *
+   *  LENS 9 — Markdown Sensitivity
+   * ======================================================================= */
+  function markdownSensitivityAnalysis(rows, nb) {
+    nb = nb || 8;
+    const valid = rows.filter(r => r._validAUR && r.promoIndex != null && r.promoIndex >= 0);
+    const buckets = [];
+    for (let i = 0; i < nb; i++) buckets.push({ lo: i / nb, hi: (i + 1) / nb, units: 0, rows: 0, stSum: 0, stN: 0 });
+    valid.forEach(r => {
+      const d = Math.max(0, Math.min(0.999, r.promoIndex));
+      const b = buckets[Math.floor(d * nb)];
+      b.units += r.tyUnits > 0 ? r.tyUnits : 0; b.rows++;
+      if (r.tyST != null) { b.stSum += r.tyST; b.stN++; }
+    });
+    buckets.forEach(b => { b.depth = (b.lo + b.hi) / 2; b.avgUnits = b.rows ? b.units / b.rows : 0; b.avgST = b.stN ? b.stSum / b.stN : null; });
+    const fit = linreg(buckets.filter(b => b.rows > 0).map(b => [b.depth, b.avgUnits]));
+    return { buckets, fit, n: valid.length };
+  }
+
+  /* ======================================================================= *
+   *  LENS 10 — Demand Forecasting Lite
+   * ======================================================================= */
+  function demandForecast(rows, horizon) {
+    horizon = horizon || 8;
+    const g = groupBy(rows.filter(r => r.week != null && r.week !== ''), r => String(r.week));
+    const series = [];
+    g.forEach((rs, k) => series.push({ week: k, units: sum(rs, r => (r.tyUnits > 0 ? r.tyUnits : 0)) }));
+    series.sort((a, b) => a.week < b.week ? -1 : a.week > b.week ? 1 : 0);
+    const fit = linreg(series.map((s, i) => [i, s.units]));
+    const proj = [];
+    for (let i = 0; i < horizon; i++) { const x = series.length + i; proj.push({ step: i + 1, units: Math.max(0, fit.slope * x + fit.intercept) }); }
+    return { series, proj, fit };
+  }
+
+  /* ======================================================================= *
+   *  LENS 11 — Anomaly Detection (z-score on ST% and AUR ratio)
+   * ======================================================================= */
+  function anomalyDetection(rows) {
+    const valid = rows.filter(r => r._validSale);
+    const stM = mean(valid.map(r => r.tyST)), stS = stdev(valid.map(r => r.tyST)) || 1;
+    const aurM = mean(valid.map(r => r.aurRatio)), aurS = stdev(valid.map(r => r.aurRatio)) || 1;
+    const points = valid.map(r => {
+      const zST = r.tyST != null && stM != null ? (r.tyST - stM) / stS : 0;
+      const zAUR = r.aurRatio != null && aurM != null ? (r.aurRatio - aurM) / aurS : 0;
+      const score = Math.max(Math.abs(zST), Math.abs(zAUR));
+      return { brand: r.brand, retailer: r.retailer, collection: r.collection, units: r.tyUnits, rtl: r.tyRtl, st: r.tyST, aurRatio: r.aurRatio, score, outlier: score > 2.5 };
+    });
+    points.sort((a, b) => b.score - a.score);
+    return { points, outliers: points.filter(p => p.outlier) };
+  }
+
+  /* ======================================================================= *
+   *  LENS 12 — Retailer Scorecard (radar across 5 normalized axes)
+   * ======================================================================= */
+  function retailerScorecard(rows) {
+    const g = groupBy(rows, r => r.retailer == null ? '—' : r.retailer);
+    const raw = [];
+    g.forEach((rs, k) => {
+      const valid = rs.filter(r => r._validSale);
+      const rtl = sum(valid, r => r.tyRtl), units = sum(valid, r => r.tyUnits);
+      const ly = sum(rs.filter(r => r.lyUnits > 0), r => r.lyUnits);
+      const oh = sum(rs, r => r.tyOH), deadOH = sum(rs.filter(r => r._dead), r => r.tyOH);
+      const promoUnits = sum(valid.filter(r => r.isPromo), r => r.tyUnits);
+      raw.push({
+        retailer: k, rtl, skus: rs.length, units, rtlPerSku: rs.length ? rtl / rs.length : 0,
+        fullPrice: units ? 1 - promoUnits / units : null,
+        growth: ly ? units / ly - 1 : null,
+        invHealth: oh ? 1 - deadOH / oh : null,
+      });
+    });
+    const axes = [['rtl', 'Mix'], ['rtlPerSku', 'Productivity'], ['fullPrice', 'Full-price'], ['growth', 'Growth'], ['invHealth', 'Inv. health']];
+    axes.forEach(([f]) => {
+      const vals = raw.map(r => r[f]).filter(x => x != null);
+      const min = vals.length ? Math.min.apply(null, vals) : 0, max = vals.length ? Math.max.apply(null, vals) : 1;
+      raw.forEach(r => { r.norm = r.norm || {}; r.norm[f] = (r[f] == null || max === min) ? 0.5 : (r[f] - min) / (max - min); });
+    });
+    raw.sort((a, b) => b.rtl - a.rtl);
+    return { retailers: raw, axes };
+  }
+
+  /* ======================================================================= *
+   *  LENS 13 — Collection Lifecycle
+   * ======================================================================= */
+  function collectionLifecycle(rows) {
+    const g = groupBy(rows.filter(r => r.collection != null && r.collection !== ''), r => r.collection);
+    const cur = new Date().getFullYear();
+    const out = [];
+    g.forEach((rs, k) => {
+      const units = sum(rs, r => (r.tyUnits > 0 ? r.tyUnits : 0));
+      const ly = sum(rs.filter(r => r.lyUnits > 0), r => r.lyUnits), oh = sum(rs, r => r.tyOH);
+      const stVals = rs.map(r => r.tyST).filter(x => x != null && x >= 0 && x <= 1);
+      const st = stVals.length ? mean(stVals) : ((units + oh) ? units / (units + oh) : null);
+      const age = rs[0].relYear != null ? cur - rs[0].relYear : null;
+      let stage = 'Mature';
+      if (ly === 0 && units > 0) stage = 'Launch';
+      else if (units === 0 && oh > 0) stage = 'Exit';
+      else if (ly > 0 && units < ly * 0.7) stage = 'Decay';
+      else if (units > ly) stage = 'Growth';
+      out.push({ collection: String(k), age, units, ly, oh, st, stage });
+    });
+    out.sort((a, b) => b.units - a.units);
+    return out;
+  }
+
+  /* ======================================================================= *
+   *  LENS 14 — Door Clustering (quadrant on volume × sell-through)
+   *  Uses tyUnits + tyST (both in the read's metric set) so it works even when
+   *  retail $ is absent; AUR is reported alongside only when tyRtl is present.
+   * ======================================================================= */
+  function doorClustering(rows) {
+    const g = groupBy(rows.filter(r => r.door != null && r.door !== ''), r => r.door);
+    const points = [];
+    g.forEach((rs, k) => {
+      const units = sum(rs, r => (r.tyUnits > 0 ? r.tyUnits : 0));
+      const oh = sum(rs, r => r.tyOH);
+      const stVals = rs.map(r => r.tyST).filter(x => x != null && x >= 0 && x <= 1);
+      const st = stVals.length ? mean(stVals) : ((units + oh) ? units / (units + oh) : null);
+      const valid = rs.filter(r => r._validSale);
+      const vUnits = sum(valid, r => r.tyUnits), vRtl = sum(valid, r => r.tyRtl);
+      points.push({ door: String(k), units, st, aur: vUnits ? vRtl / vUnits : null, skus: rs.length });
+    });
+    const unitMed = median(points.map(p => p.units)), stMed = median(points.map(p => p.st));
+    points.forEach(p => {
+      const hiV = (p.units || 0) >= (unitMed || 0), hiS = (p.st || 0) >= (stMed || 0);
+      p.cluster = hiV && hiS ? 'High-vol · fast' : hiV && !hiS ? 'High-vol · slow' : !hiV && hiS ? 'Low-vol · fast' : 'Low-vol · slow';
+    });
+    return { points, unitMed, stMed };
+  }
+
+  /* ======================================================================= *
+   *  LENS 15 — Market Basket (brand co-occurrence by transaction)
+   * ======================================================================= */
+  function marketBasket(rows) {
+    const byTxn = groupBy(rows.filter(r => r.transactionId != null && r.transactionId !== '' && r.brand != null), r => r.transactionId);
+    const pair = new Map(), single = new Map();
+    byTxn.forEach(rs => {
+      const brands = Array.from(new Set(rs.map(r => r.brand)));
+      brands.forEach(b => single.set(b, (single.get(b) || 0) + 1));
+      for (let i = 0; i < brands.length; i++)
+        for (let j = i + 1; j < brands.length; j++) {
+          const key = [brands[i], brands[j]].sort().join(' + ');
+          pair.set(key, (pair.get(key) || 0) + 1);
+        }
+    });
+    const pairs = Array.from(pair, ([k, v]) => ({ pair: k, count: v })).sort((a, b) => b.count - a.count);
+    return { pairs, baskets: byTxn.size, brands: Array.from(single, ([k, v]) => ({ brand: k, count: v })).sort((a, b) => b.count - a.count) };
+  }
+
+  /* ======================================================================= *
+   *  LENS 16 — Cannibalization
+   * ======================================================================= */
+  function cannibalization(rows) {
+    const g = groupBy(rows.filter(r => r.brand != null), r => r.brand + ' / ' + (r.materialCode || r.priceRange || '—'));
+    const out = [];
+    g.forEach((rs, k) => {
+      const byCol = groupBy(rs, r => r.collection || '—');
+      let newGain = 0, oldLoss = 0;
+      byCol.forEach(crs => {
+        const t = sum(crs, r => (r.tyUnits > 0 ? r.tyUnits : 0)), l = sum(crs, r => (r.lyUnits > 0 ? r.lyUnits : 0));
+        if (l === 0 && t > 0) newGain += t; else if (t < l) oldLoss += (l - t);
+      });
+      if (newGain > 0 && oldLoss > 0) out.push({ group: k, newGain, oldLoss, net: newGain - oldLoss, risk: Math.min(1, oldLoss / (newGain + oldLoss)) });
+    });
+    out.sort((a, b) => b.oldLoss - a.oldLoss);
+    return out;
+  }
+
+  /* ======================================================================= *
+   *  LENS 17 — Whitespace (attribute × retailer gaps)
+   * ======================================================================= */
+  function whitespace(rows, opts) {
+    const attr = (opts && opts.attr) || 'priceRange';
+    const retailers = distinct(rows, 'retailer');
+    const attrs = distinct(rows, attr);
+    const cell = {};
+    rows.forEach(r => {
+      if (r.retailer == null || r[attr] == null) return;
+      const key = r[attr] + ' ' + r.retailer;
+      cell[key] = (cell[key] || 0) + (r.tyUnits > 0 ? r.tyUnits : 0);
+    });
+    const matrix = attrs.map(a => retailers.map(ret => cell[a + ' ' + ret] || 0));
+    const rowTotals = matrix.map(row => row.reduce((s, x) => s + x, 0));
+    const gaps = [];
+    attrs.forEach((a, ai) => retailers.forEach((ret, ri) => {
+      if (rowTotals[ai] > 0 && matrix[ai][ri] === 0) gaps.push({ attr: a, retailer: ret, rowStrength: rowTotals[ai] });
+    }));
+    gaps.sort((a, b) => b.rowStrength - a.rowStrength);
+    return { attr, attrs, retailers, matrix, rowTotals, gaps };
+  }
+
+  /* ======================================================================= *
+   *  LENS 18 — Replenishment Prioritizer
+   * ======================================================================= */
+  function replenishment(rows) {
+    const valid = rows.filter(r => r.tyUnits > 0 && r._hasOH);
+    const scored = valid.map(r => {
+      const cover = r.tyUnits ? r.tyOH / r.tyUnits : null;
+      const urgency = (r.tyST != null ? r.tyST : 0.5) * (cover != null ? 1 / (1 + cover) : 0.5);
+      return { sku: (r.style || r.upc || r.collection || '—'), brand: r.brand, units: r.tyUnits, oh: r.tyOH, st: r.tyST, cover, margin: r.margin, urgency };
+    });
+    scored.sort((a, b) => b.urgency - a.urgency);
+    return scored;
+  }
+
+  /* ======================================================================= *
+   *  LENS 19 — Scenario Planner (hold / markdown / replenish / exit)
+   * ======================================================================= */
+  function scenarioPlanner(rows, params) {
+    const md = (params && params.markdown) || 0.30, rep = (params && params.replenishPct) || 0.20;
+    const onHand = rows.filter(r => r._hasOH);
+    const tiedRetail = sum(onHand, r => (r.tyOH || 0) * (r.msrp || 0));
+    const dead = onHand.filter(r => r._dead);
+    const deadTied = sum(dead, r => (r.tyOH || 0) * (r.msrp || 0));
+    const baseUnits = sum(rows.filter(r => r._validSale), r => r.tyUnits);
+    const baseRtl = sum(rows.filter(r => r._validSale), r => r.tyRtl);
+    const scenarios = [
+      { name: 'Hold', units: baseUnits, retail: baseRtl, freedCash: 0 },
+      { name: 'Markdown', units: baseUnits * (1 + md * 0.8), retail: baseRtl * (1 - md * 0.4), freedCash: deadTied * md },
+      { name: 'Replenish', units: baseUnits * (1 + rep * 0.5), retail: baseRtl * (1 + rep * 0.5), freedCash: -tiedRetail * rep * 0.3 },
+      { name: 'Exit dead', units: baseUnits, retail: baseRtl, freedCash: deadTied * 0.5 },
+    ];
+    return { scenarios, tiedRetail, deadTied, onHandRows: onHand.length };
+  }
+
   return {
     FIELD_SYNONYMS, OPTIONAL_DIMS, FIELD_LABELS, ANALYSES,
     num, buildColumnMap, parseRecords, enrich,
     fieldLabel, evaluateAnalyses,
-    groupBy, sum, median, distinct, applyFilters,
+    groupBy, sum, median, distinct, applyFilters, mean, stdev, linreg,
     integrityReport, liquidationRadar, velocityMatrix, momentum, promoAnalysis,
+    assortmentProductivity, sizeCurveAnalysis, priceArchitectureAnalysis, inventoryAging,
+    markdownSensitivityAnalysis, demandForecast, anomalyDetection, retailerScorecard,
+    collectionLifecycle, doorClustering, marketBasket, cannibalization, whitespace,
+    replenishment, scenarioPlanner,
   };
 });
