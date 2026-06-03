@@ -10,6 +10,10 @@ let addMode='door_to_brands';
 let ctxTarget=null;
 let dataKeyState={};
 let _autosaveTimer=null;
+let _dataPaneMarketLoadAttempted=false;
+let dataPanePage=1;
+let dataPanePageSize=75;
+let dataPaneFilterSignature='';
 
 function getBrandCategory(brand){
   const row=matrixData.find(x=>x.brand===brand);
@@ -33,6 +37,27 @@ function normalizeGender(v){
   if(s==='mens only' || s==='men only' || s==='mens' || s==="men's only" || s==="men's") return 'Mens Only';
   if(s==='ladies only' || s==='ladies' || s==='women only' || s==="women's only" || s==='womens only' || s==='womens') return 'Ladies Only';
   return 'ALL';
+}
+const STORE_CADENCE_OPTIONS=[
+  {value:'',label:'-'},
+  {value:'weekly',label:'Weekly',days:7},
+  {value:'biweekly',label:'Biweekly',days:14},
+  {value:'monthly',label:'Monthly',days:30},
+  {value:'quarterly',label:'Quarterly',days:90},
+  {value:'seasonal',label:'Seasonal',days:180}
+];
+function normalizeCadence(v){
+  const s=String(v||'').trim().toLowerCase().replace(/\s+/g,'-');
+  if(s==='every-week' || s==='1-week') return 'weekly';
+  if(s==='bi-weekly' || s==='every-2-weeks' || s==='2-weeks') return 'biweekly';
+  if(s==='every-month' || s==='1-month') return 'monthly';
+  if(s==='qtr' || s==='quarter' || s==='every-quarter') return 'quarterly';
+  if(s==='semiannual' || s==='semi-annual' || s==='twice-yearly') return 'seasonal';
+  return STORE_CADENCE_OPTIONS.some(o=>o.value===s) ? s : '';
+}
+function cadenceLabel(v){
+  const norm=normalizeCadence(v);
+  return (STORE_CADENCE_OPTIONS.find(o=>o.value===norm)||STORE_CADENCE_OPTIONS[0]).label;
 }
 
 function getStateClass(s){
@@ -471,7 +496,7 @@ function removeInvalidDoorRecords(){
     const st=dataKeyState[key];
     if(!st) { delete dataKeyState[key]; return; }
     st.retailer=normalizeRetailer(st.retailer);
-    if(!isPhysicalDoorNumber(st.doorNumber) && String(st.doorNumber)!=='-') delete dataKeyState[key];
+    if(!isPhysicalDoorNumber(st.doorNumber)) delete dataKeyState[key];
   });
 
   Object.keys(doorAssignments||{}).forEach(ak=>{
@@ -575,8 +600,9 @@ function initFromSeed(){
 
   (srcKeys||[]).forEach(row=>{
     const [ret,brand,doorNumber,location,status,note,gender,metric1,metric2]=row;
-    const normalizedDoor=(doorNumber==null || doorNumber==='' || doorNumber==='TBD') ? '-' : doorNumber;
-    const doorInfo=normalizedDoor==='-' ? null : getDoorInfo(ret,normalizedDoor);
+    if(!isPhysicalDoorNumber(doorNumber)) return;
+    const normalizedDoor=normalizeDoorNumberValue(doorNumber);
+    const doorInfo=getDoorInfo(ret,normalizedDoor);
     dataKeyState[buildDataKey(ret,normalizedDoor,brand)]={status:normalizeStatus(status),grade:(doorInfo&&doorInfo.tier)||'-',gender:normalizeGender(gender),note:note||'',metric_1:metric1 ?? '',metric_2:metric2 ?? '',retailer:ret,doorNumber:normalizedDoor,brand:brand};
     syncAssignmentFromDataKey(ret,normalizedDoor,brand);
     if(!brandCodes[brand]) brandCodes[brand]={name:brand,ds_active:true};
@@ -1375,7 +1401,7 @@ function renderStore(items,visR){
     .filter(d=>normalizeRetailer(d.retailer)===normalizeRetailer(activeRet))
     .filter(d=>{
       if(!sq) return true;
-      const blob=[d.retailer,d.doorNumber,d.name,d.address,d.city,d.state,d.zip,d.tier].filter(Boolean).join(' ').toLowerCase();
+      const blob=[d.retailer,d.doorNumber,d.name,d.address,d.city,d.state,d.zip,d.tier,d.storeRep,d.visitCadence].filter(Boolean).join(' ').toLowerCase();
       return blob.includes(sq);
     })
     .sort((a,b)=>String(a.doorNumber).localeCompare(String(b.doorNumber),undefined,{numeric:true}));
@@ -1392,6 +1418,8 @@ function renderStore(items,visR){
     {key:'state',w:'70px',type:'text',ph:'State'},
     {key:'zip',w:'90px',type:'text',ph:'ZIP'},
     {key:'tier',w:'70px',type:'text',ph:'Tier'},
+    {key:'storeRep',label:'Rep',w:'120px',type:'text',ph:'Store rep'},
+    {key:'visitCadence',label:'Cadence',w:'120px',type:'select',ph:'Cadence'},
     {key:'lat',w:'100px',type:'number',ph:'Lat'},
     {key:'lng',w:'100px',type:'number',ph:'Lng'}
   ];
@@ -1399,13 +1427,17 @@ function renderStore(items,visR){
   h+=renderSingleRetailerPicker(visR,activeRet);
   h+='<div class="store-toolbar"><span style="color:var(--text-muted);font-size:0.78rem">'+doors.length+' door'+(doors.length===1?'':'s')+' for '+esc(activeRet)+' — edits save on blur.</span></div>';
   h+='<table class="compact-table store-table"><thead><tr><th>Retailer</th>';
-  fields.forEach(f=>{ h+=`<th>${esc(f.key.charAt(0).toUpperCase()+f.key.slice(1))}</th>`; });
+  fields.forEach(f=>{ h+=`<th>${esc(f.label || (f.key.charAt(0).toUpperCase()+f.key.slice(1)))}</th>`; });
   h+='<th></th></tr></thead><tbody>';
   doors.forEach(d=>{
     const ret=normalizeRetailer(d.retailer);
     const row=fields.map(f=>{
       const val=d[f.key]==null?'':d[f.key];
       const attr=callAttr('updateStoreDoorField',ret,String(d.doorNumber),f.key);
+      if(f.type==='select' && f.key==='visitCadence'){
+        const norm=normalizeCadence(val);
+        return `<td><select data-store-field="${esc(f.key)}" onchange="${attr}">${STORE_CADENCE_OPTIONS.map(o=>`<option value="${esc(o.value)}" ${norm===o.value?'selected':''}>${esc(o.label)}</option>`).join('')}</select></td>`;
+      }
       return `<td><input type="${f.type}" value="${esc(String(val))}" placeholder="${esc(f.ph)}" data-store-field="${esc(f.key)}" onchange="${attr}" oninput="this.dataset.dirty=1"></td>`;
     }).join('');
     h+=`<tr data-store-key="${esc(ret+'|'+d.doorNumber)}"><th class="rh">${esc(ret)}</th>${row}<td style="text-align:right"><button class="btn btn-sm" type="button" onclick="${callAttr('openEditDoorModal',ret,String(d.doorNumber))}" title="Open detail editor">Edit</button></td></tr>`;
@@ -1435,6 +1467,8 @@ function updateStoreDoorField(ret,doorNumber,field,el){
     next=normalizeDoorNumberValue(value);
   }else if(field==='state' || field==='tier'){
     next=String(value||'').trim().toUpperCase();
+  }else if(field==='visitCadence'){
+    next=normalizeCadence(value);
   }else{
     next=String(value||'').trim();
   }
@@ -1477,12 +1511,44 @@ function dataRowMatchesSearch(row,sq,brandName){
   if(!sq) return true;
   return [
     row.retailer,row.doorNumber,row.doorName,row.brand,brandName,row.category,row.location,
-    row.status,row.grade,row.gender,row.note,row.metric_1,row.metric_2,row.key
+    row.status,row.grade,row.gender,row.note,row.metric_1,row.metric_2,row.opportunityScore,
+    row.opportunityBand,row.key
   ].some(v=>String(v||'').toLowerCase().includes(sq));
+}
+function renderDataPagination(totalRows){
+  const pageSize=Math.max(25,Number(dataPanePageSize)||75);
+  const totalPages=Math.max(1,Math.ceil(totalRows/pageSize));
+  dataPanePage=Math.min(Math.max(1,Number(dataPanePage)||1),totalPages);
+  const start=totalRows ? ((dataPanePage-1)*pageSize)+1 : 0;
+  const end=Math.min(totalRows,dataPanePage*pageSize);
+  return `<div class="data-pager">
+    <div class="data-pager__summary">Showing ${start.toLocaleString()}-${end.toLocaleString()} of ${totalRows.toLocaleString()} keys</div>
+    <div class="data-pager__controls">
+      <button class="btn btn-sm" type="button" onclick="setDataPanePage(${dataPanePage-1})" ${dataPanePage<=1?'disabled':''}>Prev</button>
+      <span class="data-pager__page">Page ${dataPanePage.toLocaleString()} / ${totalPages.toLocaleString()}</span>
+      <button class="btn btn-sm" type="button" onclick="setDataPanePage(${dataPanePage+1})" ${dataPanePage>=totalPages?'disabled':''}>Next</button>
+      <select class="data-pager__size" onchange="setDataPanePageSize(this.value)" title="Rows per page">
+        ${[50,75,100,150,250].map(n=>`<option value="${n}" ${pageSize===n?'selected':''}>${n} rows</option>`).join('')}
+      </select>
+    </div>
+  </div>`;
+}
+function setDataPanePage(page){
+  dataPanePage=Math.max(1,Number(page)||1);
+  render();
+}
+function setDataPanePageSize(size){
+  dataPanePageSize=Math.max(25,Number(size)||75);
+  dataPanePage=1;
+  render();
 }
 
 function renderUnpivoted(items,visR){
   const wrap=document.getElementById('mainView');
+  if(!_dataPaneMarketLoadAttempted && typeof loadMarketData==='function' && (!_doorTradeAreaData.features || !_doorTradeAreaData.features.length)){
+    _dataPaneMarketLoadAttempted=true;
+    loadMarketData().then(()=>{ if(currentView==='unpivoted' && currentMode==='data') render(); }).catch(()=>{});
+  }
   const activeRet=getActiveSingleRetailer(visR);
   if(!activeRet){
     wrap.innerHTML='<div style="text-align:center;padding:60px;color:var(--text-dim)">No retailers match the current filters.</div>';
@@ -1499,6 +1565,11 @@ function renderUnpivoted(items,visR){
   const opportunitiesOnly=!!document.getElementById('fOpportunities')?.checked;
   const sq=(document.getElementById('searchBox').value||'').toLowerCase();
   const brands=getAllBrands();
+  const filterSignature=JSON.stringify({ret:activeRet,fc,fb,fs,fg,fgen,opportunitiesOnly,sq,brandCount:brands.length,doorCount:getRetailerDoors(activeRet).length});
+  if(filterSignature!==dataPaneFilterSignature){
+    dataPaneFilterSignature=filterSignature;
+    dataPanePage=1;
+  }
 
   scopedVisR.forEach(ret=>{
     getRetailerDoors(ret).forEach(door=>{
@@ -1508,6 +1579,7 @@ function renderUnpivoted(items,visR){
         if(!hasFilterValue(fc,category)) return;
         if(!hasFilterValue(fb,brand)) return;
         const state=getDataKeyState(ret,door.doorNumber,brand) || {};
+        const opportunity=getDoorOpportunityAnalytics(ret,door.doorNumber);
         const row={
           retailer:ret,
           doorNumber:String(door.doorNumber),
@@ -1521,6 +1593,11 @@ function renderUnpivoted(items,visR){
           note:state.note || '',
           metric_1:state.metric_1 ?? '',
           metric_2:state.metric_2 ?? '',
+          opportunityScore:opportunity.score,
+          opportunityBand:opportunity.band,
+          opportunityPercentile:opportunity.percentile,
+          opportunityClassName:opportunity.className,
+          opportunityTitle:opportunity.title,
           key:buildDataKey(ret,door.doorNumber,brand)
         };
         if(!dataRowMatchesSearch(row,sq,brandName)) return;
@@ -1533,54 +1610,24 @@ function renderUnpivoted(items,visR){
     });
   });
 
-  for(const [aKey,assigns] of Object.entries(doorAssignments)){
-    const [ret,brand]=aKey.split('|');
-    if(!scopedVisR.includes(ret)) continue;
-    const category=getBrandCategory(brand);
-    const brandName=(brandCodes[brand]&&brandCodes[brand].name)||'';
-    if(!hasFilterValue(fc,category)) continue;
-    if(!hasFilterValue(fb,brand)) continue;
-    assigns.forEach(a=>{
-      const rawDoor=a.doorNumber;
-      const hasMappedDoor=String(rawDoor)!=='-' && !!getDoorInfo(ret,rawDoor);
-      if(hasMappedDoor) return;
-      const state=getDataKeyState(ret,'-',brand) || {status:normalizeStatus(a.status),grade:'-',note:a.note||''};
-      const row={
-        retailer:ret,
-        doorNumber:'-',
-        doorName:'-',
-        brand,
-        category,
-        location:'-',
-        status:normalizeStatus(state.status || 'na'),
-        grade:state.grade || '-',
-        gender:normalizeGender(state.gender),
-        note:state.note || '',
-        metric_1:state.metric_1 ?? '',
-        metric_2:state.metric_2 ?? '',
-        key:buildDataKey(ret,'-',brand)
-      };
-      if(!dataRowMatchesSearch(row,sq,brandName)) return;
-      if(opportunitiesOnly && row.status!=='na') return;
-      if(!hasFilterValue(fs,row.status)) return;
-      if(!hasFilterValue(fg,row.grade)) return;
-      if(!hasFilterValue(fgen,row.gender)) return;
-      rows.push(row);
-    });
-  }
-
-  rows.sort((a,b)=>a.retailer.localeCompare(b.retailer)||((a.doorNumber==='-'?Number.MAX_SAFE_INTEGER:Number(a.doorNumber))-(b.doorNumber==='-'?Number.MAX_SAFE_INTEGER:Number(b.doorNumber)))||a.brand.localeCompare(b.brand));
+  rows.sort((a,b)=>a.retailer.localeCompare(b.retailer)||(Number(a.doorNumber)-Number(b.doorNumber))||a.brand.localeCompare(b.brand));
+  const pageSize=Math.max(25,Number(dataPanePageSize)||75);
+  const totalPages=Math.max(1,Math.ceil(rows.length/pageSize));
+  dataPanePage=Math.min(Math.max(1,Number(dataPanePage)||1),totalPages);
+  const pagedRows=rows.slice((dataPanePage-1)*pageSize,dataPanePage*pageSize);
+  const pager=renderDataPagination(rows.length);
   let h=renderSingleRetailerPicker(visR,activeRet);
-  h+='<table class="compact-table"><thead><tr><th>Retailer</th><th>Door Number</th><th>Brand</th><th>Location</th><th>Status</th><th>Category</th><th>Grade</th><th>Gender</th><th>Metric 1</th><th>Metric 2</th><th>Notes</th><th>Key</th></tr></thead><tbody>';
+  h+=pager;
+  h+='<table class="compact-table"><thead><tr><th>Retailer</th><th>Door Number</th><th>Brand</th><th>Location</th><th>Status</th><th>Category</th><th>Grade</th><th>Gender</th><th>Metric 1</th><th>Metric 2</th><th>Opportunity</th><th>Notes</th><th>Key</th></tr></thead><tbody>';
   if(!rows.length){
-    h+=`<tr><td colspan="12" style="text-align:center;color:var(--text-dim);padding:40px">${opportunitiesOnly?'No open brand-door opportunities matched the current filters.':'No door-brand slots matched the current filters.'}</td></tr>`;
+    h+=`<tr><td colspan="13" style="text-align:center;color:var(--text-dim);padding:40px">${opportunitiesOnly?'No open brand-door opportunities matched the current filters.':'No door-brand slots matched the current filters.'}</td></tr>`;
   }
-  rows.forEach(r=>{
+  pagedRows.forEach(r=>{
     const statusPillCls = r.status==='confirmed'?'status-confirmed': r.status==='tbd'?'status-tbd': r.status==='closed'?'status-closed':'status-na';
     const gradePillCls = String(r.grade).toUpperCase()==='A'?'grade-a': String(r.grade).toUpperCase()==='B'?'grade-b': String(r.grade).toUpperCase()==='C'?'grade-c':'grade-none';
     h+=`<tr>
       <td>${esc(r.retailer)}</td>
-      <td style="font-family:var(--font-mono)">${r.doorNumber==='-'?'-':esc(String(r.doorNumber))+' '+esc(r.doorName)}</td>
+      <td style="font-family:var(--font-mono)">${esc(String(r.doorNumber))} ${esc(r.doorName)}</td>
       <td style="font-family:var(--font-mono);font-weight:700">${esc(r.brand)}</td>
       <td>${esc(r.location)}</td>
       <td>
@@ -1601,11 +1648,13 @@ function renderUnpivoted(items,visR){
       </td>
       <td><input class="data-cell-note" type="number" step="any" value="${esc(r.metric_1)}" oninput='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"metric_1",this.value,this)' title="metric_1: first selling metric for this retailer-door-brand row"></td>
       <td><input class="data-cell-note" type="number" step="any" value="${esc(r.metric_2)}" oninput='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"metric_2",this.value,this)' title="metric_2: second selling metric for this retailer-door-brand row"></td>
+      <td><span class="score-pill ${esc(r.opportunityClassName)}" title="${esc(r.opportunityTitle)}"><strong>${esc(r.opportunityScore)}</strong><small>${esc(r.opportunityPercentile || r.opportunityBand)}</small></span></td>
       <td><textarea class="data-cell-note" rows="1" oninput='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"note",this.value,this)'>${esc(r.note)}</textarea></td>
       <td style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim)">${esc(r.key)}</td>
     </tr>`;
   });
   h+='</tbody></table>';
+  h+=pager;
   wrap.innerHTML=h;
 }
 
@@ -2626,6 +2675,27 @@ function getDoorTradeAreaMetrics(d,ret){
   });
   return feature ? (feature.properties || {}) : null;
 }
+function getDoorOpportunityAnalytics(ret,doorNumber){
+  const door=getDoorInfo(ret,doorNumber);
+  const metrics=door ? getDoorTradeAreaMetrics(door,ret) : null;
+  const score=metrics ? Number(metrics.opportunity_score) : NaN;
+  if(!Number.isFinite(score)){
+    return {score:'-',band:'-',percentile:'',className:'score-none',sort:-1,title:'No opportunity score available for this store.'};
+  }
+  const stats=getStoreGeographyMetricStats('opportunity_score');
+  const quart=getQuartileBin(score,stats);
+  const rank=getPercentileRank(score,stats.sorted);
+  const band=QUARTILE_LABELS[quart] || '-';
+  const percentile=rank==null ? '' : `${Math.round(rank*100)}th pct`;
+  return {
+    score:formatMarketValue(score,'score'),
+    band,
+    percentile,
+    className:quart ? `score-q${quart}` : 'score-none',
+    sort:score,
+    title:quart ? `Opportunity score ${formatMarketValue(score,'score')} - ${band}${percentile ? ' / '+percentile : ''}` : `Opportunity score ${formatMarketValue(score,'score')}`
+  };
+}
 
 function onResearchClusterClick(e){
   const feature=e.features && e.features[0];
@@ -3034,15 +3104,18 @@ function getDataKeyState(ret,doorNumber,brand){
   return dataKeyState[buildDataKey(ret,doorNumber,brand)] || null;
 }
 function ensureDataKeyState(ret,doorNumber,brand){
+  if(!isPhysicalDoorNumber(doorNumber)){
+    return {status:'na',grade:'-',gender:'ALL',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:'',brand:brand};
+  }
   const key=buildDataKey(ret,doorNumber,brand);
   if(!dataKeyState[key]){
-    const doorInfo=(String(doorNumber)==='-'?null:getDoorInfo(ret,doorNumber));
+    const doorInfo=getDoorInfo(ret,doorNumber);
     dataKeyState[key]={status:'na',grade:(doorInfo&&doorInfo.tier)||'-',gender:'ALL',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:doorNumber,brand:brand};
   }
   return dataKeyState[key];
 }
 function upsertAssignment(ret,brand,doorNumber,status,note){
-  if(String(doorNumber)==='-' || !getDoorInfo(ret,doorNumber)) return;
+  if(!isPhysicalDoorNumber(doorNumber) || !getDoorInfo(ret,doorNumber)) return;
   const ak=k(ret,brand);
   if(!doorAssignments[ak]) doorAssignments[ak]=[];
   const idx=doorAssignments[ak].findIndex(a=>String(a.doorNumber)===String(doorNumber));
@@ -3059,6 +3132,13 @@ function syncAssignmentFromDataKey(ret,doorNumber,brand){
   upsertAssignment(ret,brand,doorNumber,normalizeStatus(state.status),state.note||'');
 }
 function updateDataKeyField(ret,doorNumber,brand,field,value,el){
+  if(!isPhysicalDoorNumber(doorNumber)){
+    toast('This row has no door number and was removed from door tracking.');
+    removeInvalidDoorRecords();
+    queueAutosave();
+    render();
+    return;
+  }
   const state=ensureDataKeyState(ret,doorNumber,brand);
   const oldVal=(state[field]??'');
   if(field==='status') state.status=normalizeStatus(value);
@@ -3190,7 +3270,7 @@ function openStoreDrawer(ret,brand){
         <div class="drawer-door-meta">
           <div style="font-weight:600;${isDraft?'color:var(--draft);font-style:italic':''}">${isTBD?'TBD — Pending door':'#'+a.doorNumber+' — '+esc(assignedName||'(no name)')}${assignedWarn} <span style="font-size:0.6rem;padding:1px 5px;border-radius:3px;${isDraft?'background:var(--draft-dim);color:var(--draft)':'background:rgba(39,174,96,0.15);color:var(--success)'}">${a.status.toUpperCase()}</span></div>
           <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim);margin-top:2px">${esc(keyVal)}</div>
-          ${a.note?'<div style="color:var(--text-muted);font-size:0.7rem;margin-top:2px">'+esc(a.note)+'</div>':''}
+          <textarea class="data-cell-note drawer-door-note" rows="1" placeholder="Add note..." data-original-note="${esc(a.note||'')}" onclick="event.stopPropagation()" oninput="${jsAttr(`saveDrawerAssignmentNote(${jsq(ret)},${jsq(brand)},${jsq(a.doorNumber)},${i},this.value,this,false)`)}" onchange="${jsAttr(`saveDrawerAssignmentNote(${jsq(ret)},${jsq(brand)},${jsq(a.doorNumber)},${i},this.value,this,true)`)}">${esc(a.note||'')}</textarea>
           <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim)">${a.date||''}</div>
         </div>
         <div class="drawer-door-actions">
@@ -3240,6 +3320,32 @@ function publishFromDrawer(ret,brand,idx){
   openStoreDrawer(ret,brand);
 }
 
+function saveDrawerAssignmentNote(ret,brand,doorNumber,idx,value,el,commitHistory){
+  const ak=k(ret,brand);
+  const assigns=doorAssignments[ak]||[];
+  const a=assigns[idx];
+  if(!a) return;
+  const oldVal=el ? (el.dataset.originalNote||'') : (a.note||'');
+  a.note=value||'';
+  if(isPhysicalDoorNumber(doorNumber)){
+    const st=ensureDataKeyState(ret,doorNumber,brand);
+    st.note=a.note;
+  }
+  if(commitHistory && String(oldVal)!==String(a.note)){
+    recordHistory(ret,brand,{
+      scope:'data',
+      action:'note updated',
+      oldVal,
+      newVal:a.note,
+      doorNumber,
+      user:currentUserName(),
+      note:'Drawer note edited'
+    });
+    if(el) el.dataset.originalNote=a.note;
+  }
+  queueAutosave();
+}
+
 
 let drawerPendingAdds = [];
 let drawerPendingRemoves = [];
@@ -3257,7 +3363,7 @@ function syncDrawerDoorChecks(){
   updateDrawerSelectionButtons();
 }
 function onDrawerRowClick(e, kind){
-  if(e.target.closest('button')||e.target.closest('select')||e.target.tagName==='INPUT') return;
+  if(e.target.closest('button')||e.target.closest('select')||e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
   const row=e.currentTarget;
   const chk=row.querySelector(kind==='add'?'.drawerAddChk':'.drawerRemoveChk');
   if(chk){ chk.checked=!chk.checked; syncDrawerDoorChecks(); collectDrawerPendingAdds(); }
@@ -4153,7 +4259,15 @@ function importMatrixRows(rows){
     d[ret]=parseInt(row.Doors||row.doors||0)||0;
     if(!retailers.includes(ret))retailers.push(ret);
     if(isPhysicalDoorNumber(doorRaw)){
-      const state=ensureDataKeyState(ret,doorRaw,brand);
+      const doorNumber=normalizeDoorNumberValue(doorRaw);
+      const state=ensureDataKeyState(ret,doorNumber,brand);
+      const door=getDoorInfo(ret,doorNumber);
+      if(door){
+        const storeRep=String(row['Store Rep']||row.storeRep||row.Rep||row.rep||row.Owner||row.owner||'').trim();
+        const visitCadence=normalizeCadence(row['Visit Cadence']||row.visitCadence||row.Cadence||row.cadence);
+        if(storeRep) door.storeRep=storeRep;
+        if(visitCadence) door.visitCadence=visitCadence;
+      }
       const status=row.Status||row.status;
       if(status) state.status=normalizeStatus(status);
       if(row.Grade||row.grade) state.grade=row.Grade||row.grade;
@@ -4161,7 +4275,7 @@ function importMatrixRows(rows){
       if(row.Note||row.Notes||row.note) state.note=row.Note||row.Notes||row.note;
       if(row.metric_1!==undefined || row.Metric_1!==undefined || row['Metric 1']!==undefined) state.metric_1=row.metric_1 ?? row.Metric_1 ?? row['Metric 1'] ?? '';
       if(row.metric_2!==undefined || row.Metric_2!==undefined || row['Metric 2']!==undefined) state.metric_2=row.metric_2 ?? row.Metric_2 ?? row['Metric 2'] ?? '';
-      syncAssignmentFromDataKey(ret,doorRaw,brand);
+      syncAssignmentFromDataKey(ret,doorNumber,brand);
     }
     n++;
   });
@@ -4186,6 +4300,8 @@ function importDoorRows(rows){
     const lat=latRaw===''?undefined:parseFloat(latRaw);
     const lng=lngRaw===''?undefined:parseFloat(lngRaw);
     const tier=String(pick(row,['Tier','tier','Grade','grade'])||'').trim().toUpperCase();
+    const storeRep=String(pick(row,['Store Rep','storeRep','Rep','rep','Owner','owner'])||'').trim();
+    const visitCadence=normalizeCadence(pick(row,['Visit Cadence','visitCadence','Cadence','cadence']));
     const existing=doorLocations.find(d=>normalizeRetailer(d.retailer)===ret && String(d.doorNumber)===String(doorNumber));
     if(existing){
       if(name) existing.name=name;
@@ -4196,9 +4312,11 @@ function importDoorRows(rows){
       if(!Number.isNaN(lat) && lat!==undefined) existing.lat=lat;
       if(!Number.isNaN(lng) && lng!==undefined) existing.lng=lng;
       if(tier) existing.tier=tier;
+      if(storeRep) existing.storeRep=storeRep;
+      if(visitCadence) existing.visitCadence=visitCadence;
       updated++;
     }else{
-      doorLocations.push({retailer:ret,doorNumber,name:name||`Door ${doorNumber}`,address,city,state,zip,lat:Number.isNaN(lat)?undefined:lat,lng:Number.isNaN(lng)?undefined:lng,tier});
+      doorLocations.push({retailer:ret,doorNumber,name:name||`Door ${doorNumber}`,address,city,state,zip,lat:Number.isNaN(lat)?undefined:lat,lng:Number.isNaN(lng)?undefined:lng,tier,storeRep,visitCadence});
       if(!retailers.includes(ret)) retailers.push(ret);
       added++;
     }
@@ -4281,7 +4399,7 @@ function downloadTemplate(){
     ...demo.matrixRows
   ];
   const doorRows=[
-    {Retailer:'','Door Number':'',Name:'',Address:'',City:'',State:'',ZIP:'',Lat:'',Lng:'',Tier:''},
+    {Retailer:'','Door Number':'',Name:'',Address:'',City:'',State:'',ZIP:'',Lat:'',Lng:'',Tier:'','Store Rep':'','Visit Cadence':''},
     ...demo.doorRows
   ];
   const matrixWs=XLSX.utils.json_to_sheet(matrixRows);
@@ -4319,8 +4437,9 @@ function loadDemoData(){
 
   (GUEST_DOOR_KEY_SEED||[]).forEach(row=>{
     const [ret,brand,doorNumber,location,status,note,gender,metric1,metric2]=row;
-    const normalizedDoor=(doorNumber==null || doorNumber==='' || doorNumber==='TBD') ? '-' : doorNumber;
-    const doorInfo=normalizedDoor==='-' ? null : getDoorInfo(ret,normalizedDoor);
+    if(!isPhysicalDoorNumber(doorNumber)) return;
+    const normalizedDoor=normalizeDoorNumberValue(doorNumber);
+    const doorInfo=getDoorInfo(ret,normalizedDoor);
     dataKeyState[buildDataKey(ret,normalizedDoor,brand)]={status:normalizeStatus(status),grade:(doorInfo&&doorInfo.tier)||'-',gender:normalizeGender(gender),note:note||'',metric_1:metric1 ?? '',metric_2:metric2 ?? '',retailer:ret,doorNumber:normalizedDoor,brand:brand};
     syncAssignmentFromDataKey(ret,normalizedDoor,brand);
     if(!brandCodes[brand]) brandCodes[brand]={name:brand,ds_active:true};
@@ -4419,6 +4538,7 @@ function exportFullData(){
         const state=getDataKeyState(ret,door.doorNumber,brand) || {};
         const status=normalizeStatus(state.status);
         if(status==='na') return;
+        const opportunity=getDoorOpportunityAnalytics(ret,door.doorNumber);
         matrixRows.push({
           Retailer: ret,
           'Door Number': door.doorNumber,
@@ -4431,6 +4551,8 @@ function exportFullData(){
           Gender: normalizeGender(state.gender),
           metric_1: state.metric_1||'',
           metric_2: state.metric_2||'',
+          'Opportunity Score': opportunity.score,
+          'Opportunity Band': opportunity.band,
           Notes: state.note||'',
           Key: buildDataKey(ret,door.doorNumber,brand)
         });
@@ -4447,7 +4569,9 @@ function exportFullData(){
     ZIP: d.zip||'',
     Lat: d.lat==null?'':d.lat,
     Lng: d.lng==null?'':d.lng,
-    Tier: d.tier||''
+    Tier: d.tier||'',
+    'Store Rep': d.storeRep||'',
+    'Visit Cadence': cadenceLabel(d.visitCadence)
   }));
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(matrixRows.length?matrixRows:[{}]), 'Matrix');

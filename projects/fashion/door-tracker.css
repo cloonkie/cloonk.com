@@ -635,6 +635,32 @@ body.mode-map .matrix-wrap { padding: 0; height: calc(100vh - 112px); overflow: 
 .compact-table .status-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 0.58rem; font-weight: 700; }
 .compact-table .status-badge.confirmed { background: rgba(39,174,96,0.15); color: var(--success); }
 .compact-table .status-badge.draft { background: var(--draft-dim); color: var(--draft); }
+.data-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+.data-pager__summary,
+.data-pager__page {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+.data-pager__controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.data-pager__size {
+  width: auto;
+  min-width: 94px;
+  padding: 5px 8px;
+  font-size: 0.7rem;
+}
 
 /* ─── DOOR RESEARCH VIEW ─── */
 body.mode-map .research-view-header { display: none; }
@@ -1267,7 +1293,8 @@ body.light .search-box { background: #f4f2ee; }
 .drawer-door-row .drawer-door-check *,
 .drawer-door-row input,
 .drawer-door-row button,
-.drawer-door-row select { pointer-events: auto; }
+.drawer-door-row select,
+.drawer-door-row textarea { pointer-events: auto; }
 .drawer-door-empty {
   padding: 10px 0;
   color: var(--text-dim);
@@ -1330,6 +1357,24 @@ body.light .search-box { background: #f4f2ee; }
 }
 .data-cell-note:focus { border-color: var(--accent); }
 body.light .data-cell-note { background: #f4f2ee; }
+.score-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 3px 7px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+.score-pill { min-width: 86px; justify-content: space-between; }
+.score-pill small { color: var(--text-dim); font-size: 0.58rem; }
+.score-q4 { background: rgba(39,174,96,0.14); border-color: rgba(39,174,96,0.34); color: var(--success); }
+.score-q3 { background: rgba(232,185,49,0.13); border-color: rgba(232,185,49,0.34); color: #e8b931; }
+.score-q2 { background: rgba(80,140,255,0.12); border-color: rgba(80,140,255,0.28); color: var(--accent); }
+.score-q1,
+.score-none { background: var(--surface-raised); color: var(--text-muted); }
 
 
 .multi-mode-toggle { display:flex; gap:8px; margin:12px 0 8px; flex-wrap:wrap; }

@@ -296,7 +296,7 @@
   </div>
 
   <label>Door locations</label>
-  <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Tier</code></div>
+  <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Tier</code>, <code>Store Rep</code>, <code>Visit Cadence</code>.</div>
   <div class="import-zone" onclick="document.getElementById('impDoorFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDoorDrop(event)">
     <p>Drop door-location file or click to browse</p>
     <input type="file" id="impDoorFile" accept=".xlsx,.xls,.csv" onchange="handleImpDoorFile(event)">
@@ -415,11 +415,11 @@
   <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
     <div class="info-section">
       <h4>Matrix data</h4>
-      <p>Columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>. Optional per door-brand fields include <code>Door Number</code>, <code>Status</code>, <code>Grade</code>, <code>Gender</code>, <code>metric_1</code>, <code>metric_2</code>, and <code>Notes</code> for selling analysis.</p>
+      <p>Columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>. Optional per door-brand fields include <code>Door Number</code>, <code>Status</code>, <code>Grade</code>, <code>Gender</code>, <code>metric_1</code>, <code>metric_2</code>, and <code>Notes</code> for selling analysis. Store reps and cadence belong on Door locations / Store.</p>
     </div>
     <div class="info-section">
       <h4>Door locations</h4>
-      <p>Columns: <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Tier</code>. Matching retailer and door number updates the existing record; new pairs are appended.</p>
+      <p>Columns: <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Tier</code>, <code>Store Rep</code>, <code>Visit Cadence</code>. Matching retailer and door number updates the existing record; new pairs are appended.</p>
     </div>
     <div class="info-section">
       <h4>Entity relations</h4>
