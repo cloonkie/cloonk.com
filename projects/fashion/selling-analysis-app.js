@@ -23,7 +23,7 @@
     records: [],            // canonical parsed rows
     enriched: [],           // enriched (recomputed when params/themes change)
     optionalDims: [],       // UPC-grain dims present in the file (if any)
-    params: { promoThreshold: 0.20, agedYear: 2020 },
+    params: { promoThreshold: 0.20, agedYear: 2020, priceBands: [100, 150, 200, 250, 300], priceBandSource: 'auto' },
     themes: {},             // { collectionRelease: themeString }  (authored)
     filters: {},            // { field: Set(values) }
     fileName: null,
@@ -136,8 +136,119 @@
     host.appendChild(wrap);
   }
 
+  /* ── Categorical palette — a broad colour range for breakdown charts. The
+   * classes resolve to theme-aware colours in the stylesheet; PNG export
+   * inlines the computed colour before rasterising so exports stay faithful. */
+  const PALETTE = ['viz-c1', 'viz-c2', 'viz-c3', 'viz-c4', 'viz-c5', 'viz-c6',
+                   'viz-c7', 'viz-c8', 'viz-c9', 'viz-c10', 'viz-c11', 'viz-c12'];
+  const catClass = i => PALETTE[((i % PALETTE.length) + PALETTE.length) % PALETTE.length];
+
+  /* ── Numeric-axis helpers (shared) ─────────────────────────────────────── */
+  // compact tick label: 950 · 1.2k · 3.4M · 2B
+  const axNum = v => {
+    const a = Math.abs(v);
+    if (a >= 1e9) return (v / 1e9).toFixed(a >= 1e10 ? 0 : 1).replace(/\.0$/, '') + 'B';
+    if (a >= 1e6) return (v / 1e6).toFixed(a >= 1e7 ? 0 : 1).replace(/\.0$/, '') + 'M';
+    if (a >= 1e3) return (v / 1e3).toFixed(a >= 1e4 ? 0 : 1).replace(/\.0$/, '') + 'k';
+    return String(Math.round(v));
+  };
+  const axPct = v => (v * 100).toFixed(0) + '%';
+  // "nice" ticks from 0 to max over ~count intervals
+  function axTicks(max, count) {
+    count = count || 4;
+    if (!(max > 0)) return [0];
+    const raw = max / count, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const n = raw / mag, step = (n >= 5 ? 10 : n >= 2 ? 5 : n >= 1 ? 2 : 1) * mag;
+    const ticks = [];
+    for (let v = 0; v <= max * 1.0001; v += step) ticks.push(v);
+    return ticks;
+  }
+  // vertical gridlines + bottom value axis (for horizontal-value charts)
+  function axisX(x0, x1, yTop, yBase, max, fmt) {
+    fmt = fmt || axNum; let s = '';
+    axTicks(max).forEach(t => {
+      const x = x0 + (max ? t / max : 0) * (x1 - x0);
+      s += `<line x1="${x.toFixed(1)}" y1="${yTop}" x2="${x.toFixed(1)}" y2="${yBase}" class="grid"/>`;
+      s += `<text x="${x.toFixed(1)}" y="${yBase + 13}" text-anchor="middle" class="axis-lbl">${esc(fmt(t))}</text>`;
+    });
+    return s + `<line x1="${x0}" y1="${yBase}" x2="${x1}" y2="${yBase}" class="axis"/>`;
+  }
+  // horizontal gridlines + left value axis (for vertical-value charts)
+  function axisY(xAxis, xRight, yTop, yBase, max, fmt) {
+    fmt = fmt || axNum; let s = '';
+    axTicks(max).forEach(t => {
+      const y = yBase - (max ? t / max : 0) * (yBase - yTop);
+      s += `<line x1="${xAxis}" y1="${y.toFixed(1)}" x2="${xRight}" y2="${y.toFixed(1)}" class="grid"/>`;
+      s += `<text x="${(xAxis - 6).toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="end" class="axis-lbl">${esc(fmt(t))}</text>`;
+    });
+    return s + `<line x1="${xAxis}" y1="${yTop}" x2="${xAxis}" y2="${yBase}" class="axis"/>`;
+  }
+
+  /* ── Screenshot: rasterise a live chart SVG to a theme-accurate PNG ─────── *
+   * The chart paints via CSS classes, so we copy each node's computed paint
+   * onto a clone, lay a page-coloured background behind it, then draw the
+   * serialised SVG into a 2× canvas and hand back a PNG blob.                 */
+  const PNG_PROPS = ['fill', 'fill-opacity', 'stroke', 'stroke-width', 'stroke-dasharray',
+    'stroke-linecap', 'stroke-linejoin', 'opacity', 'font-family', 'font-size',
+    'font-weight', 'text-anchor', 'dominant-baseline'];
+  function chartToPng(svgEl, scale, done) {
+    const srcNodes = svgEl.querySelectorAll('*');
+    const clone = svgEl.cloneNode(true);
+    const clNodes = clone.querySelectorAll('*');
+    for (let i = 0; i < srcNodes.length; i++) {
+      const cs = getComputedStyle(srcNodes[i]), t = clNodes[i];
+      PNG_PROPS.forEach(prop => {
+        const v = cs.getPropertyValue(prop);
+        if (v && v !== 'normal' && v !== 'auto') t.setAttribute(prop, v);
+      });
+    }
+    const vb = (svgEl.getAttribute('viewBox') || '0 0 720 360').split(/\s+/).map(Number);
+    const x0 = vb[0] || 0, y0 = vb[1] || 0, w = vb[2] || 720, h = vb[3] || 360;
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    clone.setAttribute('width', w); clone.setAttribute('height', h);
+    const bg = getComputedStyle(document.body).backgroundColor || '#0a0a0a';
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', x0); rect.setAttribute('y', y0);
+    rect.setAttribute('width', w); rect.setAttribute('height', h); rect.setAttribute('fill', bg);
+    clone.insertBefore(rect, clone.firstChild);
+    const xml = new XMLSerializer().serializeToString(clone);
+    const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
+    const s = scale || 2, img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(w * s); canvas.height = Math.round(h * s);
+      const ctx = canvas.getContext('2d');
+      ctx.scale(s, s); ctx.drawImage(img, 0, 0);
+      canvas.toBlob(b => done(b), 'image/png');
+    };
+    img.onerror = () => done(null);
+    img.src = url;
+  }
+  function downloadBlob(blob, name) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  }
+  const slugify = s => String(s || 'chart').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'chart';
+  const toast = msg => { try { if (window.SOA_TOAST) window.SOA_TOAST(msg); } catch (e) {} };
+  const CAM_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
+
+  /* ── Plain-language interpretation callout ("In plain terms") ──────────── */
+  function readout(host, lines, title) {
+    const list = (Array.isArray(lines) ? lines : [lines]).filter(Boolean);
+    if (!list.length) return;
+    const box = el('div', { class: 'lens-readout' });
+    box.appendChild(el('div', { class: 'lens-readout__tag' }, title || 'In plain terms'));
+    const body = el('div', { class: 'lens-readout__body' });
+    list.forEach(t => body.appendChild(el('p', null, t)));
+    box.appendChild(body);
+    host.appendChild(box);
+  }
+
   /* Chart block with an aesthetic switcher. `builders` = [{ key, label, fn }],
-   * where fn() returns an SVG string. The chosen type persists per analysis. */
+   * where fn() returns an SVG string. The chosen type persists per analysis.
+   * Every block carries a camera button that exports the live chart as PNG.   */
   function renderChartBlock(host, id, caption, builders) {
     if (!builders || !builders.length) return;
     let sel = state.chartType[id];
@@ -146,6 +257,7 @@
     const wrap = el('div', { class: 'lens-chart' });
     const head = el('div', { class: 'lens-chart__head' });
     if (caption) head.appendChild(el('div', { class: 'lens-chart__cap' }, caption));
+    const actions = el('div', { class: 'chart-actions' });
     if (builders.length > 1) {
       const tog = el('div', { class: 'chart-toggle', role: 'tablist' });
       builders.forEach(b => {
@@ -162,8 +274,25 @@
         });
         tog.appendChild(btn);
       });
-      head.appendChild(tog);
+      actions.appendChild(tog);
     }
+    // camera → export the currently shown chart as a theme-accurate PNG
+    const cam = el('button', { type: 'button', class: 'chart-cam', title: 'Save chart as PNG', 'aria-label': 'Save chart as PNG' });
+    cam.innerHTML = CAM_SVG;
+    cam.addEventListener('click', () => {
+      const svg = wrap.querySelector('.lens-chart__svg svg');
+      if (!svg) { toast('Nothing to capture yet'); return; }
+      cam.classList.add('is-busy');
+      chartToPng(svg, 2, blob => {
+        cam.classList.remove('is-busy');
+        if (!blob) { toast('Could not render image'); return; }
+        const name = slugify((state.fileName ? state.fileName.replace(/\.[^.]+$/, '') + '-' : '') + (caption || id)) + '.png';
+        downloadBlob(blob, name);
+        toast('Saved ' + name);
+      });
+    });
+    actions.appendChild(cam);
+    head.appendChild(actions);
     wrap.appendChild(head);
     const holder = el('div', { class: 'lens-chart__svg' });
     holder.innerHTML = (builders.find(b => b.key === sel) || builders[0]).fn();
@@ -171,17 +300,19 @@
     host.appendChild(wrap);
   }
 
-  // horizontal bars — items: [{label, value, valLabel, color}]
-  function svgBarsH(items) {
-    const W = 720, rowH = 30, labelW = 190, valW = 96;
+  // horizontal bars — items: [{label, value, valLabel, color}] ; opts {cat, fmt}
+  function svgBarsH(items, opts) {
+    opts = opts || {};
+    const W = 720, rowH = 30, labelW = 190, valW = 96, axisH = 20;
     const barX = labelW + 12, barW = W - barX - valW;
     const max = Math.max.apply(null, items.map(i => Math.abs(i.value) || 0).concat([1]));
-    const H = Math.max(1, items.length) * rowH + 6;
+    const plotH = Math.max(1, items.length) * rowH + 6, H = plotH + axisH;
     let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" font-size="13">`;
+    s += axisX(barX, barX + barW, 0, plotH, max, opts.fmt);
     items.forEach((it, i) => {
       const y = i * rowH + 6, bh = rowH - 13;
       const w = Math.max(2, (Math.abs(it.value) || 0) / max * barW);
-      const cls = it.color || (it.value < 0 ? 'viz-warn' : 'viz-accent');
+      const cls = it.color || (opts.cat ? catClass(i) : (it.value < 0 ? 'viz-warn' : 'viz-accent'));
       const tip = TIP(it.label, it.valLabel != null ? it.valLabel : nfmt(it.value));
       s += `<text x="0" y="${y + bh / 2}" dominant-baseline="central" class="lbl-strong">${esc(trunc(it.label, 24))}</text>`;
       s += `<rect x="${barX}" y="${y}" width="${w.toFixed(1)}" height="${bh}" class="${cls}" rx="2"${tip}/>`;
@@ -191,46 +322,68 @@
   }
 
   // descending Pareto bars + cumulative line — items sorted desc by value
-  function svgPareto(items) {
-    const W = 720, H = 250, padT = 12, padB = 70, padX = 6;
-    const n = Math.max(1, items.length), plotW = W - padX * 2, plotH = H - padT - padB;
+  // left axis = bar value, right axis = cumulative %
+  function svgPareto(items, opts) {
+    opts = opts || {};
+    const W = 720, H = 272, padT = 14, padB = 70, padL = 46, padR = 40;
+    const n = Math.max(1, items.length), plotW = W - padL - padR, plotH = H - padT - padB;
     const max = Math.max.apply(null, items.map(i => i.value || 0).concat([1]));
-    const step = plotW / n, bw = step * 0.66;
+    const step = plotW / n, bw = step * 0.66, yBase = padT + plotH;
     const total = items.reduce((a, i) => a + (i.value > 0 ? i.value : 0), 0) || 1;
     let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" font-size="11">`;
+    s += axisY(padL, W - padR, padT, yBase, max, opts.fmt);            // left value axis
+    s += `<line x1="${padL}" y1="${yBase}" x2="${W - padR}" y2="${yBase}" class="axis"/>`;
+    [0, 0.25, 0.5, 0.75, 1].forEach(f => {                            // right cumulative-% axis
+      const y = yBase - f * plotH;
+      s += `<text x="${W - padR + 6}" y="${(y + 3).toFixed(1)}" class="axis-lbl">${(f * 100).toFixed(0)}%</text>`;
+    });
+    s += `<text x="${W - padR + 6}" y="${padT - 3}" class="axis-lbl">cum.</text>`;
     let cum = 0; const pts = [];
     items.forEach((it, i) => {
-      const x = padX + i * step + (step - bw) / 2;
+      const x = padL + i * step + (step - bw) / 2;
       const h = Math.max(1, (it.value || 0) / max * plotH);
-      const op = Math.max(0.25, 0.92 - i / n * 0.7).toFixed(2);
+      const op = Math.max(0.32, 0.95 - i / n * 0.66).toFixed(2);
       const cumPct = ((cum + (it.value > 0 ? it.value : 0)) / total * 100).toFixed(0);
       const tip = TIP(it.label, it.valLabel != null ? it.valLabel : nfmt(it.value), cumPct + '% cumulative');
-      s += `<rect x="${x.toFixed(1)}" y="${(padT + plotH - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" class="viz-warn" opacity="${op}"${tip}/>`;
+      s += `<rect x="${x.toFixed(1)}" y="${(yBase - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" class="viz-warn" opacity="${op}"${tip}/>`;
       cum += it.value > 0 ? it.value : 0;
-      pts.push(`${(padX + i * step + step / 2).toFixed(1)},${(padT + plotH - cum / total * plotH).toFixed(1)}`);
-      s += `<text x="${(padX + i * step + step / 2).toFixed(1)}" y="${H - padB + 12}" text-anchor="end" transform="rotate(-42 ${(padX + i * step + step / 2).toFixed(1)} ${H - padB + 12})">${esc(trunc(it.label, 20))}</text>`;
+      const cx = padL + i * step + step / 2;
+      pts.push(`${cx.toFixed(1)},${(yBase - cum / total * plotH).toFixed(1)}`);
+      s += `<text x="${cx.toFixed(1)}" y="${yBase + 14}" text-anchor="end" transform="rotate(-42 ${cx.toFixed(1)} ${yBase + 14})">${esc(trunc(it.label, 20))}</text>`;
     });
-    s += `<polyline points="${pts.join(' ')}" class="stroke-accent" stroke-width="1.5" opacity="0.85"/>`;
+    s += `<polyline points="${pts.join(' ')}" class="stroke-accent" stroke-width="1.5" opacity="0.9"/>`;
     return s + '</svg>';
   }
 
   // scatter quadrant — points: [{x, y, quad}] ; medians + xmax in same units
+  // x axis = TY units, y axis = sell-through %
   function svgScatter(points, xMed, yMed, xMax) {
-    const W = 720, H = 380, pad = 34;
-    const plotW = W - pad * 2, plotH = H - pad * 2;
-    const xm = xMax || 1;
-    const X = u => pad + Math.min(1, (u || 0) / xm) * plotW;
-    const Y = st => pad + (1 - Math.max(0, Math.min(1, st || 0))) * plotH;
+    const W = 720, H = 380, padL = 46, padR = 22, padT = 26, padB = 40;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const xm = xMax || 1, yBase = padT + plotH;
+    const X = u => padL + Math.min(1, (u || 0) / xm) * plotW;
+    const Y = st => padT + (1 - Math.max(0, Math.min(1, st || 0))) * plotH;
     const clsFor = q => q === 'Slow-bleeder' ? 'viz-warn' : q === 'Dog' ? 'viz-muted' : 'viz-accent';
-    const opFor = q => q === 'Sleeper' ? '0.5' : q === 'Dog' ? '0.5' : '0.9';
+    const opFor = q => q === 'Sleeper' ? '0.55' : q === 'Dog' ? '0.5' : '0.9';
     let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" font-size="12">`;
-    s += `<line x1="${X(xMed).toFixed(1)}" y1="${pad}" x2="${X(xMed).toFixed(1)}" y2="${H - pad}" class="axis"/>`;
-    s += `<line x1="${pad}" y1="${Y(yMed).toFixed(1)}" x2="${W - pad}" y2="${Y(yMed).toFixed(1)}" class="axis"/>`;
-    s += `<text x="${W - pad}" y="${pad + 2}" text-anchor="end" class="lbl-strong">Star</text>`;
-    s += `<text x="${pad}" y="${pad + 2}" class="lbl-strong">Sleeper</text>`;
-    s += `<text x="${W - pad}" y="${H - pad + 14}" text-anchor="end" class="lbl-strong">Slow-bleeder</text>`;
-    s += `<text x="${pad}" y="${H - pad + 14}" class="lbl-strong">Dog</text>`;
-    s += `<text x="${pad}" y="${pad - 12}">↑ sell-through</text>`;
+    // value axes: sell-through % up the left, TY units along the bottom
+    [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+      const y = padT + (1 - f) * plotH;
+      s += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${padL + plotW}" y2="${y.toFixed(1)}" class="grid"/>`;
+      s += `<text x="${padL - 6}" y="${(y + 3).toFixed(1)}" text-anchor="end" class="axis-lbl">${(f * 100).toFixed(0)}%</text>`;
+    });
+    axTicks(xm).forEach(t => s += `<text x="${X(t).toFixed(1)}" y="${yBase + 14}" text-anchor="middle" class="axis-lbl">${esc(axNum(t))}</text>`);
+    s += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${yBase}" class="axis"/>`;
+    s += `<line x1="${padL}" y1="${yBase}" x2="${padL + plotW}" y2="${yBase}" class="axis"/>`;
+    // median split (dashed) — the quadrant boundaries
+    s += `<line x1="${X(xMed).toFixed(1)}" y1="${padT}" x2="${X(xMed).toFixed(1)}" y2="${yBase}" class="axis" stroke-dasharray="4 3"/>`;
+    s += `<line x1="${padL}" y1="${Y(yMed).toFixed(1)}" x2="${padL + plotW}" y2="${Y(yMed).toFixed(1)}" class="axis" stroke-dasharray="4 3"/>`;
+    s += `<text x="${padL + plotW}" y="${padT + 2}" text-anchor="end" class="lbl-strong">Star</text>`;
+    s += `<text x="${padL + 4}" y="${padT + 2}" class="lbl-strong">Sleeper</text>`;
+    s += `<text x="${padL + plotW}" y="${yBase - 5}" text-anchor="end" class="lbl-strong">Slow-bleeder</text>`;
+    s += `<text x="${padL + 4}" y="${yBase - 5}" class="lbl-strong">Dog</text>`;
+    s += `<text x="${padL}" y="${padT - 11}" class="axis-lbl">↑ sell-through</text>`;
+    s += `<text x="${padL + plotW}" y="${H - 3}" text-anchor="end" class="axis-lbl">TY units →</text>`;
     points.forEach(p => {
       const tip = p.tip ? ` data-tip="${escAttr(p.tip)}"` : '';
       s += `<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="3.4" class="${clsFor(p.quad)}" opacity="${opFor(p.quad)}"${tip}/>`;
@@ -239,13 +392,22 @@
   }
 
   // diverging bars around a centre axis — items: [{label, value, valLabel}]
-  function svgDiverging(items) {
-    const W = 720, rowH = 28, labelW = 150, valW = 92;
+  function svgDiverging(items, opts) {
+    opts = opts || {};
+    const W = 720, rowH = 28, labelW = 150, valW = 92, axisH = 20;
     const fieldW = W - (labelW + 12) - valW, cx = labelW + 12 + fieldW / 2, half = fieldW / 2 - 4;
     const max = Math.max.apply(null, items.map(i => Math.abs(i.value) || 0).concat([1]));
-    const H = Math.max(1, items.length) * rowH + 6;
+    const plotH = Math.max(1, items.length) * rowH + 6, H = plotH + axisH;
+    const fmt = opts.fmt || axNum;
     let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" font-size="12">`;
-    s += `<line x1="${cx}" y1="2" x2="${cx}" y2="${H - 2}" class="axis"/>`;
+    // symmetric value axis around the centre (gridlines + |value| ticks)
+    const ticks = axTicks(max, 2);
+    ticks.slice(1).reverse().map(t => -t).concat(ticks).forEach(t => {
+      const x = cx + (t / max) * half;
+      s += `<line x1="${x.toFixed(1)}" y1="0" x2="${x.toFixed(1)}" y2="${plotH}" class="grid"/>`;
+      s += `<text x="${x.toFixed(1)}" y="${plotH + 13}" text-anchor="middle" class="axis-lbl">${esc(fmt(Math.abs(t)))}</text>`;
+    });
+    s += `<line x1="${cx}" y1="0" x2="${cx}" y2="${plotH}" class="axis"/>`;
     items.forEach((it, i) => {
       const y = i * rowH + 6, bh = rowH - 12;
       const w = (Math.abs(it.value) || 0) / max * half;
@@ -261,10 +423,17 @@
 
   // 100% stacked bars (full vs promo) — rows: [{label, promoPct, valLabel}]
   function svgStacked(items) {
-    const W = 720, rowH = 30, labelW = 170, valW = 84;
+    const W = 720, rowH = 30, labelW = 170, valW = 84, axisH = 20;
     const barX = labelW + 12, barW = W - barX - valW;
-    const H = Math.max(1, items.length) * rowH + 6;
+    const plotH = Math.max(1, items.length) * rowH + 6, H = plotH + axisH;
     let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" font-size="12">`;
+    // 0–100% axis (gridlines + tick labels) along the bottom
+    [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+      const x = barX + f * barW;
+      s += `<line x1="${x.toFixed(1)}" y1="0" x2="${x.toFixed(1)}" y2="${plotH}" class="grid"/>`;
+      s += `<text x="${x.toFixed(1)}" y="${plotH + 13}" text-anchor="middle" class="axis-lbl">${(f * 100).toFixed(0)}%</text>`;
+    });
+    s += `<line x1="${barX}" y1="${plotH}" x2="${barX + barW}" y2="${plotH}" class="axis"/>`;
     items.forEach((it, i) => {
       const y = i * rowH + 6, bh = rowH - 13;
       const pw = Math.max(0, Math.min(1, it.promoPct || 0)) * barW;
@@ -277,22 +446,23 @@
     return s + '</svg>';
   }
 
-  // vertical columns — items: [{label, value, valLabel, color}]
-  function svgColumn(items) {
-    const W = 720, H = 300, padT = 14, padB = 66, padX = 8;
-    const n = Math.max(1, items.length), plotW = W - padX * 2, plotH = H - padT - padB;
+  // vertical columns — items: [{label, value, valLabel, color}] ; opts {cat, fmt}
+  function svgColumn(items, opts) {
+    opts = opts || {};
+    const W = 720, H = 300, padT = 14, padB = 66, padL = 46, padR = 10;
+    const n = Math.max(1, items.length), plotW = W - padL - padR, plotH = H - padT - padB;
     const max = Math.max.apply(null, items.map(i => Math.abs(i.value) || 0).concat([1]));
-    const step = plotW / n, bw = Math.min(64, step * 0.64);
+    const step = plotW / n, bw = Math.min(64, step * 0.64), yBase = padT + plotH;
     let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" font-size="11">`;
-    s += `<line x1="${padX}" y1="${padT + plotH}" x2="${W - padX}" y2="${padT + plotH}" class="axis"/>`;
+    s += axisY(padL, W - padR, padT, yBase, max, opts.fmt);
     items.forEach((it, i) => {
-      const x = padX + i * step + (step - bw) / 2;
+      const x = padL + i * step + (step - bw) / 2;
       const h = Math.max(1, (Math.abs(it.value) || 0) / max * plotH);
-      const cls = it.color || (it.value < 0 ? 'viz-warn' : 'viz-accent');
+      const cls = it.color || (opts.cat ? catClass(i) : (it.value < 0 ? 'viz-warn' : 'viz-accent'));
       const tip = TIP(it.label, it.valLabel != null ? it.valLabel : nfmt(it.value));
-      s += `<rect x="${x.toFixed(1)}" y="${(padT + plotH - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" class="${cls}" rx="2"${tip}/>`;
-      s += `<text x="${(x + bw / 2).toFixed(1)}" y="${(padT + plotH - h - 4).toFixed(1)}" text-anchor="middle">${esc(it.valLabel)}</text>`;
-      s += `<text x="${(x + bw / 2).toFixed(1)}" y="${padT + plotH + 14}" text-anchor="end" transform="rotate(-40 ${(x + bw / 2).toFixed(1)} ${padT + plotH + 14})">${esc(trunc(it.label, 16))}</text>`;
+      s += `<rect x="${x.toFixed(1)}" y="${(yBase - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" class="${cls}" rx="2"${tip}/>`;
+      s += `<text x="${(x + bw / 2).toFixed(1)}" y="${(yBase - h - 4).toFixed(1)}" text-anchor="middle">${esc(it.valLabel)}</text>`;
+      s += `<text x="${(x + bw / 2).toFixed(1)}" y="${yBase + 14}" text-anchor="end" transform="rotate(-40 ${(x + bw / 2).toFixed(1)} ${yBase + 14})">${esc(trunc(it.label, 16))}</text>`;
     });
     return s + '</svg>';
   }
@@ -302,8 +472,8 @@
     const W = 720, H = 330, cx = 168, cy = H / 2, r = 132, ri = donut ? 66 : 0;
     const data = items.filter(i => (i.value || 0) > 0);
     const total = data.reduce((a, i) => a + i.value, 0) || 1;
-    const palette = ['viz-accent', 'viz-warn', 'viz-muted'];
-    const opOf = (it, i) => it.color ? '1' : (i === 0 ? '0.9' : Math.max(0.3, 0.72 - i * 0.12).toFixed(2));
+    const palette = PALETTE;
+    const opOf = (it, i) => '0.92';
     const arc = (R, a) => [cx + R * Math.cos(a), cy + R * Math.sin(a)];
     let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" font-size="12">`;
     if (!data.length) return s + `<text x="${cx}" y="${cy}" text-anchor="middle">no positive values</text></svg>`;
@@ -342,12 +512,14 @@
   }
 
   // lollipop — horizontal stems with a dot at the value
-  function svgLollipop(items) {
-    const W = 720, rowH = 28, labelW = 190, valW = 96;
+  function svgLollipop(items, opts) {
+    opts = opts || {};
+    const W = 720, rowH = 28, labelW = 190, valW = 96, axisH = 20;
     const barX = labelW + 12, barW = W - barX - valW;
     const max = Math.max.apply(null, items.map(i => Math.abs(i.value) || 0).concat([1]));
-    const H = Math.max(1, items.length) * rowH + 6;
+    const plotH = Math.max(1, items.length) * rowH + 6, H = plotH + axisH;
     let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" font-size="13">`;
+    s += axisX(barX, barX + barW, 0, plotH, max, opts.fmt);
     items.forEach((it, i) => {
       const y = i * rowH + rowH / 2;
       const w = Math.max(2, (Math.abs(it.value) || 0) / max * barW);
@@ -366,22 +538,28 @@
   function svgStacked100(parts) {
     const W = 720, barY = 12, barH = 38;
     const total = parts.reduce((a, p) => a + Math.max(0, p.value || 0), 0) || 1;
-    const palette = ['viz-muted', 'viz-warn', 'viz-accent'];
-    let s = `<svg viewBox="0 0 ${W} 92" preserveAspectRatio="xMinYMin meet" font-size="12">`;
+    const palette = PALETTE;
+    let s = `<svg viewBox="0 0 ${W} 112" preserveAspectRatio="xMinYMin meet" font-size="12">`;
     let x = 0;
     parts.forEach((p, i) => {
       const w = Math.max(0, p.value || 0) / total * W;
       const cls = p.color || palette[i % palette.length];
-      const op = p.color ? '1' : (cls === 'viz-muted' ? '0.42' : '1');
+      const op = p.color && cls === 'viz-muted' ? '0.42' : (p.color ? '1' : '0.92');
       const tip = TIP(p.label, ((Math.max(0, p.value || 0) / total) * 100).toFixed(0) + '%', p.valLabel);
       s += `<rect x="${x.toFixed(1)}" y="${barY}" width="${w.toFixed(1)}" height="${barH}" class="${cls}" opacity="${op}"${tip}/>`;
       if (w > 44) s += `<text x="${(x + w / 2).toFixed(1)}" y="${barY + barH / 2 + 4}" text-anchor="middle">${((Math.max(0, p.value || 0) / total) * 100).toFixed(0)}%</text>`;
       x += w;
     });
-    let lx = 0; const ly = barY + barH + 22;
+    // 0–100% axis beneath the bar
+    [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+      const tx = f * W;
+      s += `<line x1="${tx.toFixed(1)}" y1="${barY + barH}" x2="${tx.toFixed(1)}" y2="${barY + barH + 5}" class="axis"/>`;
+      s += `<text x="${Math.min(W - 10, Math.max(10, tx)).toFixed(1)}" y="${barY + barH + 16}" text-anchor="middle" class="axis-lbl">${(f * 100).toFixed(0)}%</text>`;
+    });
+    let lx = 0; const ly = barY + barH + 40;
     parts.forEach((p, i) => {
       const cls = p.color || palette[i % palette.length];
-      const op = p.color ? '1' : (cls === 'viz-muted' ? '0.42' : '1');
+      const op = p.color && cls === 'viz-muted' ? '0.42' : (p.color ? '1' : '0.92');
       s += `<rect x="${lx}" y="${ly - 11}" width="13" height="13" class="${cls}" opacity="${op}"/>`;
       const lab = esc(p.label);
       s += `<text x="${lx + 19}" y="${ly}" class="lbl-strong">${lab}</text>`;
@@ -400,7 +578,9 @@
     max = opts.max != null ? opts.max : (max || 1);
     const X = i => padL + (n <= 1 ? plotW / 2 : i / (n - 1) * plotW);
     const Y = v => padT + plotH - (v / max) * plotH;
+    const yFmt = opts.fmt || (opts.max === 1 ? axPct : axNum);
     let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" font-size="11">`;
+    s += axisY(padL, W - padR, padT, padT + plotH, max, yFmt);
     s += `<line x1="${padL}" y1="${padT + plotH}" x2="${W - padR}" y2="${padT + plotH}" class="axis"/>`;
     const stepEvery = Math.ceil(n / 16);
     xLabels.forEach((lab, i) => {
@@ -435,11 +615,24 @@
     const yMin = opts.yMin != null ? opts.yMin : Math.min(0, ys.length ? Math.min.apply(null, ys) : 0);
     const X = v => pad + (xMax === xMin ? 0.5 : (v - xMin) / (xMax - xMin)) * plotW;
     const Y = v => pad + plotH - (yMax === yMin ? 0.5 : (v - yMin) / (yMax - yMin)) * plotH;
+    const xFmt = opts.xFmt || (xMax <= 1 && xMin >= 0 ? axPct : axNum);
+    const yFmt = opts.yFmt || (yMax <= 1 && yMin >= 0 ? axPct : axNum);
     let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" font-size="11">`;
+    // numeric gridlines + ticks on both axes
+    axTicks(xMax).forEach(t => {
+      if (t < xMin) return; const x = X(t);
+      s += `<line x1="${x.toFixed(1)}" y1="${pad}" x2="${x.toFixed(1)}" y2="${pad + plotH}" class="grid"/>`;
+      s += `<text x="${x.toFixed(1)}" y="${pad + plotH + 13}" text-anchor="middle" class="axis-lbl">${esc(xFmt(t))}</text>`;
+    });
+    axTicks(yMax).forEach(t => {
+      if (t < yMin) return; const y = Y(t);
+      s += `<line x1="${pad}" y1="${y.toFixed(1)}" x2="${W - pad}" y2="${y.toFixed(1)}" class="grid"/>`;
+      s += `<text x="${pad - 6}" y="${(y + 3).toFixed(1)}" text-anchor="end" class="axis-lbl">${esc(yFmt(t))}</text>`;
+    });
     s += `<line x1="${pad}" y1="${pad + plotH}" x2="${W - pad}" y2="${pad + plotH}" class="axis"/>`;
     s += `<line x1="${pad}" y1="${pad}" x2="${pad}" y2="${pad + plotH}" class="axis"/>`;
-    if (opts.xMed != null) s += `<line x1="${X(opts.xMed).toFixed(1)}" y1="${pad}" x2="${X(opts.xMed).toFixed(1)}" y2="${pad + plotH}" class="axis"/>`;
-    if (opts.yMed != null) s += `<line x1="${pad}" y1="${Y(opts.yMed).toFixed(1)}" x2="${W - pad}" y2="${Y(opts.yMed).toFixed(1)}" class="axis"/>`;
+    if (opts.xMed != null) s += `<line x1="${X(opts.xMed).toFixed(1)}" y1="${pad}" x2="${X(opts.xMed).toFixed(1)}" y2="${pad + plotH}" class="axis" stroke-dasharray="4 3"/>`;
+    if (opts.yMed != null) s += `<line x1="${pad}" y1="${Y(opts.yMed).toFixed(1)}" x2="${W - pad}" y2="${Y(opts.yMed).toFixed(1)}" class="axis" stroke-dasharray="4 3"/>`;
     if (opts.trend) {
       const y0 = opts.trend.slope * xMin + opts.trend.intercept, y1 = opts.trend.slope * xMax + opts.trend.intercept;
       s += `<line x1="${X(xMin).toFixed(1)}" y1="${Y(y0).toFixed(1)}" x2="${X(xMax).toFixed(1)}" y2="${Y(y1).toFixed(1)}" class="stroke-accent" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>`;
@@ -459,6 +652,8 @@
     [0.25, 0.5, 0.75, 1].forEach(gr => {
       const pts = axesLabels.map((_, i) => { const [x, y] = P(i, R * gr); return `${x.toFixed(1)},${y.toFixed(1)}`; });
       s += `<polygon points="${pts.join(' ')}" class="axis" fill="none"/>`;
+      // ring scale label up the top spoke (0–100 normalized)
+      s += `<text x="${(cx + 4).toFixed(1)}" y="${(cy - R * gr + 3).toFixed(1)}" class="axis-lbl">${(gr * 100).toFixed(0)}</text>`;
     });
     axesLabels.forEach((lab, i) => {
       const [x, y] = P(i, R); s += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="axis"/>`;
@@ -484,7 +679,8 @@
   function svgHeatmap(rowLabels, colLabels, matrix) {
     const W = 720, padL = 132, padT = 72;
     const cell = Math.max(18, Math.min(42, (W - padL) / Math.max(1, colLabels.length)));
-    const H = padT + rowLabels.length * cell + 10;
+    const gridB = padT + rowLabels.length * cell;
+    const H = gridB + 34;
     let max = 0; matrix.forEach(r => r.forEach(v => { if (v > max) max = v; })); max = max || 1;
     let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" font-size="10">`;
     colLabels.forEach((c, ci) => {
@@ -501,6 +697,13 @@
         else s += `<rect x="${x.toFixed(1)}" y="${y}" width="${(cell - 2).toFixed(1)}" height="${(cell - 2).toFixed(1)}" class="viz-accent" opacity="${(0.2 + 0.8 * v / max).toFixed(2)}"${tip}/>`;
       });
     });
+    // legend: intensity scale (units sold) + the dashed-whitespace key
+    const ly = gridB + 18;
+    s += `<text x="${padL}" y="${ly + 9}" text-anchor="end" class="axis-lbl">fewer</text>`;
+    [0.2, 0.4, 0.6, 0.8, 1].forEach((o, k) => s += `<rect x="${padL + 6 + k * 16}" y="${ly}" width="14" height="12" class="viz-accent" opacity="${o}"/>`);
+    s += `<text x="${padL + 6 + 5 * 16 + 6}" y="${ly + 9}" class="axis-lbl">more units (max ${esc(nfmt(max))})</text>`;
+    s += `<rect x="${padL + 6 + 5 * 16 + 150}" y="${ly}" width="12" height="12" class="stroke-warn" stroke-dasharray="2 2" fill="none"/>`;
+    s += `<text x="${padL + 6 + 5 * 16 + 168}" y="${ly + 9}" class="axis-lbl">whitespace (sells elsewhere)</text>`;
     return s + '</svg>';
   }
 
@@ -665,11 +868,18 @@
     agg.sort((a, b) => (Math.abs(b.val) || 0) - (Math.abs(a.val) || 0));
     const shown = agg.slice(0, 24), fmtVal = v => isMoney(valueField) ? fmt$(v) : fmtInt(v);
     const gItems = shown.map(a => ({ label: a.key, value: a.val, valLabel: fmtVal(a.val) }));
+    const axFmt = isMoney(valueField) ? (v => '$' + axNum(v)) : axNum;
     renderChartBlock(host, meta.id, `${A.fieldLabel(valueField)} by ${A.fieldLabel(groupField)}`, [
-      { key: 'bars', label: 'Bars', fn: () => svgBarsH(gItems) },
-      { key: 'column', label: 'Columns', fn: () => svgColumn(gItems) },
+      { key: 'bars', label: 'Bars', fn: () => svgBarsH(gItems, { cat: true, fmt: axFmt }) },
+      { key: 'column', label: 'Columns', fn: () => svgColumn(gItems, { cat: true, fmt: axFmt }) },
       { key: 'pie', label: 'Pie', fn: () => svgPie(gItems, false) },
-      { key: 'lollipop', label: 'Lollipop', fn: () => svgLollipop(gItems) },
+      { key: 'lollipop', label: 'Lollipop', fn: () => svgLollipop(gItems, { fmt: axFmt }) },
+    ]);
+    const topG = shown[0];
+    readout(host, [
+      `This groups every row by ${A.fieldLabel(groupField).toLowerCase()} and totals ${A.fieldLabel(valueField).toLowerCase()}. `
+      + (topG ? `${topG.key} leads with ${fmtVal(topG.val)}. ` : '')
+      + `The longest bars are where this metric concentrates — usually the first place to look.`,
     ]);
     host.appendChild(table(
       [A.fieldLabel(groupField), 'Rows', 'TY units', 'TY retail $', 'TY on hand'],
@@ -684,10 +894,11 @@
     const data = A.assortmentProductivity(rows, { groupBy: dim }).slice(0, 20);
     const items = data.map(d => ({ label: d.key, value: d.rtl, valLabel: fmt$(d.rtl) }));
     const perSku = data.slice().sort((a, b) => b.rtlPerSku - a.rtlPerSku).map(d => ({ label: d.key, value: d.rtlPerSku, valLabel: fmt$(d.rtlPerSku) }));
+    const m$ = v => '$' + axNum(v);
     renderChartBlock(host, meta.id, `Retail $ by ${A.fieldLabel(dim)}`, [
-      { key: 'bars', label: 'Bars', fn: () => svgBarsH(items) },
-      { key: 'column', label: 'Columns', fn: () => svgColumn(items) },
-      { key: 'persku', label: '$/SKU', fn: () => svgBarsH(perSku) },
+      { key: 'bars', label: 'Bars', fn: () => svgBarsH(items, { cat: true, fmt: m$ }) },
+      { key: 'column', label: 'Columns', fn: () => svgColumn(items, { cat: true, fmt: m$ }) },
+      { key: 'persku', label: '$/SKU', fn: () => svgBarsH(perSku, { cat: true, fmt: m$ }) },
       { key: 'pie', label: 'Pie', fn: () => svgPie(items, false) },
     ]);
     host.appendChild(table([A.fieldLabel(dim), 'SKUs', 'TY units', 'TY retail $', '$/SKU', 'Cover'],
@@ -714,9 +925,16 @@
     const data = A.priceArchitectureAnalysis(rows);
     if (!data.length) return fallbackBreakdown(host, rows, meta);
     const items = data.map(d => ({ label: d.band, value: d.rtl, valLabel: fmt$(d.rtl) }));
+    const m$ = v => '$' + axNum(v);
+    const topBand = data.slice().sort((a, b) => b.rtl - a.rtl)[0], totalRtl = A.sum(data, d => d.rtl);
+    readout(host, [
+      `This shows where your sales dollars sit across price tiers. `
+      + (topBand ? `The ${topBand.band} band does the heaviest lifting — ${fmt$(topBand.rtl)} of ${fmt$(totalRtl)}. ` : '')
+      + `Short or missing bars are price points you're barely playing in — either a deliberate gap or an opening to fill.`,
+    ]);
     renderChartBlock(host, meta.id, 'Retail $ by price band', [
-      { key: 'column', label: 'Columns', fn: () => svgColumn(items) },
-      { key: 'bars', label: 'Bars', fn: () => svgBarsH(items) },
+      { key: 'column', label: 'Columns', fn: () => svgColumn(items, { cat: true, fmt: m$ }) },
+      { key: 'bars', label: 'Bars', fn: () => svgBarsH(items, { cat: true, fmt: m$ }) },
       { key: 'pie', label: 'Pie', fn: () => svgPie(items, false) },
     ]);
     host.appendChild(table(['Price band', 'SKUs', 'TY units', 'TY retail $', 'AUR'],
@@ -730,9 +948,17 @@
       label: d.year, value: d.tiedRetail, valLabel: fmt$(d.tiedRetail),
       color: (d.year !== 'Unknown' && +d.year < state.params.agedYear) ? 'viz-warn' : 'viz-accent',
     }));
+    const m$ = v => '$' + axNum(v);
+    const oldTied = A.sum(data.filter(d => d.year !== 'Unknown' && +d.year < state.params.agedYear), d => d.tiedRetail);
+    readout(host, [
+      `Inventory is sorted by the year each collection launched. `
+      + (oldTied > 0
+        ? `About ${fmt$(oldTied)} is locked in stock older than ${state.params.agedYear} (the highlighted bars) — the oldest goods and usually the first to clear out.`
+        : `Almost nothing predates ${state.params.agedYear}, so aged stock isn't a pressing problem right now.`),
+    ]);
     renderChartBlock(host, meta.id, 'Retail $ tied by vintage year', [
-      { key: 'column', label: 'Columns', fn: () => svgColumn(items) },
-      { key: 'bars', label: 'Bars', fn: () => svgBarsH(items) },
+      { key: 'column', label: 'Columns', fn: () => svgColumn(items, { fmt: m$ }) },
+      { key: 'bars', label: 'Bars', fn: () => svgBarsH(items, { fmt: m$ }) },
     ]);
     host.appendChild(table(['Vintage', 'SKUs', 'On-hand', 'Tied retail $', 'Dead SKUs'],
       data.map(d => [d.year, fmtInt(d.skus), fmtInt(d.oh), fmt$(d.tiedRetail), fmtInt(d.dead)])));
@@ -747,6 +973,13 @@
     renderChartBlock(host, meta.id, 'Avg units vs discount depth', [
       { key: 'scatter', label: 'Scatter', fn: () => svgScatterXY(pts, { xMin: 0, xMax: 1, trend: m.fit, xLabel: 'discount depth', yLabel: 'avg units' }) },
       { key: 'column', label: 'Columns', fn: () => svgColumn(items) },
+    ]);
+    readout(host, [
+      `Each dot pairs a discount level with how many units typically sold there. `
+      + (m.fit.slope > 0.5
+        ? `The line slopes up, so deeper discounts really do shift more product`
+        : `The line is nearly flat, so cutting price further buys little extra volume`)
+      + ` — about ${m.fit.slope.toFixed(1)} more units for every extra 100% of markdown depth.`,
     ]);
     host.appendChild(el('p', { class: 'note' }, `Response slope ≈ ${m.fit.slope.toFixed(1)} units per +100% depth across ${fmtInt(m.n)} priced rows.`));
     host.appendChild(table(['Depth band', 'Rows', 'Avg units', 'Avg ST%'],
@@ -766,6 +999,11 @@
         { name: 'Actual', values: actual, cls: 'stroke-muted' },
         { name: 'Projected', values: projected, cls: 'stroke-accent', dashed: true },
       ], {}) },
+    ]);
+    readout(host, [
+      `The solid line is what actually sold week by week; the dashed line carries the recent trend `
+      + `${f.fit.slope >= 0 ? 'upward' : 'downward'} for the next ${f.proj.length} weeks (~${Math.abs(f.fit.slope).toFixed(1)} units/week). `
+      + `Read it as direction of travel, not a guarantee — a promo or a stock-out would bend the real line.`,
     ]);
     host.appendChild(el('p', { class: 'note' }, `Trend ≈ ${f.fit.slope >= 0 ? '+' : ''}${f.fit.slope.toFixed(1)} units/week; next ${f.proj.length} weeks ≈ ${fmtInt(A.sum(f.proj, p => p.units))} units.`));
     host.appendChild(table(['Week', 'TY units'], f.series.map(s => [s.week, fmtInt(s.units)])));
@@ -788,7 +1026,7 @@
     const sc = A.retailerScorecard(rows);
     if (!sc.retailers.length) return fallbackBreakdown(host, rows, meta);
     const axes = sc.axes.map(a => a[1]);
-    const palette = ['stroke-accent', 'stroke-warn', 'stroke-muted'];
+    const palette = ['stroke-c1', 'stroke-c3', 'stroke-c4'];
     const series = sc.retailers.slice(0, 3).map((r, i) => ({ name: r.retailer, values: sc.axes.map(a => r.norm[a[0]]), cls: palette[i % palette.length] }));
     renderChartBlock(host, meta.id, 'Retailer profile across 5 axes (normalized)', [
       { key: 'radar', label: 'Radar', fn: () => svgRadar(axes, series) },
@@ -838,8 +1076,8 @@
     }
     const items = mb.pairs.slice(0, 16).map(p => ({ label: p.pair, value: p.count, valLabel: fmtInt(p.count) }));
     renderChartBlock(host, meta.id, `Top brand pairs across ${fmtInt(mb.baskets)} baskets`, [
-      { key: 'bars', label: 'Bars', fn: () => svgBarsH(items) },
-      { key: 'column', label: 'Columns', fn: () => svgColumn(items) },
+      { key: 'bars', label: 'Bars', fn: () => svgBarsH(items, { cat: true }) },
+      { key: 'column', label: 'Columns', fn: () => svgColumn(items, { cat: true }) },
     ]);
     host.appendChild(table(['Brand pair', 'Baskets together'], mb.pairs.slice(0, 20).map(p => [p.pair, fmtInt(p.count)])));
   }
@@ -876,9 +1114,10 @@
     const data = A.replenishment(rows).slice(0, 20);
     if (!data.length) return fallbackBreakdown(host, rows, meta);
     const items = data.map(d => ({ label: String(d.sku), value: d.urgency, valLabel: (d.urgency * 100).toFixed(0) }));
+    const scoreFmt = v => (v * 100).toFixed(0);
     renderChartBlock(host, meta.id, 'Chase-priority score (top SKUs)', [
-      { key: 'bars', label: 'Bars', fn: () => svgBarsH(items) },
-      { key: 'lollipop', label: 'Lollipop', fn: () => svgLollipop(items) },
+      { key: 'bars', label: 'Bars', fn: () => svgBarsH(items, { fmt: scoreFmt }) },
+      { key: 'lollipop', label: 'Lollipop', fn: () => svgLollipop(items, { fmt: scoreFmt }) },
     ]);
     host.appendChild(table(['SKU', 'Brand', 'TY units', 'On-hand', 'ST%', 'Cover', 'Score'],
       data.map(d => [String(d.sku), brandLabel(d.brand), fmtInt(d.units), fmtInt(d.oh), d.st == null ? '–' : fmtPct(d.st), d.cover == null ? '–' : d.cover.toFixed(1), (d.urgency * 100).toFixed(0)])));
@@ -1085,6 +1324,15 @@
       ['ST% out of range', fl.st_out_of_range || 0, 'velocity matrix'],
       ['AUR above MSRP', fl.aur_above_msrp || 0, 'promo penetration'],
     ];
+    const issues = flagDefs.filter(r => r[1] > 0).length;
+    readout(host, [
+      `Think of this as a spell-check for the spreadsheet. ${fmtInt(rep.totalRows)} rows are loaded; `
+      + `${fmtInt(rep.noTySale)} of them sold nothing this year — inventory just sitting on shelves.`,
+      issues
+        ? `${issues} kind${issues === 1 ? '' : 's'} of data problem turned up (things like a missing price or negative units). `
+          + `Each bad row is quietly left out of the numbers it would distort, so a single typo can't poison the whole report.`
+        : `No data problems turned up — every row is clean enough to trust downstream.`,
+    ]);
     // live chart: rows per integrity flag (bars / columns / lollipop)
     const flagItems = flagDefs
       .map(r => ({ label: r[0], value: r[1], valLabel: fmtInt(r[1]), color: 'viz-warn' }))
@@ -1117,12 +1365,21 @@
       + '“Cover” = total on-hand ÷ TY units sold.'));
     const ranked = data.filter(d => d.tiedRetail > 0);
     const labelOf = d => d.group.split(' › ').map((p, i) => i === 0 ? brandLabel(p) : p).join(' › ');
+    const totalTied = A.sum(ranked, d => d.tiedRetail), topTied = ranked[0];
+    readout(host, [
+      `Roughly ${fmt$(totalTied)} of inventory (counted at full sticker price) is stuck in stock that isn't selling this year — `
+      + `cash you've already spent, sitting on shelves instead of in the till.`,
+      topTied
+        ? `The biggest single pocket is ${labelOf(topTied)} at ${fmt$(topTied.tiedRetail)}. On the Pareto view the tall left-hand bars are where clearing stock frees the most money fastest.`
+        : `Nothing is meaningfully stuck right now — stock is turning over.`,
+    ]);
     // live chart: tied retail $ ranked (pareto / bars / columns)
+    const m$ = v => '$' + axNum(v);
     const liqItems = ranked.slice(0, 16).map(d => ({ label: labelOf(d), value: d.tiedRetail, valLabel: fmt$(d.tiedRetail) }));
     renderChartBlock(host, 'liquidation', 'Retail $ tied in dead stock', [
-      { key: 'pareto', label: 'Pareto', fn: () => svgPareto(liqItems) },
-      { key: 'bars', label: 'Bars', fn: () => svgBarsH(liqItems) },
-      { key: 'column', label: 'Columns', fn: () => svgColumn(liqItems) },
+      { key: 'pareto', label: 'Pareto', fn: () => svgPareto(liqItems, { fmt: m$ }) },
+      { key: 'bars', label: 'Bars', fn: () => svgBarsH(liqItems, { fmt: m$ }) },
+      { key: 'column', label: 'Columns', fn: () => svgColumn(liqItems, { fmt: m$ }) },
     ]);
     const top = ranked.slice(0, 25).map(d => [
       d.group.split(' \u203a ').map((p, i) => i === 0 ? brandLabel(p) : p).join(' › '),
@@ -1143,6 +1400,13 @@
       `${fmtInt(v.n)} selling SKU-rows classified on a median split `
       + `(ST% median ${fmtPct(v.stMed)}, volume median ${fmtInt(v.volMed)} units). `
       + `Quadrant = sell-through × volume.`));
+    readout(host, [
+      `Every item lands in one of four boxes based on how fast it sells (up) and how much it sells (right). `
+      + `Top-right Stars (${fmtInt(v.counts.Star || 0)}) are proven winners — protect their stock. `
+      + `Top-left Sleepers (${fmtInt(v.counts.Sleeper || 0)}) sell out quickly but you barely stock them — chase more units.`,
+      `Bottom-right Slow-bleeders (${fmtInt(v.counts['Slow-bleeder'] || 0)}) are the markdown trap: lots of stock, weak sell-through. `
+      + `Bottom-left Dogs (${fmtInt(v.counts.Dog || 0)}) are slow and small — the obvious candidates to exit.`,
+    ]);
     // live chart: ST% (y) vs TY units (x) scatter, split on the medians
     if (v.points.length) {
       const unitsSorted = v.points.map(p => p.units).sort((a, b) => a - b);
@@ -1193,6 +1457,14 @@
     host.appendChild(el('p', null,
       'YoY unit change decomposed per brand: New (collections with no LY sales) '
       + '− Dropped (LY collections gone this year) + Continuing (Δ on collections in both years).'));
+    const net = A.sum(m, b => b.unitVar || 0);
+    const up = m.filter(b => (b.unitVar || 0) > 0).length, down = m.filter(b => (b.unitVar || 0) < 0).length;
+    readout(host, [
+      `Versus last year, units are ${net >= 0 ? 'up' : 'down'} ${fmtInt(Math.abs(net))} overall — `
+      + `${up} brand${up === 1 ? '' : 's'} grew and ${down} shrank. Bars to the right are gains, to the left are losses.`,
+      `The point is to see where growth comes from: brand-new collections, business lost to dropped collections, or the core range you carried in both years. `
+      + `Growth built on new launches is more fragile than growth from the core holding steady.`,
+    ]);
     // live chart: net YoY unit change per brand, diverging around zero
     const diverge = m.slice()
       .sort((a, b) => Math.abs(b.unitVar) - Math.abs(a.unitVar)).slice(0, 16)
@@ -1226,6 +1498,14 @@
       + `Because the data is YTD-aggregated, this is promo intensity per row, not a true unit split. `
       + `${fmtInt(p.validRows)} rows priced; ${fmtInt(p.aboveMsrpExcluded)} above-MSRP rows excluded. `
       + `Overall promo unit share: ${fmtPct(p.overall.promoUnitPct)}.`));
+    const promoDependent = p.groups.filter(g => (g.promoUnitPct || 0) > 0.30).length;
+    readout(host, [
+      `About ${fmtPct(p.overall.promoUnitPct)} of units sold at a real discount (more than ${fmtPct(state.params.promoThreshold)} off the sticker); `
+      + `the rest moved at or near full price — that's healthy, full-margin demand. The shaded slab in each bar is the discounted share.`,
+      promoDependent
+        ? `${promoDependent} brand${promoDependent === 1 ? '' : 's'} lean on markdowns for more than 30% of volume — they'd feel it most if promotions were pulled back.`
+        : `No brand here is overly hooked on markdowns to move product.`,
+    ]);
     // live chart: 100% stacked full-price vs promo, overall then per brand
     const stackItems = [{
       label: 'ALL BRANDS', promoPct: p.overall.promoUnitPct || 0,
@@ -1244,7 +1524,7 @@
       { key: 'stacked', label: 'Stacked', fn: () => svgStacked(stackItems) },
       { key: 'pie', label: 'Pie', fn: () => svgPie(pieParts, true) },
       { key: 'donut100', label: 'Bar', fn: () => svgStacked100(pieParts) },
-      { key: 'bars', label: 'Per-brand', fn: () => svgBarsH(promoBars) },
+      { key: 'bars', label: 'Per-brand', fn: () => svgBarsH(promoBars, { fmt: axPct }) },
     ]);
     const rowsOut = p.groups.filter(g => g.totalUnits > 0).slice(0, 30).map(g => [
       brandLabel(g.group), fmtInt(g.totalUnits),
@@ -1314,6 +1594,7 @@
         if (snap.themes) state.themes = Object.assign({}, snap.themes);
         $('promoThresh').value = Math.round(state.params.promoThreshold * 100);
         $('agedYear').value = state.params.agedYear;
+        syncPriceBandInputs();
         updateHeaderStats();
         updateProjectStatus();
         renderAnalysisGuide();
@@ -1359,6 +1640,12 @@
   /* expose a small surface for the editorial shell (inline script) */
   window.SOA_APP = Object.assign(window.SOA_APP || {}, { clearData });
 
+  /* mirror the price-band params into their inputs (init + snapshot import) */
+  function syncPriceBandInputs() {
+    const e = $('priceBandEdges'); if (e) e.value = (state.params.priceBands || []).join(', ');
+    const s = $('priceBandSource'); if (s) s.value = state.params.priceBandSource || 'auto';
+  }
+
   /* ---- wire up controls -------------------------------------------------- */
   function init() {
     populateProjectSelect();
@@ -1378,6 +1665,21 @@
     $('agedYear').addEventListener('change', e => {
       const v = parseInt(e.target.value, 10);
       state.params.agedYear = isFinite(v) ? v : 2020;
+      if (state.records.length) recomputeAndRender();
+    });
+    // price-range config: derive bands from MSRP, or use the file's column
+    syncPriceBandInputs();
+    const pbSource = $('priceBandSource');
+    if (pbSource) pbSource.addEventListener('change', e => {
+      state.params.priceBandSource = e.target.value || 'auto';
+      if (state.records.length) recomputeAndRender();
+    });
+    const pbEdges = $('priceBandEdges');
+    if (pbEdges) pbEdges.addEventListener('change', e => {
+      const edges = String(e.target.value).split(/[,\s]+/).map(s => parseFloat(s))
+        .filter(n => isFinite(n) && n > 0).sort((a, b) => a - b);
+      if (edges.length) state.params.priceBands = edges;
+      e.target.value = state.params.priceBands.join(', ');   // reflect the cleaned list
       if (state.records.length) recomputeAndRender();
     });
     // tab switching

@@ -413,17 +413,45 @@
     };
   }
 
+  /* ---- price band from a sticker price, given sorted band edges ---------- *
+   * edges [100,150,200,250,300] → "$0-99" "$100-149" … "$250-299" "$300+".   */
+  function priceBandLabel(m, edges) {
+    if (m == null || !(m > 0)) return null;
+    const e = (edges && edges.length) ? edges : [100, 150, 200, 250, 300];
+    if (m < e[0]) return '$0-' + (e[0] - 1);
+    for (let i = 1; i < e.length; i++) if (m < e[i]) return '$' + e[i - 1] + '-' + (e[i] - 1);
+    return '$' + e[e.length - 1] + '+';
+  }
+
   /* ---- per-row enrichment ------------------------------------------------ *
-   * params: { promoThreshold (0..1, fraction OFF msrp), agedYear }
+   * params: { promoThreshold (0..1, fraction OFF msrp), agedYear,
+   *           priceBands [edges], priceBandSource 'auto'|'msrp'|'column' }
    * themes: { [collectionRelease]: themeString }  (authored client-side)
    */
   function enrich(records, params, themes) {
-    const p = Object.assign({ promoThreshold: 0.20, agedYear: 2020 }, params || {});
+    const p = Object.assign({
+      promoThreshold: 0.20, agedYear: 2020,
+      priceBands: [100, 150, 200, 250, 300], priceBandSource: 'auto',
+    }, params || {});
     const th = themes || {};
+    const edges = (p.priceBands && p.priceBands.length)
+      ? p.priceBands.slice().filter(n => typeof n === 'number' && isFinite(n) && n > 0).sort((a, b) => a - b)
+      : [100, 150, 200, 250, 300];
+    const src = p.priceBandSource || 'auto';   // 'auto' | 'msrp' | 'column'
     return records.map(r => {
       const e = Object.assign({}, r);
 
       const u = e.tyUnits, rtl = e.tyRtl, oh = e.tyOH, msrp = e.msrp;
+
+      // ---- price band: keep the file's column, or derive bands from MSRP ----
+      // 'auto'   → use the Price Range column when present, else derive from MSRP
+      // 'msrp'   → always derive from MSRP (override any column)
+      // 'column' → only ever use the file's Price Range column
+      const colBand = (e.priceRange != null && e.priceRange !== '') ? e.priceRange : null;
+      const msrpBand = priceBandLabel(msrp, edges);
+      e.priceRange = src === 'msrp' ? (msrpBand || colBand)
+        : src === 'column' ? colBand
+        : (colBand || msrpBand);   // auto
 
       e.aur      = (u != null && u > 0 && rtl != null) ? rtl / u : null;
       e.aurRatio = (e.aur != null && msrp != null && msrp > 0) ? e.aur / msrp : null;
@@ -988,7 +1016,7 @@
 
   return {
     FIELD_SYNONYMS, OPTIONAL_DIMS, FIELD_LABELS, ANALYSES,
-    num, buildColumnMap, parseRecords, enrich,
+    num, buildColumnMap, parseRecords, enrich, priceBandLabel,
     fieldLabel, evaluateAnalyses,
     groupBy, sum, median, distinct, applyFilters, mean, stdev, linreg,
     integrityReport, liquidationRadar, velocityMatrix, momentum, promoAnalysis,

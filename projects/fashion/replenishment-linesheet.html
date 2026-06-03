@@ -806,37 +806,211 @@ select:focus, .search-input:focus { border-color: var(--accent); }
 .modal p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px; line-height: 1.5; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
-/* ─── Lightbox ─── */
+/* ─── Presentation lightbox ─── */
 .lightbox {
   position: fixed; inset: 0; z-index: 3000;
   background: rgba(0, 0, 0, 0.88);
   backdrop-filter: blur(24px);
   display: flex; align-items: center; justify-content: center;
-  flex-direction: column;
   opacity: 0; pointer-events: none;
   transition: opacity 0.3s ease;
   cursor: zoom-out;
+  padding: 28px;
 }
 .lightbox.open { opacity: 1; pointer-events: all; }
-.lightbox img {
-  max-width: 90vw;
-  max-height: 80vh;
-  object-fit: contain;
+.presentation-shell {
+  width: min(1480px, 100%);
+  height: min(820px, calc(100vh - 56px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(420px, 560px);
+  gap: 18px;
+  cursor: default;
+}
+.presentation-photo {
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.10);
   border-radius: var(--radius);
-  box-shadow: 0 20px 80px rgba(0,0,0,0.5);
+  background: color-mix(in oklab, var(--bg) 74%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  box-shadow: 0 20px 80px rgba(0,0,0,0.45);
   animation: lightbox-in 0.3s ease;
 }
+.presentation-photo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 32px rgba(0,0,0,0.36));
+}
+.presentation-image-placeholder {
+  display: none;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.presentation-photo.no-image img { display: none; }
+.presentation-photo.no-image .presentation-image-placeholder { display: block; }
+.presentation-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--surface-raised) 82%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1.28rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), opacity var(--transition), transform var(--transition);
+}
+.presentation-nav:hover {
+  background: color-mix(in oklab, var(--surface-raised) 95%, transparent);
+  transform: translateY(-50%) scale(1.04);
+}
+.presentation-nav:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.presentation-nav:disabled:hover {
+  transform: translateY(-50%);
+}
+.presentation-nav--prev { left: 16px; }
+.presentation-nav--next { right: 16px; }
 @keyframes lightbox-in {
   from { transform: scale(0.9); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
-.lightbox-caption {
-  margin-top: 16px;
+.presentation-panel {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
+  box-shadow: 0 16px 54px rgba(0,0,0,0.36);
+  padding: 20px;
+}
+.presentation-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.presentation-rank {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--rank-accent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--rank-bg);
+  padding: 4px 8px;
+}
+.presentation-status {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.presentation-title {
+  margin-bottom: 16px;
+}
+.presentation-title h2 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 2.4vw, 2.45rem);
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text);
+}
+.presentation-title p {
+  margin: 0;
   font-family: var(--font-mono);
   font-size: 0.8rem;
   color: var(--text-muted);
-  text-align: center;
-  max-width: 500px;
+}
+.presentation-specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.presentation-spec {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: color-mix(in oklab, var(--surface-raised) 72%, transparent);
+  padding: 9px 10px;
+}
+.presentation-spec--wide {
+  grid-column: 1 / -1;
+}
+.presentation-spec dt {
+  margin: 0 0 3px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.presentation-spec dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.presentation-note-block {
+  margin-top: 16px;
+}
+.presentation-note-block label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.presentation-notes {
+  width: 100%;
+  min-height: 112px;
+  resize: vertical;
+  border: 1px solid var(--accent-mid);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  padding: 10px 12px;
+  outline: none;
+}
+.presentation-notes:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--selected-glow);
+}
+.presentation-selected {
+  margin-top: 14px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+.presentation-position {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
 }
 .lightbox-close {
   position: absolute;
@@ -915,6 +1089,24 @@ select:focus, .search-input:focus { border-color: var(--accent); }
   .grid-container { padding: 16px; }
   .card-grid { grid-template-columns: 1fr; }
   .search-input { width: 140px; }
+  .lightbox { padding: 16px; align-items: stretch; }
+  .presentation-shell {
+    height: calc(100vh - 32px);
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(260px, 48vh) minmax(0, 1fr);
+  }
+  .presentation-photo { padding: 16px; }
+  .presentation-nav {
+    top: auto;
+    bottom: 14px;
+    transform: none;
+  }
+  .presentation-nav:hover,
+  .presentation-nav:disabled:hover {
+    transform: none;
+  }
+  .presentation-panel { padding: 16px; }
+  .presentation-specs { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -1047,11 +1239,34 @@ select:focus, .search-input:focus { border-color: var(--accent); }
   </div>
 </div>
 
-<!-- Lightbox -->
+<!-- Presentation Mode -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
   <button class="lightbox-close" onclick="closeLightbox(event)">✕</button>
-  <img id="lightboxImg" src="" alt="Product image">
-  <div class="lightbox-caption" id="lightboxCaption"></div>
+  <div class="presentation-shell">
+    <div class="presentation-photo" id="presentationPhoto">
+      <button class="presentation-nav presentation-nav--prev" id="presentationPrev" type="button" onclick="navigatePresentation(event, -1)" aria-label="Previous visible SKU">‹</button>
+      <img id="lightboxImg" src="" alt="Product image">
+      <div class="presentation-image-placeholder" id="presentationImagePlaceholder">No Image</div>
+      <button class="presentation-nav presentation-nav--next" id="presentationNext" type="button" onclick="navigatePresentation(event, 1)" aria-label="Next visible SKU">›</button>
+    </div>
+    <aside class="presentation-panel" aria-label="Product specs and notation">
+      <div class="presentation-kicker">
+        <span class="presentation-rank" id="presentationRank"></span>
+        <span class="presentation-status" id="presentationStatus"></span>
+      </div>
+      <div class="presentation-title">
+        <h2 id="presentationTitle"></h2>
+        <p id="presentationSubtitle"></p>
+      </div>
+      <dl class="presentation-specs" id="presentationSpecs"></dl>
+      <div class="presentation-note-block">
+        <label for="presentationNotes">Notation</label>
+        <textarea class="presentation-notes" id="presentationNotes" placeholder="Add notes..."></textarea>
+      </div>
+      <div class="presentation-selected" id="presentationSelected"></div>
+      <div class="presentation-position" id="presentationPosition"></div>
+    </aside>
+  </div>
 </div>
 
 <!-- Info / Appendix Modal -->
@@ -1242,6 +1457,7 @@ let allItems = [];
 let selectedSet = new Set();
 let notesMap = {};
 let imageMap = {}; // id -> base64 data URL or URL string
+let activePresentationId = null;
 let autosaveReady = true;
 let autosaveTimer = null;
 let autosaveHydrating = false;
@@ -2022,31 +2238,116 @@ function toggleSelect(e, id) {
   scheduleAutosave();
 }
 
-// ─── Lightbox ───
+// ─── Presentation Mode ───
 function openLightbox(e, id) {
-  e.stopPropagation();
-  const imgSrc = imageMap[id];
-  if (!imgSrc) return;
+  if (e) e.stopPropagation();
   const item = allItems.find(it => it.id === id);
+  if (!item) return;
   const lb = document.getElementById('lightbox');
-  document.getElementById('lightboxImg').src = imgSrc;
-  document.getElementById('lightboxCaption').textContent =
-    `${item.brand} — ${item.style} — ${item.color}`;
+  renderPresentationItem(item);
   lb.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
+function renderPresentationItem(item) {
+  const imgSrc = imageMap[item.id] || '';
+  const photo = document.getElementById('presentationPhoto');
+  const img = document.getElementById('lightboxImg');
+  activePresentationId = item.id;
+  img.src = imgSrc;
+  photo.classList.toggle('no-image', !imgSrc);
+  document.getElementById('lightboxImg').alt = [item.brand, item.style, item.color].filter(Boolean).join(' ');
+  document.getElementById('presentationRank').textContent = `Rank #${item.rank || '-'}`;
+  document.getElementById('presentationStatus').textContent = item.status || 'Status -';
+  document.getElementById('presentationTitle').textContent = item.style || item.sku || 'Untitled SKU';
+  document.getElementById('presentationSubtitle').textContent = [item.brand, item.color, formatCurrency(item.msrp)].filter(Boolean).join(' / ');
+  document.getElementById('presentationSpecs').innerHTML = getPresentationSpecs(item)
+    .map(spec => `
+      <div class="presentation-spec ${spec.wide ? 'presentation-spec--wide' : ''}">
+        <dt>${escHtml(spec.label)}</dt>
+        <dd>${escHtml(spec.value) || '-'}</dd>
+      </div>
+    `).join('');
+
+  const notes = document.getElementById('presentationNotes');
+  notes.value = notesMap[item.id] || '';
+  notes.oninput = () => {
+    notesMap[item.id] = notes.value;
+    const cardNotes = document.querySelector(`.card[data-id="${item.id}"] .card-notes`);
+    if (cardNotes && cardNotes.value !== notes.value) cardNotes.value = notes.value;
+    scheduleAutosave();
+  };
+
+  document.getElementById('presentationSelected').textContent = selectedSet.has(item.id)
+    ? 'Selected for export.'
+    : 'Not selected for export. Click the product card behind this view to change selection.';
+  updatePresentationNav();
+}
+
+function getPresentationSpecs(item) {
+  const specs = [
+    ['SKU', item.sku],
+    ['UPC', item.upc],
+    ['Material', item.material],
+    ['Grid', item.grid],
+    ['Color', item.color],
+    ['Size', item.size],
+    ['Polarized', item.polarized ? 'Yes' : 'No'],
+    ['MSRP', formatCurrency(item.msrp)],
+    ['Release', item.release],
+    ['EOL', item.eol],
+    ['YTD Sales', item.ytdSales.toLocaleString()],
+    ['Order Level', item.orderLevel.toLocaleString()],
+    ['On Hand', item.onHand.toLocaleString()],
+    ['5-Wk S/T', formatPct(item.sellThru)]
+  ];
+  if (item.custom1Label) specs.push([item.custom1Label, item.custom1, true]);
+  if (item.custom2Label) specs.push([item.custom2Label, item.custom2, true]);
+  return specs.map(([label, value, wide]) => ({ label, value, wide }));
+}
+
+function getPresentationList() {
+  return getFiltered();
+}
+
+function updatePresentationNav() {
+  const items = getPresentationList();
+  const index = items.findIndex(it => it.id === activePresentationId);
+  const hasPosition = index >= 0;
+  document.getElementById('presentationPrev').disabled = !hasPosition || index === 0;
+  document.getElementById('presentationNext').disabled = !hasPosition || index === items.length - 1;
+  document.getElementById('presentationPosition').textContent = hasPosition
+    ? `${index + 1} of ${items.length} visible SKU${items.length !== 1 ? 's' : ''}`
+    : 'Current SKU is outside the visible list';
+}
+
+function navigatePresentation(e, direction) {
+  if (e) e.stopPropagation();
+  const items = getPresentationList();
+  const index = items.findIndex(it => it.id === activePresentationId);
+  if (index < 0) return;
+  const next = items[index + direction];
+  if (!next) return;
+  renderPresentationItem(next);
+}
+
 function closeLightbox(e) {
-  // Don't close if clicking the image itself (only close on backdrop/button)
-  if (e && e.target.tagName === 'IMG') return;
+  // Keep presentation controls interactive; only the backdrop and close button dismiss.
+  if (e && e.target.closest && e.target.closest('.presentation-shell')) return;
   const lb = document.getElementById('lightbox');
   lb.classList.remove('open');
+  activePresentationId = null;
   document.body.style.overflow = '';
 }
 
 // Close lightbox on Escape
 document.addEventListener('keydown', e => {
+  const lb = document.getElementById('lightbox');
   if (e.key === 'Escape') closeLightbox();
+  if (!lb || !lb.classList.contains('open')) return;
+  if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+  if (e.key === 'ArrowLeft') navigatePresentation(e, -1);
+  if (e.key === 'ArrowRight') navigatePresentation(e, 1);
 });
 
 // ─── Info / Appendix modal ───
@@ -2180,6 +2481,10 @@ function updateSelectionBar() {
 // ─── Notes ───
 function saveNote(id, val) {
   notesMap[id] = val;
+  if (activePresentationId === id) {
+    const notes = document.getElementById('presentationNotes');
+    if (notes && notes.value !== val) notes.value = val;
+  }
   scheduleAutosave();
 }
 

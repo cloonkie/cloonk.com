@@ -15,6 +15,9 @@
   const PER_PAGE = 9;
   const FALLBACK_IMG = 'https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/projects%20no%20img.png';
 
+  // Remove the static crawlable fallback cards before building the interactive grid.
+  grid.innerHTML = '';
+
   /* ── State ── */
   const sel = {
     topic:       new Set(),

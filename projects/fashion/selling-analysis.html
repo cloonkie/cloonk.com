@@ -1374,6 +1374,84 @@ body.nav-open .nav-burger .icon-close { display: block; }
 @media (max-width: 480px) {
   .result-preview__body { grid-template-columns: 1fr; }
 }
+
+/* ── Categorical palette — a broad colour range for breakdown charts ── */
+:root {
+  --cat-1:#39ff14; --cat-2:#ffd23f; --cat-3:#4ea8ff; --cat-4:#ff6b9d;
+  --cat-5:#b388ff; --cat-6:#2ee6c4; --cat-7:#ff8a3d; --cat-8:#9be15d;
+  --cat-9:#ff5470; --cat-10:#5bd1ff; --cat-11:#d4a5ff; --cat-12:#c7b8a4;
+}
+[data-theme="light"] {
+  --cat-1:#1e8a4a; --cat-2:#b8860b; --cat-3:#2563eb; --cat-4:#db2777;
+  --cat-5:#7c3aed; --cat-6:#0d9488; --cat-7:#ea580c; --cat-8:#4d7c0f;
+  --cat-9:#dc2626; --cat-10:#0284c7; --cat-11:#9333ea; --cat-12:#78716c;
+}
+.lens-chart .viz-c1{fill:var(--cat-1)} .lens-chart .viz-c2{fill:var(--cat-2)}
+.lens-chart .viz-c3{fill:var(--cat-3)} .lens-chart .viz-c4{fill:var(--cat-4)}
+.lens-chart .viz-c5{fill:var(--cat-5)} .lens-chart .viz-c6{fill:var(--cat-6)}
+.lens-chart .viz-c7{fill:var(--cat-7)} .lens-chart .viz-c8{fill:var(--cat-8)}
+.lens-chart .viz-c9{fill:var(--cat-9)} .lens-chart .viz-c10{fill:var(--cat-10)}
+.lens-chart .viz-c11{fill:var(--cat-11)} .lens-chart .viz-c12{fill:var(--cat-12)}
+.lens-chart .stroke-c1{stroke:var(--cat-1);fill:none} .lens-chart .stroke-c2{stroke:var(--cat-2);fill:none}
+.lens-chart .stroke-c3{stroke:var(--cat-3);fill:none} .lens-chart .stroke-c4{stroke:var(--cat-4);fill:none}
+.lens-chart .stroke-c5{stroke:var(--cat-5);fill:none} .lens-chart .stroke-c6{stroke:var(--cat-6);fill:none}
+.lens-chart .stroke-c7{stroke:var(--cat-7);fill:none} .lens-chart .stroke-c8{stroke:var(--cat-8);fill:none}
+.lens-chart .stroke-c9{stroke:var(--cat-9);fill:none} .lens-chart .stroke-c10{stroke:var(--cat-10);fill:none}
+.lens-chart .stroke-c11{stroke:var(--cat-11);fill:none} .lens-chart .stroke-c12{stroke:var(--cat-12);fill:none}
+
+/* ── Chart axes + gridlines ── */
+.lens-chart .grid { stroke: var(--text-dim); stroke-opacity: 0.16; stroke-width: 1; }
+[data-theme="light"] .lens-chart .grid { stroke-opacity: 0.22; }
+.lens-chart .axis-lbl { fill: var(--text-dim); font-size: 10px; }
+
+/* ── Chart head actions + screenshot button ── */
+.lens-chart__head .chart-actions { display: flex; align-items: center; gap: 8px; }
+.chart-cam {
+  width: 30px; height: 24px;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface-card); color: var(--text-muted); cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.chart-cam:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+.chart-cam.is-busy { opacity: 0.5; pointer-events: none; }
+
+/* ── "In plain terms" interpretation callout ── */
+.lens-readout {
+  display: grid; gap: 7px;
+  margin: 2px 0 4px; padding: 13px 16px;
+  border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface-card));
+}
+.lens-readout__tag {
+  color: var(--accent); font-family: var(--font-mono);
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+}
+.lens-readout__body { display: grid; gap: 6px; }
+.lens-readout__body p { margin: 0; max-width: 76ch; color: var(--text); font-size: 0.92rem; line-height: 1.6; }
+.lens-readout__body p::first-letter { float: none; margin: 0; font-size: inherit; color: inherit; font-family: inherit; }
+
+/* ── Parameter drawer (shares the filter-drawer look) ── */
+.param-drawer[hidden] { display: none; }
+.param-drawer .filter-panel { width: min(380px, calc(100vw - 28px)); display: grid; gap: 14px; }
+.param-field { display: grid; gap: 6px; }
+.param-field[hidden] { display: none; }
+.param-field > .lbl {
+  color: var(--text-muted); font-family: var(--font-mono);
+  font-size: 0.64rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.param-field .hint { color: var(--text-dim); font-size: 0.7rem; line-height: 1.45; }
+.param-field input, .param-field select {
+  width: 100%; min-height: 32px; padding: 6px 9px;
+  border: 1px solid var(--border); border-radius: var(--radius-xs);
+  background: var(--bg); color: var(--text); outline: none;
+}
+[data-theme="light"] .param-field input, [data-theme="light"] .param-field select { background: #f4f2ee; }
+.param-field input:focus, .param-field select:focus { border-color: var(--accent); }
+.param-field .row { display: flex; align-items: center; gap: 8px; }
+.param-field .row input { width: 88px; }
+.param-field .row span { color: var(--text-dim); font-size: 0.72rem; }
 </style>
 </head>
 <body class="fashion selling-analysis-tool" data-view="cover" data-story="integrity">
@@ -1438,6 +1516,32 @@ body.nav-open .nav-burger .icon-close { display: block; }
             <div id="filters"></div>
           </div>
         </details>
+        <details class="filter-drawer param-drawer" id="paramDrawer" hidden>
+          <summary>Parameters</summary>
+          <div class="filter-panel">
+            <div class="param-field" id="paramPromo" data-param="promoThreshold" hidden>
+              <span class="lbl">Promo threshold</span>
+              <div class="row"><input type="number" id="promoThresh" value="20" min="0" max="90" step="5"><span>% under MSRP counts as promo</span></div>
+              <span class="hint">A row is “promo” when its blended price is this far below the sticker price (MSRP).</span>
+            </div>
+            <div class="param-field" id="paramAged" data-param="agedYear" hidden>
+              <span class="lbl">Aged before</span>
+              <div class="row"><input type="number" id="agedYear" value="2020" min="1990" max="2030"><span>release year</span></div>
+              <span class="hint">On-hand stock from collections older than this year is treated as aged inventory.</span>
+            </div>
+            <div class="param-field" id="paramPrice" data-param="priceBands" hidden>
+              <span class="lbl">Price range source</span>
+              <select id="priceBandSource">
+                <option value="auto">Auto — use Price Range column, else derive from MSRP</option>
+                <option value="msrp">Derive from MSRP (override the column)</option>
+                <option value="column">Use the Price Range column only</option>
+              </select>
+              <span class="lbl">Band edges ($)</span>
+              <input type="text" id="priceBandEdges" value="100, 150, 200, 250, 300" inputmode="numeric" aria-label="Price band edges in dollars">
+              <span class="hint">Comma-separated MSRP cut-points. e.g. 100, 150, 200 → $0-99 · $100-149 · $150-199 · $200+.</span>
+            </div>
+          </div>
+        </details>
       </div>
 
       <article class="story-article">
@@ -1487,16 +1591,6 @@ body.nav-open .nav-burger .icon-close { display: block; }
             </div>
           </div>
           <aside class="prelude-side">
-            <div class="prelude-params">
-              <label>
-                <span class="lbl">Promo threshold</span>
-                <span><input type="number" id="promoThresh" value="20" min="0" max="90" step="5"> %</span>
-              </label>
-              <label>
-                <span class="lbl">Aged before</span>
-                <span><input type="number" id="agedYear" value="2020" min="1990" max="2030"></span>
-              </label>
-            </div>
             <div class="result-preview" id="resultPreview">
               <span class="result-preview__label">What the result looks like</span>
               <div class="result-preview__body">
@@ -1917,13 +2011,36 @@ body.nav-open .nav-burger .icon-close { display: block; }
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal(); });
     tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
 
-    /* ─── Dropzone drag highlight ─────────────────────────────────── */
+    /* ─── Dropzone drag highlight + actual drop-to-load ───────────── *
+     * A file dropped on a <label> does NOT populate the nested <input>,
+     * so we read dataTransfer ourselves, assign it to #file, and fire the
+     * same change event the file picker uses.                            */
     const dz = $('dropzone');
     if (dz) {
       ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => {
-        e.preventDefault(); dz.classList.add('dragging');
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+        dz.classList.add('dragging');
       }));
-      ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, () => dz.classList.remove('dragging')));
+      dz.addEventListener('dragleave', e => {
+        if (!dz.contains(e.relatedTarget)) dz.classList.remove('dragging');
+      });
+      dz.addEventListener('drop', e => {
+        e.preventDefault();
+        dz.classList.remove('dragging');
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (!f) return;
+        const fileInput = $('file');
+        try {
+          const dt = new DataTransfer();
+          dt.items.add(f);
+          fileInput.files = dt.files;
+          fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+          showToast('Reading ' + f.name + '…');
+        } catch (err) {
+          showToast('Could not read the dropped file — use the file picker instead.');
+        }
+      });
     }
 
     /* ─── Hamburger nav (mobile) ──────────────────────────────────── */
@@ -2114,6 +2231,35 @@ body.nav-open .nav-burger .icon-close { display: block; }
       $('storyDek').textContent = meta.dek || meta.question || '';
       paintPreludeNeeds(id);
       renderPasteSchema(id);
+      toggleParamControls(id);
+    }
+
+    /* ─── Reveal only the parameters the active read actually uses ──── *
+     * Promo threshold → promo / markdown / scenario reads.
+     * Aged-before     → liquidation / exit / scenario reads.
+     * Price-range cfg → any read that consumes the Price Range dimension.
+     * When a read uses none, the whole drawer is hidden.                */
+    const PROMO_READS = new Set(['promo', 'markdownSensitivity', 'scenarioPlanner']);
+    const AGED_READS = new Set(['liquidation', 'exitPlanner', 'scenarioPlanner']);
+    function readUsesPriceRange(id) {
+      const a = window.SOA && window.SOA.ANALYSES && window.SOA.ANALYSES.find(x => x.id === id);
+      if (!a) return false;
+      return [].concat(a.required || [], a.metrics || []).indexOf('priceRange') >= 0;
+    }
+    function toggleParamControls(id) {
+      const usePromo = PROMO_READS.has(id);
+      const useAged = AGED_READS.has(id);
+      const usePrice = readUsesPriceRange(id);
+      const setHidden = (nodeId, on) => { const n = $(nodeId); if (n) n.hidden = !on; };
+      setHidden('paramPromo', usePromo);
+      setHidden('paramAged', useAged);
+      setHidden('paramPrice', usePrice);
+      const drawer = $('paramDrawer');
+      if (drawer) {
+        const any = usePromo || useAged || usePrice;
+        drawer.hidden = !any;
+        if (!any) drawer.removeAttribute('open');
+      }
     }
     function analysisNumber(id) {
       const a = (window.SOA && window.SOA.ANALYSES) ? window.SOA.ANALYSES.find(x => x.id === id) : null;
@@ -2250,6 +2396,8 @@ body.nav-open .nav-burger .icon-close { display: block; }
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
     }
+    // expose to the chart layer so PNG-export / capture can confirm
+    window.SOA_TOAST = showToast;
     /* Copy the whole header row · insert headers+sample rows into the box */
     $('copyHeadersBtn')?.addEventListener('click', () => {
       const { header } = sampleMatrix(body.dataset.story);
