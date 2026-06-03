@@ -124,6 +124,7 @@ function reqAsPromise(req){
 }
 
 function snapshotPayload(){
+  removeInvalidDoorRecords();
   return {brandCodes,doorLocations,matrixData,retailers,history,doorAssignments,dataKeyState,storeNotes:window._storeNotes||{}};
 }
 function applyPayload(p){
@@ -139,6 +140,7 @@ function applyPayload(p){
   dataKeyState=p.dataKeyState||{};
   Object.values(dataKeyState).forEach(st=>{ if(st) st.gender=normalizeGender(st.gender); });
   window._storeNotes=p.storeNotes||{};
+  removeInvalidDoorRecords();
 }
 
 function getSyncConfig(){
@@ -402,6 +404,7 @@ function getDraftAssignmentsFor(ret,brand){
   return getAssignmentsFor(ret,brand).filter(a=>a.status==='draft');
 }
 function getDoorInfo(ret,doorNumber){
+  if(!isPhysicalDoorNumber(doorNumber)) return null;
   return doorLocations.find(d=>normalizeRetailer(d.retailer)===normalizeRetailer(ret)&&String(d.doorNumber)===String(doorNumber));
 }
 function getRetailerDoors(ret){
@@ -410,7 +413,7 @@ function getRetailerDoors(ret){
     if(cached) return cached;
   }
   const result=doorLocations
-    .filter(d=>normalizeRetailer(d.retailer)===normalizeRetailer(ret))
+    .filter(d=>isPhysicalDoorNumber(d.doorNumber) && normalizeRetailer(d.retailer)===normalizeRetailer(ret))
     .sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
   if(_renderCache) _renderCache.retailerDoors.set(ret,result);
   return result;
@@ -434,6 +437,67 @@ function jsq(s){return JSON.stringify(String(s==null?'':s));}
 function jsAttr(code){return esc(code);}
 function callAttr(fn,...args){return jsAttr(`${fn}(${args.map(jsq).join(',')})`);}
 function ctxAttr(r,b){return jsAttr(`cellCtx(event,${jsq(r)},${jsq(b)})`);}
+function isBlankDoorNumber(v){
+  if(v==null) return true;
+  const s=String(v).trim();
+  return !s || /^(null|undefined|nan)$/i.test(s);
+}
+function isExplicitInvalidDoorNumber(v){
+  if(v==null) return false;
+  return /^(null|undefined|nan)$/i.test(String(v).trim());
+}
+function isPhysicalDoorNumber(v){
+  if(isBlankDoorNumber(v)) return false;
+  return !/^(-|tbd)$/i.test(String(v).trim());
+}
+function normalizeDoorNumberValue(v){
+  if(isBlankDoorNumber(v)) return '';
+  const s=String(v).trim();
+  return /^\d+$/.test(s) ? parseInt(s,10) : s;
+}
+function removeInvalidDoorRecords(){
+  const validDoorKeys=new Set();
+  doorLocations=(doorLocations||[]).filter(d=>{
+    if(!d || !isPhysicalDoorNumber(d.doorNumber)) return false;
+    const ret=normalizeRetailer(d.retailer);
+    if(!ret) return false;
+    d.retailer=ret;
+    d.doorNumber=normalizeDoorNumberValue(d.doorNumber);
+    validDoorKeys.add(ret+'|'+String(d.doorNumber));
+    return true;
+  });
+
+  Object.keys(dataKeyState||{}).forEach(key=>{
+    const st=dataKeyState[key];
+    if(!st) { delete dataKeyState[key]; return; }
+    st.retailer=normalizeRetailer(st.retailer);
+    if(!isPhysicalDoorNumber(st.doorNumber) && String(st.doorNumber)!=='-') delete dataKeyState[key];
+  });
+
+  Object.keys(doorAssignments||{}).forEach(ak=>{
+    const [ret]=ak.split('|');
+    const norm=normalizeRetailer(ret);
+    doorAssignments[ak]=(doorAssignments[ak]||[]).filter(a=>{
+      if(!a || !isPhysicalDoorNumber(a.doorNumber)) return false;
+      return validDoorKeys.has(norm+'|'+String(a.doorNumber));
+    });
+    if(!doorAssignments[ak].length) delete doorAssignments[ak];
+  });
+
+  const hasMatrixColumn=ret=>matrixData.some(row=>
+    Object.keys(row||{}).some(key=>normalizeRetailer(key)===ret && (parseInt(row[key]||0,10)||0)>0)
+  );
+  const retailerSet=new Set((retailers||[]).map(normalizeRetailer).filter(Boolean));
+  doorLocations.forEach(d=>retailerSet.add(normalizeRetailer(d.retailer)));
+  retailers=[...retailerSet].filter(ret=>
+    doorLocations.some(d=>normalizeRetailer(d.retailer)===ret) || hasMatrixColumn(ret)
+  );
+  const allowedRetailers=new Set(retailers);
+  Object.keys(dataKeyState||{}).forEach(key=>{
+    const st=dataKeyState[key];
+    if(st && st.retailer && !allowedRetailers.has(normalizeRetailer(st.retailer))) delete dataKeyState[key];
+  });
+}
 
 /* Anonymized demo dataset for the guest sandbox — no real merchant info.
    Small enough to feel empty, big enough to demonstrate every view. */
@@ -503,6 +567,7 @@ function initFromSeed(){
   doorLocations=srcSeed.doorLocations||[];
   matrixData=guest?(srcSeed.matrixData||[]):((data.matrixData&&data.matrixData.length?data.matrixData:srcSeed.matrixData)||[]);
   retailers=srcSeed.retailers||[];
+  removeInvalidDoorRecords();
   /* srcSeed.retailerInfo no longer loaded — derived from doorLocations. */
   history={};
   doorAssignments={};
@@ -1357,17 +1422,22 @@ function updateStoreDoorField(ret,doorNumber,field,el){
   if(!d) return;
   let value=el.value;
   let next=value;
+  const oldVal=d[field]==null?'':d[field];
   if(field==='lat' || field==='lng'){
     if(String(value).trim()==='') next=undefined;
     else { const n=parseFloat(value); next=Number.isNaN(n)?undefined:n; }
   }else if(field==='doorNumber'){
-    next=/^\d+$/.test(String(value).trim()) ? parseInt(value,10) : String(value).trim();
+    if(!isPhysicalDoorNumber(value)){
+      el.value=oldVal;
+      toast('Door number is required. Use Delete Door to remove a store.');
+      return;
+    }
+    next=normalizeDoorNumberValue(value);
   }else if(field==='state' || field==='tier'){
     next=String(value||'').trim().toUpperCase();
   }else{
     next=String(value||'').trim();
   }
-  const oldVal=d[field]==null?'':d[field];
   if(String(oldVal)===String(next==null?'':next)) return;
   d[field]=next;
   el.classList.add('store-saved');
@@ -1939,7 +2009,7 @@ function isDoorIncomplete(d){
    means there's no way to pick it for deletion through that flow. We
    surface a direct delete button on these rows in the drawer instead. */
 function isOrphanDoor(d){
-  return !d || d.doorNumber==='' || d.doorNumber==null;
+  return !d || !isPhysicalDoorNumber(d.doorNumber);
 }
 
 async function deleteOrphanDoor(ret,unassignedIdx){
@@ -3609,7 +3679,7 @@ async function openNewDoorPrompt(){
   const doorRaw=((window.fashionPrompt
     ? await window.fashionPrompt('Enter retailer-assigned door number.', { title:'New Door Number', confirmLabel:'Next' })
     : prompt('Enter retailer-assigned door number:'))||'').trim();
-  if(!doorRaw) return;
+  if(!isPhysicalDoorNumber(doorRaw)){ toast('Door number is required.'); return; }
   const name=((window.fashionPrompt
     ? await window.fashionPrompt('Enter door/store name.', { title:'Door Name', confirmLabel:'Next' })
     : prompt('Enter door/store name:'))||'').trim();
@@ -3622,8 +3692,8 @@ async function openNewDoorPrompt(){
   const lngStr=((window.fashionPrompt ? await window.fashionPrompt('Enter longitude for the map, optional.', { title:'Door Longitude', confirmLabel:'Next' }) : prompt('Enter longitude for the map (optional):'))||'').trim();
   const tier=((window.fashionPrompt ? await window.fashionPrompt('Enter tier, optional, e.g. A/B/C.', { title:'Door Tier', confirmLabel:'Add' }) : prompt('Enter tier (optional, e.g. A/B/C):'))||'').trim().toUpperCase();
   const norm=normalizeRetailer(ret);
-  if(doorLocations.some(d=>normalizeRetailer(d.retailer)===norm && String(d.doorNumber)===doorRaw)){ toast('That door already exists for this retailer.'); return; }
-  const doorNumber = /^\d+$/.test(doorRaw) ? parseInt(doorRaw,10) : doorRaw;
+  const doorNumber = normalizeDoorNumberValue(doorRaw);
+  if(doorLocations.some(d=>normalizeRetailer(d.retailer)===norm && String(d.doorNumber)===String(doorNumber))){ toast('That door already exists for this retailer.'); return; }
   doorLocations.push({retailer:norm,doorNumber,name,zip,tier,address,city,state,lat:latStr?parseFloat(latStr):undefined,lng:lngStr?parseFloat(lngStr):undefined});
   ensureAllSlots();
   populateFilters();
@@ -4075,13 +4145,14 @@ function importMatrixRows(rows){
     const ret=row.Retailer||row.retailer||'';
     const brand=(row.Brand||row.brand||'').toUpperCase();
     if(!ret||!brand)return;
+    const doorRaw=row['Door Number']||row.door_number||row.DoorNumber||row.Door||'';
+    if(isExplicitInvalidDoorNumber(doorRaw)) return;
     let d=matrixData.find(x=>x.brand===brand);
     if(!d){d={brand,category:row.Category||row.category||'LUXURY'};matrixData.push(d);}
     if(!brandCodes[brand]) brandCodes[brand]={name:row['Brand Name']||row.brandName||brand,ds_active:true};
     d[ret]=parseInt(row.Doors||row.doors||0)||0;
     if(!retailers.includes(ret))retailers.push(ret);
-    const doorRaw=row['Door Number']||row.door_number||row.DoorNumber||row.Door||'';
-    if(doorRaw!=='' && doorRaw!==null && doorRaw!==undefined){
+    if(isPhysicalDoorNumber(doorRaw)){
       const state=ensureDataKeyState(ret,doorRaw,brand);
       const status=row.Status||row.status;
       if(status) state.status=normalizeStatus(status);
@@ -4103,10 +4174,9 @@ function importDoorRows(rows){
     const retRaw=pick(row,['Retailer','retailer','RETAILER']);
     const doorRaw=pick(row,['Door Number','Door No','Door#','Door','Number','door','door_number','DoorNumber']);
     const name=String(pick(row,['Name','Door Name','Store Name','name'])||'').trim();
-    if(!retRaw || (!doorRaw && doorRaw!==0)){ skipped++; return; }
+    if(!retRaw || !isPhysicalDoorNumber(doorRaw)){ skipped++; return; }
     const ret=normalizeRetailer(String(retRaw).trim());
-    const doorRawStr=String(doorRaw).trim();
-    const doorNumber=/^\d+$/.test(doorRawStr)?parseInt(doorRawStr,10):doorRawStr;
+    const doorNumber=normalizeDoorNumberValue(doorRaw);
     const address=String(pick(row,['Address','address','Street','Street Address'])||'').trim();
     const city=String(pick(row,['City','city'])||'').trim();
     const state=String(pick(row,['State','state','Province'])||'').trim();
@@ -4136,6 +4206,7 @@ function importDoorRows(rows){
   return {added,updated,skipped};
 }
 function finishImport(){
+  removeInvalidDoorRecords();
   ensureAllSlots();
   reconcileMatrixTotalsFromDoors();
   closeImport();
@@ -4196,7 +4267,7 @@ function loadJSON(e){
   reader.onload=function(ev){
     try{
       const p=JSON.parse(ev.target.result);
-      if(p.matrixData){matrixData=p.matrixData;brandCodes=p.brandCodes||brandCodes;doorLocations=p.doorLocations||doorLocations;retailers=p.retailers||retailers;history=p.history||{};doorAssignments=p.doorAssignments||{};dataKeyState=p.dataKeyState||{};window._storeNotes=p.storeNotes||{};ensureAllSlots();populateFilters();updateViewSpecificControls();render();queueAutosave();toast(`Loaded ${matrixData.length} brands`);}
+      if(p.matrixData){applyPayload(p);ensureAllSlots();populateFilters();updateViewSpecificControls();render();queueAutosave();toast(`Loaded ${matrixData.length} brands`);}
     }catch(err){toast('Error parsing JSON');}
   };
   reader.readAsText(f);e.target.value='';
