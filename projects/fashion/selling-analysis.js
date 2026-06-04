@@ -25,6 +25,7 @@
     week:           ['week', 'week ending', 'week end', 'weekending', 'fiscal week', 'date'],
     collection:     ['collectionrelease', 'collection release', 'collection'],
     frameMaterial:  ['frame_material', 'frame material'],
+    frameShape:     ['frame shape', 'frame_shape', 'shape', 'silhouette'],
     size:           ['size', 'eye size', 'frame size'],
     msrp:           ['msrp'],
     buyUnits:       ['buy units', 'bought units', 'ordered units', 'receipt units', 'receipts units', 'purchased units'],
@@ -55,7 +56,7 @@
                           'lyUnits', 'lyRtl', 'lyOH', 'lyST', 'margin', 'doorCount'];
   // optional fields that, when present as columns, become extra dimensions
   const OPTIONAL_DIMS = ['upc', 'style', 'lensColor', 'frameColor',
-                         'templeColor', 'theme'];
+                         'templeColor', 'theme', 'frameShape'];
   const FIELD_LABELS = {
     retailer: 'Retailer',
     location: 'Location',
@@ -64,6 +65,7 @@
     week: 'Week / Date',
     collection: 'Collection Release',
     frameMaterial: 'Frame Material',
+    frameShape: 'Frame Shape',
     size: 'Size',
     msrp: 'MSRP',
     buyUnits: 'Buy Units',
@@ -214,9 +216,11 @@
       id: 'marketBasket',
       name: 'Market Basket / Co-Performance',
       priority: 16,
-      question: 'Which brands or styles tend to perform together?',
-      required: ['transactionId', 'brand'],
-      metrics: ['transactionId', 'brand', 'style', 'upc', 'tyUnits', 'door', 'week'],
+      question: 'Which brands tend to appear together — in the same basket, or the same door?',
+      // A real basket id is ideal but rare on the sell-out grain; brand + any shared
+      // dimension (door / location / retailer) is enough to build a co-presence network.
+      required: ['brand', 'retailer'],
+      metrics: ['transactionId', 'door', 'location', 'collection', 'brand', 'style', 'upc', 'tyUnits', 'week'],
     },
     {
       id: 'cannibalization',
@@ -257,6 +261,31 @@
       question: 'Can collections be grouped into marketing themes for later reads?',
       required: ['collection'],
       metrics: ['collection', 'theme'],
+    },
+    {
+      id: 'attributeDrivers',
+      name: 'Attribute Drivers',
+      priority: 22,
+      question: 'Which product attributes — shape, material, colour, size, price tier — actually drive performance?',
+      required: ['brand', 'tyUnits'],
+      metrics: ['tyST', 'tyUnits', 'frameShape', 'frameMaterial', 'materialCode', 'lensColor',
+        'frameColor', 'templeColor', 'size', 'priceRange', 'brandCategory', 'brand'],
+    },
+    {
+      id: 'seasonality',
+      name: 'Seasonality & Timing',
+      priority: 23,
+      question: 'How does demand move with the calendar, and how consistent is that pattern year to year?',
+      required: ['week', 'tyUnits'],
+      metrics: ['week', 'tyUnits', 'tyST'],
+    },
+    {
+      id: 'priceElasticity',
+      name: 'Price Elasticity',
+      priority: 24,
+      question: 'How sensitive are units to price (AUR), and is premium pricing actually realized vs MSRP?',
+      required: ['msrp', 'tyUnits', 'tyRtl'],
+      metrics: ['msrp', 'tyUnits', 'tyRtl', 'tyST', 'brand', 'priceRange'],
     },
   ];
 
@@ -922,21 +951,43 @@
   /* ======================================================================= *
    *  LENS 15 — Market Basket (brand co-occurrence by transaction)
    * ======================================================================= */
-  function marketBasket(rows) {
-    const byTxn = groupBy(rows.filter(r => r.transactionId != null && r.transactionId !== '' && r.brand != null), r => r.transactionId);
+  /* Item co-occurrence over a grouping key. With transactionId it's a true market
+   * basket; on the usual sell-out grain (no basket id) the same math over door /
+   * location / retailer yields a co-assortment ("perform together") network.        */
+  function coPerformance(rows, opts) {
+    opts = opts || {};
+    const by = opts.by || 'transactionId';
+    const item = opts.item || 'brand';
+    const groups = groupBy(
+      rows.filter(r => r[by] != null && r[by] !== '' && r[item] != null && r[item] !== ''),
+      r => r[by]);
     const pair = new Map(), single = new Map();
-    byTxn.forEach(rs => {
-      const brands = Array.from(new Set(rs.map(r => r.brand)));
-      brands.forEach(b => single.set(b, (single.get(b) || 0) + 1));
-      for (let i = 0; i < brands.length; i++)
-        for (let j = i + 1; j < brands.length; j++) {
-          const key = [brands[i], brands[j]].sort().join(' + ');
-          pair.set(key, (pair.get(key) || 0) + 1);
+    groups.forEach(rs => {
+      const items = Array.from(new Set(rs.map(r => r[item])));     // distinct items in this group
+      items.forEach(b => single.set(b, (single.get(b) || 0) + 1));
+      for (let i = 0; i < items.length; i++)
+        for (let j = i + 1; j < items.length; j++) {
+          const ab = [items[i], items[j]].sort();          // keep endpoints, not just a joined label
+          const key = JSON.stringify(ab);                  // collision-proof composite key
+          const e = pair.get(key) || { a: ab[0], b: ab[1], count: 0 };
+          e.count++;
+          pair.set(key, e);
         }
     });
-    const pairs = Array.from(pair, ([k, v]) => ({ pair: k, count: v })).sort((a, b) => b.count - a.count);
-    return { pairs, baskets: byTxn.size, brands: Array.from(single, ([k, v]) => ({ brand: k, count: v })).sort((a, b) => b.count - a.count) };
+    const nGroups = groups.size || 1;
+    // lift = P(a,b) / (P(a)·P(b)) — co-occurrence above what independence predicts (>1 = together)
+    const pairs = Array.from(pair.values()).map(e => {
+      const sa = single.get(e.a) || 0, sb = single.get(e.b) || 0;
+      const lift = (sa && sb) ? (e.count * nGroups) / (sa * sb) : null;
+      return { pair: e.a + ' + ' + e.b, a: e.a, b: e.b, count: e.count, lift };
+    }).sort((a, b) => b.count - a.count);
+    return {
+      pairs, baskets: groups.size, by, item,
+      brands: Array.from(single, ([k, v]) => ({ brand: k, count: v })).sort((a, b) => b.count - a.count),
+    };
   }
+  // back-compat: true market basket keyed on transaction id
+  function marketBasket(rows) { return coPerformance(rows, { by: 'transactionId', item: 'brand' }); }
 
   /* ======================================================================= *
    *  LENS 16 — Cannibalization
@@ -1014,6 +1065,206 @@
     return { scenarios, tiedRetail, deadTied, onHandRows: onHand.length };
   }
 
+  /* ======================================================================= *
+   *  STATISTICAL CORE — small dense linear algebra for OLS regression
+   *  No deps; sized for the dummy-variable models below (p ≲ a few dozen).
+   * ======================================================================= */
+  // invert a square matrix via Gauss–Jordan with partial pivoting; singular
+  // columns are left as zero rows (acts like a pseudo-inverse so we never throw)
+  function invMatrix(A) {
+    const n = A.length;
+    const M = A.map((row, i) => row.slice().concat(Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))));
+    for (let col = 0; col < n; col++) {
+      let piv = col, best = Math.abs(M[col][col]);
+      for (let r = col + 1; r < n; r++) if (Math.abs(M[r][col]) > best) { best = Math.abs(M[r][col]); piv = r; }
+      if (best < 1e-12) continue;                       // singular pivot → skip (pseudo-inverse)
+      if (piv !== col) { const t = M[piv]; M[piv] = M[col]; M[col] = t; }
+      const pv = M[col][col];
+      for (let c = 0; c < 2 * n; c++) M[col][c] /= pv;
+      for (let r = 0; r < n; r++) {
+        if (r === col) continue;
+        const f = M[r][col];
+        if (!f) continue;
+        for (let c = 0; c < 2 * n; c++) M[r][c] -= f * M[col][c];
+      }
+    }
+    return M.map(row => row.slice(n));
+  }
+
+  // Ordinary least squares. X = n×p design matrix (include an intercept column),
+  // y = n target. Returns coefficients, std errors, t-stats, R² and adj-R².
+  function ols(X, y) {
+    const n = X.length, p = n ? X[0].length : 0;
+    if (!n || !p) return { beta: [], se: [], t: [], r2: null, adjR2: null, n, p };
+    const XtX = Array.from({ length: p }, () => new Array(p).fill(0));
+    const Xty = new Array(p).fill(0);
+    for (let i = 0; i < n; i++) {
+      const xi = X[i];
+      for (let a = 0; a < p; a++) {
+        Xty[a] += xi[a] * y[i];
+        for (let b = a; b < p; b++) XtX[a][b] += xi[a] * xi[b];
+      }
+    }
+    for (let a = 0; a < p; a++) for (let b = 0; b < a; b++) XtX[a][b] = XtX[b][a];  // symmetrize
+    for (let a = 0; a < p; a++) XtX[a][a] += 1e-6;        // tiny ridge for numerical stability
+    const inv = invMatrix(XtX);
+    const beta = new Array(p).fill(0);
+    for (let a = 0; a < p; a++) { let s = 0; for (let b = 0; b < p; b++) s += inv[a][b] * Xty[b]; beta[a] = s; }
+    const ybar = y.reduce((s, v) => s + v, 0) / n;
+    let rss = 0, tss = 0;
+    for (let i = 0; i < n; i++) {
+      let yh = 0; for (let a = 0; a < p; a++) yh += X[i][a] * beta[a];
+      rss += (y[i] - yh) * (y[i] - yh);
+      tss += (y[i] - ybar) * (y[i] - ybar);
+    }
+    const df = Math.max(1, n - p), sigma2 = rss / df;
+    const se = beta.map((_, a) => Math.sqrt(Math.max(0, sigma2 * inv[a][a])));
+    const t = beta.map((b, a) => (se[a] > 0 ? b / se[a] : 0));
+    const r2 = tss > 0 ? 1 - rss / tss : 0;
+    const adjR2 = (tss > 0 && n > p) ? 1 - (rss / df) / (tss / (n - 1)) : r2;
+    return { beta, se, t, r2, adjR2, n, p, sigma2 };
+  }
+
+  // parse a year+month out of a date-ish string (ISO, US, or anything Date can read)
+  function parseYM(v) {
+    if (v == null || v === '') return null;
+    const s = String(v).trim();
+    let m = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);          // YYYY-MM-DD
+    if (m) return { y: +m[1], m: +m[2] };
+    m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/);            // MM/DD/YYYY
+    if (m) { let y = +m[3]; if (y < 100) y += 2000; return { y, m: +m[1] }; }
+    const t = Date.parse(s);
+    if (!isNaN(t)) { const d = new Date(t); return { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1 }; }
+    return null;
+  }
+  function pearson(a, b) {
+    const n = Math.min(a.length, b.length);
+    if (n < 2) return null;
+    let sa = 0, sb = 0; for (let i = 0; i < n; i++) { sa += a[i]; sb += b[i]; }
+    const ma = sa / n, mb = sb / n;
+    let cov = 0, va = 0, vb = 0;
+    for (let i = 0; i < n; i++) { const da = a[i] - ma, db = b[i] - mb; cov += da * db; va += da * da; vb += db * db; }
+    return (va > 0 && vb > 0) ? cov / Math.sqrt(va * vb) : null;
+  }
+
+  /* ======================================================================= *
+   *  LENS 20 — Attribute Drivers (multivariate OLS on one-hot attributes)
+   *  Isolates each attribute level's own effect on performance while holding the
+   *  other attributes fixed; reports coefficient, t-stat, significance, and R².
+   * ======================================================================= */
+  function attributeDrivers(rows, opts) {
+    opts = opts || {};
+    const candidate = opts.dims || ['frameShape', 'frameMaterial', 'materialCode',
+      'lensColor', 'frameColor', 'templeColor', 'size', 'priceRange', 'brandCategory', 'brand'];
+    // target: sell-through % when it's broadly usable, else log(units) (velocity)
+    const useST = opts.target === 'st' || (opts.target !== 'units' && rows.some(r => r.tyST != null && r.tyST >= 0 && r.tyST <= 1));
+    const valid = rows.filter(r => useST ? (r.tyST != null && r.tyST >= 0 && r.tyST <= 1) : (r.tyUnits != null && r.tyUnits > 0));
+    let dims = candidate.filter(d => distinct(valid, d).length >= 2);
+    // frameMaterial and materialCode encode the same thing 1:1 — keep one to avoid a collinear design
+    if (dims.includes('frameMaterial') && dims.includes('materialCode')) dims = dims.filter(d => d !== 'materialCode');
+    const target = useST ? 'st' : 'units';
+    if (!dims.length || valid.length < 10) return { insufficient: true, terms: [], r2: null, n: valid.length, dims, target };
+    const minCount = Math.max(3, Math.round(valid.length * 0.02));
+    const baselines = {};
+    let cols = [];                                       // {dim, level, count} → one dummy column each
+    dims.forEach(d => {
+      const counts = {};
+      valid.forEach(r => { const v = r[d]; if (v != null && v !== '') counts[v] = (counts[v] || 0) + 1; });
+      const ls = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+      baselines[d] = ls[0];                              // most common level is the reference
+      ls.slice(1).forEach(l => { if (counts[l] >= minCount) cols.push({ dim: d, level: l, count: counts[l] }); });
+    });
+    // keep the model well-posed: cap columns so p stays comfortably below n
+    const maxCols = Math.max(1, Math.floor(valid.length / 3) - 1);
+    if (cols.length > maxCols) cols = cols.slice().sort((a, b) => b.count - a.count).slice(0, maxCols);
+    const p = cols.length + 1;
+    const X = [], y = [];
+    valid.forEach(r => {
+      const row = new Array(p).fill(0); row[0] = 1;      // intercept
+      cols.forEach((c, j) => { if (String(r[c.dim]) === String(c.level)) row[j + 1] = 1; });
+      X.push(row);
+      y.push(useST ? r.tyST : Math.log(r.tyUnits));
+    });
+    const fit = ols(X, y);
+    const terms = cols.map((c, j) => ({
+      dim: c.dim, level: c.level, baseline: baselines[c.dim], count: c.count,
+      coef: fit.beta[j + 1], se: fit.se[j + 1], t: fit.t[j + 1], sig: Math.abs(fit.t[j + 1]) >= 1.96,
+    })).sort((a, b) => Math.abs(b.coef) - Math.abs(a.coef));
+    return { terms, intercept: fit.beta[0], r2: fit.r2, adjR2: fit.adjR2, n: fit.n, p: fit.p, target, baselines, dims };
+  }
+
+  /* ======================================================================= *
+   *  LENS 21 — Seasonality & Timing (monthly index + trend + cross-year fit)
+   * ======================================================================= */
+  function seasonality(rows) {
+    const dated = [];
+    rows.forEach(r => {
+      const ym = parseYM(r.week);
+      if (ym) dated.push({ month: ym.m, year: ym.y, ord: ym.y * 12 + ym.m, units: (r.tyUnits > 0 ? r.tyUnits : 0) });
+    });
+    if (dated.length < 6) return { insufficient: true, months: [] };
+    const byMonth = {};
+    dated.forEach(d => { (byMonth[d.month] = byMonth[d.month] || []).push(d); });
+    const months = [];
+    for (let m = 1; m <= 12; m++) {
+      const arr = byMonth[m] || [];
+      months.push({ month: m, units: arr.reduce((s, d) => s + d.units, 0), n: arr.length });
+    }
+    const present = months.filter(x => x.n > 0);
+    const avgUnits = present.length ? present.reduce((s, x) => s + x.units, 0) / present.length : 0;
+    months.forEach(x => { x.index = (x.n > 0 && avgUnits) ? x.units / avgUnits : null; });
+    // chronological trend (units per period over time)
+    const byOrd = {};
+    dated.forEach(d => { byOrd[d.ord] = (byOrd[d.ord] || 0) + d.units; });
+    const ords = Object.keys(byOrd).map(Number).sort((a, b) => a - b);
+    const trend = linreg(ords.map((o, i) => [i, byOrd[o]]));
+    // cross-year consistency
+    const years = Array.from(new Set(dated.map(d => d.year))).sort();
+    let consistency = null, yearSeries = [];
+    if (years.length >= 2) {
+      yearSeries = years.map(y => {
+        const arr = new Array(12).fill(0);
+        dated.filter(d => d.year === y).forEach(d => { arr[d.month - 1] += d.units; });
+        return { year: y, units: arr };
+      });
+      const cors = [];
+      for (let i = 0; i < yearSeries.length; i++)
+        for (let j = i + 1; j < yearSeries.length; j++) {
+          const c = pearson(yearSeries[i].units, yearSeries[j].units);
+          if (c != null) cors.push(c);
+        }
+      consistency = cors.length ? cors.reduce((s, c) => s + c, 0) / cors.length : null;
+    } else {
+      const idx = present.map(x => x.index);
+      const m = mean(idx), sd = stdev(idx);
+      consistency = m ? Math.max(0, 1 - sd / m) : null;   // evenness proxy when only one year
+    }
+    const peak = present.slice().sort((a, b) => b.units - a.units)[0] || null;
+    const trough = present.slice().sort((a, b) => a.units - b.units)[0] || null;
+    return { months, present, peak, trough, trendSlope: trend.slope, years, yearSeries, consistency, n: dated.length };
+  }
+
+  /* ======================================================================= *
+   *  LENS 22 — Price Elasticity (log–log OLS of units on AUR) + realization
+   * ======================================================================= */
+  function priceElasticity(rows) {
+    const valid = rows.filter(r => r._validSale && r.aur != null && r.aur > 0 && r.tyUnits > 0);
+    if (valid.length < 8) return { insufficient: true, n: valid.length, points: [] };
+    const X = valid.map(r => [1, Math.log(r.aur)]);
+    const y = valid.map(r => Math.log(r.tyUnits));
+    const fit = ols(X, y);
+    const withMsrp = valid.filter(r => r.msrp > 0 && r.aurRatio != null);
+    const medRealization = median(withMsrp.map(r => r.aurRatio));
+    const points = valid.map(r => ({
+      aur: r.aur, msrp: r.msrp, units: r.tyUnits, st: r.tyST,
+      aurRatio: r.aurRatio, brand: r.brand, promo: r.isPromo === true,
+    }));
+    return {
+      elasticity: fit.beta[1], intercept: fit.beta[0], r2: fit.r2, tStat: fit.t[1],
+      n: fit.n, points, medRealization, lnFit: { slope: fit.beta[1], intercept: fit.beta[0] },
+    };
+  }
+
   return {
     FIELD_SYNONYMS, OPTIONAL_DIMS, FIELD_LABELS, ANALYSES,
     num, buildColumnMap, parseRecords, enrich, priceBandLabel,
@@ -1022,7 +1273,8 @@
     integrityReport, liquidationRadar, velocityMatrix, momentum, promoAnalysis,
     assortmentProductivity, sizeCurveAnalysis, priceArchitectureAnalysis, inventoryAging,
     markdownSensitivityAnalysis, demandForecast, anomalyDetection, retailerScorecard,
-    collectionLifecycle, doorClustering, marketBasket, cannibalization, whitespace,
+    collectionLifecycle, doorClustering, marketBasket, coPerformance, cannibalization, whitespace,
     replenishment, scenarioPlanner,
+    invMatrix, ols, pearson, attributeDrivers, seasonality, priceElasticity,
   };
 });

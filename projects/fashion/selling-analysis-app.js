@@ -38,7 +38,7 @@
     ['retailer', 'Retailer'], ['location', 'Location'], ['brand', 'Brand'],
     ['door', 'Door'], ['week', 'Week'], ['size', 'Size'],
     ['brandCategory', 'Brand Category'], ['materialCode', 'Material'],
-    ['frameMaterial', 'Frame Material'], ['priceRange', 'Price Range'],
+    ['frameMaterial', 'Frame Material'], ['frameShape', 'Frame Shape'], ['priceRange', 'Price Range'],
     ['newness', 'Newness'], ['theme', 'Theme'],
     ['lensColor', 'Lens Color'], ['frameColor', 'Frame Color'],
     ['templeColor', 'Temple Color'],
@@ -414,8 +414,9 @@
       const pos = (it.value || 0) >= 0;
       const x = pos ? cx : cx - w;
       const tip = TIP(it.label, it.valLabel != null ? it.valLabel : nfmt(it.value));
+      const cls = it.color || (pos ? 'viz-accent' : 'viz-warn');     // per-item colour wins (e.g. mute insignificant)
       s += `<text x="0" y="${y + bh / 2}" dominant-baseline="central" class="lbl-strong">${esc(trunc(it.label, 22))}</text>`;
-      s += `<rect x="${x.toFixed(1)}" y="${y}" width="${Math.max(1, w).toFixed(1)}" height="${bh}" class="${pos ? 'viz-accent' : 'viz-warn'}" rx="2"${tip}/>`;
+      s += `<rect x="${x.toFixed(1)}" y="${y}" width="${Math.max(1, w).toFixed(1)}" height="${bh}" class="${cls}" rx="2"${tip}/>`;
       s += `<text x="${W}" y="${y + bh / 2}" text-anchor="end" dominant-baseline="central">${esc(it.valLabel)}</text>`;
     });
     return s + '</svg>';
@@ -704,6 +705,116 @@
     s += `<text x="${padL + 6 + 5 * 16 + 6}" y="${ly + 9}" class="axis-lbl">more units (max ${esc(nfmt(max))})</text>`;
     s += `<rect x="${padL + 6 + 5 * 16 + 150}" y="${ly}" width="12" height="12" class="stroke-warn" stroke-dasharray="2 2" fill="none"/>`;
     s += `<text x="${padL + 6 + 5 * 16 + 168}" y="${ly + 9}" class="axis-lbl">whitespace (sells elsewhere)</text>`;
+    return s + '</svg>';
+  }
+
+  /* ── Force-directed layout (Fruchterman–Reingold) ──────────────────────── *
+   * Deterministic: nodes seed on a circle by index, no randomness, so the same
+   * data always lays out identically (stable re-renders + faithful PNG export).
+   * Returns {x,y} per node in a [0..W]×[0..H] box.                            */
+  function forceLayout(nodes, links, opts) {
+    opts = opts || {};
+    const W = opts.W || 1, H = opts.H || 1, iters = opts.iters || 300, n = nodes.length;
+    const idx = {}; nodes.forEach((nd, i) => { idx[nd.id] = i; });
+    const pos = nodes.map((nd, i) => {
+      const a = (i / Math.max(1, n)) * 2 * Math.PI;
+      return { x: W / 2 + Math.cos(a) * W * 0.34, y: H / 2 + Math.sin(a) * H * 0.34 };
+    });
+    const k = opts.k || Math.sqrt((W * H) / Math.max(1, n)) * 0.85;   // ideal edge length
+    const maxV = Math.max.apply(null, links.map(l => l.value || 1).concat([1]));
+    let temp = W * 0.12; const cool = temp / (iters + 1);
+    for (let it = 0; it < iters; it++) {
+      const disp = pos.map(() => ({ x: 0, y: 0 }));
+      for (let i = 0; i < n; i++) {                                   // repulsion (every pair)
+        for (let j = i + 1; j < n; j++) {
+          let dx = pos[i].x - pos[j].x, dy = pos[i].y - pos[j].y;
+          let d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+          const rep = (k * k) / d, ux = dx / d, uy = dy / d;
+          disp[i].x += ux * rep; disp[i].y += uy * rep;
+          disp[j].x -= ux * rep; disp[j].y -= uy * rep;
+        }
+      }
+      links.forEach(l => {                                            // attraction (heavier links pull harder)
+        const a = idx[l.source], b = idx[l.target];
+        if (a == null || b == null) return;
+        let dx = pos[a].x - pos[b].x, dy = pos[a].y - pos[b].y;
+        let d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+        const w = 0.35 + 0.65 * ((l.value || 1) / maxV);
+        const att = (d * d) / k * w, ux = dx / d, uy = dy / d;
+        disp[a].x -= ux * att; disp[a].y -= uy * att;
+        disp[b].x += ux * att; disp[b].y += uy * att;
+      });
+      for (let i = 0; i < n; i++) {                                   // gentle gravity keeps stragglers in frame
+        disp[i].x += (W / 2 - pos[i].x) * 0.02;
+        disp[i].y += (H / 2 - pos[i].y) * 0.02;
+        let d = Math.sqrt(disp[i].x * disp[i].x + disp[i].y * disp[i].y) || 0.01;
+        const lim = Math.min(d, temp);
+        pos[i].x = Math.max(0, Math.min(W, pos[i].x + disp[i].x / d * lim));
+        pos[i].y = Math.max(0, Math.min(H, pos[i].y + disp[i].y / d * lim));
+      }
+      temp -= cool;
+    }
+    return pos;
+  }
+
+  // affinity network — nodes: [{id,label,weight}] ; links: [{source,target,value,lift}]
+  function svgNetwork(nodes, links) {
+    const W = 720, H = 430, pad = 56;
+    if (!nodes.length) return `<svg viewBox="0 0 ${W} ${H}"><text x="${W / 2}" y="${H / 2}" text-anchor="middle" class="axis-lbl">no network</text></svg>`;
+    const iw = W - pad * 2, ih = H - pad * 2;
+    const pos = forceLayout(nodes, links, { W: iw, H: ih, iters: 340, k: Math.sqrt(iw * ih / Math.max(1, nodes.length)) * 0.7 });
+    // fit the laid-out cloud into the plot box, preserving aspect
+    const xs = pos.map(p => p.x), ys = pos.map(p => p.y);
+    const minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+    const minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    const sc = Math.min((maxX - minX) ? iw / (maxX - minX) : 1, (maxY - minY) ? ih / (maxY - minY) : 1);
+    const ox = pad + (iw - (maxX - minX) * sc) / 2, oy = pad + (ih - (maxY - minY) * sc) / 2;
+    const PX = i => ox + (pos[i].x - minX) * sc, PY = i => oy + (pos[i].y - minY) * sc;
+    const idx = {}; nodes.forEach((nd, i) => { idx[nd.id] = i; });
+    const maxW = Math.max.apply(null, nodes.map(nd => nd.weight || 1).concat([1]));
+    const maxV = Math.max.apply(null, links.map(l => l.value || 1).concat([1]));
+    let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" font-size="11">`;
+    links.forEach(l => {                                              // edges first, behind the nodes
+      const a = idx[l.source], b = idx[l.target];
+      if (a == null || b == null) return;
+      const f = (l.value || 1) / maxV;
+      const tip = TIP(l.source + ' + ' + l.target, nfmt(l.value) + ' baskets together', l.lift != null ? 'lift ' + l.lift.toFixed(2) + '×' : null);
+      s += `<line x1="${PX(a).toFixed(1)}" y1="${PY(a).toFixed(1)}" x2="${PX(b).toFixed(1)}" y2="${PY(b).toFixed(1)}" class="stroke-accent" stroke-width="${(1 + 5 * f).toFixed(1)}" stroke-linecap="round" opacity="${(0.22 + 0.55 * f).toFixed(2)}"${tip}/>`;
+    });
+    nodes.forEach((nd, i) => {
+      const r = 5 + 17 * Math.sqrt((nd.weight || 1) / maxW);
+      const tip = TIP(nd.label || nd.id, nfmt(nd.weight) + ' baskets');
+      s += `<circle cx="${PX(i).toFixed(1)}" cy="${PY(i).toFixed(1)}" r="${r.toFixed(1)}" class="${catClass(i)}" opacity="0.92"${tip}/>`;
+      s += `<text x="${PX(i).toFixed(1)}" y="${(PY(i) + r + 12).toFixed(1)}" text-anchor="middle" class="lbl-strong">${esc(trunc(nd.label || nd.id, 16))}</text>`;
+    });
+    return s + '</svg>';
+  }
+
+  // decision tree — root: {label,sub} ; branches: [{name,lines[],fill,stroke,tip}]
+  function svgTree(root, branches) {
+    const W = 720, rowH = 92, padT = 18, padB = 18;
+    const n = Math.max(1, branches.length), H = padT + padB + n * rowH;
+    const rootX = 150, rootCY = H / 2, rootW = 188, rootH = 64;
+    const leafX = 392, leafW = W - leafX - 16, leafH = rowH - 22;
+    let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" font-size="12">`;
+    branches.forEach((b, i) => {                                      // curved connectors root → leaf
+      const ly = padT + i * rowH + rowH / 2, midX = (rootX + rootW / 2 + leafX) / 2;
+      s += `<path d="M ${rootX + rootW / 2} ${rootCY} C ${midX} ${rootCY}, ${midX} ${ly}, ${leafX} ${ly}" class="${b.stroke || 'stroke-muted'}" stroke-width="2" fill="none" opacity="0.55"/>`;
+    });
+    // root ("Today")
+    s += `<rect x="${rootX - rootW / 2}" y="${rootCY - rootH / 2}" width="${rootW}" height="${rootH}" rx="9" class="viz-accent" opacity="0.14"/>`;
+    s += `<rect x="${rootX - rootW / 2}" y="${rootCY - rootH / 2}" width="${rootW}" height="${rootH}" rx="9" class="stroke-accent" stroke-width="1.5" fill="none"/>`;
+    s += `<text x="${rootX}" y="${rootCY - 6}" text-anchor="middle" class="lbl-strong" font-size="15">${esc(root.label)}</text>`;
+    if (root.sub) s += `<text x="${rootX}" y="${rootCY + 14}" text-anchor="middle" class="axis-lbl">${esc(root.sub)}</text>`;
+    branches.forEach((b, i) => {                                      // leaf cards
+      const ly = padT + i * rowH + (rowH - leafH) / 2, fill = b.fill || 'viz-muted';
+      const tip = b.tip ? ` data-tip="${escAttr(b.tip)}"` : '';
+      s += `<rect x="${leafX}" y="${ly}" width="${leafW}" height="${leafH}" rx="9" class="${fill}" opacity="0.13"${tip}/>`;
+      s += `<rect x="${leafX}" y="${ly}" width="${leafW}" height="${leafH}" rx="9" class="${b.stroke || 'stroke-muted'}" stroke-width="1.5" fill="none"/>`;
+      s += `<rect x="${leafX}" y="${ly}" width="6" height="${leafH}" rx="3" class="${fill}"/>`;
+      s += `<text x="${leafX + 18}" y="${ly + 23}" class="lbl-strong" font-size="13">${esc(b.name)}</text>`;
+      (b.lines || []).forEach((ln, k) => s += `<text x="${leafX + 18}" y="${ly + 42 + k * 16}" class="axis-lbl">${esc(ln)}</text>`);
+    });
     return s + '</svg>';
   }
 
@@ -1069,17 +1180,49 @@
   }
 
   function rBasket(host, rows, meta) {
-    const mb = A.marketBasket(rows);
-    if (!mb.pairs.length) {
-      host.appendChild(el('p', { class: 'note' }, 'No multi-brand baskets found — needs a Transaction/Basket ID with several brands per basket.'));
+    // Brands "perform together" when they share a basket. On the usual sell-out grain
+    // there's no basket id, so fall back to co-presence in the same door, then location,
+    // then retailer. First dimension actually present that yields real pairs wins.
+    const byPref = ['transactionId', 'door', 'location', 'retailer'];
+    const present = byPref.filter(f => state.foundFields.indexOf(f) >= 0);
+    let mb = null, usedBy = null;
+    for (const by of present) {
+      const cand = A.coPerformance(rows, { by, item: 'brand' });
+      if (!mb) { mb = cand; usedBy = by; }                     // remember first available dim
+      if (cand.pairs.length) { mb = cand; usedBy = by; break; } // …but prefer one with real pairs
+    }
+    if (!mb || !mb.pairs.length) {
+      host.appendChild(el('p', { class: 'note' },
+        'No brand co-occurrence found — needs at least two distinct brands sharing a basket, door, location, or retailer.'));
       return fallbackBreakdown(host, rows, meta);
     }
+    const byLabel = { transactionId: 'basket', door: 'door', location: 'location', retailer: 'retailer' }[usedBy] || usedBy;
     const items = mb.pairs.slice(0, 16).map(p => ({ label: p.pair, value: p.count, valLabel: fmtInt(p.count) }));
-    renderChartBlock(host, meta.id, `Top brand pairs across ${fmtInt(mb.baskets)} baskets`, [
-      { key: 'bars', label: 'Bars', fn: () => svgBarsH(items, { cat: true }) },
-      { key: 'column', label: 'Columns', fn: () => svgColumn(items, { cat: true }) },
+    // affinity network — brand nodes (sized by # of groups they appear in) joined by co-occurrence links
+    const links = mb.pairs.slice(0, 28).map(p => ({ source: p.a, target: p.b, value: p.count, lift: p.lift }));
+    const nodeIds = new Set();
+    links.forEach(l => { nodeIds.add(l.source); nodeIds.add(l.target); });
+    const countByBrand = {};
+    mb.brands.forEach(b => { countByBrand[b.brand] = b.count; });
+    const nodes = Array.from(nodeIds)
+      .map(id => ({ id, label: brandLabel(id), weight: countByBrand[id] || 1 }))
+      .sort((a, b) => b.weight - a.weight);
+    const builders = [];
+    if (nodes.length >= 2 && links.length) builders.push({ key: 'network', label: 'Network', fn: () => svgNetwork(nodes, links) });
+    builders.push({ key: 'bars', label: 'Bars', fn: () => svgBarsH(items, { cat: true }) });
+    builders.push({ key: 'column', label: 'Columns', fn: () => svgColumn(items, { cat: true }) });
+    renderChartBlock(host, meta.id, `Brand affinity — brands sharing a ${byLabel} (${fmtInt(mb.baskets)} ${byLabel}${mb.baskets === 1 ? '' : 's'})`, builders);
+    const strongest = mb.pairs.filter(p => p.lift != null).slice().sort((a, b) => b.lift - a.lift)[0];
+    readout(host, [
+      usedBy === 'transactionId'
+        ? `Each dot is a brand; a line joins two brands that turn up in the same basket, and the thicker the line the more often they sell together. Tight clusters are brands a shopper tends to buy in one trip — cross-merchandising and bundle opportunities.`
+        : `This file has no basket/transaction id, so "together" means sharing the same ${byLabel}. Each dot is a brand; a line joins two brands carried in the same ${byLabel}, and thicker lines mean they co-occur in more ${byLabel}s — brands that travel together across the fleet.`,
+      strongest
+        ? `${strongest.pair} pair up the most relative to chance (lift ${strongest.lift.toFixed(1)}× — they co-occur ${strongest.lift >= 1 ? 'more' : 'less'} than independent ${usedBy === 'transactionId' ? 'buying' : 'assortment'} would predict).`
+        : null,
     ]);
-    host.appendChild(table(['Brand pair', 'Baskets together'], mb.pairs.slice(0, 20).map(p => [p.pair, fmtInt(p.count)])));
+    host.appendChild(table(['Brand pair', `Shared ${byLabel}s`, 'Lift'],
+      mb.pairs.slice(0, 20).map(p => [p.pair, fmtInt(p.count), p.lift == null ? '–' : p.lift.toFixed(2) + '×'])));
   }
 
   function rCannibal(host, rows, meta) {
@@ -1127,13 +1270,167 @@
     const sp = A.scenarioPlanner(rows, { markdown: state.params.promoThreshold, replenishPct: 0.20 });
     const unitItems = sp.scenarios.map(s => ({ label: s.name, value: s.units, valLabel: fmtInt(s.units), color: s.name === 'Hold' ? 'viz-muted' : 'viz-accent' }));
     const cashItems = sp.scenarios.map(s => ({ label: s.name, value: s.freedCash, valLabel: fmt$(s.freedCash) }));
-    renderChartBlock(host, meta.id, 'Projected outcomes by action', [
+    // decision tree branching from today into each action, tips annotated with the projection
+    const baseUnits = (sp.scenarios.find(s => s.name === 'Hold') || {}).units || 0;
+    const STYLE = {
+      'Hold':      { fill: 'viz-muted',  stroke: 'stroke-muted' },
+      'Markdown':  { fill: 'viz-c2',     stroke: 'stroke-c2' },
+      'Replenish': { fill: 'viz-accent', stroke: 'stroke-accent' },
+      'Exit dead': { fill: 'viz-warn',   stroke: 'stroke-warn' },
+    };
+    const branches = sp.scenarios.map(s => {
+      const dU = s.units - baseUnits, st = STYLE[s.name] || { fill: 'viz-muted', stroke: 'stroke-muted' };
+      return {
+        name: s.name, fill: st.fill, stroke: st.stroke,
+        lines: [
+          `${fmtInt(s.units)} units (${dU >= 0 ? '+' : '−'}${fmtInt(Math.abs(dU))} vs hold)`,
+          `${fmt$(s.retail)} retail · ${s.freedCash >= 0 ? '+' : '−'}${fmt$(Math.abs(s.freedCash))} cash`,
+        ],
+        tip: [s.name, fmtInt(s.units) + ' proj units', fmt$(s.retail) + ' proj retail',
+          (s.freedCash >= 0 ? '+' : '−') + fmt$(Math.abs(s.freedCash)) + ' freed cash'].join(' • '),
+      };
+    });
+    const treeRoot = { label: 'Today', sub: `${fmt$(sp.tiedRetail)} tied · ${fmt$(sp.deadTied)} dead` };
+    renderChartBlock(host, meta.id, 'Decision tree — paths from today', [
+      { key: 'tree', label: 'Tree', fn: () => svgTree(treeRoot, branches) },
       { key: 'units', label: 'Units', fn: () => svgColumn(unitItems) },
       { key: 'cash', label: 'Freed cash', fn: () => svgDiverging(cashItems) },
+    ]);
+    readout(host, [
+      `This branches from where you are today into four moves and projects each one out. `
+      + `Hold is the do-nothing baseline; Markdown trades margin for faster unit flow and frees cash from dead stock; `
+      + `Replenish chases more demand but ties up more cash; Exit dead clears the ${fmt$(sp.deadTied)} stuck in non-selling stock.`,
     ]);
     host.appendChild(table(['Scenario', 'Proj. units', 'Proj. retail $', 'Freed cash'],
       sp.scenarios.map(s => [s.name, fmtInt(s.units), fmt$(s.retail), fmt$(s.freedCash)])));
     host.appendChild(el('p', { class: 'note' }, `Assumes markdown depth ${fmtPct(state.params.promoThreshold)} · ${fmtInt(sp.onHandRows)} on-hand rows · ${fmt$(sp.deadTied)} tied in dead stock.`));
+  }
+
+  /* ---- LENS 20: Attribute Drivers (multivariate OLS coefficient plot) ----- */
+  function rAttributeDrivers(host, rows, meta) {
+    const a = A.attributeDrivers(rows, {});
+    if (a.insufficient || !a.terms.length) {
+      host.appendChild(el('p', { class: 'note' },
+        'Not enough attribute variation or selling rows to fit a driver model — needs ~10+ selling rows and at least one attribute with two or more values.'));
+      return fallbackBreakdown(host, rows, meta);
+    }
+    const isST = a.target === 'st';
+    // ST coefficients are in sell-through points; log(units) coefficients read as % change
+    const toVal = c => isST ? c * 100 : (Math.exp(c) - 1) * 100;
+    const suffix = isST ? 'pt' : '%';
+    const sigColor = t => t.sig ? (t.coef >= 0 ? 'viz-accent' : 'viz-warn') : 'viz-muted';
+    const diverge = a.terms.slice(0, 16).map(t => ({
+      label: `${A.fieldLabel(t.dim)}: ${t.level}`,
+      value: toVal(t.coef),
+      valLabel: (toVal(t.coef) >= 0 ? '+' : '') + toVal(t.coef).toFixed(1) + suffix,
+      color: sigColor(t),
+    }));
+    renderChartBlock(host, meta.id,
+      `Attribute effect on ${isST ? 'sell-through' : 'unit velocity'} — vs baseline, holding other attributes fixed`, [
+      { key: 'coef', label: 'Coefficients', fn: () => svgDiverging(diverge, { fmt: v => Math.round(v) + suffix }) },
+    ]);
+    const posTop = a.terms.find(t => t.sig && t.coef > 0);
+    const negTop = a.terms.find(t => t.sig && t.coef < 0);
+    readout(host, [
+      `A regression isolates each attribute's own pull on ${isST ? 'sell-through' : 'units'} while holding the others constant, `
+      + `so you see the attribute's effect rather than what it tends to be bundled with. The model explains ${fmtPct(a.r2)} of the variation (R²).`,
+      (posTop || negTop)
+        ? `${posTop ? `${A.fieldLabel(posTop.dim)} “${posTop.level}” lifts the most (${toVal(posTop.coef) >= 0 ? '+' : ''}${toVal(posTop.coef).toFixed(1)}${isST ? ' pts' : '%'} vs ${posTop.baseline}). ` : ''}`
+          + `${negTop ? `${A.fieldLabel(negTop.dim)} “${negTop.level}” drags the most (${toVal(negTop.coef).toFixed(1)}${isST ? ' pts' : '%'} vs ${negTop.baseline}). ` : ''}`
+          + `Grey bars aren't statistically distinguishable from their baseline (|t| < 1.96) — read them as “no clear effect yet.”`
+        : `No single attribute level is statistically distinguishable from its baseline yet — more rows would sharpen the estimates.`,
+    ]);
+    host.appendChild(el('p', { class: 'note' },
+      `OLS · ${fmtInt(a.n)} rows · ${fmtInt(a.p)} terms · R² ${fmtPct(a.r2)} · adj-R² ${fmtPct(a.adjR2)}. `
+      + `Baseline per attribute = its most common value. ${isST ? 'Coefficients are sell-through points.' : 'Units are modelled on a log scale, so effects read as % change.'}`));
+    host.appendChild(table(['Attribute', 'Level vs baseline', isST ? 'Δ ST (pts)' : 'Δ units (%)', 't-stat', 'Signif.'],
+      a.terms.slice(0, 24).map(t => [
+        A.fieldLabel(t.dim), `${t.level} vs ${t.baseline}`,
+        (toVal(t.coef) >= 0 ? '+' : '') + toVal(t.coef).toFixed(1), t.t.toFixed(1),
+        t.sig ? '✓ p<.05' : '—'])));
+  }
+
+  /* ---- LENS 21: Seasonality & Timing (monthly index + trend + consistency) - */
+  function rSeasonality(host, rows, meta) {
+    const s = A.seasonality(rows);
+    if (s.insufficient) {
+      host.appendChild(el('p', { class: 'note' },
+        'Not enough dated rows to read seasonality — needs a parseable Week / Date spanning several months.'));
+      return fallbackBreakdown(host, rows, meta);
+    }
+    const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const idxSeries = [{ name: 'Seasonal index', values: s.months.map(m => m.index), cls: 'stroke-accent' }];
+    const idxMax = Math.max(1.2, Math.max.apply(null, s.months.map(m => m.index || 0)));
+    const unitItems = s.months.map(m => ({ label: MON[m.month - 1], value: m.units, valLabel: fmtInt(m.units) }));
+    const builders = [
+      { key: 'index', label: 'Index', fn: () => svgLine(MON, idxSeries, { max: idxMax, fmt: v => v.toFixed(1) + '×' }) },
+      { key: 'units', label: 'Units', fn: () => svgColumn(unitItems) },
+    ];
+    if (s.yearSeries && s.yearSeries.length >= 2) {
+      const pal = ['stroke-c1', 'stroke-c3', 'stroke-c4', 'stroke-c5', 'stroke-c7'];
+      const series = s.yearSeries.map((ys, i) => ({ name: String(ys.year), values: ys.units, cls: pal[i % pal.length] }));
+      builders.push({ key: 'byyear', label: 'By year', fn: () => svgLine(MON, series, {}) });
+    }
+    renderChartBlock(host, meta.id, 'Demand by month — seasonal index (1.0× = an average month)', builders);
+    const consPct = s.consistency == null ? null : Math.round(s.consistency * 100);
+    const consWord = s.consistency == null ? '' : (s.consistency > 0.7 ? 'very consistent' : s.consistency > 0.4 ? 'moderately consistent' : 'erratic');
+    readout(host, [
+      s.peak
+        ? `Demand peaks in ${MON[s.peak.month - 1]} (${(s.peak.index || 0).toFixed(1)}× an average month) and bottoms in ${s.trough ? MON[s.trough.month - 1] : '—'}. `
+          + `Use that to time buys and promotions ahead of the peak rather than into the trough.`
+        : `Spread across the calendar without a sharp peak.`,
+      s.years && s.years.length >= 2
+        ? `Across ${s.years.length} years the monthly shape is ${consWord} (cross-year correlation ${consPct}%) — ${s.consistency > 0.4 ? 'a repeatable pattern you can plan against' : 'too noisy to lean on as a forecast'}.`
+        : `Only one year of data here, so this is a within-year shape, not yet a proven repeat pattern.`,
+    ]);
+    host.appendChild(el('p', { class: 'note' },
+      `${fmtInt(s.n)} dated rows · trend ${s.trendSlope >= 0 ? '+' : ''}${fmtInt(s.trendSlope)} units/period`
+      + (consPct != null ? ` · consistency ${consPct}%` : '') + '.'));
+    host.appendChild(table(['Month', 'TY units', 'Seasonal index', 'Rows'],
+      s.months.filter(m => m.n > 0).map(m => [MON[m.month - 1], fmtInt(m.units), m.index == null ? '–' : m.index.toFixed(2) + '×', fmtInt(m.n)])));
+  }
+
+  /* ---- LENS 22: Price Elasticity (log–log demand curve) + AUR realization -- */
+  function rPriceElasticity(host, rows, meta) {
+    const e = A.priceElasticity(rows);
+    if (e.insufficient) {
+      host.appendChild(el('p', { class: 'note' },
+        'Not enough priced selling rows to estimate elasticity — needs ~8+ rows with positive units, retail $, and MSRP.'));
+      return fallbackBreakdown(host, rows, meta);
+    }
+    const lpts = e.points.slice(0, 1500).map(p => ({
+      x: Math.log(p.aur), y: Math.log(p.units), cls: p.promo ? 'viz-warn' : 'viz-accent', op: '0.6', r: 3,
+      tip: [brandLabel(p.brand), 'AUR ' + fmt$(p.aur), fmtInt(p.units) + ' units', p.promo ? 'promo' : 'full-price'].join(' • '),
+    }));
+    const lx = lpts.map(p => p.x), ly = lpts.map(p => p.y);
+    const xMin = Math.min.apply(null, lx), xMax = Math.max.apply(null, lx);
+    const yMin = Math.min(0, Math.min.apply(null, ly)), yMax = Math.max.apply(null, ly);
+    const real = e.points.filter(p => p.msrp > 0).slice(0, 1500).map(p => ({
+      x: p.msrp, y: p.aur, cls: p.aurRatio > 1 ? 'viz-warn' : 'viz-accent', op: '0.55', r: 3,
+      tip: [brandLabel(p.brand), 'MSRP ' + fmt$(p.msrp), 'AUR ' + fmt$(p.aur), fmtPct(p.aurRatio) + ' of MSRP'].join(' • '),
+    }));
+    const maxMsrp = Math.max.apply(null, e.points.map(p => p.msrp || 0).concat([1]));
+    renderChartBlock(host, meta.id, 'Demand curve — units vs AUR (log–log; the slope IS the elasticity)', [
+      { key: 'elasticity', label: 'Elasticity', fn: () => svgScatterXY(lpts, {
+        xMin, xMax, yMin, yMax, trend: e.lnFit, xLabel: 'ln(AUR)', yLabel: 'ln(units)',
+        xFmt: v => '$' + Math.round(Math.exp(v)), yFmt: v => fmtInt(Math.exp(v)) }) },
+      { key: 'realization', label: 'AUR vs MSRP', fn: () => svgScatterXY(real, {
+        xMin: 0, xMax: maxMsrp, yMin: 0, yMax: maxMsrp, trend: { slope: 1, intercept: 0 },
+        xLabel: 'MSRP', yLabel: 'AUR', xFmt: v => '$' + axNum(v), yFmt: v => '$' + axNum(v) }) },
+    ]);
+    const el_ = e.elasticity, elastic = Math.abs(el_) > 1;
+    readout(host, [
+      `Fitting a demand curve through every priced row: a 1% change in price (AUR) goes with about `
+      + `${Math.abs(el_).toFixed(1)}% ${el_ < 0 ? 'fewer' : 'more'} units (elasticity ${el_.toFixed(2)}). `
+      + (elastic
+        ? `Demand is elastic — price moves matter, so markdowns should shift real volume and premium pricing costs units.`
+        : `Demand is inelastic — units hold up as price rises, which supports premium pricing and means deeper markdowns buy little extra volume.`),
+      `On the AUR-vs-MSRP view, points on the diagonal sell at full sticker; points below it are discounted. `
+      + `Blended realization runs about ${fmtPct(e.medRealization)} of MSRP.`,
+    ]);
+    host.appendChild(el('p', { class: 'note' },
+      `Log–log OLS · ${fmtInt(e.n)} priced rows · R² ${fmtPct(e.r2)} · t ${e.tStat.toFixed(1)}. `
+      + `Cross-sectional elasticity is descriptive, not causal — premium lines differ in more than price.`));
   }
 
   const GENERIC_RENDERERS = {
@@ -1142,6 +1439,7 @@
     anomalyDetection: rAnomaly, retailerScorecard: rScorecard, collectionLifecycle: rLifecycle,
     doorClustering: rDoors, marketBasket: rBasket, cannibalization: rCannibal,
     whitespace: rWhitespace, replenishment: rReplen, scenarioPlanner: rScenario,
+    attributeDrivers: rAttributeDrivers, seasonality: rSeasonality, priceElasticity: rPriceElasticity,
   };
 
   function renderAnalysisGuide() {
@@ -1550,6 +1848,33 @@
       + (state.optionalDims.includes('theme')
           ? 'A Theme column was detected in the file and takes precedence.'
           : 'No Theme column in the file yet — author below.')));
+    // once themes exist (authored or from a column), show how volume splits across them
+    const themed = rows.filter(r => r.theme != null && r.theme !== '');
+    if (themed.length) {
+      const g = A.groupBy(themed, r => r.theme);
+      const agg = [];
+      g.forEach((rs, k) => agg.push({
+        theme: String(k),
+        units: A.sum(rs, r => (r.tyUnits > 0 ? r.tyUnits : 0)),
+        rtl: A.sum(rs.filter(r => r._validSale), r => r.tyRtl),
+        cols: new Set(rs.map(r => r.collection)).size,
+      }));
+      agg.sort((a, b) => b.units - a.units);
+      const items = agg.map(a => ({ label: a.theme, value: a.units, valLabel: fmtInt(a.units) }));
+      renderChartBlock(host, 'theme', 'TY units by theme', [
+        { key: 'bars', label: 'Bars', fn: () => svgBarsH(items, { cat: true }) },
+        { key: 'pie', label: 'Pie', fn: () => svgPie(items, true) },
+        { key: 'column', label: 'Columns', fn: () => svgColumn(items, { cat: true }) },
+      ]);
+      readout(host, [
+        `${agg.length} theme${agg.length === 1 ? '' : 's'} cover ${fmtInt(themed.length)} rows. `
+        + (agg[0] ? `${agg[0].theme} is the biggest story by volume — ${fmtInt(agg[0].units)} units across ${fmtInt(agg[0].cols)} collection${agg[0].cols === 1 ? '' : 's'}. ` : '')
+        + `Author or edit themes below; the split updates live and the Theme filter then propagates into every other read.`,
+      ]);
+      host.appendChild(table(['Theme', 'Collections', 'TY units', 'TY retail $'],
+        agg.map(a => [a.theme, fmtInt(a.cols), fmtInt(a.units), fmt$(a.rtl)])));
+      host.appendChild(el('h4', null, 'Author themes'));
+    }
     const collections = A.distinct(rows, 'collection');
     const wrap = el('div', { class: 'theme-grid' });
     collections.forEach(col => {

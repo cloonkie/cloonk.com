@@ -1776,12 +1776,16 @@ body.nav-open .nav-burger .icon-close { display: block; }
       momentum:     { kicker: 'Trend',       title: 'YoY Momentum',            dek: 'Year-on-year decomposed into new collections, lost collections, and continuing business.' },
       promo:        { kicker: 'Pricing',     title: 'Full-Price vs Promo',     dek: 'How much of the volume is full-price demand and how much is markdown depth.' },
       theme:        { kicker: 'Author',      title: 'Theme Authoring',         dek: 'Tag collections with marketing themes so they filter everything else.' },
+      attributeDrivers: { kicker: 'Model', title: 'Attribute Drivers',         dek: 'A regression that isolates which shapes, materials, colours, sizes, and tiers actually drive performance.' },
+      seasonality:  { kicker: 'Model',       title: 'Seasonality & Timing',    dek: 'Demand decomposed across the calendar — peak months, trend, and how consistent the pattern repeats year to year.' },
+      priceElasticity: { kicker: 'Model',  title: 'Price Elasticity',          dek: 'A log–log demand curve: how sensitive units are to price (AUR), and how much of MSRP is actually realized.' },
       workbench:    { kicker: 'Workbench',   title: 'Bespoke Read',            dek: 'Layered fields for the read you opened — wired into readiness.' },
     };
     /* Hero KPI position per story (1-indexed: KPI cards are appended in fixed order):
        1 Rows · 2 TY units · 3 TY retail · 4 YoY units · 5 Dead-stock · 6 Promo share */
     const STORY_HERO = {
       integrity: 1, liquidation: 5, velocity: 2, momentum: 4, promo: 6, theme: 1, workbench: 3,
+      attributeDrivers: 2, seasonality: 2, priceElasticity: 6,
     };
 
     /* ─── Mini-viz SVG + example sentence per story ───────────────── */
@@ -1829,6 +1833,12 @@ body.nav-open .nav-burger .icon-close { display: block; }
         '<svg viewBox="0 0 132 56"><rect x="2" y="6" width="92" height="8" class="viz-accent"/><rect x="2" y="18" width="70" height="8" class="viz-accent" opacity="0.8"/><rect x="2" y="30" width="52" height="8" class="viz-muted" opacity="0.5"/><rect x="2" y="42" width="34" height="8" class="viz-muted" opacity="0.4"/><path d="M 104 12 l 6 -6 l 6 6" class="stroke-accent" stroke-width="2"/><path d="M 104 24 l 6 -6 l 6 6" class="stroke-accent" stroke-width="2" opacity="0.7"/></svg>',
       scenario_planner:
         '<svg viewBox="0 0 132 56"><path d="M 6 28 L 50 28" class="stroke-muted" stroke-width="2"/><path d="M 50 28 L 100 10" class="stroke-accent" stroke-width="2"/><path d="M 50 28 L 100 28" class="stroke-muted" stroke-width="2" stroke-dasharray="3 3"/><path d="M 50 28 L 100 46" class="stroke-warn" stroke-width="2"/><circle cx="50" cy="28" r="4" class="viz-accent"/><circle cx="100" cy="10" r="3" class="viz-accent"/><circle cx="100" cy="28" r="3" class="viz-muted" opacity="0.5"/><circle cx="100" cy="46" r="3" class="viz-warn"/></svg>',
+      attribute_drivers:
+        '<svg viewBox="0 0 132 56"><line x1="66" y1="2" x2="66" y2="54" class="axis"/><rect x="66" y="6"  width="48" height="6" class="viz-accent"/><rect x="66" y="16" width="30" height="6" class="viz-accent" opacity="0.8"/><rect x="40" y="26" width="26" height="6" class="viz-warn"/><rect x="52" y="36" width="14" height="6" class="viz-muted" opacity="0.5"/><rect x="66" y="46" width="20" height="6" class="viz-accent" opacity="0.7"/></svg>',
+      seasonality:
+        '<svg viewBox="0 0 132 56"><path d="M 4 40 C 20 16, 32 14, 46 30 S 74 50, 88 30 S 116 12, 128 22" class="stroke-accent" stroke-width="2"/><line x1="4" y1="30" x2="128" y2="30" class="axis" stroke-dasharray="3 3"/><circle cx="28" cy="16" r="3" class="viz-accent"/><circle cx="102" cy="16" r="3" class="viz-accent" opacity="0.6"/></svg>',
+      price_elasticity:
+        '<svg viewBox="0 0 132 56"><path d="M 6 8 L 126 50" class="stroke-accent" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.7"/><circle cx="16" cy="14" r="2.5" class="viz-accent"/><circle cx="34" cy="16" r="2.5" class="viz-accent"/><circle cx="52" cy="24" r="2.5" class="viz-muted" opacity="0.6"/><circle cx="72" cy="30" r="2.5" class="viz-warn"/><circle cx="92" cy="38" r="2.5" class="viz-warn"/><circle cx="112" cy="46" r="2.5" class="viz-warn"/></svg>',
     };
     const VIZ_FALLBACK =
       '<svg viewBox="0 0 132 56"><polyline points="2,46 18,38 32,42 46,30 62,32 78,22 94,26 110,18 126,12" class="stroke-accent" stroke-width="2"/></svg>';
@@ -1849,11 +1859,14 @@ body.nav-open .nav-burger .icon-close { display: block; }
       retailer_scorecard:     'A radar across mix, productivity, promo, growth, and inventory health. Lopsided shapes flag where a retailer is over- or under-indexed.',
       collection_lifecycle:   'Each collection traced from launch through maturity to decay. The peak marker is where the collection sits today.',
       price_architecture:     'Price-band columns sized by retail $. Missing tiers leave gaps in the bar chart; overloaded tiers crowd the middle.',
-      market_basket:          'An affinity network of brands or styles that sell together. Thicker links are pairs that co-occur in the same baskets more than chance.',
+      market_basket:          'An affinity network of brands that appear together — in the same basket, or the same door when the file has no basket id. Thicker links co-occur more than chance.',
       cannibalization:        'New-versus-old unit lines for similar products. Where the new line rises as the old one falls, the new item is eating its predecessor.',
       whitespace:             'A grid of attributes × retailers. Dashed empty cells are whitespace — a combination that sells elsewhere but is missing or thin here.',
       replenishment:          'A ranked list of chase candidates, up-arrows on the urgent few. Bars are scored by velocity, cover, and margin together.',
       scenario_planner:       'A decision tree branching from today into mark-down, replenish, and exit paths — each tip annotated with projected units and retail.',
+      attribute_drivers:      'A regression coefficient plot. Bars right of centre lift performance, bars left drag it, each vs its baseline level — grey bars aren’t statistically significant.',
+      seasonality:            'A seasonal index curve across the calendar with the 1.0× average line. Peaks show when demand runs hot; overlaid year lines show whether the pattern repeats.',
+      price_elasticity:       'A log–log demand curve of units against AUR — the slope is the price elasticity. A companion AUR-vs-MSRP scatter shows how much sticker price is actually realized.',
     };
     const EXAMPLE_FALLBACK = 'A focused chart shaped to this read, drawn from the rows after filters apply.';
     /* SOA analysis id → VIZ/EXAMPLE key (those maps predate the engine ids) */
@@ -1864,6 +1877,7 @@ body.nav-open .nav-burger .icon-close { display: block; }
       anomalyDetection: 'anomaly_detection', retailerScorecard: 'retailer_scorecard',
       collectionLifecycle: 'collection_lifecycle', priceArchitecture: 'price_architecture',
       marketBasket: 'market_basket', scenarioPlanner: 'scenario_planner',
+      attributeDrivers: 'attribute_drivers', priceElasticity: 'price_elasticity',
     };
     const vizKey = id => VIZ_ALIAS[id] || id;
     const vizFor = id => VIZ[vizKey(id)] || VIZ_FALLBACK;
@@ -1873,7 +1887,7 @@ body.nav-open .nav-burger .icon-close { display: block; }
     const SAMPLE_HEADERS = {
       retailer: 'Retailer', location: 'Location', brand: 'Brand',
       door: 'Door', week: 'Week Ending', collection: 'Collection Release',
-      frameMaterial: 'Frame Material', size: 'Size', msrp: 'MSRP',
+      frameMaterial: 'Frame Material', frameShape: 'Frame Shape', size: 'Size', msrp: 'MSRP',
       buyUnits: 'Buy Units', tyUnits: 'TY YTD Units Sls', tyRtl: 'TY YTD Rtl Sls',
       tyOH: 'TY WTD Units OH', tyST: 'TY YTD ST%', lyUnits: 'LY YTD Units Sls',
       lyRtl: 'LY YTD Rtl Sls', lyOH: 'LY WTD Units OH', lyST: 'LY YTD ST%',
@@ -1882,11 +1896,13 @@ body.nav-open .nav-burger .icon-close { display: block; }
       frameColor: 'Frame Color', templeColor: 'Temple Color', theme: 'Theme',
       transactionId: 'Transaction ID', margin: 'Margin', doorCount: 'Door Count',
     };
-    /* ─── Sample dataset — generated, ~50 rows, deep enough to render every read.
+    /* ─── Sample dataset — generated, ~110 rows, deep enough to render every read.
        Deterministic (seeded) so it is identical across loads. A varied body
-       (5 retailers · 10 doors · 5 brands · 18 weeks · vintages 2018–2025 · a
-       promo/full-price mix) plus injected edge cases: integrity flags, dead/aged
-       stock, dropped & new collections, a cannibalization pair, an anomaly. ── */
+       (5 retailers · 10 doors · 5 brands · 6 frame shapes · 18 weeks · vintages
+       2018–2025 · a promo/full-price mix, with shape & material tilting sell-through
+       so the driver regression has real signal) plus injected edge cases: integrity
+       flags, dead/aged stock, dropped & new collections, a cannibalization pair, an
+       anomaly. ── */
     const SAMPLE = (function buildSample() {
       function mulberry32(a) {
         return function () {
@@ -1911,6 +1927,10 @@ body.nav-open .nav-burger .icon-close { display: block; }
       const baseMsrp = { BR1: 280, BR2: 230, BR3: 185, BR4: 150, BR5: 95 };
       const materials = ['Acetate', 'Metal', 'Nylon', 'Titanium'];
       const matCode = { Acetate: 'MC1', Metal: 'MC2', Nylon: 'MC3', Titanium: 'MC4' };
+      const shapes = ['Round', 'Square', 'Aviator', 'Cat-Eye', 'Rectangle', 'Wayfarer'];
+      // deliberate attribute→sell-through tilts so the driver regression has real signal to surface
+      const shapeLift = { Round: 0, Square: 0.03, Aviator: 0.09, 'Cat-Eye': 0.13, Rectangle: -0.08, Wayfarer: 0.05 };
+      const matLift = { Acetate: 0, Metal: 0.05, Nylon: -0.06, Titanium: 0.10 };
       const sizes = ['50', '52', '54', '56', '58'];
       const themes = ['Heritage', 'Performance', 'Minimal', 'Statement'];
       const lensC = ['Grey', 'Brown Gradient', 'Green G15', 'Mirror Blue', 'Polarized'];
@@ -1924,12 +1944,13 @@ body.nav-open .nav-burger .icon-close { display: block; }
       function add(o) { o.upc = String(1000000000001 + rows.length); rows.push(o); }
 
       // ── varied body ──
-      for (let i = 0; i < 40; i++) {
+      for (let i = 0; i < 96; i++) {
         const brand = pick(brands), ret = pick(retailers), mat = pick(materials);
+        const shape = pick(shapes);
         const year = wpick([2022, 2023, 2024, 2025], [2, 3, 3, 2]);
         const collection = brand + ' ' + String.fromCharCode(65 + (i % 5)) + ' ' + year;
         const msrp = ri(baseMsrp[brand] * 0.85, baseMsrp[brand] * 1.15);
-        const stT = rnd(0.08, 0.92);
+        const stT = Math.max(0.05, Math.min(0.95, rnd(0.22, 0.74) + shapeLift[shape] + matLift[mat]));
         const tyOH = ri(6, 160);
         const tyUnits = Math.max(1, Math.round(tyOH * stT / (1.02 - stT)));
         const promo = R() < 0.35;
@@ -1941,7 +1962,7 @@ body.nav-open .nav-burger .icon-close { display: block; }
         const lyRtl = Math.round(lyUnits * aur * rnd(0.95, 1.06));
         add({
           retailer: ret, location: region[ret], brand, door: pick(doorsBy[ret]),
-          week: weeks[i % weeks.length], collection, frameMaterial: mat, size: wpick(sizes, [1, 3, 5, 4, 2]),
+          week: weeks[i % weeks.length], collection, frameMaterial: mat, frameShape: shape, size: wpick(sizes, [1, 3, 5, 4, 2]),
           msrp: String(msrp), buyUnits: String(tyUnits + tyOH), tyUnits: String(tyUnits),
           tyRtl: String(tyRtl), tyOH: String(tyOH), tyST: st2(stT),
           lyUnits: String(lyUnits), lyRtl: String(lyRtl), lyOH: String(lyOH),
@@ -1958,7 +1979,7 @@ body.nav-open .nav-burger .icon-close { display: block; }
         const brand = o.brand || 'BR3', ret = o.retailer || 'Retailer A';
         return Object.assign({
           retailer: ret, location: region[ret], brand, door: doorsBy[ret][0], week: weeks[0],
-          collection: brand + ' X 2024', frameMaterial: 'Acetate', size: '54', msrp: '180',
+          collection: brand + ' X 2024', frameMaterial: 'Acetate', frameShape: 'Round', size: '54', msrp: '180',
           buyUnits: '50', tyUnits: '20', tyRtl: '3200', tyOH: '30', tyST: '0.40', lyUnits: '18',
           lyRtl: '2900', lyOH: '25', lyST: '0.42', newness: 'Carryover', brandCategory: tier[brand],
           materialCode: 'MC1', priceRange: '$150-199', style: brand + '-S' + (++styleN), lensColor: 'Grey',
