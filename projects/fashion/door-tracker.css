@@ -662,6 +662,58 @@ body.mode-map .matrix-wrap { padding: 0; height: calc(100vh - 112px); overflow: 
   font-size: 0.7rem;
 }
 
+/* ─── IN-PANE KEY / DOOR SEARCH (Data + Store views) ─── */
+.pane-search {
+  display: flex; align-items: center; gap: 6px;
+  flex: 1 1 280px; min-width: 200px; max-width: 460px;
+}
+.pane-search-icon {
+  width: 15px; height: 15px; flex-shrink: 0;
+  stroke: var(--text-dim); fill: none; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.pane-search-input {
+  flex: 1 1 auto; min-width: 120px;
+  padding: 7px 12px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-xs); font-family: var(--font-mono); font-size: 0.78rem;
+  color: var(--text); outline: none;
+}
+.pane-search-input:focus { border-color: var(--accent); }
+body.light .pane-search-input { background: #f4f2ee; }
+.pane-search-clear {
+  border: 0; background: transparent; color: var(--text-dim); cursor: pointer;
+  font-size: 0.85rem; line-height: 1; padding: 3px 5px; border-radius: 4px;
+}
+.pane-search-clear:hover { color: var(--text); background: var(--surface-raised); }
+.pane-search-hint { font-size: 0.62rem; color: var(--text-dim); white-space: nowrap; }
+@media (max-width: 760px) { .pane-search-hint { display: none; } }
+
+/* ─── GENDER QUICK-PICK (Data view) ─── */
+.data-bulk-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 6px 0 2px;
+}
+.data-bulk-bar__label {
+  font-size: 0.66rem; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;
+}
+.gender-seg {
+  display: inline-flex; flex-shrink: 0;
+  border: 1px solid var(--border); border-radius: 999px; overflow: hidden;
+  background: var(--surface-raised);
+}
+.gender-seg-btn {
+  font-family: var(--font-body); font-size: 0.66rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  padding: 4px 11px; min-width: 30px;
+  border: 0; background: transparent; color: var(--text-muted);
+  cursor: pointer; transition: background var(--transition), color var(--transition);
+}
+.gender-seg-btn + .gender-seg-btn { border-left: 1px solid var(--border); }
+.gender-seg-btn:hover { background: var(--surface); color: var(--text); }
+.gender-seg-btn.active { background: var(--accent-dim); color: var(--accent); }
+.gender-seg--bulk .gender-seg-btn { padding: 5px 14px; font-size: 0.68rem; }
+
 /* ─── DOOR RESEARCH VIEW ─── */
 body.mode-map .research-view-header { display: none; }
 .research-view-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }

@@ -1378,6 +1378,86 @@ function setSingleRetailerScope(ret){
   _singleRetailerScope = ret || null;
   render();
 }
+/* In-pane lookup shared by the Data and Store views. It filters the visible
+   rows by key, door number, or store name, and — when no retailer filter is
+   active — auto-jumps the single-retailer scope to whichever retailer owns the
+   match, so a full key like "Macys123ABC" finds its store from any retailer. */
+let _paneSearch='';
+let _paneSearchCaret=null;
+let _restoreSearchFocus=false;
+let _dataPaneVisibleRows=[];
+
+function isRetailerFilterActive(){
+  return getSelectValues('fRet').length>0 || getSelectValues('fRetGroup').length>0;
+}
+function onPaneSearchInput(el){
+  _paneSearch=el.value;
+  _paneSearchCaret=(el.selectionStart==null)?el.value.length:el.selectionStart;
+  maybeJumpToSearchRetailer(_paneSearch);
+  _restoreSearchFocus=true;
+  debouncedRender();
+}
+function clearPaneSearch(){
+  _paneSearch='';
+  _paneSearchCaret=0;
+  _restoreSearchFocus=true;
+  render();
+}
+/* mainView is rebuilt with innerHTML on every render, which drops focus from
+   the in-pane input. Only restore focus when the render was triggered by the
+   search box itself, so unrelated renders don't steal the caret. */
+function restorePaneSearchFocus(){
+  if(!_restoreSearchFocus) return;
+  _restoreSearchFocus=false;
+  const el=document.getElementById('paneSearchInput');
+  if(!el) return;
+  el.focus();
+  const pos=(_paneSearchCaret==null)?el.value.length:Math.min(_paneSearchCaret,el.value.length);
+  try{ el.setSelectionRange(pos,pos); }catch(e){}
+}
+function paneSearchMatchesDoor(ret,door,rawQuery){
+  const q=String(rawQuery||'').trim().toLowerCase();
+  if(!q) return true;
+  const blob=[door.doorNumber,door.name,door.address,door.city,door.state,door.zip,door.tier,door.storeRep,door.visitCadence]
+    .filter(v=>v!=null&&v!=='').join(' ').toLowerCase();
+  if(blob.includes(q)) return true;
+  /* Match the retailer+door portion of the data key (buildDataKey strips
+     punctuation), so a full or partial key resolves to its store. */
+  const qNorm=q.replace(/[^a-z0-9]/g,'');
+  if(qNorm){
+    const prefix=buildDataKey(ret,door.doorNumber,'').toLowerCase();
+    if(prefix && (prefix.includes(qNorm) || qNorm.startsWith(prefix))) return true;
+  }
+  return false;
+}
+function retailerHasSearchMatch(ret,rawQuery){
+  return getRetailerDoors(ret).some(d=>paneSearchMatchesDoor(ret,d,rawQuery));
+}
+function maybeJumpToSearchRetailer(rawQuery){
+  const q=String(rawQuery||'').trim();
+  if(q.length<2) return;
+  if(isRetailerFilterActive()) return;      // respect an explicit retailer filter
+  const visR=getVisibleRetailers();
+  const active=getActiveSingleRetailer(visR);
+  if(active && retailerHasSearchMatch(active,q)) return;  // current retailer already matches
+  const hit=visR.find(r=>retailerHasSearchMatch(r,q));
+  if(hit && hit!==active) _singleRetailerScope=hit;
+}
+function renderPaneSearch(){
+  const retFiltered=isRetailerFilterActive();
+  const hint=retFiltered
+    ? 'Searches within the filtered retailers'
+    : 'Type a key, door #, or store name — jumps to its retailer';
+  const clearBtn=_paneSearch
+    ? `<button type="button" class="pane-search-clear" onclick="clearPaneSearch()" title="Clear search" aria-label="Clear search">✕</button>`
+    : '';
+  return `<div class="pane-search">
+    <svg class="pane-search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+    <input type="text" id="paneSearchInput" class="pane-search-input" placeholder="Search by key, door #, or store name…" value="${esc(_paneSearch)}" oninput="onPaneSearchInput(this)" onkeydown="if(event.key==='Escape'){clearPaneSearch();}" autocomplete="off" spellcheck="false">
+    ${clearBtn}
+    <span class="pane-search-hint">${esc(hint)}</span>
+  </div>`;
+}
 function renderSingleRetailerPicker(visR, active){
   if(!visR.length) return '';
   const opts=visR.map(r=>`<option value="${esc(r)}"${r===active?' selected':''}>${esc(r)}</option>`).join('');
@@ -1385,8 +1465,72 @@ function renderSingleRetailerPicker(visR, active){
   return `<div class="single-retailer-picker">
     <label for="singleRetailerSel">Retailer</label>
     <select id="singleRetailerSel" onchange="setSingleRetailerScope(this.value)">${opts}</select>
+    ${renderPaneSearch()}
     ${extra}
   </div>`;
+}
+
+/* Gender quick-pick (Data view) — Male/Female/Unisex map to the stored
+   Mens Only / Ladies Only / ALL values; labels here are display-only. */
+const GENDER_QUICK_OPTIONS=[
+  {value:'Mens Only',short:'M',label:'Male'},
+  {value:'Ladies Only',short:'F',label:'Female'},
+  {value:'ALL',short:'U',label:'Unisex'}
+];
+function genderQuickLabel(value){
+  const v=normalizeGender(value);
+  const hit=GENDER_QUICK_OPTIONS.find(o=>o.value===v);
+  return hit?hit.label:'Unisex';
+}
+/* Single-letter code for the map store detail: M=Mens Only, L=Ladies Only, U=ALL. */
+function genderCode(value){
+  const v=normalizeGender(value);
+  return v==='Mens Only'?'M':v==='Ladies Only'?'L':'U';
+}
+function genderSegHtml(r){
+  const cur=normalizeGender(r.gender);
+  const btns=GENDER_QUICK_OPTIONS.map(o=>
+    `<button type="button" class="gender-seg-btn${cur===o.value?' active':''}" data-g="${esc(o.value)}" title="${esc(o.label)} (${esc(o.value)})" onclick='setRowGender(this,${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},${jsq(o.value)})'>${o.short}</button>`
+  ).join('');
+  return `<div class="gender-seg" role="group" aria-label="Gender">${btns}</div>`;
+}
+function setRowGender(el,ret,doorNumber,brand,value){
+  updateDataKeyField(ret,doorNumber,brand,'gender',value);
+  const group=el&&el.closest('.gender-seg');
+  if(group) group.querySelectorAll('.gender-seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.g===normalizeGender(value)));
+}
+function renderDataGenderBulkBar(count,ret){
+  const btns=GENDER_QUICK_OPTIONS.map(o=>
+    `<button type="button" class="gender-seg-btn" title="Set every shown row to ${esc(o.label)} (${esc(o.value)})" onclick='bulkSetGender(${jsq(o.value)})'>${esc(o.label)}</button>`
+  ).join('');
+  return `<div class="data-bulk-bar">
+    <span class="data-bulk-bar__label">Gender · set all ${count.toLocaleString()} shown row${count===1?'':'s'} for ${esc(ret)}:</span>
+    <div class="gender-seg gender-seg--bulk" role="group" aria-label="Bulk set gender">${btns}</div>
+  </div>`;
+}
+async function bulkSetGender(value){
+  const rows=_dataPaneVisibleRows||[];
+  if(!rows.length){ toast('No rows to update.'); return; }
+  const next=normalizeGender(value);
+  const label=genderQuickLabel(next);
+  const msg=`Set gender to ${label} for ${rows.length} shown row${rows.length===1?'':'s'}?`;
+  const confirmed=window.fashionConfirm
+    ? await window.fashionConfirm(msg,{title:'Set Gender',confirmLabel:'Set '+label})
+    : confirm(msg);
+  if(!confirmed) return;
+  let changed=0;
+  rows.forEach(r=>{
+    if(!isPhysicalDoorNumber(r.doorNumber)) return;
+    const st=ensureDataKeyState(r.retailer,r.doorNumber,r.brand);
+    const old=normalizeGender(st.gender);
+    if(old===next) return;
+    st.gender=next;
+    syncAssignmentFromDataKey(r.retailer,r.doorNumber,r.brand);
+    recordHistory(r.retailer,r.brand,{scope:'data',action:'gender updated',oldVal:old,newVal:next,doorNumber:r.doorNumber});
+    changed++;
+  });
+  if(changed){ queueAutosave(); render(); }
+  toast(changed?`Set ${changed} row${changed===1?'':'s'} to ${label}.`:`All shown rows were already ${label}.`);
 }
 
 function renderStore(items,visR){
@@ -1397,6 +1541,7 @@ function renderStore(items,visR){
     return;
   }
   const sq=(document.getElementById('searchBox').value||'').toLowerCase();
+  const paneQ=String(_paneSearch||'').toLowerCase().trim();
   const doors=doorLocations
     .filter(d=>normalizeRetailer(d.retailer)===normalizeRetailer(activeRet))
     .filter(d=>{
@@ -1404,10 +1549,12 @@ function renderStore(items,visR){
       const blob=[d.retailer,d.doorNumber,d.name,d.address,d.city,d.state,d.zip,d.tier,d.storeRep,d.visitCadence].filter(Boolean).join(' ').toLowerCase();
       return blob.includes(sq);
     })
+    .filter(d=> paneQ ? paneSearchMatchesDoor(activeRet,d,paneQ) : true)
     .sort((a,b)=>String(a.doorNumber).localeCompare(String(b.doorNumber),undefined,{numeric:true}));
 
   if(!doors.length){
     wrap.innerHTML=renderSingleRetailerPicker(visR,activeRet)+'<div style="text-align:center;padding:60px;color:var(--text-dim)">No doors match the current filters for '+esc(activeRet)+'.</div>';
+    restorePaneSearchFocus();
     return;
   }
   const fields=[
@@ -1444,6 +1591,7 @@ function renderStore(items,visR){
   });
   h+='</tbody></table></div>';
   wrap.innerHTML=h;
+  restorePaneSearchFocus();
 }
 
 function updateStoreDoorField(ret,doorNumber,field,el){
@@ -1564,8 +1712,9 @@ function renderUnpivoted(items,visR){
   const fgen=getSelectValues('fGender');
   const opportunitiesOnly=!!document.getElementById('fOpportunities')?.checked;
   const sq=(document.getElementById('searchBox').value||'').toLowerCase();
+  const paneQ=String(_paneSearch||'').toLowerCase().trim();
   const brands=getAllBrands();
-  const filterSignature=JSON.stringify({ret:activeRet,fc,fb,fs,fg,fgen,opportunitiesOnly,sq,brandCount:brands.length,doorCount:getRetailerDoors(activeRet).length});
+  const filterSignature=JSON.stringify({ret:activeRet,fc,fb,fs,fg,fgen,opportunitiesOnly,sq,paneQ,brandCount:brands.length,doorCount:getRetailerDoors(activeRet).length});
   if(filterSignature!==dataPaneFilterSignature){
     dataPaneFilterSignature=filterSignature;
     dataPanePage=1;
@@ -1601,6 +1750,7 @@ function renderUnpivoted(items,visR){
           key:buildDataKey(ret,door.doorNumber,brand)
         };
         if(!dataRowMatchesSearch(row,sq,brandName)) return;
+        if(paneQ && !dataRowMatchesSearch(row,paneQ,brandName)) return;
         if(opportunitiesOnly && row.status!=='na') return;
         if(!hasFilterValue(fs,row.status)) return;
         if(!hasFilterValue(fg,row.grade)) return;
@@ -1611,12 +1761,16 @@ function renderUnpivoted(items,visR){
   });
 
   rows.sort((a,b)=>a.retailer.localeCompare(b.retailer)||(Number(a.doorNumber)-Number(b.doorNumber))||a.brand.localeCompare(b.brand));
+  /* Remember the full filtered set (all pages) so bulk gender applies to every
+     row the current filters surface, not just the visible page. */
+  _dataPaneVisibleRows=rows.map(r=>({retailer:r.retailer,doorNumber:r.doorNumber,brand:r.brand}));
   const pageSize=Math.max(25,Number(dataPanePageSize)||75);
   const totalPages=Math.max(1,Math.ceil(rows.length/pageSize));
   dataPanePage=Math.min(Math.max(1,Number(dataPanePage)||1),totalPages);
   const pagedRows=rows.slice((dataPanePage-1)*pageSize,dataPanePage*pageSize);
   const pager=renderDataPagination(rows.length);
   let h=renderSingleRetailerPicker(visR,activeRet);
+  if(rows.length) h+=renderDataGenderBulkBar(rows.length,activeRet);
   h+=pager;
   h+='<table class="compact-table"><thead><tr><th>Retailer</th><th>Door Number</th><th>Brand</th><th>Location</th><th>Status</th><th>Category</th><th>Grade</th><th>Gender</th><th>Metric 1</th><th>Metric 2</th><th>Opportunity</th><th>Notes</th><th>Key</th></tr></thead><tbody>';
   if(!rows.length){
@@ -1641,11 +1795,7 @@ function renderUnpivoted(items,visR){
           ${['-','A','B','C'].map(v=>`<option value="${v}" ${String(r.grade)===v?'selected':''}>${v}</option>`).join('')}
         </select>
       </td>
-      <td>
-        <select class="data-pill-select genderSel" onchange='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"gender",this.value,this)'>
-          ${['ALL','Mens Only','Ladies Only'].map(v=>`<option value="${v}" ${r.gender===v?'selected':''}>${v}</option>`).join('')}
-        </select>
-      </td>
+      <td>${genderSegHtml(r)}</td>
       <td><input class="data-cell-note" type="number" step="any" value="${esc(r.metric_1)}" oninput='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"metric_1",this.value,this)' title="metric_1: first selling metric for this retailer-door-brand row"></td>
       <td><input class="data-cell-note" type="number" step="any" value="${esc(r.metric_2)}" oninput='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"metric_2",this.value,this)' title="metric_2: second selling metric for this retailer-door-brand row"></td>
       <td><span class="score-pill ${esc(r.opportunityClassName)}" title="${esc(r.opportunityTitle)}"><strong>${esc(r.opportunityScore)}</strong><small>${esc(r.opportunityPercentile || r.opportunityBand)}</small></span></td>
@@ -1656,6 +1806,7 @@ function renderUnpivoted(items,visR){
   h+='</tbody></table>';
   h+=pager;
   wrap.innerHTML=h;
+  restorePaneSearchFocus();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2152,7 +2303,7 @@ function renderDoorDetail(d,ret){
       assigns.forEach(a=>{
         if(a.doorNumber==doorNum){
           const state=getDataKeyState(norm,doorNum,b) || {};
-          const meta={brand:b,status:a.status,metric_1:state.metric_1 ?? '',metric_2:state.metric_2 ?? ''};
+          const meta={brand:b,status:a.status,gender:normalizeGender(state.gender),metric_1:state.metric_1 ?? '',metric_2:state.metric_2 ?? ''};
           brandsAtDoorMap.set(b,meta);
         }
       });
@@ -2207,10 +2358,13 @@ function renderDoorDetail(d,ret){
       const bName=brandCodes[b]?brandCodes[b].name:'';
       const count=getMatrixVal(norm,b);
       const meta=brandsAtDoorMap.get(b) || {};
-      const metricText=(meta.metric_1!==undefined && meta.metric_1!=='' || meta.metric_2!==undefined && meta.metric_2!=='') ? ` · m1: ${meta.metric_1||'-'} · m2: ${meta.metric_2||'-'}` : '';
       const cls=atStore ? ' at-store' : (atRetailer ? ' at-retailer' : ' absent');
-      const state=atStore ? `at this store${meta.status==='draft'?' (draft)':''}` : (atRetailer ? `at retailer, not this store (${count} door${count===1?'':'s'})` : 'not at retailer');
-      return `<div class="brand-pill${cls}" title="${esc(bName)} — ${state}${metricText}">${esc(b)}${atStore && meta.status==='draft'?' (draft)':''}${atRetailer && !atStore?` (${count})`:''}${metricText?` <span style="opacity:.75">${esc(metricText)}</span>`:''}</div>`;
+      /* At-store brands carry a door-brand gender — surface it as BR (M/L/U). */
+      const gCode=atStore?genderCode(meta.gender):'';
+      const gName=gCode==='M'?'Mens':gCode==='L'?'Ladies':'Unisex';
+      const state=atStore ? `${gName} · at this store${meta.status==='draft'?' (draft)':''}` : (atRetailer ? `at retailer, not this store (${count} door${count===1?'':'s'})` : 'not at retailer');
+      const label=esc(b)+(atStore?` (${gCode})`:'')+(atStore && meta.status==='draft'?' (draft)':'')+(atRetailer && !atStore?` (${count})`:'');
+      return `<div class="brand-pill${cls}" title="${esc(bName)} — ${state}">${label}</div>`;
     }).join('')}</div>
   </section>`;
 
