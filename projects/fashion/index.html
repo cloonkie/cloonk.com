@@ -35,6 +35,36 @@
   <style>
     /* Restore the clock — fashion.css hides it by default on fashion pages */
     .fashion .nav__clock { display: inline-flex; }
+
+    /* ─── Use-case mini-diagrams on each tool card ───────────────
+       The cards are built by fashion.js from the TOOLS manifest; the
+       SVG markup lives in the FASHION_VIZ registry below and is keyed
+       by tool file. These rules theme the shared shape classes so the
+       diagrams track light/dark and the accent color automatically. */
+    .file__viz {
+      flex: 1 1 auto;
+      min-height: 0;
+      margin: 14px 0 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .file__viz svg { width: 100%; height: 100%; max-height: 156px; }
+    .file__viz .ln  { fill: none; stroke: var(--text-muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .file__viz .ac  { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .file__viz .flm { fill: var(--text-muted); }
+    .file__viz .fdim { fill: var(--text-muted); opacity: 0.16; }
+    .file__viz .fac { fill: var(--accent); }
+    .file__viz .fbg { fill: var(--archive-paper, var(--bg)); }
+    .file__viz .fwash { fill: var(--accent); opacity: 0.14; }
+    .file__viz .chk { fill: none; stroke: var(--accent-fg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .file:hover .file__viz .ln { stroke: var(--text); }
+
+    /* Dark mode — the default --text-muted (#888882) washes out against the
+       dark card, so lift the diagram greys for more contrast. Accent stays. */
+    [data-theme="dark"] .file__viz .ln  { stroke: #c2bdb2; }
+    [data-theme="dark"] .file__viz .flm { fill: #c2bdb2; }
+    [data-theme="dark"] .file__viz .fdim { fill: #cfcabf; opacity: 0.26; }
   </style>
 </head>
 <body class="fashion fashion--files">
@@ -101,6 +131,124 @@
   <script src="../../js/nav.js"></script>
   <script src="../../js/logo.js"></script>
   <script src="../../js/cursor.js"></script>
+
+  <!-- Use-case mini-diagrams, keyed by tool file. fashion.js injects the
+       matching SVG into each card. Shape classes are themed in <style> above. -->
+  <script>
+    window.FASHION_VIZ = {
+      // DLS 001 — review a line sheet and select the styles you keep
+      "replenishment-linesheet.html": `<svg viewBox="0 0 240 132">
+        <rect class="ac" x="20" y="26" width="58" height="82" rx="6"/>
+        <rect class="fdim" x="28" y="34" width="42" height="36" rx="3"/>
+        <line class="ln" x1="28" y1="82" x2="62" y2="82"/>
+        <line class="ln" x1="28" y1="92" x2="52" y2="92"/>
+        <circle class="fac" cx="74" cy="30" r="9"/>
+        <path class="chk" d="M70 30 l3 3 l5 -6"/>
+        <rect class="ac" x="91" y="26" width="58" height="82" rx="6"/>
+        <rect class="fdim" x="99" y="34" width="42" height="36" rx="3"/>
+        <line class="ln" x1="99" y1="82" x2="133" y2="82"/>
+        <line class="ln" x1="99" y1="92" x2="123" y2="92"/>
+        <circle class="fac" cx="145" cy="30" r="9"/>
+        <path class="chk" d="M141 30 l3 3 l5 -6"/>
+        <rect class="ln" x="162" y="26" width="58" height="82" rx="6" opacity=".45"/>
+        <rect class="fdim" x="170" y="34" width="42" height="36" rx="3"/>
+        <line class="ln" x1="170" y1="82" x2="204" y2="82" opacity=".45"/>
+        <line class="ln" x1="170" y1="92" x2="194" y2="92" opacity=".45"/>
+      </svg>`,
+
+      // AOR 002 — overlap between two retailer assortments (Venn)
+      "assortment-comparison.html": `<svg viewBox="0 0 240 132">
+        <ellipse class="fwash" cx="120" cy="66" rx="22" ry="42"/>
+        <circle class="ln" cx="100" cy="66" r="46"/>
+        <circle class="ac" cx="140" cy="66" r="46"/>
+      </svg>`,
+
+      // DOOR 003 — doors plotted across a territory, one active
+      "retailer-door-tracker.html": `<svg viewBox="0 0 240 132">
+        <rect class="ln" x="18" y="14" width="204" height="104" rx="9" opacity=".55"/>
+        <path class="ln" d="M18 66 H222" opacity=".2"/>
+        <path class="ln" d="M120 14 V118" opacity=".2"/>
+        <path class="ln" d="M40 14 C70 50 50 90 96 118" opacity=".18"/>
+        <path class="fac" d="M66 86 C58 73 55 69 55 63 A11 11 0 1 1 77 63 C77 69 74 73 66 86 Z"/>
+        <circle class="fbg" cx="66" cy="60" r="4"/>
+        <path class="ln" d="M128 74 C120 61 117 57 117 51 A11 11 0 1 1 139 51 C139 57 136 61 128 74 Z"/>
+        <circle class="flm" cx="128" cy="49" r="3.5"/>
+        <path class="ln" d="M182 100 C174 87 171 83 171 77 A11 11 0 1 1 193 77 C193 83 190 87 182 100 Z"/>
+        <circle class="flm" cx="182" cy="75" r="3.5"/>
+      </svg>`,
+
+      // STD 004 — ragged weekly reports normalized into one clean table
+      "sellout-standardizer.html": `<svg viewBox="0 0 240 132">
+        <g class="fdim">
+          <rect x="14" y="28" width="34" height="9" rx="2"/>
+          <rect x="14" y="43" width="52" height="9" rx="2"/>
+          <rect x="14" y="58" width="26" height="9" rx="2"/>
+          <rect x="20" y="78" width="46" height="9" rx="2"/>
+          <rect x="20" y="93" width="30" height="9" rx="2"/>
+        </g>
+        <path class="ac" d="M92 66 H126 M118 58 l10 8 l-10 8"/>
+        <rect class="ac" x="150" y="32" width="76" height="68" rx="6"/>
+        <line class="ac" x1="150" y1="49" x2="226" y2="49"/>
+        <line class="ln" x1="174" y1="32" x2="174" y2="100" opacity=".45"/>
+        <line class="ln" x1="150" y1="66" x2="226" y2="66" opacity=".45"/>
+        <line class="ln" x1="150" y1="83" x2="226" y2="83" opacity=".45"/>
+      </svg>`,
+
+      // SAR 005 — sell-through velocity bars with a momentum trend line
+      "selling-analysis.html": `<svg viewBox="0 0 240 132">
+        <line class="ln" x1="24" y1="106" x2="220" y2="106" opacity=".45"/>
+        <g class="fdim">
+          <rect x="36" y="76" width="20" height="30" rx="2"/>
+          <rect x="72" y="60" width="20" height="46" rx="2"/>
+          <rect x="108" y="66" width="20" height="40" rx="2"/>
+          <rect x="144" y="46" width="20" height="60" rx="2"/>
+          <rect x="180" y="34" width="20" height="72" rx="2"/>
+        </g>
+        <path class="ac" d="M46 72 L82 54 L118 60 L154 40 L190 28"/>
+        <g class="fac">
+          <circle cx="46" cy="72" r="3.5"/>
+          <circle cx="82" cy="54" r="3.5"/>
+          <circle cx="118" cy="60" r="3.5"/>
+          <circle cx="154" cy="40" r="3.5"/>
+          <circle cx="190" cy="28" r="3.5"/>
+        </g>
+      </svg>`,
+
+      // UPC 006 — fields from many files mapped into one canonical schema
+      "upc-concat.html": `<svg viewBox="0 0 240 132">
+        <g class="ln" opacity=".6">
+          <rect x="16" y="22" width="62" height="13" rx="3"/>
+          <rect x="16" y="39" width="62" height="13" rx="3"/>
+          <rect x="16" y="82" width="62" height="13" rx="3"/>
+          <rect x="16" y="99" width="62" height="13" rx="3"/>
+        </g>
+        <path class="ac" d="M78 29 C120 29 120 55 156 55" opacity=".85"/>
+        <path class="ac" d="M78 46 C120 46 120 64 156 64" opacity=".85"/>
+        <path class="ac" d="M78 89 C120 89 120 74 156 73" opacity=".85"/>
+        <path class="ac" d="M78 106 C120 106 120 84 156 82" opacity=".85"/>
+        <rect class="ac" x="156" y="44" width="68" height="46" rx="6"/>
+        <line class="ln" x1="156" y1="62" x2="224" y2="62" opacity=".45"/>
+        <line class="ln" x1="156" y1="73" x2="224" y2="73" opacity=".45"/>
+      </svg>`,
+
+      // IMG 007 — resize handles, color swatches, format chip
+      "image-prep.html": `<svg viewBox="0 0 240 132">
+        <rect class="ln" x="58" y="28" width="112" height="78" rx="6"/>
+        <circle class="ac" cx="86" cy="52" r="9"/>
+        <path class="ln" d="M62 102 L96 66 L118 90 L140 72 L166 102"/>
+        <g class="fac">
+          <rect x="53" y="23" width="10" height="10" rx="2"/>
+          <rect x="165" y="23" width="10" height="10" rx="2"/>
+          <rect x="53" y="101" width="10" height="10" rx="2"/>
+          <rect x="165" y="101" width="10" height="10" rx="2"/>
+        </g>
+        <rect class="fac" x="20" y="52" width="14" height="14" rx="3"/>
+        <rect class="fdim" x="20" y="70" width="14" height="14" rx="3"/>
+        <rect class="ac" x="188" y="58" width="34" height="20" rx="4"/>
+        <line class="ac" x1="195" y1="68" x2="215" y2="68"/>
+      </svg>`,
+    };
+  </script>
   <script src="fashion.js"></script>
 </body>
 </html>

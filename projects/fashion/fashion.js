@@ -128,6 +128,9 @@
   function renderFiles() {
     const list = document.getElementById("files");
     if (!list) return;
+    // Use-case diagrams are defined in the page (FASHION_VIZ), keyed by tool
+    // file. The markup is authored by us, so it is injected as trusted HTML.
+    const VIZ = (typeof window !== "undefined" && window.FASHION_VIZ) || {};
     list.innerHTML = TOOLS.map((t, i) => `
       <a class="file" href="${esc(t.file)}" data-cursor="open" style="--i:${i}; --tab-x:${TAB_X[i % TAB_X.length]};">
         <span class="file__tab file__tab--code">${esc(t.code)}</span>
@@ -137,6 +140,7 @@
           <span class="file__status">${esc(t.status)}</span>
         </span>
         <span class="file__name">${esc(t.name)}<span class="file__sub">${esc(t.sub)}</span></span>
+        ${VIZ[t.file] ? `<span class="file__viz" aria-hidden="true">${VIZ[t.file]}</span>` : ""}
         <span class="file__purpose">${esc(t.purpose)}</span>
         <span class="file__foot">
           <span class="file__io"><span>Source</span><b>${esc(t.eats)}</b><span>Output</span><b>${esc(t.outputs)}</b></span>
