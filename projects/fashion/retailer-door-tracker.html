@@ -114,16 +114,16 @@
         <option value="retailer">Retailer</option>
         <option value="channel">Channel</option>
       </select>
-      <div class="toolbar-group filter-toggle-group is-open" id="channelFilterGroup">
-        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">
+      <div class="toolbar-group filter-toggle-group" id="channelFilterGroup">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="false" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">
           <span class="label-text">Channel</span>
           <span class="refine-switch" aria-hidden="true" onclick="toggleFilterSwitch(event,'channel')" title="Enable channel filter"><span class="refine-switch-knob"></span></span>
         </span>
         <select id="fRetChannel" multiple onchange="render()" title="Select retailer channels"><option value="">All</option></select>
         <div class="refine-toggle-options" id="refineRetChannelToggles"></div>
       </div>
-      <div class="toolbar-group is-open" id="retailerFilterGroup">
-        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Retailer</span>
+      <div class="toolbar-group" id="retailerFilterGroup">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="false" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Retailer</span>
         <div class="retailer-group-toggle embedded" id="showByGroupRow" role="button" tabindex="0" aria-pressed="false" onclick="toggleShowByGroupSwitch(event)" onkeydown="onShowByGroupKey(event)" title="Combine retailer pills into their parent group">
           <span>Show by Group</span>
           <span class="refine-switch" aria-hidden="true"><span class="refine-switch-knob"></span></span>
@@ -132,33 +132,33 @@
         <div class="refine-toggle-options" id="refineRetToggles"></div>
       </div>
       <select id="fRetGroup" multiple onchange="render()" style="display:none"><option value="">All</option></select>
-      <div class="toolbar-group is-open">
-        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Category</span>
+      <div class="toolbar-group">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="false" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Category</span>
         <select id="fCat" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple categories"><option value="">All</option></select>
         <div class="refine-toggle-options" id="refineCatToggles"></div>
       </div>
-      <div class="toolbar-group is-open">
-        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Brand</span>
+      <div class="toolbar-group">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="false" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Brand</span>
         <select id="fBrand" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple brands"><option value="">All</option></select>
         <div class="refine-toggle-options" id="refineBrandToggles"></div>
       </div>
-      <div class="toolbar-group is-open" id="statusFilterGroup" style="display:none">
-        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Status</span>
+      <div class="toolbar-group" id="statusFilterGroup" style="display:none">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="false" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Status</span>
         <select id="fStatus" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple statuses"><option value="">All</option><option value="confirmed">Confirmed</option><option value="tbd">TBD</option><option value="na">N/A</option><option value="closed">Exit</option></select>
         <div class="refine-toggle-options" id="refineStatusToggles"></div>
       </div>
-      <div class="toolbar-group is-open" id="gradeFilterGroup" style="display:none">
-        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Grade</span>
+      <div class="toolbar-group" id="gradeFilterGroup" style="display:none">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="false" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Grade</span>
         <select id="fGrade" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple grades"><option value="">All</option></select>
         <div class="refine-toggle-options" id="refineGradeToggles"></div>
       </div>
-      <div class="toolbar-group is-open" id="genderFilterGroup" style="display:none">
-        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Gender</span>
+      <div class="toolbar-group" id="genderFilterGroup" style="display:none">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="false" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Gender</span>
         <select id="fGender" multiple onchange="render()" title="Hold Ctrl or Shift to select multiple gender values"><option value="">All</option><option value="ALL">ALL</option><option value="Mens Only">Mens Only</option><option value="Ladies Only">Ladies Only</option></select>
         <div class="refine-toggle-options" id="refineGenderToggles"></div>
       </div>
-      <div class="toolbar-group is-open" id="opportunityFilterGroup" style="display:none">
-        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Opportunities</span>
+      <div class="toolbar-group" id="opportunityFilterGroup" style="display:none">
+        <span class="toolbar-label" role="button" tabindex="0" aria-expanded="false" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Opportunities</span>
         <input type="checkbox" id="fOpportunities" onchange="render()" style="display:none">
         <div class="refine-toggle-options" id="refineOpportunityToggles"></div>
       </div>
@@ -227,6 +227,13 @@
 
   <label for="aRet" id="aRetLabel">Retailer <span class="req" aria-hidden="true">*</span></label>
   <select id="aRet" onchange="populateAddDoors();renderAddSelectionPanels()"></select>
+  <label class="delete-scope-option" id="deleteBrandScopeOption" for="deleteBrandAllRetailers" style="display:none">
+    <input type="checkbox" id="deleteBrandAllRetailers" onchange="renderAddSelectionPanels()">
+    <span>
+      <strong>Remove from all retailers</strong>
+      <small>Delete every assignment for this brand across the full retailer matrix.</small>
+    </span>
+  </label>
 
   <div id="doorToBrandsWrap">
     <label for="aDoor" id="aDoorLabel">Door <span class="req" aria-hidden="true">*</span></label>
@@ -287,7 +294,7 @@
   <div id="deleteBrandWrap" style="display:none">
     <label for="delBrand" id="delBrandLabel">Brand to delete <span class="req" aria-hidden="true">*</span></label>
     <select id="delBrand" onchange="renderAddSelectionPanels()"><option value="">— Select a brand —</option></select>
-    <div class="helper-text">Deleting a brand removes every door assignment for that brand at this retailer. The brand stays available for other retailers. This cannot be undone except by restoring a saved state.</div>
+    <div class="helper-text">By default, deletion only affects the selected retailer. The brand stays available in the catalog for future reassignment. This cannot be undone except by restoring a saved state.</div>
     <div class="pick-panel">
       <h4>Assignments that will be removed</h4>
       <div class="pick-list" id="delBrandCurrent"></div>
@@ -582,7 +589,7 @@
       <tr><th>View</th><th>Shape</th></tr>
       <tr><td>Matrix</td><td>Brand x retailer grid with confirmed door counts.</td></tr>
       <tr><td>Compact</td><td>Brand, category, and per-retailer counts.</td></tr>
-      <tr><td>Tabular</td><td>Flat retailer x brand rows with penetration.</td></tr>
+      <tr><td>Tabular</td><td>Flat retailer x brand rows with Retailer B&amp;M, B&amp;M doors, saved goals, maintained penetration, and progress to goal.</td></tr>
       <tr><td>Data</td><td>Retailer, door, brand, status, grade, gender, metric_1, metric_2, notes, and key rows.</td></tr>
       <tr><td>Research</td><td>Doors-first location list with placement detail and map reveal.</td></tr>
       <tr><td>Store</td><td>Editable door locations: name, number, address, lat/lng, tier.</td></tr>

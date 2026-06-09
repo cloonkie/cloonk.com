@@ -129,6 +129,16 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
 .store-table td input:hover { border-color: var(--border); }
 .store-table td input:focus { border-color: var(--accent); background: var(--surface-card); outline: none; }
 .store-table td input.store-saved { border-color: var(--success); background: color-mix(in oklab, var(--success) 14%, transparent); }
+.store-tier-field { display:flex; align-items:center; gap:4px; min-width:0; }
+.store-tier-field input { min-width:40px; }
+.store-exit-marker {
+  flex:0 0 auto;
+  font-size:0.9rem;
+  line-height:1;
+  cursor:help;
+  filter:grayscale(1);
+  opacity:0.72;
+}
 .store-table th.rh { white-space: nowrap; font-family: var(--font-display); font-weight: 600; color: var(--text); background: var(--surface-raised); position: sticky; left: 0; z-index: 3; }
 .store-table td { padding: 4px 6px !important; }
 
@@ -501,8 +511,6 @@ body.mode-data.refine-open .matrix-wrap { margin-right: 280px; border-right: 1px
 .filter-toggle-group.is-active .refine-switch { background: var(--accent); }
 .filter-toggle-group.is-active .refine-switch-knob { transform: translateX(14px); background: #000; }
 body.light .filter-toggle-group.is-active .refine-switch-knob { background: #fff; }
-/* Channel filter is map-only; hide its section from the data-pane refine. */
-body.mode-data #channelFilterGroup { display: none; }
 .retailer-group-toggle {
   display: flex; align-items: center; justify-content: space-between;
   padding: 6px 8px; margin: 2px 0 6px;
@@ -630,6 +638,17 @@ body.mode-map .matrix-wrap { padding: 0; height: calc(100vh - 112px); overflow: 
 .matrix td.group-cell { background: color-mix(in oklab, var(--surface-card) 80%, var(--accent-dim)); cursor: pointer; }
 .matrix td.group-cell:hover { background: var(--accent-dim); color: var(--accent); }
 .matrix .ret-total { background: var(--surface-raised); font-weight: 600; color: var(--text); }
+.tabular-goal-table .tabular-metric {
+  font-family:var(--font-mono); text-align:center; color:var(--text-muted);
+}
+.tabular-goal-input {
+  width:84px; min-width:72px; padding:5px 7px;
+  border:1px solid var(--border); border-radius:var(--radius-xs);
+  background:var(--bg); color:var(--text);
+  font-family:var(--font-mono); font-size:0.74rem; text-align:center;
+}
+.tabular-goal-input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-dim); }
+.tabular-goal-progress { color:var(--accent) !important; font-weight:700; }
 
 /* ─── COMPACT TABLE ─── */
 .compact-table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
@@ -1551,6 +1570,35 @@ body.light .drawer-door-note:focus { background: #f4f2ee; }
    checkbox is a clean native control that lines up with the row text */
 .pick-panel .pick-item input[type="checkbox"] { appearance:auto; -webkit-appearance:auto; width:15px; height:15px; min-height:0; flex-shrink:0; margin:1px 0 0; padding:0; border:0; border-radius:0; background:none; accent-color:var(--accent); }
 .pick-panel .pick-item > span { min-width:0; }
+
+.modal label.delete-scope-option {
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin:12px 0 0;
+  padding:10px 12px;
+  border:1px solid color-mix(in oklab, var(--danger) 45%, var(--border));
+  border-radius:var(--radius-xs);
+  background:color-mix(in oklab, var(--danger) 7%, var(--surface-raised));
+  color:var(--text);
+  text-transform:none;
+  letter-spacing:0;
+  cursor:pointer;
+}
+.modal label.delete-scope-option input[type="checkbox"] {
+  appearance:auto;
+  -webkit-appearance:auto;
+  width:16px;
+  height:16px;
+  min-height:0;
+  margin:1px 0 0;
+  padding:0;
+  flex:0 0 auto;
+  accent-color:var(--danger);
+}
+.delete-scope-option span { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.delete-scope-option strong { font-size:0.78rem; }
+.delete-scope-option small { color:var(--text-muted); font-size:0.72rem; line-height:1.4; }
 
 .helper-text { margin-top:8px; font-size:0.76rem; color:var(--text-muted); line-height:1.45; }
 .req { color:var(--danger); margin-left:2px; font-weight:700; }

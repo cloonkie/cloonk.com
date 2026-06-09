@@ -9,6 +9,7 @@ let transposed=false, currentView='matrix';
 let addMode='door_to_brands';
 let ctxTarget=null;
 let dataKeyState={};
+let tabularGoals={};
 let _autosaveTimer=null;
 let _dataPaneMarketLoadAttempted=false;
 let dataPanePage=1;
@@ -152,7 +153,7 @@ function reqAsPromise(req){
 
 function snapshotPayload(){
   removeInvalidDoorRecords();
-  return {brandCodes,doorLocations,matrixData,retailers,history,doorAssignments,dataKeyState,storeNotes:window._storeNotes||{}};
+  return {brandCodes,doorLocations,matrixData,retailers,history,doorAssignments,dataKeyState,tabularGoals,storeNotes:window._storeNotes||{}};
 }
 function applyPayload(p){
   if(!p) return;
@@ -165,6 +166,7 @@ function applyPayload(p){
   history=p.history||{};
   doorAssignments=p.doorAssignments||{};
   dataKeyState=p.dataKeyState||{};
+  tabularGoals=p.tabularGoals||{};
   Object.values(dataKeyState).forEach(st=>{ if(st) st.gender=normalizeGender(st.gender); });
   window._storeNotes=p.storeNotes||{};
   removeInvalidDoorRecords();
@@ -499,6 +501,15 @@ function getBrandsAtDoor(ret,doorNumber){
   });
   return brands.sort((a,b)=>a.brand.localeCompare(b.brand));
 }
+function getExitedBrandsAtDoor(ret,doorNumber){
+  const norm=normalizeRetailer(ret);
+  return [...new Set(Object.values(dataKeyState).filter(st=>
+    st &&
+    normalizeRetailer(st.retailer)===norm &&
+    String(st.doorNumber)===String(doorNumber) &&
+    normalizeStatus(st.status)==='closed'
+  ).map(st=>st.brand).filter(Boolean))].sort();
+}
 
 let doorAssignments={}; // key(retailer,brand) -> [{doorNumber, doorName, note, status:'confirmed'|'draft', date}]
 if(!window._storeNotes) window._storeNotes={};
@@ -644,6 +655,7 @@ function initFromSeed(){
   history={};
   doorAssignments={};
   dataKeyState={};
+  tabularGoals={};
 
   (srcKeys||[]).forEach(row=>{
     const [ret,brand,doorNumber,location,status,note,gender,metric1,metric2]=row;
@@ -722,6 +734,19 @@ function getDraftCount(ret,brand){
   const assigns=doorAssignments[ak]||[];
   const val=assigns.filter(a=>a.status==='draft').length;
   if(_renderCache) _renderCache.draftCount.set(ck,val);
+  return val;
+}
+function getClosedCount(ret,brand){
+  const ck=ret+'|'+brand;
+  if(_renderCache){
+    const c=_renderCache.closedCount.get(ck);
+    if(c!==undefined) return c;
+  }
+  const val=getRetailerDoors(ret).filter(d=>{
+    const st=getDataKeyState(ret,d.doorNumber,brand);
+    return normalizeStatus(st ? st.status : 'na')==='closed';
+  }).length;
+  if(_renderCache) _renderCache.closedCount.set(ck,val);
   return val;
 }
 function getLegacyCount(ret,brand){
@@ -1143,9 +1168,7 @@ function getFiltered(){
 function getVisibleRetailers(){
   const fr=getSelectValues('fRet').map(normalizeRetailer);
   const groups=getSelectValues('fRetGroup');
-  /* Channel filter only applies in map mode — its UI is hidden in the data
-     pane, so its selections must not silently filter the matrix/data views. */
-  const channels=currentMode==='map' ? getSelectValues('fRetChannel') : [];
+  const channels=getSelectValues('fRetChannel');
   const allRetailers=[...new Set([...retailers,...doorLocations.map(d=>normalizeRetailer(d.retailer))])].filter(Boolean).sort();
   return allRetailers.filter(r=>{
     const norm=normalizeRetailer(r);
@@ -1166,7 +1189,7 @@ let _renderCache=null;
 let _searchTimer=null;
 
 function render(){
-  _renderCache={matrixVal:new Map(),draftCount:new Map(),retailerDoors:new Map(),maxDoors:new Map()};
+  _renderCache={matrixVal:new Map(),draftCount:new Map(),closedCount:new Map(),retailerDoors:new Map(),maxDoors:new Map()};
   try{
     const items=getFiltered();
     const visR=getVisibleRetailers();
@@ -1335,7 +1358,7 @@ function renderMatrix(items,visR){
         const clickAttr=col.isGroup
           ? ` onclick="${callAttr('openGroupDrawer',col.label,brand)}"`
           : ` onclick="${callAttr('cellClick',col.members[0],brand)}" oncontextmenu="${ctxAttr(col.members[0],brand)}"`;
-        h+=`<td class="${cls.join(' ')}"${clickAttr}>${val||'–'}</td>`;
+        h+=`<td class="${cls.join(' ')}"${clickAttr} title="${esc(col.label)} × ${esc(brand)}: ${val} confirmed">${val||'–'}</td>`;
       });
       h+=`<td class="ret-total">${maxDoors||'–'}</td></tr>`;
     });
@@ -1380,30 +1403,63 @@ function renderTabular(items,visR){
       if(v>0){
         const bmDoors=getGroupBMDoors(col.members);
         const bmBrand=getGroupBMConfirmed(col.members,d.brand);
+        const goalKey=buildTabularGoalKey(col.members,d.brand);
+        const goal=Number(tabularGoals[goalKey])||0;
         rows.push({
           retailer:col.label,
           members:col.members,
           isGroup:col.isGroup,
           brand:d.brand,
           category:d.category,
-          doors:v,
-          bm:bmDoors,
-          pct:bmDoors?Math.round(bmBrand/bmDoors*100)+'%':'–',
+          retailerBM:bmDoors,
+          bmDoors:bmBrand,
+          goal,
+          goalKey,
+          penetration:bmDoors?Math.round(bmBrand/bmDoors*100)+'%':'–',
+          goalPct:goal?Math.round(bmBrand/goal*100)+'%':'–',
           name:brandCodes[d.brand]?brandCodes[d.brand].name:''
         });
       }
     });
   });
   rows.sort((a,b)=>a.retailer.localeCompare(b.retailer)||a.category.localeCompare(b.category)||a.brand.localeCompare(b.brand));
-  let h='<table class="compact-table"><thead><tr><th>Retailer</th><th>Code</th><th>Brand</th><th>Category</th><th>Doors</th><th>Retailer B&M</th><th>Penetration</th></tr></thead><tbody>';
+  let h='<table class="compact-table tabular-goal-table"><thead><tr><th>Retailer</th><th>Code</th><th>Brand</th><th>Category</th><th>Retailer B&M</th><th>B&M Doors</th><th>Goal</th><th>Maintain Penetration</th><th>% to Goal</th></tr></thead><tbody>';
   rows.forEach(r=>{
     const clickAttr=r.isGroup
       ? `onclick="${callAttr('openGroupDrawer',r.retailer,r.brand)}"`
       : `onclick="${callAttr('openStoreDrawer',r.members[0],r.brand)}"`;
-    h+=`<tr><td>${esc(r.retailer)}</td><td style="font-family:var(--font-mono);font-weight:700">${esc(r.brand)}</td><td>${esc(r.name)}</td><td><span class="cat-badge">${esc(r.category)}</span></td><td class="cell${r.isGroup?' group-cell':''}" style="font-family:var(--font-mono);text-align:center;cursor:pointer" ${clickAttr}>${r.doors}</td><td style="font-family:var(--font-mono);text-align:center;color:var(--text-muted)">${r.bm}</td><td style="font-family:var(--font-mono);text-align:center">${r.pct}</td></tr>`;
+    h+=`<tr>
+      <td>${esc(r.retailer)}</td>
+      <td style="font-family:var(--font-mono);font-weight:700">${esc(r.brand)}</td>
+      <td>${esc(r.name)}</td>
+      <td><span class="cat-badge">${esc(r.category)}</span></td>
+      <td class="tabular-metric">${r.retailerBM}</td>
+      <td class="cell${r.isGroup?' group-cell':''} tabular-metric" style="cursor:pointer" ${clickAttr}>${r.bmDoors}</td>
+      <td><input class="tabular-goal-input" type="number" min="0" step="1" value="${r.goal||''}" placeholder="Set goal" aria-label="Goal for ${esc(r.brand)} at ${esc(r.retailer)}" onchange="${jsAttr(`setTabularGoal(${jsq(r.goalKey)},this)`)}"></td>
+      <td class="tabular-metric">${r.penetration}</td>
+      <td class="tabular-metric tabular-goal-progress">${r.goalPct}</td>
+    </tr>`;
   });
   h+='</tbody></table>';
   wrap.innerHTML=h;
+}
+
+function buildTabularGoalKey(members,brand){
+  return [...members].map(normalizeRetailer).sort().join('~')+'|'+brand;
+}
+function setTabularGoal(key,el){
+  el=el || (event && event.target);
+  if(!el) return;
+  const raw=String(el.value||'').trim();
+  if(!raw){
+    delete tabularGoals[key];
+  }else{
+    const goal=Math.max(0,Math.round(Number(raw)||0));
+    if(goal) tabularGoals[key]=goal;
+    else delete tabularGoals[key];
+  }
+  queueAutosave();
+  render();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1629,6 +1685,13 @@ function renderStore(items,visR){
     const row=fields.map(f=>{
       const val=d[f.key]==null?'':d[f.key];
       const attr=callAttr('updateStoreDoorField',ret,String(d.doorNumber),f.key);
+      if(f.key==='tier'){
+        const exitedBrands=getExitedBrandsAtDoor(ret,d.doorNumber);
+        const exitMarker=exitedBrands.length
+          ? `<span class="store-exit-marker" title="${esc(`Exited door for ${exitedBrands.join(', ')}`)}" aria-label="${esc(`Exited door for ${exitedBrands.join(', ')}`)}">🪦</span>`
+          : '';
+        return `<td><div class="store-tier-field">${exitMarker}<input type="text" value="${esc(String(val))}" placeholder="${esc(f.ph)}" data-store-field="${esc(f.key)}" onchange="${attr}" oninput="this.dataset.dirty=1"></div></td>`;
+      }
       if(f.type==='select' && f.key==='visitCadence'){
         const norm=normalizeCadence(val);
         return `<td><select data-store-field="${esc(f.key)}" onchange="${attr}">${STORE_CADENCE_OPTIONS.map(o=>`<option value="${esc(o.value)}" ${norm===o.value?'selected':''}>${esc(o.label)}</option>`).join('')}</select></td>`;
@@ -3419,7 +3482,12 @@ function openStoreDrawer(ret,brand){
   const assignedNums=new Set(assigns.filter(a=>a.doorNumber!=='TBD').map(a=>String(a.doorNumber)));
   const confirmedNums=new Set(assigns.filter(a=>a.status==='confirmed' && a.doorNumber!=='TBD').map(a=>String(a.doorNumber)));
   const draftNums=new Set(assigns.filter(a=>a.status==='draft' && a.doorNumber!=='TBD').map(a=>String(a.doorNumber)));
-  const unassignedDoors=rDoors.filter(dl=>!assignedNums.has(String(dl.doorNumber)));
+  const closedDoors=rDoors.filter(dl=>{
+    const st=getDataKeyState(ret,dl.doorNumber,brand);
+    return normalizeStatus(st ? st.status : 'na')==='closed';
+  });
+  const closedNums=new Set(closedDoors.map(dl=>String(dl.doorNumber)));
+  const unassignedDoors=rDoors.filter(dl=>!assignedNums.has(String(dl.doorNumber)) && !closedNums.has(String(dl.doorNumber)));
 
   document.getElementById('drSub').textContent=count+' confirmed doors'+(draftCt?' + '+draftCt+' drafts':'')+' carrying '+brand+' · '+unassignedDoors.length+' unassigned available';
 
@@ -4179,6 +4247,8 @@ function applyModifyMode(){
   const wraps={door_to_brands:'doorToBrandsWrap',brand_to_doors:'brandToDoorsWrap',delete_door:'deleteDoorWrap',delete_brand:'deleteBrandWrap'};
   Object.values(wraps).forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
   const showEl=document.getElementById(wraps[addMode]); if(showEl) showEl.style.display='block';
+  const deleteBrandScope=document.getElementById('deleteBrandScopeOption');
+  if(deleteBrandScope) deleteBrandScope.style.display=addMode==='delete_brand'?'flex':'none';
 
   const hint=document.getElementById('modifyDoorStepHint');
   if(hint){
@@ -4277,14 +4347,24 @@ function renderAddSelectionPanels(){
 
   if(delBrandCurrent){
     const selectedDeleteBrand=document.getElementById('delBrand') ? document.getElementById('delBrand').value : '';
+    const allRetailers=!!document.getElementById('deleteBrandAllRetailers')?.checked;
     if(selectedDeleteBrand){
-      const brandAssigns=getAssignmentsFor(ret,selectedDeleteBrand).slice().sort((a,b)=>String(a.doorNumber).localeCompare(String(b.doorNumber),undefined,{numeric:true}));
-      if(brandAssigns.length){
-        brandAssigns.forEach(a=>{
-          delBrandCurrent.innerHTML+=`<div class="pick-item"><span><strong>${a.doorNumber==='TBD'?'TBD':'#'+esc(String(a.doorNumber))}</strong> — ${esc(a.doorName||'')} <span class="status-badge ${a.status==='confirmed'?'confirmed':'draft'}">${a.status}</span></span></div>`;
+      const affected=[];
+      Object.entries(doorAssignments).forEach(([key,assigns])=>{
+        const divider=key.indexOf('|');
+        const keyRet=divider>=0 ? key.slice(0,divider) : '';
+        const keyBrand=divider>=0 ? key.slice(divider+1) : '';
+        if(keyBrand!==selectedDeleteBrand) return;
+        if(!allRetailers && normalizeRetailer(keyRet)!==normalizeRetailer(ret)) return;
+        (assigns||[]).forEach(a=>affected.push({retailer:normalizeRetailer(keyRet),...a}));
+      });
+      affected.sort((a,b)=>a.retailer.localeCompare(b.retailer)||String(a.doorNumber).localeCompare(String(b.doorNumber),undefined,{numeric:true}));
+      if(affected.length){
+        affected.forEach(a=>{
+          delBrandCurrent.innerHTML+=`<div class="pick-item"><span>${allRetailers?`<strong>${esc(a.retailer)}</strong> · `:''}<strong>${a.doorNumber==='TBD'?'TBD':'#'+esc(String(a.doorNumber))}</strong> — ${esc(a.doorName||'')} <span class="status-badge ${a.status==='confirmed'?'confirmed':'draft'}">${a.status}</span></span></div>`;
         });
       }else{
-        delBrandCurrent.innerHTML='<div class="helper-text">No door assignments are tied to this brand at this retailer.</div>';
+        delBrandCurrent.innerHTML=`<div class="helper-text">No door assignments are tied to this brand ${allRetailers?'at any retailer':'at this retailer'}.</div>`;
       }
     }else{
       delBrandCurrent.innerHTML='<div class="helper-text">Select a brand to preview affected assignments.</div>';
@@ -4449,39 +4529,64 @@ async function deleteDoorFromModify(){
   toast(`Deleted ${label} from ${norm}.`);
 }
 
-/* Remove an entire brand from one retailer: drops every door assignment and
-   data-key state for that retailer+brand. The brand itself stays in the global
-   catalog so other retailers keep it. */
+/* Remove a brand from one retailer or, when explicitly selected, every
+   retailer. The brand itself stays in the catalog for future reassignment. */
 async function deleteBrandFromModify(){
   const ret=document.getElementById('aRet').value;
   const brand=document.getElementById('delBrand') ? document.getElementById('delBrand').value : '';
+  const removeEverywhere=!!document.getElementById('deleteBrandAllRetailers')?.checked;
   const note=document.getElementById('aNote').value.trim();
   if(!ret){ toast('Retailer is required.'); return; }
   if(!brand){ toast('Brand selection is required.'); return; }
   const norm=normalizeRetailer(ret);
-  const ak=k(norm,brand);
-  const assigns=doorAssignments[ak]||[];
   const brandName=(brandCodes[brand]&&brandCodes[brand].name)||'';
   const label=`${brand}${brandName?' — '+brandName:''}`;
-  const msg=`Delete ${label} from ${norm}? This will remove ${assigns.length} door assignment${assigns.length===1?'':'s'} for this brand at this retailer.`;
+  const affectedKeys=[];
+  const affectedRetailers=new Set();
+  let assignmentCount=0;
+  Object.entries(doorAssignments).forEach(([key,assigns])=>{
+    const divider=key.indexOf('|');
+    const keyRet=divider>=0 ? normalizeRetailer(key.slice(0,divider)) : '';
+    const keyBrand=divider>=0 ? key.slice(divider+1) : '';
+    if(keyBrand!==brand) return;
+    if(!removeEverywhere && keyRet!==norm) return;
+    affectedKeys.push(key);
+    affectedRetailers.add(keyRet);
+    assignmentCount+=(assigns||[]).length;
+  });
+  const scopeLabel=removeEverywhere
+    ? `all ${affectedRetailers.size} affected retailer${affectedRetailers.size===1?'':'s'}`
+    : norm;
+  const msg=`Delete ${label} from ${scopeLabel}? This will remove ${assignmentCount} door assignment${assignmentCount===1?'':'s'}.`;
   const confirmed=window.fashionConfirm
-    ? await window.fashionConfirm(msg, { title:'Delete Brand', confirmLabel:'Delete' })
+    ? await window.fashionConfirm(msg, { title:removeEverywhere?'Delete Brand Everywhere':'Delete Brand', confirmLabel:removeEverywhere?'Delete Everywhere':'Delete' })
     : confirm(msg);
   if(!confirmed) return;
 
-  delete doorAssignments[ak];
+  affectedKeys.forEach(key=>delete doorAssignments[key]);
   Object.keys(dataKeyState).forEach(key=>{
     const st=dataKeyState[key] || {};
-    if(normalizeRetailer(st.retailer)===norm && st.brand===brand) delete dataKeyState[key];
+    if(st.brand!==brand) return;
+    if(removeEverywhere || normalizeRetailer(st.retailer)===norm) delete dataKeyState[key];
   });
-  recordHistory(norm,brand,{
-    scope:'brand',
-    action:'brand deleted',
-    oldVal:label,
-    newVal:'DELETED',
-    doorNumber:'',
-    user:currentUserName(),
-    note:note || `Deleted ${label} from ${norm} via Modify Door`
+  const matrixRow=matrixData.find(row=>row.brand===brand);
+  if(matrixRow){
+    const retailerScope=removeEverywhere
+      ? [...new Set([...retailers,...doorLocations.map(d=>normalizeRetailer(d.retailer))])]
+      : [norm];
+    retailerScope.forEach(retailer=>{ delete matrixRow[retailer]; });
+  }
+  const historyRetailers=removeEverywhere ? [...affectedRetailers].filter(Boolean) : [norm];
+  (historyRetailers.length?historyRetailers:[norm]).forEach(retailer=>{
+    recordHistory(retailer,brand,{
+      scope:'brand',
+      action:removeEverywhere?'brand deleted from all retailers':'brand deleted',
+      oldVal:label,
+      newVal:'DELETED',
+      doorNumber:'',
+      user:currentUserName(),
+      note:note || `Deleted ${label} from ${removeEverywhere?'all retailers':norm} via Modify Door`
+    });
   });
 
   populateFilters();
@@ -4489,7 +4594,7 @@ async function deleteBrandFromModify(){
   render();
   renderAddSelectionPanels();
   queueAutosave();
-  toast(`Deleted ${label} from ${norm}.`);
+  toast(`Deleted ${label} from ${removeEverywhere?'all retailers':norm}.`);
 }
 
 /* Progressive-enhancement combobox: wraps a <select> with a text input that
@@ -4615,6 +4720,8 @@ function openAddModal(){
   document.getElementById('delDoor').innerHTML='<option value="">— Select retailer first —</option>';
   const delBrandSel=document.getElementById('delBrand');
   if(delBrandSel) delBrandSel.innerHTML='<option value="">— Select retailer first —</option>';
+  const deleteBrandAll=document.getElementById('deleteBrandAllRetailers');
+  if(deleteBrandAll) deleteBrandAll.checked=false;
   enhanceModifyDoorSelects();
   document.getElementById('ovAdd').classList.add('open');
   document.getElementById('mAdd').classList.add('open');
@@ -4950,7 +5057,7 @@ function processDoorImp(file){
 // EXPORT / PERSISTENCE
 // ═══════════════════════════════════════════════════════
 function downloadJSON(){
-  const payload={brandCodes,doorLocations,matrixData,retailers,history,doorAssignments,dataKeyState,storeNotes:window._storeNotes||{},exportDate:new Date().toISOString()};
+  const payload={brandCodes,doorLocations,matrixData,retailers,history,doorAssignments,dataKeyState,tabularGoals,storeNotes:window._storeNotes||{},exportDate:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='door-data.json';a.click();URL.revokeObjectURL(a.href);
   toast('JSON saved');
@@ -5009,6 +5116,7 @@ function loadDemoData(){
   history={};
   doorAssignments={};
   dataKeyState={};
+  tabularGoals={};
   window._storeNotes={};
 
   (GUEST_DOOR_KEY_SEED||[]).forEach(row=>{
@@ -5668,10 +5776,9 @@ function bootApp(){
   });
 }
 
-/* First load: default the Channel filter to Luxury and turn the toggle on. */
+/* Start each session focused on Luxury unless a channel is already selected. */
 function applyDefaultLuxuryChannel(){
   try{
-    if(localStorage.getItem('door-tracker-luxury-default-applied')==='1') return;
     const fc=document.getElementById('fRetChannel');
     if(!fc) return;
     if(getSelectValues(fc).length) return;
@@ -5681,9 +5788,8 @@ function applyDefaultLuxuryChannel(){
     const group=document.getElementById('channelFilterGroup');
     if(group){
       group.classList.add('is-active');
-      group.classList.add('is-open');
     }
-    try{ localStorage.setItem('door-tracker-luxury-default-applied','1'); }catch(e){}
+    renderRefineToggles();
   }catch(e){}
 }
 
