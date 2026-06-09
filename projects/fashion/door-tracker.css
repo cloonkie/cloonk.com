@@ -571,6 +571,21 @@ body.light select { background: #f4f2ee; }
 }
 .refine-panel .map-filter-row:hover,
 .refine-panel .map-filter-all:hover { background: transparent; }
+.refine-option-divider {
+  margin:8px 0 3px;
+  padding-top:7px;
+  border-top:1px solid var(--border);
+  color:var(--text-dim);
+  font-size:0.58rem;
+  font-weight:700;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+.map-filter-row.is-deprioritized { opacity:0.48; }
+.map-filter-row.is-deprioritized:hover,
+.map-filter-row.is-deprioritized:focus-visible,
+.map-filter-row.is-deprioritized.active { opacity:0.72; }
+.map-filter-row.is-deprioritized .map-filter-label { color:var(--text-dim); }
 .refine-panel .map-filter-row.active .map-filter-label::before,
 .refine-panel .map-filter-all.active .map-filter-label::before {
   content: '→';

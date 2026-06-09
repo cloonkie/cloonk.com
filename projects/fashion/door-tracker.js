@@ -879,6 +879,34 @@ function filterOptionLabel(sourceId,opt){
   return opt.textContent || opt.value;
 }
 
+function orderRefineOptions(sourceId,options){
+  if(sourceId!=='fBrand') return options.map(opt=>({opt,deprioritized:false,reason:''}));
+  const usedBrands=new Set();
+  Object.entries(doorAssignments).forEach(([key,assigns])=>{
+    if(!(assigns||[]).length) return;
+    const divider=key.indexOf('|');
+    if(divider>=0) usedBrands.add(key.slice(divider+1));
+  });
+  Object.values(dataKeyState).forEach(st=>{
+    if(st && st.brand && normalizeStatus(st.status)!=='na') usedBrands.add(st.brand);
+  });
+  matrixData.forEach(row=>{
+    if(row && row.brand && Object.entries(row).some(([key,value])=>
+      key!=='brand' && key!=='category' && Number(value)>0
+    )) usedBrands.add(row.brand);
+  });
+  return options.map(opt=>{
+    const catalogActive=brandCodes[opt.value]?.ds_active!==false;
+    const used=usedBrands.has(opt.value);
+    return {
+      opt,
+      deprioritized:!catalogActive || !used,
+      reason:!catalogActive && !used ? 'Inactive and unused' : (!catalogActive ? 'Inactive' : (!used ? 'Unused' : ''))
+    };
+  })
+    .sort((a,b)=>Number(a.deprioritized)-Number(b.deprioritized) || filterOptionLabel(sourceId,a.opt).localeCompare(filterOptionLabel(sourceId,b.opt)));
+}
+
 function renderRefineToggles(){
   renderShowAsToggles();
   renderRefineToggleGroup('fRetGroup','refineRetGroupToggles','All groups');
@@ -969,10 +997,15 @@ function renderRefineToggleGroup(sourceId,hostId,allLabel){
   const values=getSelectValues(source);
   const selected=new Set(values);
   const options=Array.from(source.options).filter(opt=>opt.value);
-  const rows=options.map(opt=>{
+  let mutedSectionStarted=false;
+  const rows=orderRefineOptions(sourceId,options).map(({opt,deprioritized,reason})=>{
     const active=selected.has(opt.value);
     const label=filterOptionLabel(sourceId,opt);
-    return `<div class="map-filter-row ${active?'active':''}" role="button" tabindex="0" aria-pressed="${active?'true':'false'}" data-refine-source="${esc(sourceId)}" data-refine-value="${esc(opt.value)}" title="${esc(opt.textContent)}">
+    const divider=deprioritized && !mutedSectionStarted
+      ? '<div class="refine-option-divider">Inactive / unused</div>'
+      : '';
+    if(deprioritized) mutedSectionStarted=true;
+    return `${divider}<div class="map-filter-row ${active?'active ':''}${deprioritized?'is-deprioritized':''}" role="button" tabindex="0" aria-pressed="${active?'true':'false'}" data-refine-source="${esc(sourceId)}" data-refine-value="${esc(opt.value)}" title="${esc(reason ? `${opt.textContent} · ${reason}` : opt.textContent)}">
       <span class="map-filter-label">${esc(label)}</span>
       <span class="map-filter-switch" aria-hidden="true"></span>
     </div>`;
@@ -2166,10 +2199,15 @@ function renderMapToggleFilter(sourceId,filterKind){
   const options=Array.from(source.options).filter(opt=>opt.value);
   const allActive=!values.length;
   const allLabel=filterKind==='retailer-group' ? 'All groups' : (filterKind==='retailer' ? 'All retailers' : (filterKind==='channel' ? 'All channels' : 'All brands'));
-  const rows=options.map(opt=>{
+  let mutedSectionStarted=false;
+  const rows=orderRefineOptions(sourceId,options).map(({opt,deprioritized,reason})=>{
     const active=selected.has(opt.value);
     const label=filterOptionLabel(sourceId,opt);
-    return `<div class="map-filter-row ${active?'active':''}" role="button" tabindex="0" aria-pressed="${active?'true':'false'}" data-map-source="${esc(sourceId)}" data-map-value="${esc(opt.value)}" title="${esc(opt.textContent)}">
+    const divider=deprioritized && !mutedSectionStarted
+      ? '<div class="refine-option-divider">Inactive / unused</div>'
+      : '';
+    if(deprioritized) mutedSectionStarted=true;
+    return `${divider}<div class="map-filter-row ${active?'active ':''}${deprioritized?'is-deprioritized':''}" role="button" tabindex="0" aria-pressed="${active?'true':'false'}" data-map-source="${esc(sourceId)}" data-map-value="${esc(opt.value)}" title="${esc(reason ? `${opt.textContent} · ${reason}` : opt.textContent)}">
       <span class="map-filter-label">${esc(label)}</span>
       <span class="map-filter-switch" aria-hidden="true"></span>
     </div>`;
