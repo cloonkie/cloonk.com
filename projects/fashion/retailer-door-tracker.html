@@ -50,7 +50,7 @@
     </span>
   </div>
   <div class="header-actions">
-    <span class="save-indicator save-saved" id="saveIndicator" title="Local autosave status">Saved</span>
+    <span class="save-indicator save-saved" id="saveIndicator" role="status" aria-live="polite" aria-atomic="true" title="Local autosave status">Saved</span>
     <button class="btn" onclick="manualSaveNow()" title="Persist the current state immediately" data-cursor="save">Save</button>
     <button class="btn" onclick="openAddModal()" title="Modify verified door assignments by adding or removing specific retailer-door-brand records" data-cursor="edit">Modify Door</button>
     <div class="header-menu" id="dataMenu">
@@ -80,9 +80,9 @@
 </header>
 
 <div class="toolbar" id="toolbar">
-  <div id="mode-toggle" class="mode-toggle">
-    <button type="button" class="mode-btn active" data-mode="data" onclick="setMode('data')" title="Tabular views: Matrix, Compact, Tabular, Data, Drafts">Data</button>
-    <button type="button" class="mode-btn" data-mode="map" onclick="setMode('map')" title="Spatial view: Brand–Door Research map">Map</button>
+  <div id="mode-toggle" class="mode-toggle" role="group" aria-label="Workspace mode">
+    <button type="button" class="mode-btn active" data-mode="data" aria-pressed="true" onclick="setMode('data')" title="Tabular views: Matrix, Compact, Tabular, Data, Drafts">Data</button>
+    <button type="button" class="mode-btn" data-mode="map" aria-pressed="false" onclick="setMode('map')" title="Spatial view: Brand–Door Research map">Map</button>
   </div>
   <button class="btn btn-sm map-screenshot-btn" id="mapScreenshotBtn" type="button" onclick="copyMapScreenshot()" aria-label="Copy map screenshot" title="Copy map screenshot" data-cursor="screenshot">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4l1.7 2H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3.8l1.7-2h5z"/><circle cx="12" cy="13" r="3.5"/></svg>
@@ -124,7 +124,7 @@
       </div>
       <div class="toolbar-group is-open" id="retailerFilterGroup">
         <span class="toolbar-label" role="button" tabindex="0" aria-expanded="true" onclick="toggleRefineSection(this)" onkeydown="onRefineSectionKey(event,this)">Retailer</span>
-        <div class="retailer-group-toggle embedded" id="showByGroupRow" role="button" tabindex="0" onclick="toggleShowByGroupSwitch(event)" onkeydown="onShowByGroupKey(event)" title="Combine retailer pills into their parent group">
+        <div class="retailer-group-toggle embedded" id="showByGroupRow" role="button" tabindex="0" aria-pressed="false" onclick="toggleShowByGroupSwitch(event)" onkeydown="onShowByGroupKey(event)" title="Combine retailer pills into their parent group">
           <span>Show by Group</span>
           <span class="refine-switch" aria-hidden="true"><span class="refine-switch-knob"></span></span>
         </div>
@@ -167,11 +167,11 @@
       </div>
     </div>
   </div>
-  <div class="map-layer-toolbar" id="mapLayerToolbar" aria-label="Map layers">
-    <div class="toggle-pill" data-layer="doors" data-cursor-toggle aria-pressed="true" onclick="toggleResearchLayer('doors')" title="Show retailer-colored door pins"><div class="toggle-dot"></div>Doors</div>
-    <div class="toggle-pill" data-cluster-toggle data-cursor-toggle aria-pressed="true" onclick="toggleResearchClustering()" title="Group nearby stores into numbered clusters when zoomed out"><div class="toggle-dot"></div>Clusters</div>
-    <div class="toggle-pill inactive" data-layer="brands" onclick="toggleResearchLayer('brands')" title="Size pins by brands carried while keeping retailer colors"><div class="toggle-dot"></div>Brand density</div>
-    <div class="toggle-pill inactive" data-layer="heat" onclick="toggleResearchLayer('heat')" title="Heatmap showing store concentration"><div class="toggle-dot"></div>Store heatmap</div>
+  <div class="map-layer-toolbar" id="mapLayerToolbar" role="group" aria-label="Map layers">
+    <button type="button" class="toggle-pill" data-layer="doors" data-cursor-toggle aria-pressed="true" onclick="toggleResearchLayer('doors')" title="Show retailer-colored door pins"><span class="toggle-dot" aria-hidden="true"></span>Doors</button>
+    <button type="button" class="toggle-pill" data-cluster-toggle data-cursor-toggle aria-pressed="true" onclick="toggleResearchClustering()" title="Group nearby stores into numbered clusters when zoomed out"><span class="toggle-dot" aria-hidden="true"></span>Clusters</button>
+    <button type="button" class="toggle-pill inactive" data-layer="brands" aria-pressed="false" onclick="toggleResearchLayer('brands')" title="Size pins by brands carried while keeping retailer colors"><span class="toggle-dot" aria-hidden="true"></span>Brand density</button>
+    <button type="button" class="toggle-pill inactive" data-layer="heat" aria-pressed="false" onclick="toggleResearchLayer('heat')" title="Heatmap showing store concentration"><span class="toggle-dot" aria-hidden="true"></span>Store heatmap</button>
     <select class="market-layer-select" id="marketLayerSelect" onchange="setMarketLayer(this.value)" title="Static Census-backed market layer">
       <option value="none">Market: None</option>
       <option value="median_household_income">Median Household Income</option>
@@ -189,37 +189,47 @@
 
 <!-- Overlays -->
 <div class="overlay" id="ovEdit" onclick="closeEdit()"></div>
-<div class="modal" id="mEdit">
+<div class="modal" id="mEdit" role="dialog" aria-modal="true" aria-label="Edit door count">
   <h3>Edit Door Count</h3>
   <p id="editDesc"></p>
-  <label>Door Count</label><input type="number" id="editCount" min="0">
+  <label for="editCount">Door Count</label><input type="number" id="editCount" min="0">
   <div class="modal-actions"><button class="btn" onclick="closeEdit()">Cancel</button><button class="btn btn-accent" onclick="saveEdit()">Save</button></div>
 </div>
 
 <div class="overlay" id="ovClose" onclick="closeCM()"></div>
-<div class="modal" id="mClose">
+<div class="modal" id="mClose" role="dialog" aria-modal="true" aria-label="Close door">
   <h3>Close Door</h3><p id="closeDesc"></p>
-  <label>Closure Date</label><input type="date" id="closeDate">
-  <label>Reason</label><textarea id="closeReason" rows="2"></textarea>
+  <label for="closeDate">Closure Date</label><input type="date" id="closeDate">
+  <label for="closeReason">Reason</label><textarea id="closeReason" rows="2"></textarea>
   <div class="modal-actions"><button class="btn" onclick="closeCM()">Cancel</button><button class="btn" style="border-color:var(--danger);color:var(--danger)" onclick="confirmClose()">Mark Closed</button></div>
 </div>
 
 <div class="overlay" id="ovAdd" onclick="closeAdd()"></div>
-<div class="modal" id="mAdd" style="max-width:820px">
+<div class="modal" id="mAdd" role="dialog" aria-modal="true" aria-label="Modify door" style="max-width:820px">
   <h3>Modify Door</h3><p>Create or remove door-level records and assignments. Counts are rolled up from specific retailer + door selections.</p>
-  <label>Intent <span style="color:var(--danger)">*</span></label>
-  <div class="multi-mode-toggle">
-    <button class="btn btn-sm active" type="button" id="modeDoorToBrands" onclick="setAddMode('door_to_brands')">New Door</button>
-    <button class="btn btn-sm" type="button" id="modeBrandToDoors" onclick="setAddMode('brand_to_doors')">New Brand</button>
-    <button class="btn btn-sm" type="button" id="modeDeleteDoor" onclick="setAddMode('delete_door')">Delete Door</button>
+  <div class="modify-toggles">
+    <fieldset class="modify-toggle-field">
+      <legend>Intent <span class="req" aria-hidden="true">*</span></legend>
+      <div class="multi-mode-toggle" role="group">
+        <button class="btn btn-sm active" type="button" id="intentAdd" aria-pressed="true" onclick="setIntent('add')">Add</button>
+        <button class="btn btn-sm" type="button" id="intentRemove" aria-pressed="false" onclick="setIntent('remove')">Remove</button>
+      </div>
+    </fieldset>
+    <fieldset class="modify-toggle-field">
+      <legend>Type <span class="req" aria-hidden="true">*</span></legend>
+      <div class="multi-mode-toggle" role="group">
+        <button class="btn btn-sm active" type="button" id="typeDoor" aria-pressed="true" onclick="setType('door')">Door</button>
+        <button class="btn btn-sm" type="button" id="typeBrand" aria-pressed="false" onclick="setType('brand')">Brand</button>
+      </div>
+    </fieldset>
   </div>
-  <div class="helper-text" id="modifyDoorStepHint">Step 1: choose intent. Step 2: choose retailer. Step 3: choose the door or brand details.</div>
+  <div class="helper-text" id="modifyDoorStepHint">Choose an intent and type, pick a retailer, then fill in the details.</div>
 
-  <label>Retailer <span style="color:var(--danger)">*</span></label>
+  <label for="aRet" id="aRetLabel">Retailer <span class="req" aria-hidden="true">*</span></label>
   <select id="aRet" onchange="populateAddDoors();renderAddSelectionPanels()"></select>
 
   <div id="doorToBrandsWrap">
-    <label>Door <span style="color:var(--danger)">*</span></label>
+    <label for="aDoor" id="aDoorLabel">Door <span class="req" aria-hidden="true">*</span></label>
     <div class="select-with-pill">
       <select id="aDoor" onchange="renderAddSelectionPanels()"><option value="">— Select a door —</option></select>
       <button class="btn btn-sm select-pill" type="button" onclick="openNewDoorPrompt()">＋ Add New Door</button>
@@ -242,7 +252,7 @@
   </div>
 
   <div id="brandToDoorsWrap" style="display:none">
-    <label>Brand Code <span style="color:var(--danger)">*</span></label>
+    <label for="aBrand" id="aBrandLabel">Brand Code <span class="req" aria-hidden="true">*</span></label>
     <div class="select-with-pill">
       <select id="aBrand" onchange="renderAddSelectionPanels()"><option value="">— Select a brand —</option></select>
       <button class="btn btn-sm select-pill" type="button" onclick="openNewBrandPrompt()">＋ Add New Brand</button>
@@ -265,49 +275,59 @@
   </div>
 
   <div id="deleteDoorWrap" style="display:none">
-    <label>Door to delete <span style="color:var(--danger)">*</span></label>
+    <label for="delDoor" id="delDoorLabel">Door to delete <span class="req" aria-hidden="true">*</span></label>
     <select id="delDoor" onchange="renderAddSelectionPanels()"><option value="">— Select a door —</option></select>
     <div class="helper-text">Deleting a door removes the retailer door record and all brand assignments tied to that door. This cannot be undone except by restoring a saved state.</div>
-    <div class="pick-panel" style="margin-top:10px">
+    <div class="pick-panel">
       <h4>Assignments that will be removed</h4>
       <div class="pick-list" id="delDoorCurrent"></div>
     </div>
   </div>
 
-  <label>Notes</label>
+  <div id="deleteBrandWrap" style="display:none">
+    <label for="delBrand" id="delBrandLabel">Brand to delete <span class="req" aria-hidden="true">*</span></label>
+    <select id="delBrand" onchange="renderAddSelectionPanels()"><option value="">— Select a brand —</option></select>
+    <div class="helper-text">Deleting a brand removes every door assignment for that brand at this retailer. The brand stays available for other retailers. This cannot be undone except by restoring a saved state.</div>
+    <div class="pick-panel">
+      <h4>Assignments that will be removed</h4>
+      <div class="pick-list" id="delBrandCurrent"></div>
+    </div>
+  </div>
+
+  <label for="aNote">Notes</label>
   <input type="text" id="aNote" placeholder="Optional notes…">
   <div class="helper-text">New entries start as drafts. Publish from the Drafts tab to make them count in the verified-door totals.</div>
   <div class="modal-actions"><button class="btn" onclick="closeAdd()">Cancel</button><button class="btn btn-draft" id="modifyDoorSubmitBtn" onclick="addEntry()">Add as Draft</button></div>
 </div>
 
 <div class="overlay" id="ovImport" onclick="closeImport()"></div>
-<div class="modal" id="mImport" style="max-width:560px">
+<div class="modal" id="mImport" role="dialog" aria-modal="true" aria-label="Import data" style="max-width:560px">
   <h3>Import</h3>
   <p>Two intakes — matrix totals and physical door locations. Each accepts a separate spreadsheet.</p>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px">
     <button class="btn btn-sm" type="button" onclick="downloadTemplate()">Blank Template</button>
   </div>
 
-  <label>Matrix data</label>
+  <label for="impFile">Matrix data</label>
   <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>. Optional door-brand selling fields: <code>Door Number</code>, <code>Status</code>, <code>Grade</code>, <code>Gender</code>, <code>metric_1</code>, <code>metric_2</code>, <code>Notes</code>.</div>
-  <div class="import-zone" onclick="document.getElementById('impFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
-    <p>Drop matrix file or click to browse</p>
+  <label class="import-zone" for="impFile" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
+    <span class="import-zone-text">Drop matrix file or click to browse</span>
     <input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="handleImpFile(event)">
-  </div>
+  </label>
 
-  <label>Door locations</label>
+  <label for="impDoorFile">Door locations</label>
   <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Tier</code>, <code>Store Rep</code>, <code>Visit Cadence</code>.</div>
-  <div class="import-zone" onclick="document.getElementById('impDoorFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDoorDrop(event)">
-    <p>Drop door-location file or click to browse</p>
+  <label class="import-zone" for="impDoorFile" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDoorDrop(event)">
+    <span class="import-zone-text">Drop door-location file or click to browse</span>
     <input type="file" id="impDoorFile" accept=".xlsx,.xls,.csv" onchange="handleImpDoorFile(event)">
-  </div>
+  </label>
 
   <div class="modal-actions"><button class="btn" onclick="closeImport()">Done</button></div>
 </div>
 
 <!-- Info Modal -->
 <div class="overlay" id="ovInfo" onclick="closeInfo()"></div>
-<div class="modal" id="mInfo" style="max-width:min(760px, calc(100vw - 28px))">
+<div class="modal" id="mInfo" role="dialog" aria-modal="true" aria-label="Door Tracker information" style="max-width:min(760px, calc(100vw - 28px))">
   <div class="info-modal-header">
     <span class="info-modal-title">Door Tracker <span>— Appendix</span></span>
   </div>
@@ -657,27 +677,27 @@
 </div>
 
 <div class="overlay" id="ovEditDoor" onclick="closeEditDoorModal()"></div>
-<div class="modal" id="mEditDoor" style="max-width:500px">
+<div class="modal" id="mEditDoor" role="dialog" aria-modal="true" aria-label="Edit door details" style="max-width:500px">
   <h3>Edit Door Details</h3>
   <p id="editDoorDesc" style="color:var(--text-muted)">Fill in missing information for this door.</p>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px">
-    <div style="grid-column:1/-1"><label>Name</label><input type="text" id="edName" placeholder="Store / mall name"></div>
-    <div style="grid-column:1/-1"><label>Address</label><input type="text" id="edAddress" placeholder="Street address"></div>
-    <div><label>City</label><input type="text" id="edCity"></div>
-    <div><label>State</label><input type="text" id="edState" maxlength="3" placeholder="e.g. NY"></div>
-    <div><label>ZIP</label><input type="text" id="edZip"></div>
-    <div><label>Tier</label><input type="text" id="edTier" maxlength="2" placeholder="A / B / C / D"></div>
-    <div><label>Latitude</label><input type="number" step="any" id="edLat" placeholder="40.7589"></div>
-    <div><label>Longitude</label><input type="number" step="any" id="edLng" placeholder="-73.9851"></div>
+    <div style="grid-column:1/-1"><label for="edName">Name</label><input type="text" id="edName" placeholder="Store / mall name"></div>
+    <div style="grid-column:1/-1"><label for="edAddress">Address</label><input type="text" id="edAddress" placeholder="Street address"></div>
+    <div><label for="edCity">City</label><input type="text" id="edCity"></div>
+    <div><label for="edState">State</label><input type="text" id="edState" maxlength="3" placeholder="e.g. NY"></div>
+    <div><label for="edZip">ZIP</label><input type="text" id="edZip"></div>
+    <div><label for="edTier">Tier</label><input type="text" id="edTier" maxlength="2" placeholder="A / B / C / D"></div>
+    <div><label for="edLat">Latitude</label><input type="number" step="any" id="edLat" placeholder="40.7589"></div>
+    <div><label for="edLng">Longitude</label><input type="number" step="any" id="edLng" placeholder="-73.9851"></div>
   </div>
   <div class="modal-actions"><button class="btn" onclick="closeEditDoorModal()">Cancel</button><button class="btn btn-accent" onclick="saveEditDoor()">Save</button></div>
 </div>
 
 <div class="overlay" id="ovSnap" onclick="closeSnapshotsModal()"></div>
-<div class="modal" id="mSnap" style="max-width:560px">
+<div class="modal" id="mSnap" role="dialog" aria-modal="true" aria-label="Restore points" style="max-width:560px">
   <h3>Restore Points</h3>
   <p>Capture the full app state (matrix, assignments, drafts, history, notes) and roll back to it later. Auto-snapshots run every 5 minutes (last 10 kept).</p>
-  <label style="margin-top:8px">New snapshot label</label>
+  <label for="snapLabel" style="margin-top:8px">New snapshot label</label>
   <div style="display:flex;gap:8px">
     <input type="text" id="snapLabel" placeholder="e.g. before re-import">
     <button class="btn btn-accent" type="button" onclick="createManualSnapshot()">📌 Capture</button>
@@ -688,7 +708,7 @@
 
 <!-- Login wall — blocking, dismissable only by successful sign-in. -->
 <div class="overlay" id="ovLogin"></div>
-<div class="modal" id="mLogin" style="max-width:720px">
+<div class="modal" id="mLogin" role="dialog" aria-modal="true" aria-label="Door Tracker sign in" style="max-width:720px">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
     <h3 style="margin-bottom:0">Door Tracker</h3>
     <button class="btn" type="button" id="guestBtn" onclick="enterGuestMode()" title="Try a small anonymized sample dataset">Try Demo Data</button>
@@ -701,11 +721,11 @@
         <button class="btn btn-sm" type="button" onclick="downloadTemplate()">Template</button>
       </div>
       <p>Retailer, Brand, Category, Doors. Add Door Number, Status, Grade, Gender, metric_1, metric_2, and Notes when you want per door-brand selling analysis.</p>
-      <div class="login-upload-zone" onclick="document.getElementById('loginMatrixFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleLoginMatrixDrop(event)">
+      <label class="login-upload-zone" for="loginMatrixFile" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleLoginMatrixDrop(event)">
         <input type="file" id="loginMatrixFile" accept=".xlsx,.xls,.csv" onchange="handleLoginMatrixFile(event)">
-        <div class="login-upload-title">Drop matrix file or browse</div>
-        <div class="login-upload-hint">First sheet or CSV</div>
-      </div>
+        <span class="login-upload-title">Drop matrix file or browse</span>
+        <span class="login-upload-hint">First sheet or CSV</span>
+      </label>
     </div>
     <div class="login-start-card">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
@@ -713,11 +733,11 @@
         <button class="btn btn-sm" type="button" onclick="downloadTemplate()">Template</button>
       </div>
       <p>Retailer, Door Number, Name, Address, City, State, ZIP, Lat, Lng, Tier.</p>
-      <div class="login-upload-zone" onclick="document.getElementById('loginDoorFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleLoginDoorDrop(event)">
+      <label class="login-upload-zone" for="loginDoorFile" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleLoginDoorDrop(event)">
         <input type="file" id="loginDoorFile" accept=".xlsx,.xls,.csv" onchange="handleLoginDoorFile(event)">
-        <div class="login-upload-title">Drop locations file or browse</div>
-        <div class="login-upload-hint">Import after or before matrix</div>
-      </div>
+        <span class="login-upload-title">Drop locations file or browse</span>
+        <span class="login-upload-hint">Import after or before matrix</span>
+      </label>
     </div>
   </div>
   <div class="login-divider">Sign In</div>
@@ -736,10 +756,10 @@
 </div>
 
 <div class="overlay" id="ovDraw" onclick="closeDrawer()"></div>
-<div class="drawer" id="drawer"><button class="drawer-close" onclick="closeDrawer()">✕</button><h3 id="drTitle">History</h3><div class="sub" id="drSub"></div><div id="drContent"></div></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drTitle"><button class="drawer-close" type="button" onclick="closeDrawer()" aria-label="Close drawer">✕</button><h3 id="drTitle">History</h3><div class="sub" id="drSub"></div><div id="drContent"></div></div>
 
 <div id="ctxMenu"><div class="ctx-item" onclick="ctxH()">⟳ History</div><div class="ctx-item" style="color:var(--danger)" onclick="ctxC()">✕ Close Door</div></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
 // ═══════════════════════════════════════════════════════
@@ -751,8 +771,8 @@
 <script src="data/door-tracker-data-key.js"></script>
 <script src="data/door-tracker-data.js"></script>
 <script src="data/door-tracker-user-roster.local.js"></script>
-<script src="data/door-tracker-supabase-config.js"></script>
 <script src="data/door-tracker-supabase-config.local.js"></script>
+<script src="data/door-tracker-supabase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="door-tracker.js"></script>

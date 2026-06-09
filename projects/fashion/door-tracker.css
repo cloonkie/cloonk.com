@@ -165,6 +165,12 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
 .save-indicator.save-saved { color: var(--success); border-color: color-mix(in oklab, var(--success) 40%, var(--border)); }
 .save-indicator.save-saving { color: var(--accent); border-color: var(--accent-mid); }
 .save-indicator.save-pending { color: var(--draft); border-color: color-mix(in oklab, var(--draft) 40%, var(--border)); }
+.save-indicator.save-local {
+  color: #e8b931;
+  border-color: color-mix(in oklab, #e8b931 55%, var(--border));
+  background: color-mix(in oklab, #e8b931 10%, var(--surface-raised));
+}
+body.light .save-indicator.save-local { color: #9a6d00; }
 .save-indicator.save-error { color: var(--danger); border-color: color-mix(in oklab, var(--danger) 40%, var(--border)); }
 
 /* ─── HEADER ─── */
@@ -733,6 +739,9 @@ body.mode-map .research-view-header { display: none; }
   user-select: none;
   transition: color var(--transition);
   color: var(--accent);
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 .toggle-pill[data-layer="doors"]  { color: #e8b931; }
 .toggle-pill[data-layer="brands"] { color: #3ec48c; }
@@ -1215,6 +1224,35 @@ body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; fo
 .drawer h3 { font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 4px; }
 .drawer .sub { color: var(--text-muted); font-size: 0.75rem; margin-bottom: 16px; }
 .drawer-close { position: absolute; top: 14px; right: 14px; background: none; border: none; color: var(--text-muted); font-size: 1.1rem; cursor: pointer; }
+.drawer-panel-nav { display:flex; align-items:stretch; gap:6px; margin:0 0 2px; }
+.drawer-panel-nav .drawer-panel-tabs { flex:1; min-width:0; margin:0; }
+.drawer-more { position:relative; flex:0 0 auto; }
+.drawer-more-trigger {
+  width:34px; height:100%; min-height:34px; padding:0;
+  border:1px solid var(--border); border-radius:var(--radius-xs);
+  background:transparent; color:var(--text-muted);
+  font-family:var(--font-body); font-size:1.15rem; line-height:1;
+  cursor:pointer;
+}
+.drawer-more-trigger:hover,
+.drawer-more-trigger:focus-visible,
+.drawer-more-trigger.active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); outline:none; }
+.drawer-more-menu {
+  display:none; position:absolute; top:calc(100% + 5px); right:0; z-index:20;
+  min-width:172px; padding:4px;
+  border:1px solid var(--border); border-radius:var(--radius-xs);
+  background:var(--surface-card); box-shadow:0 12px 28px rgba(0,0,0,0.34);
+}
+.drawer-more-menu.open { display:block; }
+.drawer-more-item {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  width:100%; padding:8px 9px; border:0; border-radius:4px;
+  background:transparent; color:var(--text); font:inherit; font-size:0.76rem;
+  text-align:left; cursor:pointer;
+}
+.drawer-more-item:hover,
+.drawer-more-item:focus-visible,
+.drawer-more-item.active { background:var(--accent-dim); color:var(--accent); outline:none; }
 .history-entry { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.75rem; }
 .history-date { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-dim); }
 .history-old { color: var(--danger); text-decoration: line-through; }
@@ -1226,18 +1264,23 @@ body.mode-map .map-filter-body .search-box { width: 100%; margin-bottom: 8px; fo
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 .import-zone { border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 28px; text-align: center; cursor: pointer; transition: all var(--transition); margin-bottom: 12px; }
+.modal label.import-zone { margin-top:0; font:inherit; text-transform:none; letter-spacing:normal; color:inherit; }
 .import-zone:hover { border-color: var(--accent); background: var(--accent-dim); }
 .import-zone input { display: none; }
-.import-zone p { color: var(--text-muted); font-size: 0.78rem; }
+.import-zone-text { display:block; color: var(--text-muted); font-size: 0.78rem; }
 .login-start-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
 .login-start-card { border:1px solid var(--border); border-radius:var(--radius-xs); padding:12px; background:var(--surface-raised); }
 .login-start-card h4 { font-family:var(--font-display); font-size:0.95rem; margin-bottom:4px; color:var(--text); }
 .login-start-card p { margin:0 0 10px; font-size:0.72rem; line-height:1.45; }
 .login-upload-zone { border:2px dashed var(--border); border-radius:var(--radius-xs); padding:16px 12px; text-align:center; cursor:pointer; transition:all var(--transition); }
+.modal label.login-upload-zone { margin:0; font:inherit; text-transform:none; letter-spacing:normal; color:inherit; }
 .login-upload-zone:hover, .login-upload-zone.dragover { border-color:var(--accent); background:var(--accent-dim); }
 .login-upload-zone input { display:none; }
-.login-upload-title { color:var(--accent); font-weight:800; font-size:0.76rem; }
-.login-upload-hint { color:var(--text-dim); font-size:0.68rem; margin-top:3px; line-height:1.35; }
+.login-upload-title { display:block; color:var(--accent); font-weight:800; font-size:0.76rem; }
+.login-upload-hint { display:block; color:var(--text-dim); font-size:0.68rem; margin-top:3px; line-height:1.35; }
+.toggle-pill:focus-visible,
+.import-zone:focus-within,
+.login-upload-zone:focus-within { outline:2px solid var(--accent); outline-offset:3px; }
 .login-divider { display:flex; align-items:center; gap:10px; margin:16px 0 10px; color:var(--text-dim); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; }
 .login-divider::before, .login-divider::after { content:''; flex:1; height:1px; background:var(--border); }
 @media (max-width: 680px) { .login-start-grid { grid-template-columns:1fr; } }
@@ -1253,14 +1296,8 @@ body.light .search-box { background: #f4f2ee; }
 
 
 
-.multi-mode-toggle { display:flex; gap:8px; margin-top:8px; margin-bottom:10px; flex-wrap:wrap; }
-.multi-pick-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px; }
-.pick-panel { border:1px solid var(--border); border-radius: var(--radius-xs); padding:10px; background: var(--bg); }
-.pick-panel h4 { font-size:0.8rem; margin-bottom:8px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; }
-.pick-list { max-height:220px; overflow:auto; display:flex; flex-direction:column; gap:6px; }
-.pick-item { display:flex; gap:8px; align-items:flex-start; font-size:0.82rem; }
-.pick-item input { width:auto; margin-top:2px; }
-.helper-text { font-size:0.76rem; color:var(--text-muted); line-height:1.45; margin-top:6px; }
+/* Modify Door modal styles (intent toggle, pick panels/lists, .helper-text,
+   .req) are consolidated in one block further down — see "Modify Door modal". */
 .metric-chip { display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border-radius:999px; font-size:0.74rem; font-weight:700; border:1px solid var(--border); background:var(--surface-raised); color:var(--text-muted); }
 
 .drawer-door-row {
@@ -1459,16 +1496,64 @@ body.light .drawer-door-note:focus { background: #f4f2ee; }
 .score-none { background: var(--surface-raised); color: var(--text-muted); }
 
 
-.multi-mode-toggle { display:flex; gap:8px; margin:12px 0 8px; flex-wrap:wrap; }
-.multi-pick-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px; }
-.pick-panel { border:1px solid var(--border); border-radius: var(--radius-xs); padding:10px; background:var(--surface-raised); }
-.pick-panel h4 { font-size:0.85rem; margin-bottom:8px; }
-.pick-actions { display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
-.pick-list { max-height:220px; overflow:auto; border:1px solid var(--border); border-radius:var(--radius-xs); background:var(--surface); }
-.pick-item { display:flex; gap:8px; align-items:flex-start; padding:8px 10px; border-bottom:1px solid var(--border); font-size:0.82rem; }
-.pick-item:last-child { border-bottom:none; }
-.pick-item input { margin-top:3px; }
-.helper-text { margin-top:8px; font-size:0.78rem; color:var(--text-muted); line-height:1.45; }
+/* ── Modify Door modal ─────────────────────────────────────────────── */
+/* Two segmented toggles side by side: Intent (Add/Remove) and Type (Door/Brand). */
+.modify-toggles { display:flex; gap:14px; flex-wrap:wrap; margin-top:4px; }
+.modify-toggle-field { flex:1; min-width:160px; margin:0; padding:0; border:0; }
+.modify-toggle-field > legend { padding:0; font-size:0.68rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); }
+.multi-mode-toggle { display:flex; margin:8px 0 4px; border:1px solid var(--border); border-radius:var(--radius-xs); overflow:hidden; }
+.multi-mode-toggle .btn { flex:1; min-height:34px; border:0; border-right:1px solid var(--border); border-radius:0; background:transparent; color:var(--text-muted); font-weight:600; }
+.multi-mode-toggle .btn:last-child { border-right:0; }
+.multi-mode-toggle .btn:hover { background:var(--surface-raised); color:var(--text); }
+.multi-mode-toggle .btn.active { background:var(--accent-dim); color:var(--accent); }
+.multi-mode-toggle #intentRemove.active { background:color-mix(in oklab, var(--danger) 14%, transparent); color:var(--danger); }
+
+/* Searchable combobox (type-to-filter) layered over the native <select>. */
+.combo { position:relative; }
+.select-with-pill .combo { flex:1; min-width:0; }
+.combo-native { display:none !important; }
+.combo-input { width:100%; cursor:text; }
+.combo.open .combo-input { border-color:var(--accent); }
+.combo-panel {
+  display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:50;
+  max-height:200px; overflow-y:auto;
+  border:1px solid var(--border-hover); border-radius:var(--radius-xs);
+  background:var(--surface-raised); box-shadow:0 14px 34px rgba(0,0,0,0.34);
+}
+.combo.open .combo-panel { display:block; }
+.combo-opt { padding:7px 10px; font-size:0.8rem; color:var(--text); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.combo-opt:hover, .combo-opt.is-active { background:var(--accent-dim); color:var(--accent); }
+.combo-opt.is-selected { font-weight:700; }
+.combo-empty { padding:9px 10px; font-size:0.76rem; color:var(--text-dim); }
+
+.multi-pick-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+@media (max-width:640px){ .multi-pick-grid { grid-template-columns:1fr; } }
+.pick-panel { display:flex; flex-direction:column; min-width:0; border:1px solid var(--border); border-radius:var(--radius-xs); padding:12px; background:var(--surface-raised); }
+.pick-panel h4 { margin:0 0 8px; font-size:0.66rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); }
+.pick-actions { display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+.pick-list { max-height:220px; overflow:auto; border:1px solid var(--border); border-radius:var(--radius-xs); background:var(--bg); }
+.pick-list .helper-text { margin:0; padding:12px; }
+.helper-text + .pick-panel { margin-top:12px; }
+/* .pick-panel prefix raises specificity above the generic `.modal label`
+   rule (display:block, uppercase, dim, margins) which otherwise hijacks the
+   <label class="pick-item"> rows and knocks the checkbox out of alignment. */
+.pick-panel .pick-item {
+  display:flex; gap:9px; align-items:flex-start;
+  margin:0; padding:8px 10px;
+  border-bottom:1px solid var(--border);
+  font-size:0.82rem; font-weight:400; line-height:1.35;
+  color:var(--text); text-transform:none; letter-spacing:0;
+}
+.pick-panel .pick-item:last-child { border-bottom:none; }
+.pick-panel .pick-item:hover { background:var(--surface-raised); }
+.pick-panel label.pick-item { cursor:pointer; }
+/* reset the inherited .modal input box (padding/border/bg/width:100%) so the
+   checkbox is a clean native control that lines up with the row text */
+.pick-panel .pick-item input[type="checkbox"] { appearance:auto; -webkit-appearance:auto; width:15px; height:15px; min-height:0; flex-shrink:0; margin:1px 0 0; padding:0; border:0; border-radius:0; background:none; accent-color:var(--accent); }
+.pick-panel .pick-item > span { min-width:0; }
+
+.helper-text { margin-top:8px; font-size:0.76rem; color:var(--text-muted); line-height:1.45; }
+.req { color:var(--danger); margin-left:2px; font-weight:700; }
 .inline-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
 #doorMap { height: 360px; border:1px solid var(--border); border-radius:var(--radius-xs); margin:12px 0; overflow:hidden; position:relative; }
 #doorMap .mapboxgl-popup-content { background: var(--surface-card); color: var(--text); border-radius: var(--radius-xs); padding: 8px 10px; font-family: var(--font-body); font-size: 0.78rem; }

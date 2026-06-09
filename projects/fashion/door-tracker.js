@@ -119,6 +119,8 @@ const AUTOSNAP_INTERVAL_MS=5*60*1000;
 const AUTOSNAP_MAX=10;
 let _autosaveQueued=false, _legacyMigrated=false, _autoSnapTimer=null;
 let _supabaseClient=null;
+let _sharedSyncRetryAt=0;
+const SHARED_SYNC_COOLDOWN_MS=60*1000;
 
 function openDb(){
   return new Promise((resolve,reject)=>{
@@ -186,6 +188,12 @@ function getSupabaseClient(){
   return _supabaseClient;
 }
 function isSharedSyncEnabled(){ return !!getSupabaseClient() && currentUser && currentUser.authProvider==='supabase' && !currentUser.isGuest; }
+function sharedSyncAvailable(){ return isSharedSyncEnabled() && Date.now()>=_sharedSyncRetryAt; }
+function pauseSharedSync(err){
+  _sharedSyncRetryAt=Date.now()+SHARED_SYNC_COOLDOWN_MS;
+  console.warn('Shared sync paused for 60 seconds; using local storage.',err);
+}
+function resumeSharedSync(){ _sharedSyncRetryAt=0; }
 function sharedStateKey(){ return currentSaveKey(); }
 function sharedUserName(){ return currentUserName(); }
 async function saveSharedLatest(row){
@@ -200,6 +208,7 @@ async function saveSharedLatest(row){
     updated_by:sharedUserName()
   },{onConflict:'key'});
   if(error) throw error;
+  resumeSharedSync();
   return true;
 }
 async function loadSharedLatest(){
@@ -233,19 +242,22 @@ async function listSharedRestorePoints(){
   const cfg=getSyncConfig();
   const client=getSupabaseClient();
   if(!cfg || !client) return null;
+  /* Keep the snapshot index lightweight. Full payloads are fetched only when
+     the user restores one; selecting every payload can exhaust small API pools. */
   const {data,error}=await client.from(cfg.restoreTable)
-    .select('id,mode,label,auto,payload,saved_at,updated_by')
+    .select('id,mode,label,auto,saved_at,updated_by')
     .eq('mode',currentSaveMode())
     .order('saved_at',{ascending:false});
   if(error) throw error;
-  return (data||[]).map(r=>Object.assign({
+  resumeSharedSync();
+  return (data||[]).map(r=>({
     id:r.id,
     mode:r.mode,
     label:r.label,
     auto:!!r.auto,
     savedAt:r.saved_at,
     updatedBy:r.updated_by
-  },r.payload||{}));
+  }));
 }
 async function deleteSharedRestorePoint(id){
   const cfg=getSyncConfig();
@@ -279,12 +291,26 @@ function persistAutoState(){
   setSaveIndicator('saving');
   const row=Object.assign({key:currentSaveKey(),savedAt:new Date().toISOString()},snapshotPayload());
   const localSave=()=>withStore(STORE_LATEST,'readwrite',s=>reqAsPromise(s.put(row)));
-  const save=isSharedSyncEnabled()
-    ? saveSharedLatest(row).then(()=>localSave()).catch(err=>{ console.warn('Shared save failed; saved locally only.',err); return localSave().then(()=>Promise.reject(err)); })
-    : localSave();
-  return save
-    .then(()=>setSaveIndicator('saved'))
-    .catch(()=>setSaveIndicator('error'));
+  if(!sharedSyncAvailable()){
+    return localSave()
+      .then(()=>{ setSaveIndicator('saved'); return {shared:false,local:true}; })
+      .catch(err=>{ setSaveIndicator('error'); throw err; });
+  }
+  return saveSharedLatest(row)
+    .then(()=>localSave())
+    .then(()=>{ setSaveIndicator('saved'); return {shared:true,local:true}; })
+    .catch(sharedError=>{
+      pauseSharedSync(sharedError);
+      return localSave()
+        .then(()=>{
+          setSaveIndicator('local');
+          return {shared:false,local:true,error:sharedError};
+        })
+        .catch(localError=>{
+          setSaveIndicator('error');
+          throw localError;
+        });
+    });
 }
 function queueAutosave(){
   if(_autosaveQueued) return;
@@ -296,16 +322,19 @@ function queueAutosave(){
 function manualSaveNow(){
   clearTimeout(_autosaveTimer);
   _autosaveQueued=false;
-  return persistAutoState().then(()=>toast('Saved'));
+  return persistAutoState()
+    .then(result=>toast(result && result.error ? 'Saved locally; shared save failed' : 'Saved'))
+    .catch(err=>{ console.error('Save failed.',err); toast('Could not save'); });
 }
 let _saveIndicatorClear=null;
 function setSaveIndicator(state){
   const el=document.getElementById('saveIndicator');
   if(!el) return;
-  el.classList.remove('save-pending','save-saving','save-saved','save-error');
+  el.classList.remove('save-pending','save-saving','save-saved','save-local','save-error');
   let label='';
   if(state==='saving'){ label='Saving…'; el.classList.add('save-saving'); }
   else if(state==='pending'){ label='Unsaved changes'; el.classList.add('save-pending'); }
+  else if(state==='local'){ label='Saved locally'; el.classList.add('save-local'); }
   else if(state==='error'){ label='Save failed'; el.classList.add('save-error'); }
   else { label='Saved'; el.classList.add('save-saved'); }
   el.textContent=label;
@@ -318,7 +347,7 @@ function setSaveIndicator(state){
   }
 }
 function loadAutoState(){
-  if(isSharedSyncEnabled()){
+  if(sharedSyncAvailable()){
     return loadSharedLatest()
       .then(payload=>{
         if(payload){ applyPayload(payload); return; }
@@ -328,7 +357,7 @@ function loadAutoState(){
         });
       })
       .catch(err=>{
-        console.warn('Shared load failed; using local IndexedDB.',err);
+        pauseSharedSync(err);
         return withStore(STORE_LATEST,'readonly',s=>reqAsPromise(s.get(currentSaveKey()))).then(row=>{
           if(row) applyPayload(row);
           else migrateLegacyLocalStorage();
@@ -360,21 +389,39 @@ function createRestorePoint(label,auto){
   const mode=currentSaveMode();
   const id=mode+':'+(auto?'auto-':'snap-')+Date.now()+'-'+Math.random().toString(36).slice(2,7);
   const row=Object.assign({id,mode,label:label||(auto?'Auto':'Snapshot'),auto:!!auto,savedAt:new Date().toISOString()},snapshotPayload());
-  if(isSharedSyncEnabled()) return createSharedRestorePoint(row).then(()=>id);
+  if(sharedSyncAvailable()){
+    return createSharedRestorePoint(row)
+      .then(()=>{ resumeSharedSync(); return id; })
+      .catch(err=>{
+        pauseSharedSync(err);
+        return withStore(STORE_RESTORE,'readwrite',s=>reqAsPromise(s.put(row))).then(()=>id);
+      });
+  }
   return withStore(STORE_RESTORE,'readwrite',s=>reqAsPromise(s.put(row))).then(()=>id);
 }
 function listRestorePoints(){
   const mode=currentSaveMode();
-  if(isSharedSyncEnabled()) return listSharedRestorePoints();
+  if(sharedSyncAvailable()){
+    return listSharedRestorePoints().catch(err=>{
+      pauseSharedSync(err);
+      return withStore(STORE_RESTORE,'readonly',s=>reqAsPromise(s.getAll()))
+        .then(rows=>(rows||[]).filter(r=>(r.mode||'user')===mode).sort((a,b)=>String(b.savedAt).localeCompare(String(a.savedAt))));
+    });
+  }
   return withStore(STORE_RESTORE,'readonly',s=>reqAsPromise(s.getAll()))
     .then(rows=>(rows||[]).filter(r=>(r.mode||'user')===mode).sort((a,b)=>String(b.savedAt).localeCompare(String(a.savedAt))));
 }
 function deleteRestorePoint(id){
-  if(isSharedSyncEnabled()) return deleteSharedRestorePoint(id);
+  if(sharedSyncAvailable()){
+    return deleteSharedRestorePoint(id).catch(err=>{
+      pauseSharedSync(err);
+      throw err;
+    });
+  }
   return withStore(STORE_RESTORE,'readwrite',s=>reqAsPromise(s.delete(id)));
 }
 function restoreFromPoint(id){
-  const lookup=isSharedSyncEnabled()
+  const lookup=sharedSyncAvailable()
     ? getSharedRestorePoint(id)
     : withStore(STORE_RESTORE,'readonly',s=>reqAsPromise(s.get(id)));
   return lookup.then(row=>{
@@ -837,6 +884,7 @@ function setShowByGroup(on){
   const el=document.getElementById('showByGroupRow');
   if(!el) return;
   el.classList.toggle('is-on',!!on);
+  el.setAttribute('aria-pressed',String(!!on));
   /* The Retailer section's pill list source flips between fRet (retailers)
      and fRetGroup (parent groups). Clear the opposite source so old picks
      don't keep filtering behind the user's back. */
@@ -3375,12 +3423,29 @@ function openStoreDrawer(ret,brand){
 
   document.getElementById('drSub').textContent=count+' confirmed doors'+(draftCt?' + '+draftCt+' drafts':'')+' carrying '+brand+' · '+unassignedDoors.length+' unassigned available';
 
+  /* Other brands at THIS retailer that have at least one physical-door
+     assignment — eligible to copy ("mimic") their door footprint onto this
+     brand. */
+  const mimicBrands=[...new Set(Object.keys(doorAssignments).map(key=>{
+    const p=key.split('|'); return {r:p[0], b:p.slice(1).join('|')};
+  }).filter(x=>x.r===ret && x.b!==brand && (doorAssignments[k(x.r,x.b)]||[]).some(a=>isPhysicalDoorNumber(a.doorNumber))).map(x=>x.b))].sort();
+
   let html='';
 
   html+='<div style="display:grid;grid-template-columns:1fr;gap:14px">';
-  html+=`<div class="multi-mode-toggle" style="margin:0 0 2px 0">
-    <button class="btn btn-sm active" id="drawerAssignedToggle" type="button" onclick="setDrawerDoorPanel('assigned')">Assigned Doors <span class="draft-badge" style="margin-left:6px">${assigns.length}</span></button>
-    <button class="btn btn-sm" id="drawerUnassignedToggle" type="button" onclick="setDrawerDoorPanel('unassigned')">Unassigned Doors <span class="draft-badge" style="margin-left:6px">${unassignedDoors.length}</span></button>
+  html+=`<div class="drawer-panel-nav">
+    <div class="multi-mode-toggle drawer-panel-tabs">
+      <button class="btn btn-sm active" id="drawerAssignedToggle" type="button" aria-pressed="true" onclick="setDrawerDoorPanel('assigned')">Assigned Doors <span class="draft-badge" style="margin-left:6px">${assigns.length}</span></button>
+      <button class="btn btn-sm" id="drawerUnassignedToggle" type="button" aria-pressed="false" onclick="setDrawerDoorPanel('unassigned')">Unassigned Doors <span class="draft-badge" style="margin-left:6px">${unassignedDoors.length}</span></button>
+    </div>
+    <div class="drawer-more">
+      <button class="drawer-more-trigger" id="drawerMoreTrigger" type="button" aria-label="More drawer actions" aria-haspopup="menu" aria-expanded="false" onclick="event.stopPropagation();toggleDrawerMoreMenu()">⋮</button>
+      <div class="drawer-more-menu" id="drawerMoreMenu" role="menu">
+        <button class="drawer-more-item" id="drawerMimicToggle" type="button" role="menuitem" onclick="setDrawerDoorPanel('mimic')">
+          <span>Mimic Brand</span><span class="draft-badge">${mimicBrands.length}</span>
+        </button>
+      </div>
+    </div>
   </div>`;
   html+=`<input class="search-box" id="drawerDoorSearch" type="search" placeholder="Search doors..." oninput="filterDrawerDoors()" style="width:100%;margin:0 0 2px 0">`;
 
@@ -3452,10 +3517,27 @@ function openStoreDrawer(ret,brand){
     <div id="drawerUnassignedBody" data-deferred="1"></div>
   </div>`;
 
+  /* Mimic panel: copy another brand's assigned-door footprint at this retailer
+     onto the current brand (new doors are staged as drafts). */
+  const mimicOptions=mimicBrands.map(b=>`<option value="${esc(b)}">${esc(b)}${(brandCodes[b]&&brandCodes[b].name)?' — '+esc(brandCodes[b].name):''}</option>`).join('');
+  html+=`<div id="drawerMimicPanel" style="display:none;margin-top:4px">
+    <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px;margin-top:4px">Mimic Another Brand</div>
+    <div class="helper-text" style="margin-bottom:8px">Copy a brand's assigned doors at ${esc(ret)} onto ${esc(brand)}. Doors not already carrying ${esc(brand)} are added as drafts; nothing is removed.</div>`;
+  if(mimicBrands.length){
+    html+=`<select id="drawerMimicBrand" onchange="renderDrawerMimicPreview()" style="width:100%;margin-bottom:8px"><option value="">— Select a brand to mimic —</option>${mimicOptions}</select>
+    <div id="drawerMimicPreview"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:10px">
+      <button class="btn btn-accent" id="drawerMimicApplyBtn" type="button" onclick="applyDrawerMimic()" disabled>Apply</button>
+    </div>`;
+  }else{
+    html+=`<div class="helper-text">No other brand at ${esc(ret)} has assigned doors to copy yet.</div>`;
+  }
+  html+=`</div>`;
+
   const noteKey='note_'+ak;
   const existingNote=window._storeNotes&&window._storeNotes[noteKey]||'';
-  html+=`<div style="margin-top:2px"><label style="display:block;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:4px">Notes</label>
-  <textarea style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-xs);font-family:var(--font-body);font-size:0.78rem;color:var(--text);resize:vertical;min-height:60px;outline:none" placeholder="Add notes for ${esc(brand)} at ${esc(ret)}…" onchange="${jsAttr(`saveStoreNote(${jsq(noteKey)},this.value)`)}">${esc(existingNote)}</textarea></div>`;
+  html+=`<div style="margin-top:2px"><label for="drawerStoreNote" style="display:block;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:4px">Notes</label>
+  <textarea id="drawerStoreNote" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-xs);font-family:var(--font-body);font-size:0.78rem;color:var(--text);resize:vertical;min-height:60px;outline:none" placeholder="Add notes for ${esc(brand)} at ${esc(ret)}…" onchange="${jsAttr(`saveStoreNote(${jsq(noteKey)},this.value)`)}">${esc(existingNote)}</textarea></div>`;
   html+=`<div class="drawer-commit-bar">
     <button class="btn" onclick="${callAttr('openHistoryDrawer',ret,brand)}">⟳ History</button>
     <button class="btn btn-accent" id="drawerBottomCommitBtn" onclick="${callAttr('commitDrawerChanges',ret,brand)}" disabled>Commit Change</button>
@@ -3720,15 +3802,113 @@ function ensureDrawerUnassignedRendered(){
 function setDrawerDoorPanel(panel){
   const assigned=document.getElementById('drawerAssignedPanel');
   const unassigned=document.getElementById('drawerUnassignedPanel');
+  const mimic=document.getElementById('drawerMimicPanel');
   const assignedBtn=document.getElementById('drawerAssignedToggle');
   const unassignedBtn=document.getElementById('drawerUnassignedToggle');
-  const showAssigned=panel!=='unassigned';
-  if(!showAssigned) ensureDrawerUnassignedRendered();
-  if(assigned) assigned.style.display=showAssigned?'block':'none';
-  if(unassigned) unassigned.style.display=showAssigned?'none':'block';
-  if(assignedBtn) assignedBtn.classList.toggle('active',showAssigned);
-  if(unassignedBtn) unassignedBtn.classList.toggle('active',!showAssigned);
+  const mimicBtn=document.getElementById('drawerMimicToggle');
+  if(panel==='unassigned') ensureDrawerUnassignedRendered();
+  if(assigned) assigned.style.display=panel==='assigned'?'block':'none';
+  if(unassigned) unassigned.style.display=panel==='unassigned'?'block':'none';
+  if(mimic) mimic.style.display=panel==='mimic'?'block':'none';
+  if(assignedBtn){
+    assignedBtn.classList.toggle('active',panel==='assigned');
+    assignedBtn.setAttribute('aria-pressed',String(panel==='assigned'));
+  }
+  if(unassignedBtn){
+    unassignedBtn.classList.toggle('active',panel==='unassigned');
+    unassignedBtn.setAttribute('aria-pressed',String(panel==='unassigned'));
+  }
+  if(mimicBtn) mimicBtn.classList.toggle('active',panel==='mimic');
+  const moreTrigger=document.getElementById('drawerMoreTrigger');
+  if(moreTrigger) moreTrigger.classList.toggle('active',panel==='mimic');
+  closeDrawerMoreMenu();
+  if(panel==='mimic') renderDrawerMimicPreview();
   filterDrawerDoors();
+}
+
+function toggleDrawerMoreMenu(){
+  const menu=document.getElementById('drawerMoreMenu');
+  const trigger=document.getElementById('drawerMoreTrigger');
+  if(!menu || !trigger) return;
+  const open=!menu.classList.contains('open');
+  menu.classList.toggle('open',open);
+  trigger.setAttribute('aria-expanded',String(open));
+  if(open) menu.querySelector('[role="menuitem"]')?.focus();
+}
+
+function closeDrawerMoreMenu(){
+  const menu=document.getElementById('drawerMoreMenu');
+  const trigger=document.getElementById('drawerMoreTrigger');
+  if(menu) menu.classList.remove('open');
+  if(trigger) trigger.setAttribute('aria-expanded','false');
+}
+
+/* Preview which of the source brand's doors would be added to the current
+   brand (and which it already has). Enables Apply only when there is at least
+   one new door to copy. */
+function renderDrawerMimicPreview(){
+  if(!activeStoreDrawer) return;
+  const ret=activeStoreDrawer.ret, brand=activeStoreDrawer.brand;
+  const sel=document.getElementById('drawerMimicBrand');
+  const preview=document.getElementById('drawerMimicPreview');
+  const applyBtn=document.getElementById('drawerMimicApplyBtn');
+  if(!preview) return;
+  const src=sel?sel.value:'';
+  if(!src){ preview.innerHTML='<div class="helper-text">Select a brand to preview its doors.</div>'; if(applyBtn) applyBtn.disabled=true; return; }
+  const srcAssigns=(doorAssignments[k(ret,src)]||[]).filter(a=>isPhysicalDoorNumber(a.doorNumber))
+    .slice().sort((a,b)=>String(a.doorNumber).localeCompare(String(b.doorNumber),undefined,{numeric:true}));
+  const existing=new Set((doorAssignments[k(ret,brand)]||[]).filter(a=>a.doorNumber!=='TBD').map(a=>String(a.doorNumber)));
+  if(!srcAssigns.length){ preview.innerHTML='<div class="helper-text">'+esc(src)+' has no assigned doors at this retailer.</div>'; if(applyBtn) applyBtn.disabled=true; return; }
+  let newCount=0, rows='';
+  srcAssigns.forEach(a=>{
+    const di=getDoorInfo(ret,a.doorNumber);
+    const already=existing.has(String(a.doorNumber));
+    if(!already) newCount++;
+    const tag=already
+      ? `<span class="status-badge" style="background:var(--surface-card);color:var(--text-dim)">already on ${esc(brand)}</span>`
+      : `<span class="status-badge draft">will add</span>`;
+    rows+=`<div class="pick-item"><span><strong>#${esc(String(a.doorNumber))}</strong> — ${esc((di&&di.name)||a.doorName||'')} ${tag}</span></div>`;
+  });
+  preview.innerHTML=`<div class="pick-panel"><h4>${esc(src)} → ${esc(brand)} · ${newCount} new of ${srcAssigns.length}</h4><div class="pick-list">${rows}</div></div>`;
+  if(applyBtn) applyBtn.disabled=newCount===0;
+}
+
+/* Copy the source brand's physical-door assignments onto the current brand as
+   drafts, skipping doors it already carries. */
+function applyDrawerMimic(){
+  if(!activeStoreDrawer) return;
+  const ret=activeStoreDrawer.ret, brand=activeStoreDrawer.brand;
+  const sel=document.getElementById('drawerMimicBrand');
+  const src=sel?sel.value:'';
+  if(!src){ toast('Pick a brand to mimic.'); return; }
+  if(src===brand){ toast('Pick a different brand.'); return; }
+  const srcAssigns=(doorAssignments[k(ret,src)]||[]).filter(a=>isPhysicalDoorNumber(a.doorNumber));
+  const ak=k(ret,brand);
+  if(!doorAssignments[ak]) doorAssignments[ak]=[];
+  const existing=new Set(doorAssignments[ak].filter(a=>a.doorNumber!=='TBD').map(a=>String(a.doorNumber)));
+  const today=new Date().toISOString().slice(0,10);
+  let added=0, skipped=0;
+  srcAssigns.forEach(a=>{
+    const dn=a.doorNumber;
+    if(existing.has(String(dn))){ skipped++; return; }
+    const di=getDoorInfo(ret,dn);
+    doorAssignments[ak].push({doorNumber:dn,doorName:(di&&di.name)||a.doorName||'',note:`Mimicked from ${src}`,status:'draft',date:today});
+    existing.add(String(dn));
+    recordHistory(ret,brand,{scope:'assignment',action:'added draft',oldVal:'',newVal:buildDataKey(ret,dn,brand),doorNumber:dn,user:currentUserName(),note:`Mimicked from ${src}`});
+    added++;
+  });
+  if(added){
+    if(!matrixData.find(x=>x.brand===brand)) matrixData.push({brand,category:'LUXURY'});
+    if(!retailers.includes(ret)) retailers.push(ret);
+    populateFilters();
+    render();
+    queueAutosave();
+    toast(`Added ${added} draft${added===1?'':'s'} mimicked from ${src}${skipped?` • ${skipped} already assigned`:''}`);
+    openStoreDrawer(ret,brand);
+    setDrawerDoorPanel('assigned');
+  }else{
+    toast(`${brand} already carries every door ${src} has here.`);
+  }
 }
 
 function toggleDrawerDoorSelection(kind){
@@ -3903,7 +4083,7 @@ function openHistoryDrawer(r,b){
   document.getElementById('drContent').innerHTML=entries.length?entries.slice().reverse().map(e=>`<div class="history-entry"><div class="history-date">${new Date(e.date).toLocaleString()}</div><div><span class="history-new">${esc((e.scope||'assignment').toUpperCase())}</span> · ${esc(e.action||'updated')}${e.doorNumber!==''?` · Door ${esc(String(e.doorNumber))}`:''}</div><div>${e.oldVal!==''||e.newVal!==''?`<span class="history-old">${esc(String(e.oldVal))}</span> → <span class="history-new">${esc(String(e.newVal))}</span>`:''}${e.note?' — '+esc(e.note):''}</div><div class="history-user">${esc(e.user||'System')}</div></div>`).join(''):'<p style="color:var(--text-dim);margin-top:16px">No assignment/data changes recorded.</p>';
   document.getElementById('ovDraw').classList.add('open');document.getElementById('drawer').classList.add('open');
 }
-function closeDrawer(){resetDrawerPendingChanges();activeStoreDrawer=null;window._drawerShowAllUnassigned=false;document.getElementById('ovDraw').classList.remove('open');document.getElementById('drawer').classList.remove('open');}
+function closeDrawer(){closeDrawerMoreMenu();resetDrawerPendingChanges();activeStoreDrawer=null;window._drawerShowAllUnassigned=false;document.getElementById('ovDraw').classList.remove('open');document.getElementById('drawer').classList.remove('open');}
 
 function closeAdd(){document.getElementById('ovAdd').classList.remove('open');document.getElementById('mAdd').classList.remove('open');}
 
@@ -3964,25 +4144,59 @@ async function openNewDoorPrompt(){
   renderAddSelectionPanels();
 }
 
+/* Modify Door is driven by two toggles: intent (add|remove) and type
+   (door|brand). The legacy `addMode` string is derived from that pair so the
+   rest of the flow (addEntry, renderAddSelectionPanels) stays unchanged. */
+let addIntent='add';   // 'add' | 'remove'
+let addType='door';    // 'door' | 'brand'
+
+function setIntent(intent){ addIntent=intent; applyModifyMode(); }
+function setType(type){ addType=type; applyModifyMode(); }
+
+/* Back-compat shim: openAddModal still calls setAddMode with a mode string.
+   Translate it into the intent/type pair, then apply. */
 function setAddMode(mode){
-  addMode=mode;
-  document.getElementById('modeDoorToBrands').classList.toggle('active',mode==='door_to_brands');
-  document.getElementById('modeBrandToDoors').classList.toggle('active',mode==='brand_to_doors');
-  document.getElementById('modeDeleteDoor').classList.toggle('active',mode==='delete_door');
-  document.getElementById('doorToBrandsWrap').style.display=mode==='door_to_brands'?'block':'none';
-  document.getElementById('brandToDoorsWrap').style.display=mode==='brand_to_doors'?'block':'none';
-  document.getElementById('deleteDoorWrap').style.display=mode==='delete_door'?'block':'none';
+  if(mode==='brand_to_doors'){ addIntent='add'; addType='brand'; }
+  else if(mode==='delete_door'){ addIntent='remove'; addType='door'; }
+  else if(mode==='delete_brand'){ addIntent='remove'; addType='brand'; }
+  else { addIntent='add'; addType='door'; }
+  applyModifyMode();
+}
+
+function applyModifyMode(){
+  if(addIntent==='add') addMode = addType==='door' ? 'door_to_brands' : 'brand_to_doors';
+  else                  addMode = addType==='door' ? 'delete_door'    : 'delete_brand';
+
+  document.getElementById('intentAdd').classList.toggle('active',addIntent==='add');
+  document.getElementById('intentRemove').classList.toggle('active',addIntent==='remove');
+  document.getElementById('typeDoor').classList.toggle('active',addType==='door');
+  document.getElementById('typeBrand').classList.toggle('active',addType==='brand');
+  document.getElementById('intentAdd').setAttribute('aria-pressed',String(addIntent==='add'));
+  document.getElementById('intentRemove').setAttribute('aria-pressed',String(addIntent==='remove'));
+  document.getElementById('typeDoor').setAttribute('aria-pressed',String(addType==='door'));
+  document.getElementById('typeBrand').setAttribute('aria-pressed',String(addType==='brand'));
+
+  const wraps={door_to_brands:'doorToBrandsWrap',brand_to_doors:'brandToDoorsWrap',delete_door:'deleteDoorWrap',delete_brand:'deleteBrandWrap'};
+  Object.values(wraps).forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
+  const showEl=document.getElementById(wraps[addMode]); if(showEl) showEl.style.display='block';
+
   const hint=document.getElementById('modifyDoorStepHint');
   if(hint){
-    const intent=mode==='delete_door'?'delete a door':(mode==='brand_to_doors'?'add a brand to doors':'add a new door assignment');
-    hint.textContent=`Step 1: ${intent}. Step 2: choose retailer. Step 3: choose ${mode==='brand_to_doors'?'brand and doors':(mode==='delete_door'?'door to delete':'door and brands')}.`;
+    hint.textContent={
+      door_to_brands:'Add a door (or pick an existing one), then choose which brands to assign to it.',
+      brand_to_doors:'Add a brand (or pick an existing one), then choose which doors to assign it to.',
+      delete_door:'Remove an entire door from this retailer — deletes the door and every brand assignment tied to it.',
+      delete_brand:'Remove an entire brand from this retailer — deletes every door assignment for that brand here.'
+    }[addMode];
   }
+
   const submit=document.getElementById('modifyDoorSubmitBtn');
   if(submit){
-    submit.textContent=mode==='delete_door'?'Delete Door':'Add as Draft';
-    submit.classList.toggle('btn-draft',mode!=='delete_door');
-    submit.style.borderColor=mode==='delete_door'?'var(--danger)':'';
-    submit.style.color=mode==='delete_door'?'var(--danger)':'';
+    const remove=addIntent==='remove';
+    submit.textContent=remove?(addType==='door'?'Delete Door':'Delete Brand'):'Add as Draft';
+    submit.classList.toggle('btn-draft',!remove);
+    submit.style.borderColor=remove?'var(--danger)':'';
+    submit.style.color=remove?'var(--danger)':'';
   }
   renderAddSelectionPanels();
 }
@@ -3994,17 +4208,20 @@ function renderAddSelectionPanels(){
   const doorCurrent=document.getElementById('aDoorCurrent');
   const brandCurrent=document.getElementById('aBrandCurrent');
   const delDoorCurrent=document.getElementById('delDoorCurrent');
+  const delBrandCurrent=document.getElementById('delBrandCurrent');
   if(!brandList||!doorList||!doorCurrent||!brandCurrent||!delDoorCurrent) return;
   brandList.innerHTML=''; doorList.innerHTML=''; doorCurrent.innerHTML=''; brandCurrent.innerHTML=''; delDoorCurrent.innerHTML='';
+  if(delBrandCurrent) delBrandCurrent.innerHTML='';
   if(!ret){
     const msg='<div class="helper-text">Select a retailer first.</div>';
     brandList.innerHTML=msg; doorList.innerHTML=msg; doorCurrent.innerHTML=msg; brandCurrent.innerHTML=msg; delDoorCurrent.innerHTML=msg;
+    if(delBrandCurrent) delBrandCurrent.innerHTML=msg;
     return;
   }
 
   const dsB=Object.entries(brandCodes).filter(([c,v])=>v.ds_active).sort((a,b)=>a[0].localeCompare(b[0]));
   dsB.forEach(([c,v])=>{
-    brandList.innerHTML+=`<label class="pick-item"><input type="checkbox" class="aBrandChk" value="${c}"><span><strong>${c}</strong> — ${esc(v.name)}</span></div>`;
+    brandList.innerHTML+=`<label class="pick-item"><input type="checkbox" class="aBrandChk" value="${c}"><span><strong>${c}</strong> — ${esc(v.name)}</span></label>`;
   });
 
   const doors=getRetailerDoors(ret);
@@ -4012,7 +4229,7 @@ function renderAddSelectionPanels(){
     doorList.innerHTML='<div class="helper-text">No retailer doors found.</div>';
   }else{
     doors.forEach(d=>{
-      doorList.innerHTML+=`<label class="pick-item"><input type="checkbox" class="aDoorChk" value="${d.doorNumber}"><span><strong>#${d.doorNumber}</strong> — ${esc(d.name)} <span style="color:var(--text-dim)">(${esc(d.city)}, ${esc(d.state)})</span></span></div>`;
+      doorList.innerHTML+=`<label class="pick-item"><input type="checkbox" class="aDoorChk" value="${d.doorNumber}"><span><strong>#${d.doorNumber}</strong> — ${esc(d.name)} <span style="color:var(--text-dim)">(${esc(d.city)}, ${esc(d.state)})</span></span></label>`;
     });
   }
 
@@ -4057,6 +4274,22 @@ function renderAddSelectionPanels(){
   }else{
     delDoorCurrent.innerHTML='<div class="helper-text">Select a door to preview affected assignments.</div>';
   }
+
+  if(delBrandCurrent){
+    const selectedDeleteBrand=document.getElementById('delBrand') ? document.getElementById('delBrand').value : '';
+    if(selectedDeleteBrand){
+      const brandAssigns=getAssignmentsFor(ret,selectedDeleteBrand).slice().sort((a,b)=>String(a.doorNumber).localeCompare(String(b.doorNumber),undefined,{numeric:true}));
+      if(brandAssigns.length){
+        brandAssigns.forEach(a=>{
+          delBrandCurrent.innerHTML+=`<div class="pick-item"><span><strong>${a.doorNumber==='TBD'?'TBD':'#'+esc(String(a.doorNumber))}</strong> — ${esc(a.doorName||'')} <span class="status-badge ${a.status==='confirmed'?'confirmed':'draft'}">${a.status}</span></span></div>`;
+        });
+      }else{
+        delBrandCurrent.innerHTML='<div class="helper-text">No door assignments are tied to this brand at this retailer.</div>';
+      }
+    }else{
+      delBrandCurrent.innerHTML='<div class="helper-text">Select a brand to preview affected assignments.</div>';
+    }
+  }
 }
 
 function populateAddDoors(){
@@ -4073,10 +4306,27 @@ function populateAddDoors(){
     doorSel.innerHTML+=opt;
     if(delDoorSel) delDoorSel.innerHTML+=opt;
   });
+  /* Brands available to delete = those with at least one assignment at this
+     retailer. */
+  const delBrandSel=document.getElementById('delBrand');
+  if(delBrandSel){
+    delBrandSel.innerHTML='<option value="">— Select a brand —</option>';
+    const brandsHere=new Set();
+    Object.keys(doorAssignments).forEach(key=>{
+      const parts=key.split('|'); const r=parts[0], b=parts.slice(1).join('|');
+      if(normalizeRetailer(r)===norm && (doorAssignments[key]||[]).length) brandsHere.add(b);
+    });
+    [...brandsHere].sort().forEach(b=>{
+      const name=(brandCodes[b]&&brandCodes[b].name)||'';
+      delBrandSel.innerHTML+=`<option value="${esc(b)}">${esc(b)}${name?' — '+esc(name):''}</option>`;
+    });
+  }
+  refreshModifyDoorCombos();
 }
 
 async function addEntry(){
   if(addMode==='delete_door'){ await deleteDoorFromModify(); return; }
+  if(addMode==='delete_brand'){ await deleteBrandFromModify(); return; }
   const ret=document.getElementById('aRet').value;
   const note=document.getElementById('aNote').value.trim();
   if(!ret){toast('Retailer is required.');return;}
@@ -4199,6 +4449,158 @@ async function deleteDoorFromModify(){
   toast(`Deleted ${label} from ${norm}.`);
 }
 
+/* Remove an entire brand from one retailer: drops every door assignment and
+   data-key state for that retailer+brand. The brand itself stays in the global
+   catalog so other retailers keep it. */
+async function deleteBrandFromModify(){
+  const ret=document.getElementById('aRet').value;
+  const brand=document.getElementById('delBrand') ? document.getElementById('delBrand').value : '';
+  const note=document.getElementById('aNote').value.trim();
+  if(!ret){ toast('Retailer is required.'); return; }
+  if(!brand){ toast('Brand selection is required.'); return; }
+  const norm=normalizeRetailer(ret);
+  const ak=k(norm,brand);
+  const assigns=doorAssignments[ak]||[];
+  const brandName=(brandCodes[brand]&&brandCodes[brand].name)||'';
+  const label=`${brand}${brandName?' — '+brandName:''}`;
+  const msg=`Delete ${label} from ${norm}? This will remove ${assigns.length} door assignment${assigns.length===1?'':'s'} for this brand at this retailer.`;
+  const confirmed=window.fashionConfirm
+    ? await window.fashionConfirm(msg, { title:'Delete Brand', confirmLabel:'Delete' })
+    : confirm(msg);
+  if(!confirmed) return;
+
+  delete doorAssignments[ak];
+  Object.keys(dataKeyState).forEach(key=>{
+    const st=dataKeyState[key] || {};
+    if(normalizeRetailer(st.retailer)===norm && st.brand===brand) delete dataKeyState[key];
+  });
+  recordHistory(norm,brand,{
+    scope:'brand',
+    action:'brand deleted',
+    oldVal:label,
+    newVal:'DELETED',
+    doorNumber:'',
+    user:currentUserName(),
+    note:note || `Deleted ${label} from ${norm} via Modify Door`
+  });
+
+  populateFilters();
+  populateAddDoors();
+  render();
+  renderAddSelectionPanels();
+  queueAutosave();
+  toast(`Deleted ${label} from ${norm}.`);
+}
+
+/* Progressive-enhancement combobox: wraps a <select> with a text input that
+   filters its options as you type. The <select> stays in the DOM (hidden) so
+   existing .value reads and inline onchange handlers keep working; choosing an
+   option writes through to it and fires a change event. */
+function makeSearchable(select){
+  if(!select || select._combo) return;
+  const wrap=document.createElement('div');
+  wrap.className='combo';
+  select.parentNode.insertBefore(wrap, select);
+  wrap.appendChild(select);
+  select.classList.add('combo-native');
+
+  const input=document.createElement('input');
+  input.type='text';
+  input.className='combo-input';
+  input.autocomplete='off';
+  input.spellcheck=false;
+  const associatedLabel=document.querySelector(`label[for="${select.id}"]`);
+  const listboxId=select.id+'ComboListbox';
+  input.setAttribute('role','combobox');
+  input.setAttribute('aria-autocomplete','list');
+  input.setAttribute('aria-expanded','false');
+  input.setAttribute('aria-controls',listboxId);
+  if(associatedLabel){
+    if(!associatedLabel.id) associatedLabel.id=select.id+'Label';
+    input.setAttribute('aria-labelledby',associatedLabel.id);
+  }else{
+    input.setAttribute('aria-label',select.getAttribute('aria-label') || 'Choose an option');
+  }
+  wrap.appendChild(input);
+
+  const panel=document.createElement('div');
+  panel.className='combo-panel';
+  panel.id=listboxId;
+  panel.setAttribute('role','listbox');
+  wrap.appendChild(panel);
+
+  let activeIdx=-1;
+
+  function selectedLabel(){
+    const o=select.options[select.selectedIndex];
+    return (o && o.value!=='') ? o.textContent.trim() : '';
+  }
+  function placeholderText(){
+    const first=select.options[0];
+    return (first && first.value==='') ? first.textContent.trim() : 'Search…';
+  }
+  function syncInput(){ input.value=selectedLabel(); input.placeholder=placeholderText(); }
+
+  function build(filter){
+    panel.innerHTML='';
+    const f=(filter||'').trim().toLowerCase();
+    let n=0;
+    Array.from(select.options).forEach(o=>{
+      if(o.value==='') return;            // skip placeholder row
+      const label=o.textContent.trim();
+      if(f && label.toLowerCase().indexOf(f)===-1) return;
+      const item=document.createElement('div');
+      item.className='combo-opt'+(o.value===select.value?' is-selected':'');
+      item.textContent=label;
+      item.dataset.value=o.value;
+      item.id=listboxId+'Option'+n;
+      item.setAttribute('role','option');
+      item.setAttribute('aria-selected',String(o.value===select.value));
+      item.addEventListener('mousedown',e=>{ e.preventDefault(); choose(o.value); });
+      panel.appendChild(item);
+      n++;
+    });
+    if(!n){ const e=document.createElement('div'); e.className='combo-empty'; e.textContent='No matches'; panel.appendChild(e); }
+    activeIdx=-1;
+  }
+  function open(filter){ build(filter||''); wrap.classList.add('open'); input.setAttribute('aria-expanded','true'); }
+  function close(){
+    wrap.classList.remove('open');
+    input.setAttribute('aria-expanded','false');
+    input.removeAttribute('aria-activedescendant');
+    syncInput();
+  }
+  function choose(val){
+    select.value=val;
+    close();
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+  function move(d){
+    const opts=Array.from(panel.querySelectorAll('.combo-opt'));
+    if(!opts.length) return;
+    activeIdx = activeIdx<0 ? 0 : Math.max(0,Math.min(opts.length-1,activeIdx+d));
+    opts.forEach((o,i)=>o.classList.toggle('is-active',i===activeIdx));
+    input.setAttribute('aria-activedescendant',opts[activeIdx].id);
+    opts[activeIdx].scrollIntoView({block:'nearest'});
+  }
+
+  input.addEventListener('focus',()=>{ input.select(); open(''); });
+  input.addEventListener('input',()=>{ open(input.value); });
+  input.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'){ e.preventDefault(); if(!wrap.classList.contains('open')) open(''); else move(1); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); move(-1); }
+    else if(e.key==='Enter'){
+      const opts=Array.from(panel.querySelectorAll('.combo-opt'));
+      if(wrap.classList.contains('open') && opts[activeIdx]){ e.preventDefault(); choose(opts[activeIdx].dataset.value); }
+    }
+    else if(e.key==='Escape'){ if(wrap.classList.contains('open')){ e.preventDefault(); close(); } }
+  });
+  document.addEventListener('mousedown',e=>{ if(!wrap.contains(e.target)) close(); });
+
+  select._combo={ refresh:syncInput };
+  syncInput();
+}
+
 function openAddModal(){
   const el=document.getElementById('aRet');
   el.innerHTML='<option value="">— Select retailer —</option>';
@@ -4211,10 +4613,30 @@ function openAddModal(){
   document.getElementById('aNote').value='';
   document.getElementById('aDoor').innerHTML='<option value="">— Select retailer first —</option><option value="TBD">TBD — Not yet confirmed</option>';
   document.getElementById('delDoor').innerHTML='<option value="">— Select retailer first —</option>';
+  const delBrandSel=document.getElementById('delBrand');
+  if(delBrandSel) delBrandSel.innerHTML='<option value="">— Select retailer first —</option>';
+  enhanceModifyDoorSelects();
   document.getElementById('ovAdd').classList.add('open');
   document.getElementById('mAdd').classList.add('open');
   setAddMode('door_to_brands');
+  refreshModifyDoorCombos();
   renderAddSelectionPanels();
+}
+
+/* Lazily turn the Modify Door dropdowns into type-to-filter comboboxes the
+   first time the modal opens. The underlying <select>s stay the source of
+   truth (their .value and onchange still drive the flow). */
+function enhanceModifyDoorSelects(){
+  ['aRet','aBrand','aDoor','delDoor','delBrand'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(sel) makeSearchable(sel);
+  });
+}
+function refreshModifyDoorCombos(){
+  ['aRet','aBrand','aDoor','delDoor','delBrand'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(sel && sel._combo) sel._combo.refresh();
+  });
 }
 
 // Info modal
@@ -4750,7 +5172,11 @@ function setMode(m){
   currentMode=m;
   document.body.classList.toggle('mode-map', m==='map');
   document.body.classList.toggle('mode-data', m==='data');
-  document.querySelectorAll('#mode-toggle .mode-btn').forEach(b=>b.classList.toggle('active', b.dataset.mode===m));
+  document.querySelectorAll('#mode-toggle .mode-btn').forEach(b=>{
+    const active=b.dataset.mode===m;
+    b.classList.toggle('active',active);
+    b.setAttribute('aria-pressed',String(active));
+  });
   syncMapLayerToggles();
   const tabs=document.getElementById('viewTabs');
   if(tabs) tabs.style.display = m==='map' ? 'none' : '';
@@ -4776,7 +5202,11 @@ function setView(v){
     try{ localStorage.setItem('door-tracker-mode','data'); }catch(e){}
     document.body.classList.remove('mode-map');
     document.body.classList.add('mode-data');
-    document.querySelectorAll('#mode-toggle .mode-btn').forEach(b=>b.classList.toggle('active', b.dataset.mode==='data'));
+    document.querySelectorAll('#mode-toggle .mode-btn').forEach(b=>{
+      const active=b.dataset.mode==='data';
+      b.classList.toggle('active',active);
+      b.setAttribute('aria-pressed',String(active));
+    });
     const tabs=document.getElementById('viewTabs');
     if(tabs) tabs.style.display='';
   }
@@ -4980,11 +5410,11 @@ function refreshSnapshotList(){
     if(!rows.length){ host.innerHTML='<p style="color:var(--text-dim);font-size:0.78rem">No snapshots yet. Create one above, or wait for the auto-snapshot in ~5 minutes.</p>'; return; }
     host.innerHTML=rows.map(r=>{
       const when=new Date(r.savedAt).toLocaleString();
-      const counts=`${Object.keys(r.history||{}).length.toLocaleString()} pairs · ${Object.keys(r.dataKeyState||{}).length.toLocaleString()} cells`;
+      const savedBy=r.updatedBy ? ` · ${esc(r.updatedBy)}` : '';
       return `<div class="snap-item${r.auto?' auto':''}">
         <div>
           <div class="snap-label">${esc(r.label||'Snapshot')}${r.auto?' <span style="color:var(--text-dim);font-weight:400;font-size:0.7rem">· auto</span>':''}</div>
-          <div class="snap-meta">${esc(when)} · ${counts}</div>
+          <div class="snap-meta">${esc(when)}${savedBy}</div>
         </div>
         <button class="btn btn-sm" onclick='restoreFromPoint(${jsq(r.id)})' title="Replace current state with this snapshot. A before-restore snapshot is auto-created.">↶ Restore</button>
         <button class="btn btn-sm" style="border-color:var(--danger);color:var(--danger)" onclick='deleteRestorePoint(${jsq(r.id)}).then(refreshSnapshotList)' title="Delete this snapshot">✕</button>
@@ -4996,6 +5426,7 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 
 document.addEventListener('click',e=>{
   if(!e.target.closest('.header-menu')) closeHeaderMenus();
+  if(!e.target.closest('.drawer-more')) closeDrawerMoreMenu();
   const path=typeof e.composedPath==='function' ? e.composedPath() : [];
   const inRefine=path.some(el=>el && el.id==='refineWrap') || e.target.closest('#refineWrap');
   if(!inRefine) closeRefinePanel();
@@ -5004,7 +5435,27 @@ document.getElementById('refinePanel')?.addEventListener('click',handleRefineTog
 document.getElementById('refinePanel')?.addEventListener('keydown',handleRefineToggleEvent);
 document.addEventListener('click',handleMapFilterEvent);
 document.addEventListener('keydown',handleMapFilterEvent);
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeHeaderMenus();closeRefinePanel();if(document.getElementById('mLogin').classList.contains('open')) return; closeEdit();closeCM();closeAdd();closeImport();closeInfo();closeSnapshotsModal();closeEditDoorModal();closeDrawer();}});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  const drawerMenu=document.getElementById('drawerMoreMenu');
+  if(drawerMenu && drawerMenu.classList.contains('open')){
+    closeDrawerMoreMenu();
+    document.getElementById('drawerMoreTrigger')?.focus();
+    e.preventDefault();
+    return;
+  }
+  closeHeaderMenus();
+  closeRefinePanel();
+  if(document.getElementById('mLogin').classList.contains('open')) return;
+  closeEdit();
+  closeCM();
+  closeAdd();
+  closeImport();
+  closeInfo();
+  closeSnapshotsModal();
+  closeEditDoorModal();
+  closeDrawer();
+});
 
 // INIT
 try{
@@ -5039,6 +5490,12 @@ function loadSession(){
     if(!p || !p.username) return null;
     if(p.authProvider==='supabase') return null;
     if(p.isGuest) return { username:'guest', name:p.name || 'Guest', isGuest:true };
+    /* A configured shared workspace must restore through Supabase Auth.
+       Discard local-roster sessions left behind while sync was unavailable. */
+    if(getSupabaseClient()){
+      clearSession();
+      return null;
+    }
     const rosterEntry=USER_ROSTER[p.username];
     if(!rosterEntry) return null;
     /* Trust the live roster's tenant — if an admin rotates a user to a
@@ -5236,6 +5693,7 @@ function restoreShowByGroupState(){
     const el=document.getElementById('showByGroupRow');
     if(el && v==='1'){
       el.classList.add('is-on');
+      el.setAttribute('aria-pressed','true');
       /* Re-render the Retailer pill list so it shows groups instead of
          individual retailers when the toggle was persisted as on. */
       renderRefineToggles();
