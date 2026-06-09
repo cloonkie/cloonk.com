@@ -501,14 +501,17 @@ function getBrandsAtDoor(ret,doorNumber){
   });
   return brands.sort((a,b)=>a.brand.localeCompare(b.brand));
 }
-function getExitedBrandsAtDoor(ret,doorNumber){
+function getStoreBrandSummary(ret,doorNumber){
   const norm=normalizeRetailer(ret);
-  return [...new Set(Object.values(dataKeyState).filter(st=>
-    st &&
-    normalizeRetailer(st.retailer)===norm &&
-    String(st.doorNumber)===String(doorNumber) &&
-    normalizeStatus(st.status)==='closed'
-  ).map(st=>st.brand).filter(Boolean))].sort();
+  const present=new Set();
+  const exited=new Set();
+  Object.values(dataKeyState).forEach(st=>{
+    if(!st || normalizeRetailer(st.retailer)!==norm || String(st.doorNumber)!==String(doorNumber) || !st.brand) return;
+    const status=normalizeStatus(st.status);
+    if(status==='confirmed' || status==='tbd') present.add(st.brand);
+    else if(status==='closed') exited.add(st.brand);
+  });
+  return {present:[...present].sort(),exited:[...exited].sort()};
 }
 
 let doorAssignments={}; // key(retailer,brand) -> [{doorNumber, doorName, note, status:'confirmed'|'draft', date}]
@@ -1777,9 +1780,12 @@ function renderStore(items,visR){
       const val=d[f.key]==null?'':d[f.key];
       const attr=callAttr('updateStoreDoorField',ret,String(d.doorNumber),f.key);
       if(f.key==='tier'){
-        const exitedBrands=getExitedBrandsAtDoor(ret,d.doorNumber);
-        const exitMarker=exitedBrands.length
-          ? `<span class="store-exit-marker" title="${esc(`Exited door for ${exitedBrands.join(', ')}`)}" aria-label="${esc(`Exited door for ${exitedBrands.join(', ')}`)}">🪦</span>`
+        const brandSummary=getStoreBrandSummary(ret,d.doorNumber);
+        const markerLabel=brandSummary.exited.length
+          ? `No active brands. Exited: ${brandSummary.exited.join(', ')}`
+          : 'No brands assigned to this store';
+        const exitMarker=!brandSummary.present.length
+          ? `<span class="store-exit-marker" title="${esc(markerLabel)}" aria-label="${esc(markerLabel)}">🪦</span>`
           : '';
         return `<td><div class="store-tier-field">${exitMarker}<input type="text" value="${esc(String(val))}" placeholder="${esc(f.ph)}" data-store-field="${esc(f.key)}" onchange="${attr}" oninput="this.dataset.dirty=1"></div></td>`;
       }
