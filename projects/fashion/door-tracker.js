@@ -1438,6 +1438,7 @@ function renderTabular(items,visR){
         const bmBrand=getGroupBMConfirmed(col.members,d.brand);
         const goalKey=buildTabularGoalKey(col.members,d.brand);
         const goal=Number(tabularGoals[goalKey])||0;
+        const gender=getTabularGenderSummary(col.members,d.brand);
         rows.push({
           retailer:col.label,
           members:col.members,
@@ -1448,6 +1449,7 @@ function renderTabular(items,visR){
           bmDoors:bmBrand,
           goal,
           goalKey,
+          gender,
           penetration:bmDoors?Math.round(bmBrand/bmDoors*100)+'%':'–',
           goalPct:goal?Math.round(bmBrand/goal*100)+'%':'–',
           name:brandCodes[d.brand]?brandCodes[d.brand].name:''
@@ -1456,7 +1458,7 @@ function renderTabular(items,visR){
     });
   });
   rows.sort((a,b)=>a.retailer.localeCompare(b.retailer)||a.category.localeCompare(b.category)||a.brand.localeCompare(b.brand));
-  let h='<table class="compact-table tabular-goal-table"><thead><tr><th>Retailer</th><th>Code</th><th>Brand</th><th>Category</th><th>Retailer B&M</th><th>B&M Doors</th><th>Goal</th><th>Maintain Penetration</th><th>% to Goal</th></tr></thead><tbody>';
+  let h='<table class="compact-table tabular-goal-table"><thead><tr><th>Retailer</th><th>Code</th><th>Brand</th><th>Category</th><th>Gender</th><th>Retailer B&M</th><th>B&M Doors</th><th>Goal</th><th>Maintain Penetration</th><th>% to Goal</th></tr></thead><tbody>';
   rows.forEach(r=>{
     const clickAttr=r.isGroup
       ? `onclick="${callAttr('openGroupDrawer',r.retailer,r.brand)}"`
@@ -1466,6 +1468,14 @@ function renderTabular(items,visR){
       <td style="font-family:var(--font-mono);font-weight:700">${esc(r.brand)}</td>
       <td>${esc(r.name)}</td>
       <td><span class="cat-badge">${esc(r.category)}</span></td>
+      <td>
+        <select class="tabular-gender-select${r.gender==='Mixed'?' is-mixed':''}" aria-label="Gender for ${esc(r.brand)} at ${esc(r.retailer)}" onchange="${jsAttr(`setTabularGender(${JSON.stringify(r.members)},${jsq(r.brand)},this)`)}">
+          <option value="Mens Only" ${r.gender==='Mens Only'?'selected':''}>Mens</option>
+          <option value="Ladies Only" ${r.gender==='Ladies Only'?'selected':''}>Ladies</option>
+          <option value="ALL" ${r.gender==='ALL'?'selected':''}>Unisex</option>
+          <option value="Mixed" ${r.gender==='Mixed'?'selected':''} disabled>Mixed</option>
+        </select>
+      </td>
       <td class="tabular-metric">${r.retailerBM}</td>
       <td class="cell${r.isGroup?' group-cell':''} tabular-metric" style="cursor:pointer" ${clickAttr}>${r.bmDoors}</td>
       <td><input class="tabular-goal-input" type="number" min="0" step="1" value="${r.goal||''}" placeholder="Set goal" aria-label="Goal for ${esc(r.brand)} at ${esc(r.retailer)}" onchange="${jsAttr(`setTabularGoal(${jsq(r.goalKey)},this)`)}"></td>
@@ -1475,6 +1485,54 @@ function renderTabular(items,visR){
   });
   h+='</tbody></table>';
   wrap.innerHTML=h;
+}
+
+function getTabularGenderKeys(members,brand){
+  const retailerSet=new Set((members||[]).map(normalizeRetailer));
+  return Object.entries(dataKeyState).filter(([,state])=>
+    state &&
+    state.brand===brand &&
+    retailerSet.has(normalizeRetailer(state.retailer)) &&
+    isPhysicalDoorNumber(state.doorNumber) &&
+    normalizeStatus(state.status)==='confirmed'
+  );
+}
+function getTabularGenderSummary(members,brand){
+  const values=new Set(getTabularGenderKeys(members,brand).map(([,state])=>normalizeGender(state.gender)));
+  if(values.size>1) return 'Mixed';
+  return values.size ? [...values][0] : 'ALL';
+}
+async function setTabularGender(members,brand,el){
+  el=el || (event && event.target);
+  if(!el || el.value==='Mixed') return;
+  const next=normalizeGender(el.value);
+  const keys=getTabularGenderKeys(members,brand);
+  const retailerLabel=(members||[]).map(normalizeRetailer).join(', ');
+  const label=next==='Mens Only'?'Mens':next==='Ladies Only'?'Ladies':'Unisex';
+  const msg=`Set ${label} for ${keys.length} confirmed ${brand} door key${keys.length===1?'':'s'} at ${retailerLabel}?`;
+  const confirmed=window.fashionConfirm
+    ? await window.fashionConfirm(msg,{title:'Set Tabular Gender',confirmLabel:'Set '+label})
+    : confirm(msg);
+  if(!confirmed){ render(); return; }
+  let changed=0;
+  keys.forEach(([,state])=>{
+    const old=normalizeGender(state.gender);
+    if(old===next) return;
+    state.gender=next;
+    syncAssignmentFromDataKey(state.retailer,state.doorNumber,brand);
+    recordHistory(state.retailer,brand,{
+      scope:'data',
+      action:'gender bulk updated',
+      oldVal:old,
+      newVal:next,
+      doorNumber:state.doorNumber,
+      note:'Updated from Tabular view'
+    });
+    changed++;
+  });
+  if(changed) queueAutosave();
+  render();
+  toast(changed?`Set ${changed} ${brand} key${changed===1?'':'s'} to ${label}.`:`All ${brand} keys were already ${label}.`);
 }
 
 function buildTabularGoalKey(members,brand){

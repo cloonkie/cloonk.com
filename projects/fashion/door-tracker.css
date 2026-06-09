@@ -6,6 +6,7 @@
 :root {
   --text-muted: #a19c96;
   --text-dim: #6e6964;
+  --accent-fg: #0a0a0a;
   --accent-mid: rgba(57, 255, 20, 0.22);
   --success: #27ae60;
   --draft: #e67e22; --draft-dim: rgba(230,126,34,0.12);
@@ -17,6 +18,7 @@ body.light {
   --surface-card: #eae6dc; --border: #d0ccc4; --border-hover: #b6b2aa;
   --text: #0a0a0a; --text-muted: #6b6560; --text-dim: #9a948e;
   --accent: #1b09bc; --accent-dim: rgba(27,9,188,0.08);
+  --accent-fg: #f5f2ec;
   --accent-mid: rgba(27,9,188,0.20);
   --danger: #b03020; --success: #1e8a4a;
   --draft: #d35400; --draft-dim: rgba(211,84,0,0.10);
@@ -271,7 +273,7 @@ a.logo:hover { color: var(--accent); }
   transition: background var(--transition), border-color var(--transition), color var(--transition);
 }
 .btn:hover, .theme-toggle:hover { background: var(--surface-raised); border-color: var(--border-hover); }
-.btn-accent { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+.btn-accent { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 700; }
 .btn-accent:hover { background: var(--accent); border-color: var(--accent); opacity: 0.85; }
 .btn-sm { min-height: 0; padding: 5px 10px; font-size: 0.72rem; border-radius: var(--radius-xs); }
 .header-actions .btn:not(.info-btn) { padding: 5px 10px; font-size: 0.72rem; }
@@ -395,7 +397,7 @@ body.mode-map .map-screenshot-btn { display: inline-flex; }
   padding: 0 4px;
   border-radius: 999px;
   background: var(--accent);
-  color: #000;
+  color: var(--accent-fg);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -612,8 +614,7 @@ body.light select { background: #f4f2ee; }
 }
 .mode-btn + .mode-btn { border-left: 1px solid var(--border); }
 .mode-btn:hover { background: var(--surface-raised); color: var(--text); }
-.mode-btn.active { background: var(--accent); color: #000; }
-body.light .mode-btn.active { color: #f5f2ec; }
+.mode-btn.active { background: var(--accent); color: var(--accent-fg); }
 
 /* ─── VIEW TABS ─── */
 .view-tabs { display: flex; gap: 0; }
@@ -664,6 +665,17 @@ body.mode-map .matrix-wrap { padding: 0; height: calc(100vh - 112px); overflow: 
 }
 .tabular-goal-input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-dim); }
 .tabular-goal-progress { color:var(--accent) !important; font-weight:700; }
+.tabular-gender-select {
+  min-width:92px;
+  padding:5px 8px;
+  font-size:0.74rem;
+  font-weight:600;
+}
+.tabular-gender-select.is-mixed {
+  color:var(--draft);
+  border-color:color-mix(in oklab, var(--draft) 45%, var(--border));
+  background:var(--draft-dim);
+}
 
 /* ─── COMPACT TABLE ─── */
 .compact-table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
@@ -1388,7 +1400,7 @@ body.light .search-box { background: #f4f2ee; }
 }
 .drawer-door-meta { flex:1; min-width:0; }
 .drawer-door-check { width:18px; height:18px; border:1px solid var(--border); border-radius:4px; display:inline-flex; align-items:center; justify-content:center; color:transparent; background:var(--bg); font-size:0.78rem; line-height:1; margin-top:2px; }
-.drawer-door-row.selected .drawer-door-check { color: #000; background: var(--accent); border-color: var(--accent); }
+.drawer-door-row.selected .drawer-door-check { color: var(--accent-fg); background: var(--accent); border-color: var(--accent); }
 .drawer-door-hidden-input { position:absolute; opacity:0; pointer-events:none; }
 
 .drawer-door-check {
