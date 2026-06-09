@@ -5,7 +5,7 @@
 const CAT_ORDER=['LIFESTYLE','SPORT','CHANEL','LUXURY','PREMIUM','FAST','LHB','META'];
 let brandCodes={}, doorLocations=[], matrixData=[], retailers=[];
 let history={};
-let transposed=false, currentView='matrix';
+let transposed=false, categoryColumn=false, currentView='matrix';
 let addMode='door_to_brands';
 let ctxTarget=null;
 let dataKeyState={};
@@ -38,6 +38,11 @@ function normalizeGender(v){
   if(s==='mens only' || s==='men only' || s==='mens' || s==="men's only" || s==="men's") return 'Mens Only';
   if(s==='ladies only' || s==='ladies' || s==='women only' || s==="women's only" || s==='womens only' || s==='womens') return 'Ladies Only';
   return 'ALL';
+}
+function normalizeBoolean(v){
+  if(typeof v==='boolean') return v;
+  if(typeof v==='number') return v!==0;
+  return ['1','true','yes','y','x','checked'].includes(String(v||'').trim().toLowerCase());
 }
 const STORE_CADENCE_OPTIONS=[
   {value:'',label:'-'},
@@ -167,7 +172,11 @@ function applyPayload(p){
   doorAssignments=p.doorAssignments||{};
   dataKeyState=p.dataKeyState||{};
   tabularGoals=p.tabularGoals||{};
-  Object.values(dataKeyState).forEach(st=>{ if(st) st.gender=normalizeGender(st.gender); });
+  Object.values(dataKeyState).forEach(st=>{
+    if(!st) return;
+    st.gender=normalizeGender(st.gender);
+  });
+  migrateDoorFlagsFromDataKeys();
   window._storeNotes=p.storeNotes||{};
   removeInvalidDoorRecords();
 }
@@ -487,7 +496,7 @@ function getRetailerDoors(ret){
     if(cached) return cached;
   }
   const result=doorLocations
-    .filter(d=>isPhysicalDoorNumber(d.doorNumber) && normalizeRetailer(d.retailer)===normalizeRetailer(ret))
+    .filter(d=>!d.retired && isPhysicalDoorNumber(d.doorNumber) && normalizeRetailer(d.retailer)===normalizeRetailer(ret))
     .sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
   if(_renderCache) _renderCache.retailerDoors.set(ret,result);
   return result;
@@ -513,7 +522,6 @@ function getStoreBrandSummary(ret,doorNumber){
   });
   return {present:[...present].sort(),exited:[...exited].sort()};
 }
-
 let doorAssignments={}; // key(retailer,brand) -> [{doorNumber, doorName, note, status:'confirmed'|'draft', date}]
 if(!window._storeNotes) window._storeNotes={};
 
@@ -549,6 +557,8 @@ function removeInvalidDoorRecords(){
     if(!ret) return false;
     d.retailer=ret;
     d.doorNumber=normalizeDoorNumberValue(d.doorNumber);
+    d.iss=normalizeBoolean(d.iss);
+    d.three_c=normalizeBoolean(d.three_c);
     validDoorKeys.add(ret+'|'+String(d.doorNumber));
     return true;
   });
@@ -584,6 +594,18 @@ function removeInvalidDoorRecords(){
     if(st && st.retailer && !allowedRetailers.has(normalizeRetailer(st.retailer))) delete dataKeyState[key];
   });
 }
+function migrateDoorFlagsFromDataKeys(){
+  Object.values(dataKeyState||{}).forEach(st=>{
+    if(!st || !isPhysicalDoorNumber(st.doorNumber)) return;
+    const door=getDoorInfo(st.retailer,st.doorNumber);
+    if(door){
+      if(normalizeBoolean(st.iss)) door.iss=true;
+      if(normalizeBoolean(st.three_c)) door.three_c=true;
+    }
+    delete st.iss;
+    delete st.three_c;
+  });
+}
 
 /* Anonymized demo dataset for the guest sandbox — no real merchant info.
    Small enough to feel empty, big enough to demonstrate every view. */
@@ -596,13 +618,13 @@ const GUEST_SEED={
     'BR-E':{name:'Brand Echo',ds_active:true}
   },
   doorLocations:[
-    {retailer:'Retailer One',doorNumber:101,name:'Demo Door 101',address:'100 Market Walk',city:'New York',state:'NY',zip:'10001',lat:40.7505,lng:-73.9965,tier:'A'},
-    {retailer:'Retailer One',doorNumber:102,name:'Demo Door 102',address:'200 Canyon Ave',city:'Los Angeles',state:'CA',zip:'90015',lat:34.0407,lng:-118.2468,tier:'A'},
+    {retailer:'Retailer One',doorNumber:101,name:'Demo Door 101',address:'100 Market Walk',city:'New York',state:'NY',zip:'10001',lat:40.7505,lng:-73.9965,tier:'A',iss:true,three_c:true},
+    {retailer:'Retailer One',doorNumber:102,name:'Demo Door 102',address:'200 Canyon Ave',city:'Los Angeles',state:'CA',zip:'90015',lat:34.0407,lng:-118.2468,tier:'A',iss:true},
     {retailer:'Retailer One',doorNumber:103,name:'Demo Door 103',address:'300 Harbor Dr',city:'San Diego',state:'CA',zip:'92101',lat:32.7157,lng:-117.1611,tier:'B'},
     {retailer:'Retailer Two',doorNumber:201,name:'Demo Door 201',address:'400 Lake St',city:'Chicago',state:'IL',zip:'60601',lat:41.8853,lng:-87.6216,tier:'A'},
-    {retailer:'Retailer Two',doorNumber:202,name:'Demo Door 202',address:'500 Congress Ave',city:'Austin',state:'TX',zip:'78701',lat:30.2672,lng:-97.7431,tier:'B'},
+    {retailer:'Retailer Two',doorNumber:202,name:'Demo Door 202',address:'500 Congress Ave',city:'Austin',state:'TX',zip:'78701',lat:30.2672,lng:-97.7431,tier:'B',three_c:true},
     {retailer:'Retailer Two',doorNumber:203,name:'Demo Door 203',address:'600 Main Plaza',city:'Houston',state:'TX',zip:'77002',lat:29.7604,lng:-95.3698,tier:'C'},
-    {retailer:'Retailer Three',doorNumber:301,name:'Demo Door 301',address:'700 Biscayne Blvd',city:'Miami',state:'FL',zip:'33132',lat:25.7781,lng:-80.1868,tier:'A'},
+    {retailer:'Retailer Three',doorNumber:301,name:'Demo Door 301',address:'700 Biscayne Blvd',city:'Miami',state:'FL',zip:'33132',lat:25.7781,lng:-80.1868,tier:'A',iss:true,three_c:true},
     {retailer:'Retailer Three',doorNumber:302,name:'Demo Door 302',address:'800 Peachtree St',city:'Atlanta',state:'GA',zip:'30308',lat:33.7711,lng:-84.3877,tier:'B'},
     {retailer:'Retailer Three',doorNumber:303,name:'Demo Door 303',address:'900 River Rd',city:'Nashville',state:'TN',zip:'37203',lat:36.1527,lng:-86.7891,tier:'C'},
     {retailer:'Retailer Four',doorNumber:401,name:'Demo Door 401',address:'1000 Pine St',city:'Seattle',state:'WA',zip:'98101',lat:47.6114,lng:-122.3351,tier:'A'},
@@ -1233,7 +1255,6 @@ function render(){
     updateSummary(items,visR);
     updateDraftBadge();
     if(currentView==='matrix') renderMatrix(items,visR);
-    else if(currentView==='compact') renderCompact(items,visR);
     else if(currentView==='tabular') renderTabular(items,visR);
     else if(currentView==='unpivoted') renderUnpivoted(items,visR);
     else if(currentView==='store') renderStore(items,visR);
@@ -1291,6 +1312,13 @@ function renderMatrix(items,visR){
     if(!brandsByCat[c]) brandsByCat[c]=[];
     if(!brandsByCat[c].includes(d.brand)) brandsByCat[c].push(d.brand);
   });
+  const orderedCategories=[
+    ...CAT_ORDER.filter(cat=>(brandsByCat[cat]||[]).length),
+    ...Object.keys(brandsByCat).filter(cat=>!CAT_ORDER.includes(cat) && (brandsByCat[cat]||[]).length).sort()
+  ];
+  const brandSections=categoryColumn
+    ? [{category:'',brands:items.map(d=>d.brand).filter((brand,i,all)=>all.indexOf(brand)===i).sort()}]
+    : orderedCategories.map(category=>({category,brands:brandsByCat[category]}));
   const lu={};
   items.forEach(d=>{lu[d.brand]=d;});
 
@@ -1312,15 +1340,19 @@ function renderMatrix(items,visR){
   const colDrafts=(col,brand)=>col.members.reduce((s,r)=>s+getDraftCount(r,brand),0);
 
   if(!transposed){
-    let h='<table class="matrix"><thead>';
+    let h=`<table class="matrix${categoryColumn?' category-column':''}"><thead>`;
     /* Top header row: channel bands spanning their retailer columns. */
-    h+='<tr><th class="rh" style="z-index:6;background:var(--surface-raised)"></th><th class="rh2" style="z-index:6;background:var(--surface-raised)"></th>';
+    h+='<tr>';
+    if(categoryColumn) h+='<th class="category-col" style="z-index:6;background:var(--surface-raised)"></th>';
+    h+='<th class="rh" style="z-index:6;background:var(--surface-raised)"></th><th class="rh2" style="z-index:6;background:var(--surface-raised)"></th>';
     channelChunks.forEach(chunk=>{
       h+=`<th class="channel-header" colspan="${chunk.cols.length}">${esc(chunk.channel)}</th>`;
     });
     h+='<th class="channel-header"></th></tr>';
     /* Second header row: retailer / group names, colored to match the map pins. */
-    h+='<tr><th class="rh" style="z-index:6">Code</th><th class="rh2" style="z-index:6">Brand</th>';
+    h+='<tr>';
+    if(categoryColumn) h+='<th class="category-col" style="z-index:6">Category</th>';
+    h+='<th class="rh" style="z-index:6">Code</th><th class="rh2" style="z-index:6">Brand</th>';
     cols.forEach(col=>{
       const maxDoors=colMax(col);
       const subtitle=col.isGroup
@@ -1331,13 +1363,17 @@ function renderMatrix(items,visR){
     });
     h+='<th>Total</th></tr></thead><tbody>';
 
-    CAT_ORDER.forEach(cat=>{
-      const brands=brandsByCat[cat];
+    brandSections.forEach(section=>{
+      const cat=section.category;
+      const brands=section.brands;
       if(!brands||!brands.length) return;
-      h+=`<tr class="cat-row"><td colspan="${cols.length+3}">${esc(cat)}</td></tr>`;
+      if(!categoryColumn) h+=`<tr class="cat-row"><td colspan="${cols.length+3}">${esc(cat)}</td></tr>`;
       brands.forEach(brand=>{
         const bName=brandCodes[brand]?brandCodes[brand].name:'';
-        h+=`<tr><th class="rh">${esc(brand)}</th><th class="rh2">${esc(bName)}</th>`;
+        const category=lu[brand]?.category || 'OTHER';
+        h+='<tr>';
+        if(categoryColumn) h+=`<th class="category-col"><span class="cat-badge">${esc(category)}</span></th>`;
+        h+=`<th class="rh">${esc(brand)}</th><th class="rh2">${esc(bName)}</th>`;
         let rowTot=0;
         cols.forEach(col=>{
           const val=colVal(col,brand);
@@ -1361,7 +1397,9 @@ function renderMatrix(items,visR){
     });
 
     // Total row — door count (not sum of brands)
-    h+=`<tr class="total-row"><th class="rh" style="color:var(--accent)">TTL</th><th class="rh2" style="color:var(--accent)">Doors</th>`;
+    h+='<tr class="total-row">';
+    if(categoryColumn) h+='<th class="category-col"></th>';
+    h+='<th class="rh" style="color:var(--accent)">TTL</th><th class="rh2" style="color:var(--accent)">Doors</th>';
     let gTot=0;
     cols.forEach(col=>{
       const v=colMax(col);
@@ -1371,9 +1409,18 @@ function renderMatrix(items,visR){
     h+=`<td>${gTot}</td></tr></tbody></table>`;
     wrap.innerHTML=h;
   } else {
-    const allBrands=[];
-    CAT_ORDER.forEach(cat=>{(brandsByCat[cat]||[]).forEach(b=>allBrands.push({brand:b,category:cat}));});
-    let h='<table class="matrix"><thead><tr><th class="rh" style="z-index:6">Retailer</th>';
+    const allBrands=categoryColumn
+      ? items.map(d=>({brand:d.brand,category:d.category})).sort((a,b)=>a.brand.localeCompare(b.brand))
+      : orderedCategories.flatMap(cat=>(brandsByCat[cat]||[]).map(brand=>({brand,category:cat})));
+    let h='<table class="matrix"><thead>';
+    if(!categoryColumn){
+      h+='<tr><th class="rh" style="z-index:6;background:var(--surface-raised)"></th>';
+      orderedCategories.forEach(cat=>{
+        h+=`<th class="channel-header category-header" colspan="${brandsByCat[cat].length}">${esc(cat)}</th>`;
+      });
+      h+='<th class="channel-header category-header"></th></tr>';
+    }
+    h+='<tr><th class="rh" style="z-index:6">Retailer</th>';
     allBrands.forEach(({brand})=>{h+=`<th>${esc(brand)}</th>`;});
     h+='<th>Doors</th></tr></thead><tbody>';
     let lastChannel=null;
@@ -1401,32 +1448,6 @@ function renderMatrix(items,visR){
     h+='</tbody></table>';
     wrap.innerHTML=h;
   }
-}
-
-
-
-function renderCompact(items,visR){
-  const wrap=document.getElementById('mainView');
-  const cols=sortRetailerColumns(buildRetailerColumns(visR));
-  let h='<table class="compact-table"><thead><tr><th>Brand</th><th>Name</th><th>Category</th>';
-  cols.forEach(col=>{h+=`<th>${esc(col.label)}</th>`;});
-  h+='<th>Perimeter</th></tr></thead><tbody>';
-  items.forEach(d=>{
-    const bName=brandCodes[d.brand]?brandCodes[d.brand].name:'';
-    let tot=0;
-    h+=`<tr><td style="font-family:var(--font-mono);font-weight:700">${esc(d.brand)}</td><td>${esc(bName)}</td><td><span class="cat-badge">${esc(d.category)}</span></td>`;
-    cols.forEach(col=>{
-      const v=getGroupMatrixVal(col.members,d.brand);
-      tot+=v;
-      const clickAttr=col.isGroup
-        ? `onclick="${callAttr('openGroupDrawer',col.label,d.brand)}"`
-        : `onclick="${callAttr('openStoreDrawer',col.members[0],d.brand)}"`;
-      h+=`<td class="cell${col.isGroup?' group-cell':''}" style="font-family:var(--font-mono);text-align:center;cursor:pointer;${v?'':'color:var(--text-dim)'}" ${clickAttr}>${v||'–'}</td>`;
-    });
-    h+=`<td style="font-family:var(--font-mono);font-weight:700;text-align:center;color:var(--accent)">${tot}</td></tr>`;
-  });
-  h+='</tbody></table>';
-  wrap.innerHTML=h;
 }
 
 function renderTabular(items,visR){
@@ -1562,7 +1583,7 @@ function setTabularGoal(key,el){
 // ═══════════════════════════════════════════════════════
 // STORE VIEW — editable location matrix
 // ═══════════════════════════════════════════════════════
-/* Data view and Store view scope to one retailer at a time to keep render
+/* Details and Store scope to one retailer at a time to keep render
    cost predictable. `_singleRetailerScope` remembers the user's pick across
    renders; when it falls outside the current visible-retailer set we fall
    back to the first visible retailer. */
@@ -1668,7 +1689,7 @@ function renderSingleRetailerPicker(visR, active){
   </div>`;
 }
 
-/* Gender quick-pick (Data view) — Male/Female/Unisex map to the stored
+/* Gender quick-pick (Details) — Male/Female/Unisex map to the stored
    Mens Only / Ladies Only / ALL values; labels here are display-only. */
 const GENDER_QUICK_OPTIONS=[
   {value:'Mens Only',short:'M',label:'Male'},
@@ -1748,7 +1769,7 @@ function renderStore(items,visR){
       return blob.includes(sq);
     })
     .filter(d=> paneQ ? paneSearchMatchesDoor(activeRet,d,paneQ) : true)
-    .sort((a,b)=>String(a.doorNumber).localeCompare(String(b.doorNumber),undefined,{numeric:true}));
+    .sort((a,b)=>Number(!!a.retired)-Number(!!b.retired) || String(a.doorNumber).localeCompare(String(b.doorNumber),undefined,{numeric:true}));
 
   if(!doors.length){
     wrap.innerHTML=renderSingleRetailerPicker(visR,activeRet)+'<div style="text-align:center;padding:60px;color:var(--text-dim)">No doors match the current filters for '+esc(activeRet)+'.</div>';
@@ -1773,7 +1794,7 @@ function renderStore(items,visR){
   h+='<div class="store-toolbar"><span style="color:var(--text-muted);font-size:0.78rem">'+doors.length+' door'+(doors.length===1?'':'s')+' for '+esc(activeRet)+' — edits save on blur.</span></div>';
   h+='<table class="compact-table store-table"><thead><tr><th>Retailer</th>';
   fields.forEach(f=>{ h+=`<th>${esc(f.label || (f.key.charAt(0).toUpperCase()+f.key.slice(1)))}</th>`; });
-  h+='<th></th></tr></thead><tbody>';
+  h+='<th>ISS</th><th>3C</th><th></th></tr></thead><tbody>';
   doors.forEach(d=>{
     const ret=normalizeRetailer(d.retailer);
     const row=fields.map(f=>{
@@ -1781,10 +1802,12 @@ function renderStore(items,visR){
       const attr=callAttr('updateStoreDoorField',ret,String(d.doorNumber),f.key);
       if(f.key==='tier'){
         const brandSummary=getStoreBrandSummary(ret,d.doorNumber);
-        const markerLabel=brandSummary.exited.length
+        const markerLabel=d.retired
+          ? `Retired store${d.retiredReason?`: ${d.retiredReason}`:''}`
+          : brandSummary.exited.length
           ? `No active brands. Exited: ${brandSummary.exited.join(', ')}`
           : 'No brands assigned to this store';
-        const exitMarker=!brandSummary.present.length
+        const exitMarker=d.retired || !brandSummary.present.length
           ? `<span class="store-exit-marker" title="${esc(markerLabel)}" aria-label="${esc(markerLabel)}">🪦</span>`
           : '';
         return `<td><div class="store-tier-field">${exitMarker}<input type="text" value="${esc(String(val))}" placeholder="${esc(f.ph)}" data-store-field="${esc(f.key)}" onchange="${attr}" oninput="this.dataset.dirty=1"></div></td>`;
@@ -1795,7 +1818,9 @@ function renderStore(items,visR){
       }
       return `<td><input type="${f.type}" value="${esc(String(val))}" placeholder="${esc(f.ph)}" data-store-field="${esc(f.key)}" onchange="${attr}" oninput="this.dataset.dirty=1"></td>`;
     }).join('');
-    h+=`<tr data-store-key="${esc(ret+'|'+d.doorNumber)}"><th class="rh">${esc(ret)}</th>${row}<td style="text-align:right"><button class="btn btn-sm" type="button" onclick="${callAttr('openEditDoorModal',ret,String(d.doorNumber))}" title="Open detail editor">Edit</button></td></tr>`;
+    const issAttr=callAttr('updateStoreDoorField',ret,String(d.doorNumber),'iss');
+    const threeCAttr=callAttr('updateStoreDoorField',ret,String(d.doorNumber),'three_c');
+    h+=`<tr class="${d.retired?'store-row-retired':''}" data-store-key="${esc(ret+'|'+d.doorNumber)}"><th class="rh">${esc(ret)}</th>${row}<td class="data-checkbox-cell"><input type="checkbox" ${normalizeBoolean(d.iss)?'checked':''} aria-label="ISS for ${esc(ret)} door ${esc(d.doorNumber)}" onchange="${issAttr}"></td><td class="data-checkbox-cell"><input type="checkbox" ${normalizeBoolean(d.three_c)?'checked':''} aria-label="3C for ${esc(ret)} door ${esc(d.doorNumber)}" onchange="${threeCAttr}"></td><td style="text-align:right"><button class="btn btn-sm" type="button" onclick="${callAttr('openEditDoorModal',ret,String(d.doorNumber))}" title="Open detail editor">Edit</button></td></tr>`;
   });
   h+='</tbody></table></div>';
   wrap.innerHTML=h;
@@ -1808,16 +1833,18 @@ function updateStoreDoorField(ret,doorNumber,field,el){
   const norm=normalizeRetailer(ret);
   const d=doorLocations.find(x=>normalizeRetailer(x.retailer)===norm && String(x.doorNumber)===String(doorNumber));
   if(!d) return;
-  let value=el.value;
+  let value=(field==='iss' || field==='three_c')?el.checked:el.value;
   let next=value;
   const oldVal=d[field]==null?'':d[field];
-  if(field==='lat' || field==='lng'){
+  if(field==='iss' || field==='three_c'){
+    next=normalizeBoolean(value);
+  }else if(field==='lat' || field==='lng'){
     if(String(value).trim()==='') next=undefined;
     else { const n=parseFloat(value); next=Number.isNaN(n)?undefined:n; }
   }else if(field==='doorNumber'){
     if(!isPhysicalDoorNumber(value)){
       el.value=oldVal;
-      toast('Door number is required. Use Delete Door to remove a store.');
+      toast('Door number is required. Use Retire Door to remove a store from active use.');
       return;
     }
     next=normalizeDoorNumberValue(value);
@@ -1910,7 +1937,7 @@ function renderUnpivoted(items,visR){
     wrap.innerHTML='<div style="text-align:center;padding:60px;color:var(--text-dim)">No retailers match the current filters.</div>';
     return;
   }
-  /* Data view scopes to a single retailer at a time. */
+  /* Details scopes to a single retailer at a time. */
   const scopedVisR=[activeRet];
   let rows=[];
   const fc=getSelectValues('fCat');
@@ -2115,7 +2142,7 @@ async function assignDoorToDraft(ret,brand,idx){
   const ak=k(ret,brand);
   const assigns=doorAssignments[ak];
   if(!assigns||!assigns[idx]) return;
-  const rDoors=doorLocations.filter(d=>normalizeRetailer(d.retailer)===ret).sort((a,b)=>a.name.localeCompare(b.name));
+  const rDoors=doorLocations.filter(d=>!d.retired && normalizeRetailer(d.retailer)===ret).sort((a,b)=>a.name.localeCompare(b.name));
   let opts=rDoors.map(d=>`#${d.doorNumber} — ${d.name}`).join('\n');
   const pick=window.fashionPrompt
     ? await window.fashionPrompt(opts, { title:'Assign Door', confirmLabel:'Assign', defaultValue:'' })
@@ -2358,7 +2385,7 @@ function renderResearchList(){
   const brandVals=getSelectValues('fBrand');
   const sq=(document.getElementById('resSearch')?.value||'').toLowerCase();
   const allRetailers=!hasRetailerScope;
-  let doors=doorLocations.filter(d=>visibleRetailers.has(normalizeRetailer(d.retailer)));
+  let doors=doorLocations.filter(d=>!d.retired && visibleRetailers.has(normalizeRetailer(d.retailer)));
   if(brandVals.length){
     doors=doors.filter(d=>{
       const doorRet=normalizeRetailer(d.retailer);
@@ -3255,6 +3282,7 @@ function updateResearchMapData(){
   const allRetailers=!hasRetailerScope;
   const norm=allRetailers?'__all__':retVals.join('|');
   const doors=doorLocations.filter(d=>{
+    if(d.retired) return false;
     const doorRet=normalizeRetailer(d.retailer);
     if(!allRetailers && !retVals.includes(doorRet)) return false;
     if(brandVals.length){
@@ -4357,7 +4385,7 @@ function applyModifyMode(){
     hint.textContent={
       door_to_brands:'Add a door (or pick an existing one), then choose which brands to assign to it.',
       brand_to_doors:'Add a brand (or pick an existing one), then choose which doors to assign it to.',
-      delete_door:'Remove an entire door from this retailer — deletes the door and every brand assignment tied to it.',
+      delete_door:'Retire an entire door from this retailer — keeps it in Store and removes every brand assignment tied to it.',
       delete_brand:'Remove an entire brand from this retailer — deletes every door assignment for that brand here.'
     }[addMode];
   }
@@ -4365,7 +4393,7 @@ function applyModifyMode(){
   const submit=document.getElementById('modifyDoorSubmitBtn');
   if(submit){
     const remove=addIntent==='remove';
-    submit.textContent=remove?(addType==='door'?'Delete Door':'Delete Brand'):'Add as Draft';
+    submit.textContent=remove?(addType==='door'?'Retire Door':'Delete Brand'):'Add as Draft';
     submit.classList.toggle('btn-draft',!remove);
     submit.style.borderColor=remove?'var(--danger)':'';
     submit.style.color=remove?'var(--danger)':'';
@@ -4479,7 +4507,7 @@ function populateAddDoors(){
   const doorSel=document.getElementById('aDoor');
   const delDoorSel=document.getElementById('delDoor');
   const norm=normalizeRetailer(ret);
-  const rDoors=doorLocations.filter(d=>normalizeRetailer(d.retailer)===norm);
+  const rDoors=doorLocations.filter(d=>!d.retired && normalizeRetailer(d.retailer)===norm);
   doorSel.innerHTML='<option value="">— Select a door —</option><option value="TBD">TBD — Not yet confirmed</option>';
   if(delDoorSel) delDoorSel.innerHTML='<option value="">— Select a door —</option>';
   rDoors.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
@@ -4594,13 +4622,15 @@ async function deleteDoorFromModify(){
     });
   }
   const label=`#${door.doorNumber} — ${door.name || '(no name)'}`;
-  const msg=`Delete ${label} from ${norm}? This will remove ${affected.length} brand assignment${affected.length===1?'':'s'} tied to this door.`;
+  const msg=`Retire ${label} from ${norm}? The store will remain in Store with a graveyard marker, and ${affected.length} brand assignment${affected.length===1?'':'s'} will be removed.`;
   const confirmed=window.fashionConfirm
-    ? await window.fashionConfirm(msg, { title:'Delete Door', confirmLabel:'Delete' })
+    ? await window.fashionConfirm(msg, { title:'Retire Door', confirmLabel:'Retire' })
     : confirm(msg);
   if(!confirmed) return;
 
-  doorLocations=doorLocations.filter(d=>!(normalizeRetailer(d.retailer)===norm && String(d.doorNumber)===String(doorVal)));
+  door.retired=true;
+  door.retiredAt=new Date().toISOString();
+  door.retiredReason=note || 'Retired from Modify';
   for(const [key,assigns] of Object.entries(doorAssignments)){
     const [r,b]=key.split('|');
     if(r!==norm) continue;
@@ -4609,12 +4639,12 @@ async function deleteDoorFromModify(){
       doorAssignments[key]=kept;
       recordHistory(norm,b,{
         scope:'door',
-        action:'door deleted',
+        action:'door retired',
         oldVal:buildDataKey(norm,doorVal,b),
         newVal:'DELETED',
         doorNumber:doorVal,
         user:currentUserName(),
-        note:note || `Deleted ${label} from Modify Door`
+        note:note || `Retired ${label} from Modify`
       });
     }
   }
@@ -4622,13 +4652,22 @@ async function deleteDoorFromModify(){
     const st=dataKeyState[key] || {};
     if(normalizeRetailer(st.retailer)===norm && String(st.doorNumber)===String(doorVal)) delete dataKeyState[key];
   });
+  recordHistory(norm,'__door__',{
+    scope:'door',
+    action:'store retired',
+    oldVal:label,
+    newVal:'RETIRED',
+    doorNumber:doorVal,
+    user:currentUserName(),
+    note:door.retiredReason
+  });
 
   populateFilters();
   populateAddDoors();
   render();
   renderAddSelectionPanels();
   queueAutosave();
-  toast(`Deleted ${label} from ${norm}.`);
+  toast(`Retired ${label} at ${norm}. It remains in Store.`);
 }
 
 /* Remove a brand from one retailer or, when explicitly selected, every
@@ -4966,13 +5005,13 @@ function getTemplateDemoRows(){
       {Retailer:'Retailer Four',Brand:'BR-E',Category:'FAST',Doors:1,'Door Number':402,Status:'confirmed',Grade:'B',Gender:'Ladies Only',metric_1:54,metric_2:0.36,Notes:'New concept placement'}
     ],
     doorRows:[
-      {Retailer:'Retailer One','Door Number':101,Name:'Demo Door 101',Address:'100 Market Walk',City:'New York',State:'NY',ZIP:'10001',Lat:40.7505,Lng:-73.9965,Tier:'A'},
-      {Retailer:'Retailer One','Door Number':102,Name:'Demo Door 102',Address:'200 Canyon Ave',City:'Los Angeles',State:'CA',ZIP:'90015',Lat:34.0407,Lng:-118.2468,Tier:'A'},
+      {Retailer:'Retailer One','Door Number':101,Name:'Demo Door 101',Address:'100 Market Walk',City:'New York',State:'NY',ZIP:'10001',Lat:40.7505,Lng:-73.9965,Tier:'A','Check 1':true,'Check 2':true},
+      {Retailer:'Retailer One','Door Number':102,Name:'Demo Door 102',Address:'200 Canyon Ave',City:'Los Angeles',State:'CA',ZIP:'90015',Lat:34.0407,Lng:-118.2468,Tier:'A','Check 1':true,'Check 2':false},
       {Retailer:'Retailer One','Door Number':103,Name:'Demo Door 103',Address:'300 Harbor Dr',City:'San Diego',State:'CA',ZIP:'92101',Lat:32.7157,Lng:-117.1611,Tier:'B'},
       {Retailer:'Retailer Two','Door Number':201,Name:'Demo Door 201',Address:'400 Lake St',City:'Chicago',State:'IL',ZIP:'60601',Lat:41.8853,Lng:-87.6216,Tier:'A'},
-      {Retailer:'Retailer Two','Door Number':202,Name:'Demo Door 202',Address:'500 Congress Ave',City:'Austin',State:'TX',ZIP:'78701',Lat:30.2672,Lng:-97.7431,Tier:'B'},
+      {Retailer:'Retailer Two','Door Number':202,Name:'Demo Door 202',Address:'500 Congress Ave',City:'Austin',State:'TX',ZIP:'78701',Lat:30.2672,Lng:-97.7431,Tier:'B','Check 1':false,'Check 2':true},
       {Retailer:'Retailer Two','Door Number':203,Name:'Demo Door 203',Address:'600 Main Plaza',City:'Houston',State:'TX',ZIP:'77002',Lat:29.7604,Lng:-95.3698,Tier:'C'},
-      {Retailer:'Retailer Three','Door Number':301,Name:'Demo Door 301',Address:'700 Biscayne Blvd',City:'Miami',State:'FL',ZIP:'33132',Lat:25.7781,Lng:-80.1868,Tier:'A'},
+      {Retailer:'Retailer Three','Door Number':301,Name:'Demo Door 301',Address:'700 Biscayne Blvd',City:'Miami',State:'FL',ZIP:'33132',Lat:25.7781,Lng:-80.1868,Tier:'A','Check 1':true,'Check 2':true},
       {Retailer:'Retailer Three','Door Number':302,Name:'Demo Door 302',Address:'800 Peachtree St',City:'Atlanta',State:'GA',ZIP:'30308',Lat:33.7711,Lng:-84.3877,Tier:'B'},
       {Retailer:'Retailer Three','Door Number':303,Name:'Demo Door 303',Address:'900 River Rd',City:'Nashville',State:'TN',ZIP:'37203',Lat:36.1527,Lng:-86.7891,Tier:'C'},
       {Retailer:'Retailer Four','Door Number':401,Name:'Demo Door 401',Address:'1000 Pine St',City:'Seattle',State:'WA',ZIP:'98101',Lat:47.6114,Lng:-122.3351,Tier:'A'},
@@ -5052,6 +5091,8 @@ function importMatrixRows(rows){
         const visitCadence=normalizeCadence(row['Visit Cadence']||row.visitCadence||row.Cadence||row.cadence);
         if(storeRep) door.storeRep=storeRep;
         if(visitCadence) door.visitCadence=visitCadence;
+        if(normalizeBoolean(row['Check 1'] ?? row.Check1 ?? row.ISS ?? row.iss)) door.iss=true;
+        if(normalizeBoolean(row['Check 2'] ?? row.Check2 ?? row['3C'] ?? row['3c'] ?? row.three_c ?? row.ThreeC)) door.three_c=true;
       }
       const status=row.Status||row.status;
       if(status) state.status=normalizeStatus(status);
@@ -5087,6 +5128,13 @@ function importDoorRows(rows){
     const tier=String(pick(row,['Tier','tier','Grade','grade'])||'').trim().toUpperCase();
     const storeRep=String(pick(row,['Store Rep','storeRep','Rep','rep','Owner','owner'])||'').trim();
     const visitCadence=normalizeCadence(pick(row,['Visit Cadence','visitCadence','Cadence','cadence']));
+    const issProvided=['Check 1','Check1','ISS','iss'].some(key=>Object.prototype.hasOwnProperty.call(row,key));
+    const threeCProvided=['Check 2','Check2','3C','3c','three_c','ThreeC'].some(key=>Object.prototype.hasOwnProperty.call(row,key));
+    const iss=normalizeBoolean(pick(row,['Check 1','Check1','ISS','iss']));
+    const threeC=normalizeBoolean(pick(row,['Check 2','Check2','3C','3c','three_c','ThreeC']));
+    const retiredProvided=['Retired','retired','Inactive','inactive'].some(key=>Object.prototype.hasOwnProperty.call(row,key));
+    const retiredRaw=String(pick(row,['Retired','retired','Inactive','inactive'])||'').trim().toLowerCase();
+    const retired=['1','true','yes','y','retired','inactive'].includes(retiredRaw);
     const existing=doorLocations.find(d=>normalizeRetailer(d.retailer)===ret && String(d.doorNumber)===String(doorNumber));
     if(existing){
       if(name) existing.name=name;
@@ -5099,9 +5147,12 @@ function importDoorRows(rows){
       if(tier) existing.tier=tier;
       if(storeRep) existing.storeRep=storeRep;
       if(visitCadence) existing.visitCadence=visitCadence;
+      if(issProvided) existing.iss=iss;
+      if(threeCProvided) existing.three_c=threeC;
+      if(retiredProvided) existing.retired=retired;
       updated++;
     }else{
-      doorLocations.push({retailer:ret,doorNumber,name:name||`Door ${doorNumber}`,address,city,state,zip,lat:Number.isNaN(lat)?undefined:lat,lng:Number.isNaN(lng)?undefined:lng,tier,storeRep,visitCadence});
+      doorLocations.push({retailer:ret,doorNumber,name:name||`Door ${doorNumber}`,address,city,state,zip,lat:Number.isNaN(lat)?undefined:lat,lng:Number.isNaN(lng)?undefined:lng,tier,storeRep,visitCadence,iss,three_c:threeC,retired});
       if(!retailers.includes(ret)) retailers.push(ret);
       added++;
     }
@@ -5124,9 +5175,9 @@ function processImp(file){
   reader.onload=function(e){
     try{
       const wb=XLSX.read(e.target.result,{type:'array'});
-      const n=importMatrixRows(workbookRows(wb,'Matrix'));
       let doorSummary=null;
       if(hasWorkbookSheet(wb,'Door Locations')) doorSummary=importDoorRows(workbookRows(wb,'Door Locations'));
+      const n=importMatrixRows(workbookRows(wb,'Matrix'));
       finishImport();
       toast(doorSummary?`Imported ${n} matrix entries and ${doorSummary.added+doorSummary.updated} door locations`:`Imported ${n} matrix entries`);
     }catch(err){toast('Error: '+err.message);}
@@ -5184,7 +5235,7 @@ function downloadTemplate(){
     ...demo.matrixRows
   ];
   const doorRows=[
-    {Retailer:'','Door Number':'',Name:'',Address:'',City:'',State:'',ZIP:'',Lat:'',Lng:'',Tier:'','Store Rep':'','Visit Cadence':''},
+    {Retailer:'','Door Number':'',Name:'',Address:'',City:'',State:'',ZIP:'',Lat:'',Lng:'',Tier:'','Store Rep':'','Visit Cadence':'','Check 1':'','Check 2':'',Retired:''},
     ...demo.doorRows
   ];
   const matrixWs=XLSX.utils.json_to_sheet(matrixRows);
@@ -5275,7 +5326,7 @@ function exportCurrentView(){
   const main=document.getElementById('mainView');
   const table=main?main.querySelector('table'):null;
   if(!table){toast('Nothing visible to export on this screen.');return;}
-  const wb=XLSX.utils.table_to_book(table,{sheet:currentView==='unpivoted'?'Data':(currentView.charAt(0).toUpperCase()+currentView.slice(1))});
+  const wb=XLSX.utils.table_to_book(table,{sheet:currentView==='unpivoted'?'Details':(currentView.charAt(0).toUpperCase()+currentView.slice(1))});
   XLSX.writeFile(wb,`Door_Distribution_${currentView}_${new Date().toISOString().slice(0,10)}.xlsx`);
   const rowCount=table.querySelectorAll('tbody tr').length || 0;
   toast(`Exported current ${currentView} view (${rowCount} rows)`);
@@ -5284,7 +5335,7 @@ function exportCurrentView(){
 /* Research view exports door-location records, respecting the same retailer,
    brand and door-search filters that the on-screen list is rendered from. */
 function exportResearchView(){
-  const doors=Array.isArray(window._resDoors) ? window._resDoors : doorLocations.slice();
+  const doors=(Array.isArray(window._resDoors) ? window._resDoors : doorLocations).filter(d=>!d.retired);
   if(!doors.length){ toast('No doors match the current filters — nothing to export.'); return; }
   const rows=doors.map(d=>({
     Retailer:d.retailer||'',
@@ -5296,7 +5347,10 @@ function exportResearchView(){
     ZIP:d.zip||'',
     Lat:(d.lat===undefined||d.lat===null||Number.isNaN(d.lat))?'':d.lat,
     Lng:(d.lng===undefined||d.lng===null||Number.isNaN(d.lng))?'':d.lng,
-    Tier:d.tier||''
+    Tier:d.tier||'',
+    'Check 1':normalizeBoolean(d.iss),
+    'Check 2':normalizeBoolean(d.three_c),
+    Retired:d.retired?'Yes':''
   }));
   const ws=XLSX.utils.json_to_sheet(rows);
   ws['!cols']=Object.keys(rows[0]).map(k=>({wch:Math.max(k.length+2,14)}));
@@ -5357,11 +5411,14 @@ function exportFullData(){
     Lng: d.lng==null?'':d.lng,
     Tier: d.tier||'',
     'Store Rep': d.storeRep||'',
-    'Visit Cadence': cadenceLabel(d.visitCadence)
+    'Visit Cadence': cadenceLabel(d.visitCadence),
+    'Check 1': normalizeBoolean(d.iss),
+    'Check 2': normalizeBoolean(d.three_c),
+    Retired: d.retired?'Yes':''
   }));
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(matrixRows.length?matrixRows:[{}]), 'Matrix');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(doorRows.length?doorRows:[{}]), 'Doors');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(doorRows.length?doorRows:[{}]), 'Door Locations');
   const stamp=new Date().toISOString().slice(0,10);
   XLSX.writeFile(wb, `door-tracker-data-${stamp}.xlsx`);
   toast(`Exported ${matrixRows.length} matrix rows, ${doorRows.length} doors.`);
@@ -5374,7 +5431,7 @@ let dataStatusPrimed=false;
 let currentMode='data'; // 'data' | 'map'
 
 /* Top-level framework toggle. Data mode owns the tabular views (matrix /
-   compact / tabular / unpivoted / drafts); Map mode owns the Brand-Door
+   tabular / unpivoted / drafts); Map mode owns the Brand-Door
    Research map. The two modes share the underlying state — just paint it
    differently. */
 function setMode(m){
@@ -5391,14 +5448,17 @@ function setMode(m){
   const tabs=document.getElementById('viewTabs');
   if(tabs) tabs.style.display = m==='map' ? 'none' : '';
   const tBtn=document.getElementById('tBtn');
+  const categoryBtn=document.getElementById('categoryColumnBtn');
   if(m==='map'){
     if(tBtn) tBtn.style.display='none';
+    if(categoryBtn) categoryBtn.style.display='none';
     currentView='research';
     closeRefinePanel();
   }else{
     if(currentView==='research') currentView='matrix';
     document.querySelectorAll('.view-tab').forEach(t=>t.classList.toggle('active', t.dataset.v===currentView));
     if(tBtn) tBtn.style.display = currentView==='matrix' ? 'inline-flex' : 'none';
+    if(categoryBtn) categoryBtn.style.display = currentView==='matrix' ? 'inline-flex' : 'none';
   }
   try{ localStorage.setItem('door-tracker-mode', m); }catch(e){}
   updateViewSpecificControls();
@@ -5423,6 +5483,7 @@ function setView(v){
   currentView=v;
   document.querySelectorAll('.view-tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   document.getElementById('tBtn').style.display=v==='matrix'?'inline-flex':'none';
+  document.getElementById('categoryColumnBtn').style.display=v==='matrix'?'inline-flex':'none';
   if(v==='unpivoted'){
     const fs=document.getElementById('fStatus');
     if(fs && (!dataStatusPrimed || !getSelectValues(fs).length)){
@@ -5434,6 +5495,24 @@ function setView(v){
   render();
 }
 function toggleTranspose(){transposed=!transposed;const btn=document.getElementById('tBtn');if(btn){btn.classList.toggle('active',transposed);btn.setAttribute('aria-pressed',transposed?'true':'false');} render();}
+function toggleCategoryColumn(){
+  categoryColumn=!categoryColumn;
+  const btn=document.getElementById('categoryColumnBtn');
+  if(btn){
+    btn.classList.toggle('active',categoryColumn);
+    btn.setAttribute('aria-pressed',String(categoryColumn));
+  }
+  try{ localStorage.setItem('door-tracker-category-column',categoryColumn?'1':'0'); }catch(e){}
+  render();
+}
+function restoreCategoryColumnState(){
+  try{ categoryColumn=localStorage.getItem('door-tracker-category-column')==='1'; }catch(e){ categoryColumn=false; }
+  const btn=document.getElementById('categoryColumnBtn');
+  if(btn){
+    btn.classList.toggle('active',categoryColumn);
+    btn.setAttribute('aria-pressed',String(categoryColumn));
+  }
+}
 function applyThemeToMaps(){
   if(window._doorMap){ try{window._doorMap.setStyle(mapStyleForTheme());}catch(e){} }
   if(_resMap){
@@ -5860,6 +5939,7 @@ function bootApp(){
   _appBooted=true;
   initFromSeed();
   const tBtn=document.getElementById('tBtn'); if(tBtn) tBtn.style.display='inline-flex';
+  restoreCategoryColumnState();
   /* Restore the Data/Map mode pick from the previous session. */
   let savedMode='data';
   try{ savedMode=localStorage.getItem('door-tracker-mode')||'data'; }catch(e){}

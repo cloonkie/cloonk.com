@@ -131,6 +131,10 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
 .store-table td input:hover { border-color: var(--border); }
 .store-table td input:focus { border-color: var(--accent); background: var(--surface-card); outline: none; }
 .store-table td input.store-saved { border-color: var(--success); background: color-mix(in oklab, var(--success) 14%, transparent); }
+.store-table tr.store-row-retired td,
+.store-table tr.store-row-retired th { opacity:0.5; background:color-mix(in oklab, var(--surface-raised) 86%, var(--text-dim)); }
+.store-table tr.store-row-retired:hover td,
+.store-table tr.store-row-retired:hover th { opacity:0.72; }
 .store-tier-field { display:flex; align-items:center; gap:4px; min-width:0; }
 .store-tier-field input { min-width:40px; }
 .store-exit-marker {
@@ -639,11 +643,44 @@ body.mode-map .matrix-wrap { padding: 0; height: calc(100vh - 112px); overflow: 
 .matrix thead th { background: var(--surface-raised); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.72rem; position: sticky; top: 0; z-index: 5; }
 .matrix th.rh { background: var(--surface); text-align: left; font-weight: 600; color: var(--text); position: sticky; left: 0; z-index: 4; min-width: 44px; }
 .matrix th.rh2 { background: var(--surface); text-align: left; font-weight: 500; color: var(--text); position: sticky; left: 44px; z-index: 4; min-width: 120px; font-size: 0.82rem; }
+.matrix.category-column th.category-col {
+  background:var(--surface);
+  color:var(--text);
+  position:sticky;
+  left:0;
+  z-index:4;
+  min-width:96px;
+  text-align:left;
+}
+.matrix.category-column th.rh { left:96px; }
+.matrix.category-column th.rh2 { left:140px; }
+.matrix .cat-badge {
+  display:inline-block;
+  padding:1px 6px;
+  border-radius:3px;
+  background:var(--accent-dim);
+  color:var(--accent);
+  font-size:0.58rem;
+  font-weight:700;
+  letter-spacing:0.05em;
+}
 .matrix .channel-header { background: var(--surface-raised); color: var(--text); font-weight: 700; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 2px solid var(--accent-mid); }
 .matrix .channel-divider td { background: var(--surface-raised); color: var(--accent); font-weight: 700; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; text-align: left; padding: 8px 12px; }
 .matrix thead th:first-child { position: sticky; left: 0; z-index: 6; }
 .matrix thead th:nth-child(2) { position: sticky; left: 44px; z-index: 6; }
+.matrix.category-column thead th:nth-child(2) { left:96px; }
+.matrix.category-column thead th:nth-child(3) { position:sticky; left:140px; z-index:6; }
 .matrix .cat-row td { background: var(--surface-raised); text-align: left; font-weight: 700; color: var(--accent); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 8px; }
+.compact-table .cat-row td {
+  background:var(--surface-raised);
+  color:var(--accent);
+  font-family:var(--font-body);
+  font-size:0.65rem;
+  font-weight:700;
+  letter-spacing:0.1em;
+  text-align:left;
+  text-transform:uppercase;
+}
 .matrix td.cell { cursor: pointer; min-width: 50px; position: relative; transition: background var(--transition), border-color var(--transition), box-shadow var(--transition); }
 .matrix td.cell:hover { background: var(--accent-dim); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); z-index: 1; }
 .matrix td.cell.at-cap { background: var(--at-cap); }
@@ -714,7 +751,7 @@ body.mode-map .matrix-wrap { padding: 0; height: calc(100vh - 112px); overflow: 
   font-size: 0.7rem;
 }
 
-/* ─── IN-PANE KEY / DOOR SEARCH (Data + Store views) ─── */
+/* ─── IN-PANE KEY / DOOR SEARCH (Details + Store views) ─── */
 .pane-search {
   display: flex; align-items: center; gap: 6px;
   flex: 1 1 280px; min-width: 200px; max-width: 460px;
@@ -740,7 +777,7 @@ body.light .pane-search-input { background: #f4f2ee; }
 .pane-search-hint { font-size: 0.62rem; color: var(--text-dim); white-space: nowrap; }
 @media (max-width: 760px) { .pane-search-hint { display: none; } }
 
-/* ─── GENDER QUICK-PICK (Data view) ─── */
+/* ─── GENDER QUICK-PICK (Details) ─── */
 .data-bulk-bar {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   padding: 6px 0 2px;
@@ -1492,6 +1529,18 @@ body.light .search-box { background: #f4f2ee; }
 }
 .data-cell-note:focus { border-color: var(--accent); }
 body.light .data-cell-note { background: #f4f2ee; }
+.data-checkbox-cell { text-align:center !important; }
+.data-checkbox-cell input[type="checkbox"] {
+  appearance:auto;
+  -webkit-appearance:auto;
+  width:16px;
+  height:16px;
+  min-height:0;
+  margin:0;
+  padding:0;
+  accent-color:var(--accent);
+  cursor:pointer;
+}
 .drawer-door-note {
   margin-top: 3px;
   padding: 2px 0;

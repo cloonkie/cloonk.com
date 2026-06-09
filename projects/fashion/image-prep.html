@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Prep | Kevin Zhang</title>
+<meta name="description" content="A local browser tool that batch-resizes images, sets a background color behind transparency, and reformats them to PNG, JPEG, or WebP. Nothing leaves your machine.">
+<meta name="author" content="Kevin Zhang">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="canonical" href="https://cloonk.com/projects/fashion/image-prep.html">
+<meta property="og:image" content="https://cloonk.com/favicon.svg">
+<meta name="twitter:image" content="https://cloonk.com/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script src="../../js/favicon-rotator.js" defer></script>
+<script src="../../js/cursor.js" defer></script>
+<script src="fashion-decisions.js" defer></script>
+<script src="fashion-nav.js" defer></script>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700,800&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fashion.css">
+<script>
+  try {
+    document.documentElement.setAttribute(
+      'data-theme',
+      localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark'
+    );
+  } catch (e) {}
+</script>
+<style>
+:root {
+  --text-muted: #aaa59a;
+  --text-dim: #7d786f;
+  --success: #39ff14;
+  --warn: #e8b931;
+}
+[data-theme="light"] {
+  --text-muted: #3f3f3a;
+  --text-dim: #676760;
+  --success: #1e8a4a;
+  --warn: #b86d00;
+}
+html { font-size: 15px; }
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; }
+button { color: inherit; }
+a { color: inherit; text-decoration: none; }
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+code, .mono { font-family: var(--font-mono); }
+
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 28px;
+  background: color-mix(in oklab, var(--bg) 86%, transparent);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+}
+[data-theme="light"] .header { background: rgba(245, 242, 236, 0.88); }
+.header-left { display: flex; align-items: center; gap: 16px; min-width: 0; flex-wrap: wrap; }
+.logo {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.3rem;
+  white-space: nowrap;
+  transition: color var(--transition);
+}
+.logo:hover { color: var(--accent); }
+.logo span {
+  margin-left: 10px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.btn, .theme-toggle {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background var(--transition), border-color var(--transition), color var(--transition), opacity var(--transition);
+}
+.btn:hover, .theme-toggle:hover { background: var(--surface-raised); border-color: var(--border-hover); }
+.btn:disabled { cursor: not-allowed; opacity: 0.45; }
+.btn-accent { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 700; }
+.btn-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--accent-fg); }
+.btn-danger { color: var(--danger); }
+.btn-sm { min-height: 27px; padding: 5px 10px; font-size: 0.72rem; }
+.header-actions .btn:not(.info-btn) { padding: 5px 10px; font-size: 0.72rem; }
+.theme-toggle { width: 32px; padding: 0; color: var(--text-muted); }
+.theme-toggle svg, .info-btn svg {
+  width: 14px; height: 14px;
+  stroke: currentColor; fill: none;
+  stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+}
+.theme-toggle .icon-moon { display: none; }
+[data-theme="light"] .theme-toggle .icon-sun { display: none; }
+[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+.info-btn { width: 32px; min-height: 32px; padding: 0; color: var(--text-muted); }
+
+/* ── Sticky settings bar ── */
+.settings-bar {
+  position: sticky;
+  top: var(--header-h, 61px);
+  z-index: 25;
+  background: color-mix(in oklab, var(--bg) 92%, transparent);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(18px);
+}
+[data-theme="light"] .settings-bar { background: rgba(245, 242, 236, 0.92); }
+.settings-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.sgroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.sgroup-label {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.sgroup-extra { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.sgroup-extra[hidden] { display: none; }
+.settings-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.settings-note { margin: 0 24px 10px; }
+
+.mini { display: inline-flex; align-items: center; gap: 6px; }
+.mini > span {
+  font-family: var(--font-mono); font-size: 0.62rem;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted);
+}
+.mini input[type=number] { width: 76px; }
+.sgroup .suffix-input { width: 92px; }
+.sgroup .hex-input { width: 86px; font-family: var(--font-mono); font-size: 0.78rem; }
+#exFit { width: auto; min-width: 104px; }
+
+/* ── Shell + workspace ── */
+.shell { padding: 18px 24px 90px; max-width: 1320px; margin: 0 auto; }
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.col {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.col-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 50px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-raised);
+}
+.col-title { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 1.04rem; }
+.col-sub { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.7rem; }
+.col-actions { margin-left: auto; display: flex; gap: 8px; }
+.col-body { padding: 16px; }
+
+/* ── Generic ── */
+.row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.muted { color: var(--text-muted); }
+.dim { color: var(--text-dim); }
+.hint { color: var(--text-muted); font-size: 0.82rem; line-height: 1.5; }
+.field { display: grid; gap: 6px; }
+.field label, .lbl {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+input[type=text], input[type=number], select {
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+[data-theme="light"] input, [data-theme="light"] select { background: #f4f2ee; }
+input:focus, select:focus { border-color: var(--accent); }
+.empty-state {
+  display: grid;
+  place-items: center;
+  padding: 36px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.empty-state strong {
+  display: block; margin-bottom: 6px;
+  color: var(--text); font-family: var(--font-display); font-size: 1.1rem;
+}
+
+/* ── Dropzone ── */
+.dropzone {
+  position: relative;
+  min-height: 96px;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  margin-bottom: 14px;
+  border: 1px dashed var(--border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--transition), background var(--transition);
+}
+.dropzone:hover, .dropzone.dragging { border-color: var(--accent); background: var(--surface-raised); }
+.dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.dz-title { font-family: var(--font-display); font-weight: 700; }
+.dz-sub { color: var(--text-muted); font-size: 0.82rem; margin-top: 3px; }
+
+/* Segmented toggle */
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+[data-theme="light"] .segmented { background: #f4f2ee; }
+.segmented button {
+  flex: 1 1 auto;
+  min-height: 28px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition);
+}
+.segmented button:hover { color: var(--text); }
+.segmented button.active { background: var(--accent); color: var(--accent-fg); font-weight: 700; }
+
+/* Range + number combo */
+.range-row { display: flex; align-items: center; gap: 10px; }
+.range-row input[type=range] { flex: 1; accent-color: var(--accent); }
+.range-row .val {
+  min-width: 52px; text-align: right;
+  font-family: var(--font-mono); font-size: 0.8rem; color: var(--text);
+}
+input[type=range] {
+  -webkit-appearance: none; appearance: none;
+  height: 4px; border-radius: 2px; background: var(--border-hover); outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: var(--accent); cursor: pointer; border: 0;
+}
+input[type=range]::-moz-range-thumb {
+  width: 15px; height: 15px; border-radius: 50%;
+  background: var(--accent); cursor: pointer; border: 0;
+}
+
+.check-inline { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 0.82rem; color: var(--text); }
+.check-inline input { width: 15px; height: 15px; accent-color: var(--accent); }
+
+/* Color picker row */
+.color-row { display: flex; align-items: center; gap: 10px; }
+.swatch {
+  position: relative;
+  width: 42px; height: 32px;
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  background-image:
+    linear-gradient(45deg, #ccc 25%, transparent 25%),
+    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ccc 75%),
+    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+}
+.swatch span { position: absolute; inset: 0; }
+.swatch input[type=color] {
+  position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px);
+  border: 0; padding: 0; cursor: pointer; opacity: 0;
+}
+.preset-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+.preset-swatches button {
+  width: 24px; height: 24px;
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-xs);
+  cursor: pointer; padding: 0;
+}
+.preset-swatches button:hover { transform: scale(1.08); }
+.note {
+  font-family: var(--font-mono); font-size: 0.7rem; line-height: 1.5;
+  color: var(--warn);
+}
+
+/* ── Queue list ── */
+.queue { display: grid; gap: 8px; }
+.queue-item {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+}
+.queue-item.bad { border-color: var(--danger); }
+.q-thumb {
+  width: 48px; height: 48px;
+  border-radius: var(--radius-xs);
+  object-fit: contain;
+  background:
+    linear-gradient(45deg, #444 25%, transparent 25%),
+    linear-gradient(-45deg, #444 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #444 75%),
+    linear-gradient(-45deg, transparent 75%, #444 75%);
+  background-size: 10px 10px;
+  background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+  background-color: #2a2a26;
+}
+.q-meta { min-width: 0; }
+.q-name { font-size: 0.86rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.q-sub { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+.q-remove {
+  width: 28px; height: 28px;
+  border: 1px solid var(--border); border-radius: var(--radius-xs);
+  background: transparent; color: var(--text-muted); cursor: pointer; font-size: 1rem; line-height: 1;
+}
+.q-remove:hover { color: var(--danger); border-color: var(--danger); }
+
+/* ── Results ── */
+.results-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.results-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+.badge.ok { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.badge b { color: var(--text); font-weight: 600; }
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+.result-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  overflow: hidden;
+}
+.result-preview {
+  height: 150px;
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  background:
+    linear-gradient(45deg, #3a3a36 25%, transparent 25%),
+    linear-gradient(-45deg, #3a3a36 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #3a3a36 75%),
+    linear-gradient(-45deg, transparent 75%, #3a3a36 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  background-color: #2a2a26;
+}
+[data-theme="light"] .result-preview {
+  background:
+    linear-gradient(45deg, #d6d2ca 25%, transparent 25%),
+    linear-gradient(-45deg, #d6d2ca 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #d6d2ca 75%),
+    linear-gradient(-45deg, transparent 75%, #d6d2ca 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  background-color: #eae6dc;
+}
+.result-preview img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+.result-info { padding: 0 12px 12px; display: grid; gap: 8px; }
+.r-name { font-size: 0.82rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.r-stats { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); line-height: 1.5; }
+.r-stats .arrow { color: var(--accent); }
+.r-stats .save-down { color: var(--success); }
+.r-stats .save-up { color: var(--warn); }
+
+/* ── Progress ── */
+.progress-wrap { display: none; margin-top: 12px; }
+.progress-wrap.show { display: block; }
+.progress-track { height: 6px; border-radius: 3px; background: var(--surface-card); overflow: hidden; border: 1px solid var(--border); }
+.progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.12s linear; }
+.progress-label { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); margin-top: 5px; }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  width: min(760px, 94vw);
+  max-height: 84vh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; }
+.modal-title span { color: var(--accent); }
+.modal-close {
+  width: 32px; height: 32px;
+  border: 1px solid var(--border); border-radius: var(--radius-xs);
+  background: transparent; color: var(--text-muted); cursor: pointer; font-size: 1.3rem;
+}
+.modal-close:hover { color: var(--text); background: var(--surface-raised); }
+.info-modal-tabs {
+  display: flex; gap: 4px; overflow-x: auto;
+  padding: 0 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.info-modal-tabs::-webkit-scrollbar { display: none; }
+.info-modal-tab {
+  border: 0; background: transparent; color: var(--text-muted); cursor: pointer;
+  font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.08em; padding: 12px; text-transform: uppercase; white-space: nowrap;
+  transition: color 0.15s;
+}
+.info-modal-tab:hover { color: var(--text); }
+.info-modal-tab.active { color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
+.modal-body { overflow: auto; padding: 18px 20px 24px; color: var(--text-muted); line-height: 1.6; }
+.info-modal-pane { display: none; }
+.info-modal-pane.active { display: block; }
+.modal-body h3 { margin: 16px 0 6px; color: var(--text); font-family: var(--font-display); }
+.modal-body h3:first-child { margin-top: 0; }
+.modal-body code { color: var(--accent); font-family: var(--font-mono); font-size: 0.86em; }
+.modal-body ul { margin: 6px 0 6px 20px; }
+.modal-body p { margin: 6px 0; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; right: 20px; bottom: 20px; z-index: 1100;
+  max-width: min(380px, calc(100vw - 40px));
+  padding: 11px 14px;
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  opacity: 0; transform: translateY(8px); pointer-events: none;
+  transition: opacity var(--transition), transform var(--transition);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── Hamburger nav (mobile) ── */
+.nav-burger {
+  display: none;
+  width: 38px; min-height: 34px;
+  align-items: center; justify-content: center; padding: 0;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text-muted); cursor: pointer;
+}
+.nav-burger:hover { color: var(--text); border-color: var(--border-hover); }
+.nav-burger svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; fill: none; }
+.nav-burger .icon-close { display: none; }
+body.nav-open .nav-burger .icon-open { display: none; }
+body.nav-open .nav-burger .icon-close { display: block; }
+
+@media (max-width: 960px) {
+  .workspace { grid-template-columns: 1fr; }
+}
+@media (max-width: 860px) {
+  .header { padding: 12px 16px; }
+  .shell { padding: 16px 14px 70px; }
+  .settings-inner { padding: 10px 14px; gap: 10px; }
+  .settings-note { margin: 0 14px 10px; }
+}
+@media (max-width: 720px) {
+  .header { padding-right: 60px; }
+  .nav-burger { display: inline-flex; position: absolute; top: 14px; right: 16px; z-index: 41; }
+  .header-actions {
+    position: absolute; top: calc(100% + 6px); right: 16px;
+    display: none; flex-direction: column; align-items: stretch;
+    min-width: 210px; max-width: calc(100vw - 32px); padding: 8px; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border-hover);
+    border-radius: var(--radius-sm); box-shadow: 0 18px 42px rgba(0,0,0,0.42); z-index: 40;
+  }
+  body.nav-open .header-actions { display: flex; }
+  .header-actions > * { width: 100%; justify-content: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <a class="logo" href="index.html">Image Prep <span>Fashion Toolbox</span></a>
+  </div>
+  <button class="nav-burger" id="navBurger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="headerActions">
+    <svg class="icon-open" viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+    <svg class="icon-close" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+  </button>
+  <div class="header-actions" id="headerActions">
+    <button class="btn btn-sm" id="addBtn" data-cursor="open">+ Add images</button>
+    <button class="btn btn-sm btn-danger" id="clearBtn" data-cursor="clear" disabled>Clear all</button>
+    <button class="btn info-btn" id="infoBtn" aria-label="Info and reference" data-tooltip="Info and reference">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg>
+    </button>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode" data-tooltip="Toggle light/dark mode">
+      <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- Central settings — sticky under the header -->
+<div class="settings-bar" id="settingsBar">
+  <div class="settings-inner">
+
+    <!-- Resize -->
+    <div class="sgroup">
+      <span class="sgroup-label">Resize</span>
+      <div class="segmented" id="resizeMode" role="group" aria-label="Resize mode">
+        <button data-val="none" class="active">Original</button>
+        <button data-val="percent">Scale&nbsp;%</button>
+        <button data-val="fit">Fit</button>
+        <button data-val="exact">Exact</button>
+      </div>
+      <div class="sgroup-extra" data-rz="percent" hidden>
+        <div class="range-row">
+          <input type="range" id="pctRange" min="5" max="400" step="1" value="100" aria-label="Scale percent">
+          <span class="val"><span id="pctVal">100</span>%</span>
+        </div>
+      </div>
+      <div class="sgroup-extra" data-rz="fit" hidden>
+        <span class="mini"><span>W</span><input type="number" id="fitW" min="1" value="1600"></span>
+        <span class="mini"><span>H</span><input type="number" id="fitH" min="1" value="1600"></span>
+        <label class="check-inline"><input type="checkbox" id="fitNoUp" checked> no&nbsp;upscale</label>
+      </div>
+      <div class="sgroup-extra" data-rz="exact" hidden>
+        <span class="mini"><span>W</span><input type="number" id="exW" min="1" value="1080"></span>
+        <span class="mini"><span>H</span><input type="number" id="exH" min="1" value="1080"></span>
+        <select id="exFit" aria-label="Exact fit">
+          <option value="contain">Contain</option>
+          <option value="cover">Cover</option>
+          <option value="stretch">Stretch</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Background -->
+    <div class="sgroup">
+      <span class="sgroup-label">Background</span>
+      <div class="segmented" id="bgMode" role="group" aria-label="Background mode">
+        <button data-val="transparent" class="active">Transparent</button>
+        <button data-val="color">Color</button>
+      </div>
+      <div class="sgroup-extra" data-bg="color" hidden>
+        <label class="swatch" title="Pick a color">
+          <span id="swatchFill"></span>
+          <input type="color" id="bgColor" value="#ffffff">
+        </label>
+        <input type="text" id="bgHex" value="#ffffff" spellcheck="false" class="hex-input" aria-label="Background hex">
+        <div class="preset-swatches" id="presetSwatches"></div>
+      </div>
+    </div>
+
+    <!-- Reformat -->
+    <div class="sgroup">
+      <span class="sgroup-label">Reformat</span>
+      <div class="segmented" id="fmtMode" role="group" aria-label="Output format">
+        <button data-val="original" class="active">Keep</button>
+        <button data-val="image/png">PNG</button>
+        <button data-val="image/jpeg">JPEG</button>
+        <button data-val="image/webp">WebP</button>
+      </div>
+      <div class="sgroup-extra" data-fmt="quality" hidden>
+        <div class="range-row">
+          <input type="range" id="qRange" min="10" max="100" step="1" value="90" aria-label="Quality">
+          <span class="val"><span id="qVal">90</span>%</span>
+        </div>
+      </div>
+      <span class="mini"><span>suffix</span><input type="text" id="suffix" placeholder="_web" spellcheck="false" class="suffix-input"></span>
+      <label class="check-inline"><input type="checkbox" id="appendDims"> +dims</label>
+    </div>
+
+    <div class="settings-actions">
+      <button class="btn btn-sm btn-accent" id="processBtn" disabled>Process</button>
+    </div>
+  </div>
+  <p class="note settings-note" id="bgJpegNote" hidden>JPEG has no transparency — exports flatten onto white.</p>
+</div>
+
+<main class="shell">
+  <div class="workspace">
+
+    <!-- Input -->
+    <section class="col">
+      <div class="col-head">
+        <h2 class="col-title">Input</h2>
+        <span class="col-sub" id="sourcesSub">0 images</span>
+        <div class="col-actions">
+          <button class="btn btn-sm" id="addBtn2">+ Add</button>
+        </div>
+      </div>
+      <div class="col-body">
+        <label class="dropzone" id="dropzone">
+          <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/svg+xml" multiple>
+          <span>
+            <span class="dz-title">Drop images here</span>
+            <span class="dz-sub">PNG · JPEG · WebP · GIF · BMP · SVG — or click to browse. Everything stays on your machine.</span>
+          </span>
+        </label>
+        <div class="queue" id="queue"></div>
+        <div class="empty-state" id="queueEmpty"><div><strong>No images yet.</strong><span>Drop files above to get started.</span></div></div>
+      </div>
+    </section>
+
+    <!-- Output -->
+    <section class="col">
+      <div class="col-head">
+        <h2 class="col-title">Output</h2>
+        <span class="col-sub" id="outputSub">No run yet</span>
+        <div class="col-actions">
+          <button class="btn btn-sm btn-accent" id="downloadAllBtn" disabled>Download all</button>
+        </div>
+      </div>
+      <div class="col-body">
+        <div class="progress-wrap" id="progressWrap">
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="progress-label" id="progressLabel"></div>
+        </div>
+        <div class="results-bar" id="resultsBar" hidden>
+          <div class="results-stats" id="resultsStats"></div>
+        </div>
+        <div class="results-grid" id="resultsGrid"></div>
+        <div class="empty-state" id="resultsEmpty"><div><strong>No output yet.</strong><span>Add images — they process automatically.</span></div></div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- Info modal -->
+<div class="modal-overlay" id="infoModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Image Prep <span>— Appendix</span></span>
+      <button class="modal-close" data-close-modal>&times;</button>
+    </div>
+    <div class="info-modal-tabs" role="tablist">
+      <button class="info-modal-tab active" data-tab="about" role="tab">About</button>
+      <button class="info-modal-tab" data-tab="controls" role="tab">Controls</button>
+      <button class="info-modal-tab" data-tab="tips" role="tab">Tips</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
+        <h3>What this is</h3>
+        <p>A browser-based batch image tool for prepping product and marketing imagery. Drop a set of images, choose how to resize them, set a background color behind any transparency, pick an output format, and download clean files — one by one or all at once.</p>
+        <h3>How it works</h3>
+        <p>Every image is decoded and redrawn on an HTML canvas with your chosen dimensions and background, then re-encoded to the format you select. Nothing is uploaded — all processing happens locally in your browser, so source files never leave your machine.</p>
+        <h3>Steps</h3>
+        <ol class="step-list">
+          <li><strong>Add images.</strong> Drop files onto the dropzone or click to browse. PNG, JPEG, WebP, GIF (first frame), BMP, and SVG are accepted.</li>
+          <li><strong>Set transform options.</strong> Resize, background color, and output format apply to the whole batch.</li>
+          <li><strong>Process &amp; download.</strong> Review the output gallery, then download each file or the whole set.</li>
+        </ol>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-controls" role="tabpanel">
+        <h3 id="panelinfo-sources">Source images</h3>
+        <p>Each accepted file is queued with a thumbnail and its native pixel dimensions. Remove individual items with the × button, or <code>Clear all</code> in the header.</p>
+        <h3 id="panelinfo-transform">Transform</h3>
+        <p><strong>Resize</strong></p>
+        <ul>
+          <li><code>Original</code> — keep native dimensions.</li>
+          <li><code>Scale %</code> — multiply both dimensions by a percentage.</li>
+          <li><code>Fit within</code> — shrink to fit inside a max width × height, preserving aspect ratio. Optionally never enlarge smaller images.</li>
+          <li><code>Exact</code> — force a precise canvas size. <em>Contain</em> fits the whole image and pads the rest with the background; <em>Cover</em> fills the frame and crops the overflow; <em>Stretch</em> distorts to the exact size.</li>
+        </ul>
+        <p><strong>Background</strong> — <code>Transparent</code> keeps the alpha channel (PNG/WebP only). <code>Color</code> fills behind transparent pixels and any padding. JPEG cannot store transparency, so it is always flattened onto the chosen color (white by default).</p>
+        <p><strong>Reformat</strong> — <code>Keep</code> retains each file's original type where possible. PNG is lossless; JPEG and WebP expose a quality slider. A filename suffix and an optional <code>_WIDTHxHEIGHT</code> tag can be appended.</p>
+        <h3 id="panelinfo-output">Output</h3>
+        <p>Each result card shows the new preview on a checkerboard (so transparency is visible), the dimension change, the format, and the new file size with the percentage saved or added versus the source. Download individually or use <code>Download all</code>.</p>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-tips" role="tabpanel">
+        <h3>Tips</h3>
+        <ul>
+          <li>Set every product shot to a uniform square with <strong>Exact → Contain</strong> and a white background for a tidy line sheet or marketplace listing.</li>
+          <li>Use <strong>Fit within</strong> + WebP at ~80% quality to make web-ready assets that stay sharp but small.</li>
+          <li>GIFs are rendered from their first frame only — animation is not preserved.</li>
+          <li><strong>Download all</strong> fires the saves in sequence; if your browser asks to allow multiple downloads, accept it.</li>
+          <li>Options apply to the whole batch and re-run automatically as you tweak them.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ── State ──────────────────────────────────────────────── */
+  let seq = 0;
+  const items = [];               // { id, file, name, url, img, w, h, ok, error }
+  const settings = {
+    resize: "none",
+    percent: 100,
+    fitW: 1600, fitH: 1600, fitNoUp: true,
+    exW: 1080, exH: 1080, exFit: "contain",
+    bg: "transparent", bgColor: "#ffffff",
+    format: "original", quality: 0.9,
+    suffix: "", appendDims: false,
+  };
+  const PRESET_COLORS = ["#ffffff", "#000000", "#f5f2ec", "#0a0a0a", "#e8e4dc", "#d9d4c8", "#1b1b18", "#cfd8dc"];
+
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    fileInput: $("fileInput"), dropzone: $("dropzone"),
+    queue: $("queue"), queueEmpty: $("queueEmpty"), sourcesSub: $("sourcesSub"),
+    processBtn: $("processBtn"), clearBtn: $("clearBtn"),
+    progressWrap: $("progressWrap"), progressFill: $("progressFill"), progressLabel: $("progressLabel"),
+    resultsBar: $("resultsBar"), resultsStats: $("resultsStats"),
+    resultsGrid: $("resultsGrid"), resultsEmpty: $("resultsEmpty"), outputSub: $("outputSub"),
+    downloadAllBtn: $("downloadAllBtn"),
+    toast: $("toast"),
+  };
+
+  /* ── Helpers ────────────────────────────────────────────── */
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, (c) => (
+      { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]
+    ));
+  }
+  function fmtBytes(n) {
+    if (n == null) return "—";
+    if (n < 1024) return n + " B";
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+    return (n / (1024 * 1024)).toFixed(2) + " MB";
+  }
+  let toastTimer;
+  function toast(msg) {
+    els.toast.textContent = msg;
+    els.toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => els.toast.classList.remove("show"), 3000);
+  }
+  const extFor = (type) => ({ "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" }[type] || "png");
+  const labelFor = (type) => ({ "image/png": "PNG", "image/jpeg": "JPEG", "image/webp": "WEBP" }[type] || "PNG");
+
+  /* ── File intake ────────────────────────────────────────── */
+  function addFiles(fileList) {
+    const incoming = Array.from(fileList || []).filter((f) => f.type.startsWith("image/"));
+    if (!incoming.length) { toast("No images found in that drop."); return; }
+    let pending = incoming.length;
+    incoming.forEach((file) => {
+      const id = ++seq;
+      const url = URL.createObjectURL(file);
+      const item = { id, file, name: file.name, url, img: null, w: 0, h: 0, ok: false, error: "" };
+      items.push(item);
+      const img = new Image();
+      img.onload = () => {
+        item.w = img.naturalWidth; item.h = img.naturalHeight;
+        if (!item.w || !item.h) { item.ok = false; item.error = "No intrinsic size"; }
+        else { item.img = img; item.ok = true; }
+        if (--pending === 0) { renderQueue(); scheduleProcess(); }
+        else renderQueue();
+      };
+      img.onerror = () => {
+        item.ok = false; item.error = "Could not decode";
+        if (--pending === 0) { renderQueue(); scheduleProcess(); }
+        else renderQueue();
+      };
+      img.src = url;
+    });
+    renderQueue();
+  }
+
+  function removeItem(id) {
+    const i = items.findIndex((it) => it.id === id);
+    if (i === -1) return;
+    const [it] = items.splice(i, 1);
+    if (it.url) URL.revokeObjectURL(it.url);
+    if (it.result && it.result.url) URL.revokeObjectURL(it.result.url);
+    renderQueue();
+    if (items.length) scheduleProcess();
+    else renderResults([]);
+  }
+
+  function clearAll() {
+    items.forEach((it) => {
+      if (it.url) URL.revokeObjectURL(it.url);
+      if (it.result && it.result.url) URL.revokeObjectURL(it.result.url);
+    });
+    items.length = 0;
+    renderQueue();
+    renderResults([]);
+  }
+
+  function renderQueue() {
+    const has = items.length > 0;
+    els.queueEmpty.style.display = has ? "none" : "";
+    els.clearBtn.disabled = !has;
+    els.processBtn.disabled = !items.some((it) => it.ok);
+    els.sourcesSub.textContent = has ? `${items.length} image${items.length === 1 ? "" : "s"}` : "0 images";
+    els.queue.innerHTML = items.map((it) => {
+      const dims = it.ok ? `${it.w} × ${it.h} px` : (it.error || "loading…");
+      return `<div class="queue-item${it.ok ? "" : (it.error ? " bad" : "")}">
+        <img class="q-thumb" src="${esc(it.url)}" alt="">
+        <div class="q-meta">
+          <div class="q-name" title="${esc(it.name)}">${esc(it.name)}</div>
+          <div class="q-sub">${esc(dims)} · ${esc(fmtBytes(it.file.size))}</div>
+        </div>
+        <button class="q-remove" data-remove="${it.id}" aria-label="Remove ${esc(it.name)}">&times;</button>
+      </div>`;
+    }).join("");
+    updateJpegNote();
+  }
+
+  /* ── Geometry ───────────────────────────────────────────── */
+  function computeTarget(nw, nh) {
+    const s = settings;
+    if (s.resize === "percent") {
+      const k = s.percent / 100;
+      const w = Math.max(1, Math.round(nw * k)), h = Math.max(1, Math.round(nh * k));
+      return { cw: w, ch: h, dw: w, dh: h, dx: 0, dy: 0 };
+    }
+    if (s.resize === "fit") {
+      const mw = s.fitW > 0 ? s.fitW : Infinity;
+      const mh = s.fitH > 0 ? s.fitH : Infinity;
+      let scale = Math.min(mw / nw, mh / nh);
+      if (!isFinite(scale)) scale = 1;
+      if (s.fitNoUp) scale = Math.min(scale, 1);
+      const w = Math.max(1, Math.round(nw * scale)), h = Math.max(1, Math.round(nh * scale));
+      return { cw: w, ch: h, dw: w, dh: h, dx: 0, dy: 0 };
+    }
+    if (s.resize === "exact") {
+      const cw = Math.max(1, s.exW || nw), ch = Math.max(1, s.exH || nh);
+      if (s.exFit === "stretch") return { cw, ch, dw: cw, dh: ch, dx: 0, dy: 0 };
+      const scale = s.exFit === "cover" ? Math.max(cw / nw, ch / nh) : Math.min(cw / nw, ch / nh);
+      const dw = Math.round(nw * scale), dh = Math.round(nh * scale);
+      return { cw, ch, dw, dh, dx: Math.round((cw - dw) / 2), dy: Math.round((ch - dh) / 2) };
+    }
+    return { cw: nw, ch: nh, dw: nw, dh: nh, dx: 0, dy: 0 };
+  }
+
+  function outputType(file) {
+    if (settings.format === "original") {
+      return ["image/png", "image/jpeg", "image/webp"].includes(file.type) ? file.type : "image/png";
+    }
+    return settings.format;
+  }
+
+  function effectiveBg(type) {
+    if (settings.bg === "color") return settings.bgColor;
+    if (type === "image/jpeg") return "#ffffff";   // JPEG can't be transparent
+    return null;                                    // keep transparent
+  }
+
+  /* ── Processing ─────────────────────────────────────────── */
+  let processToken = 0;
+  let processTimer;
+  function scheduleProcess() {
+    clearTimeout(processTimer);
+    processTimer = setTimeout(processAll, 220);
+  }
+
+  async function processAll() {
+    const ready = items.filter((it) => it.ok);
+    if (!ready.length) { renderResults([]); return; }
+    const token = ++processToken;
+    els.progressWrap.classList.add("show");
+    els.processBtn.disabled = true;
+
+    let done = 0;
+    for (const it of ready) {
+      if (token !== processToken) return;   // superseded by a newer run
+      try {
+        it.result = await renderOne(it);
+      } catch (e) {
+        it.result = null; it.error = "Encode failed";
+      }
+      done++;
+      const pct = Math.round((done / ready.length) * 100);
+      els.progressFill.style.width = pct + "%";
+      els.progressLabel.textContent = `Processing ${done} / ${ready.length}`;
+      // Yield so the progress bar paints between images.
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    if (token !== processToken) return;
+    els.progressWrap.classList.remove("show");
+    els.progressFill.style.width = "0%";
+    els.processBtn.disabled = false;
+    renderResults(ready);
+  }
+
+  function renderOne(it) {
+    return new Promise((resolve, reject) => {
+      const t = computeTarget(it.w, it.h);
+      const type = outputType(it.file);
+      const canvas = document.createElement("canvas");
+      canvas.width = t.cw; canvas.height = t.ch;
+      const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      const bg = effectiveBg(type);
+      if (bg) { ctx.fillStyle = bg; ctx.fillRect(0, 0, t.cw, t.ch); }
+      ctx.drawImage(it.img, t.dx, t.dy, t.dw, t.dh);
+
+      const quality = (type === "image/jpeg" || type === "image/webp") ? settings.quality : undefined;
+      const finish = (blob) => {
+        if (!blob) { reject(new Error("toBlob null")); return; }
+        if (it.result && it.result.url) URL.revokeObjectURL(it.result.url);
+        resolve({
+          blob, url: URL.createObjectURL(blob),
+          w: t.cw, h: t.ch, size: blob.size, type,
+          name: outName(it.name, type, t.cw, t.ch),
+        });
+      };
+      if (canvas.toBlob) canvas.toBlob(finish, type, quality);
+      else {
+        // Fallback for very old engines.
+        try {
+          const data = canvas.toDataURL(type, quality);
+          const bin = atob(data.split(",")[1]);
+          const arr = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+          finish(new Blob([arr], { type }));
+        } catch (e) { reject(e); }
+      }
+    });
+  }
+
+  function outName(name, type, w, h) {
+    const dot = name.lastIndexOf(".");
+    const base = dot > 0 ? name.slice(0, dot) : name;
+    const suffix = settings.suffix || "";
+    const dims = settings.appendDims ? `_${w}x${h}` : "";
+    return `${base}${suffix}${dims}.${extFor(type)}`;
+  }
+
+  /* ── Results render ─────────────────────────────────────── */
+  function renderResults(ready) {
+    const done = ready.filter((it) => it.result);
+    const has = done.length > 0;
+    els.resultsEmpty.style.display = has ? "none" : "";
+    els.resultsBar.hidden = !has;
+    els.downloadAllBtn.disabled = !has;
+    els.outputSub.textContent = has ? `${done.length} ready` : "No run yet";
+
+    if (has) {
+      const srcTotal = done.reduce((a, it) => a + it.file.size, 0);
+      const outTotal = done.reduce((a, it) => a + it.result.size, 0);
+      const delta = srcTotal ? Math.round((1 - outTotal / srcTotal) * 100) : 0;
+      const deltaTxt = delta >= 0 ? `−${delta}%` : `+${-delta}%`;
+      els.resultsStats.innerHTML =
+        `<span class="badge ok"><b>${done.length}</b> images</span>` +
+        `<span class="badge">source <b>${fmtBytes(srcTotal)}</b></span>` +
+        `<span class="badge">output <b>${fmtBytes(outTotal)}</b></span>` +
+        `<span class="badge">${deltaTxt} total</span>`;
+    }
+
+    els.resultsGrid.innerHTML = done.map((it) => {
+      const r = it.result;
+      const sizeDelta = it.file.size ? Math.round((1 - r.size / it.file.size) * 100) : 0;
+      const deltaCls = sizeDelta >= 0 ? "save-down" : "save-up";
+      const deltaTxt = sizeDelta >= 0 ? `${sizeDelta}% smaller` : `${-sizeDelta}% larger`;
+      const resized = (r.w !== it.w || r.h !== it.h);
+      return `<div class="result-card">
+        <div class="result-preview"><img src="${esc(r.url)}" alt="${esc(r.name)}"></div>
+        <div class="result-info">
+          <div class="r-name" title="${esc(r.name)}">${esc(r.name)}</div>
+          <div class="r-stats">
+            ${it.w} × ${it.h} ${resized ? `<span class="arrow">→</span> ${r.w} × ${r.h}` : `<span class="dim">(unchanged)</span>`}<br>
+            ${labelFor(r.type)} · ${fmtBytes(r.size)} <span class="${deltaCls}">(${deltaTxt})</span>
+          </div>
+          <button class="btn btn-sm" data-dl="${it.id}">Download</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  function download(it) {
+    if (!it || !it.result) return;
+    const a = document.createElement("a");
+    a.href = it.result.url;
+    a.download = it.result.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  async function downloadAll() {
+    const done = items.filter((it) => it.result);
+    if (!done.length) return;
+    for (const it of done) {
+      download(it);
+      await new Promise((r) => setTimeout(r, 220)); // stagger so browsers don't drop saves
+    }
+    toast(`Downloading ${done.length} image${done.length === 1 ? "" : "s"}…`);
+  }
+
+  /* ── Settings wiring ────────────────────────────────────── */
+  function segmented(id, key, onChange) {
+    const root = $(id);
+    root.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-val]");
+      if (!btn) return;
+      root.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b === btn));
+      settings[key] = btn.dataset.val;
+      if (onChange) onChange(btn.dataset.val);
+      scheduleProcess();
+    });
+  }
+
+  function showResizePanels(mode) {
+    document.querySelectorAll("[data-rz]").forEach((el) => { el.hidden = el.dataset.rz !== mode; });
+  }
+  function showBgPanels(mode) {
+    document.querySelectorAll("[data-bg]").forEach((el) => { el.hidden = el.dataset.bg !== mode; });
+    updateJpegNote();
+  }
+  function showFmtPanels(fmt) {
+    const q = document.querySelector('[data-fmt="quality"]');
+    q.hidden = !(fmt === "image/jpeg" || fmt === "image/webp");
+    updateJpegNote();
+  }
+  function updateJpegNote() {
+    const note = $("bgJpegNote");
+    const jpeg = settings.format === "image/jpeg" ||
+      (settings.format === "original" && items.some((it) => it.ok && it.file.type === "image/jpeg"));
+    note.hidden = !(jpeg && settings.bg === "transparent");
+  }
+
+  function syncSwatch() {
+    $("swatchFill").style.background = settings.bgColor;
+  }
+
+  function initSettings() {
+    segmented("resizeMode", "resize", showResizePanels);
+    segmented("bgMode", "bg", showBgPanels);
+    segmented("fmtMode", "format", showFmtPanels);
+
+    $("pctRange").addEventListener("input", (e) => {
+      settings.percent = +e.target.value; $("pctVal").textContent = e.target.value; scheduleProcess();
+    });
+    const numBind = (id, key) => $(id).addEventListener("input", (e) => {
+      settings[key] = e.target.value === "" ? 0 : Math.max(0, Math.round(+e.target.value || 0));
+      scheduleProcess();
+    });
+    numBind("fitW", "fitW"); numBind("fitH", "fitH");
+    numBind("exW", "exW"); numBind("exH", "exH");
+    $("fitNoUp").addEventListener("change", (e) => { settings.fitNoUp = e.target.checked; scheduleProcess(); });
+    $("exFit").addEventListener("change", (e) => { settings.exFit = e.target.value; scheduleProcess(); });
+
+    $("qRange").addEventListener("input", (e) => {
+      settings.quality = (+e.target.value) / 100; $("qVal").textContent = e.target.value; scheduleProcess();
+    });
+    $("suffix").addEventListener("input", (e) => { settings.suffix = e.target.value; scheduleProcess(); });
+    $("appendDims").addEventListener("change", (e) => { settings.appendDims = e.target.checked; scheduleProcess(); });
+
+    // Color picker ↔ hex text two-way bind
+    const color = $("bgColor"), hex = $("bgHex");
+    const setColor = (v) => {
+      if (!/^#[0-9a-fA-F]{6}$/.test(v)) return;
+      settings.bgColor = v.toLowerCase();
+      color.value = settings.bgColor; hex.value = settings.bgColor;
+      syncSwatch(); scheduleProcess();
+    };
+    color.addEventListener("input", (e) => setColor(e.target.value));
+    hex.addEventListener("change", (e) => setColor(e.target.value.trim()));
+
+    // Preset swatches
+    $("presetSwatches").innerHTML = PRESET_COLORS.map((c) =>
+      `<button type="button" data-color="${c}" style="background:${c}" title="${c}" aria-label="${c}"></button>`).join("");
+    $("presetSwatches").addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-color]"); if (!b) return;
+      setColor(b.dataset.color);
+    });
+
+    syncSwatch();
+  }
+
+  /* ── Sticky offset — pin the settings bar just below the header ── */
+  function measureHeader() {
+    const header = document.querySelector(".header");
+    if (header) document.documentElement.style.setProperty("--header-h", header.offsetHeight + "px");
+  }
+
+  /* ── Theme ──────────────────────────────────────────────── */
+  function applyTheme(next) {
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("cloonk-theme", next); } catch (e) {}
+  }
+  function toggleTheme() {
+    const root = document.documentElement;
+    const next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (typeof document.startViewTransition === "function" && !reduce) {
+      document.startViewTransition(() => applyTheme(next));
+    } else applyTheme(next);
+  }
+  window.addEventListener("storage", (e) => {
+    if (e.key === "cloonk-theme") applyTheme(e.newValue === "light" ? "light" : "dark");
+  });
+
+  /* ── Info modal ─────────────────────────────────────────── */
+  function initInfoModal() {
+    const overlay = $("infoModal");
+    const close = () => overlay.classList.remove("open");
+    const activate = (key) => {
+      document.querySelectorAll(".info-modal-tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === key));
+      document.querySelectorAll(".info-modal-pane").forEach((p) => p.classList.toggle("active", p.id === "modal-tab-" + key));
+    };
+    $("infoBtn").addEventListener("click", () => overlay.classList.add("open"));
+    overlay.querySelector("[data-close-modal]").addEventListener("click", close);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+    document.querySelectorAll(".info-modal-tab").forEach((tab) =>
+      tab.addEventListener("click", () => activate(tab.dataset.tab)));
+  }
+
+  /* ── Wiring ─────────────────────────────────────────────── */
+  function init() {
+    // Intake
+    els.fileInput.addEventListener("change", (e) => { addFiles(e.target.files); e.target.value = ""; });
+    const pick = () => els.fileInput.click();
+    $("addBtn").addEventListener("click", pick);
+    $("addBtn2").addEventListener("click", pick);
+    els.clearBtn.addEventListener("click", clearAll);
+
+    // Dropzone (whole window accepts drops too)
+    ["dragenter", "dragover"].forEach((ev) =>
+      els.dropzone.addEventListener(ev, (e) => { e.preventDefault(); els.dropzone.classList.add("dragging"); }));
+    ["dragleave", "dragend", "drop"].forEach((ev) =>
+      els.dropzone.addEventListener(ev, () => els.dropzone.classList.remove("dragging")));
+    els.dropzone.addEventListener("drop", (e) => { e.preventDefault(); addFiles(e.dataTransfer.files); });
+    window.addEventListener("dragover", (e) => e.preventDefault());
+    window.addEventListener("drop", (e) => {
+      if (e.target.closest(".dropzone")) return; // handled above
+      e.preventDefault();
+      if (e.dataTransfer && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+    });
+
+    // Queue + results delegation
+    els.queue.addEventListener("click", (e) => {
+      const rm = e.target.closest("[data-remove]");
+      if (rm) removeItem(+rm.dataset.remove);
+    });
+    els.resultsGrid.addEventListener("click", (e) => {
+      const dl = e.target.closest("[data-dl]");
+      if (dl) download(items.find((it) => it.id === +dl.dataset.dl));
+    });
+    els.processBtn.addEventListener("click", () => { clearTimeout(processTimer); processAll(); });
+    els.downloadAllBtn.addEventListener("click", downloadAll);
+
+    $("themeToggle").addEventListener("click", toggleTheme);
+
+    initSettings();
+    initInfoModal();
+    measureHeader();
+    window.addEventListener("resize", measureHeader);
+    renderQueue();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+</html>

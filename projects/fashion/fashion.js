@@ -99,6 +99,20 @@
       outputs: ".xlsx / .csv / TSV",
       status: "Ready",
     },
+    {
+      file: "image-prep.html",
+      code: "IMG 007",
+      category: "ASSETS",
+      chapter: "Image Production",
+      name: "Image Prep",
+      sub: "Resize · Recolor · Reformat",
+      purpose:
+        "Batch-resize images, set a background color behind transparency, and " +
+        "reformat to PNG, JPEG, or WebP. Everything runs locally — nothing uploads.",
+      eats: ".png / .jpg / .webp",
+      outputs: ".png / .jpg / .webp",
+      status: "Ready",
+    },
   ];
 
   /* Tab offsets, so the folder tabs stagger across the drawer

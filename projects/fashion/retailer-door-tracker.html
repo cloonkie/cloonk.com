@@ -81,7 +81,7 @@
 
 <div class="toolbar" id="toolbar">
   <div id="mode-toggle" class="mode-toggle" role="group" aria-label="Workspace mode">
-    <button type="button" class="mode-btn active" data-mode="data" aria-pressed="true" onclick="setMode('data')" title="Tabular views: Matrix, Compact, Tabular, Data, Drafts">Data</button>
+    <button type="button" class="mode-btn active" data-mode="data" aria-pressed="true" onclick="setMode('data')" title="Tabular views: Matrix, Tabular, Details, Store, Drafts">Data</button>
     <button type="button" class="mode-btn" data-mode="map" aria-pressed="false" onclick="setMode('map')" title="Spatial view: Brand–Door Research map">Map</button>
   </div>
   <button class="btn btn-sm map-screenshot-btn" id="mapScreenshotBtn" type="button" onclick="copyMapScreenshot()" aria-label="Copy map screenshot" title="Copy map screenshot" data-cursor="screenshot">
@@ -90,13 +90,13 @@
   <div class="toolbar-divider"></div>
   <div class="view-tabs" id="viewTabs">
     <button class="view-tab active" data-v="matrix" onclick="setView('matrix')">Matrix</button>
-    <button class="view-tab" data-v="compact" onclick="setView('compact')">Compact</button>
     <button class="view-tab" data-v="tabular" onclick="setView('tabular')">Tabular</button>
-    <button class="view-tab" data-v="unpivoted" onclick="setView('unpivoted')">Data</button>
+    <button class="view-tab" data-v="unpivoted" onclick="setView('unpivoted')">Details</button>
     <button class="view-tab" data-v="store" onclick="setView('store')" title="Edit door locations inline">Store</button>
     <button class="view-tab draft-tab" data-v="drafts" onclick="setView('drafts')">Drafts <span class="draft-badge" id="draftCount">0</span></button>
   </div>
   <button class="btn btn-sm" id="tBtn" onclick="toggleTranspose()" title="Swap rows/columns in Matrix view">⇄ Transpose</button>
+  <button class="btn btn-sm" id="categoryColumnBtn" type="button" aria-pressed="false" onclick="toggleCategoryColumn()" title="Show brand category as a column instead of grouped sections">Category Column</button>
   <div class="toolbar-spacer"></div>
   <div class="refine-wrap" id="refineWrap">
     <button class="btn btn-sm menu-trigger refine-trigger" type="button" onclick="toggleRefinePanel()" aria-expanded="false" title="Show filters and search" data-cursor="expand-collapse">
@@ -282,9 +282,9 @@
   </div>
 
   <div id="deleteDoorWrap" style="display:none">
-    <label for="delDoor" id="delDoorLabel">Door to delete <span class="req" aria-hidden="true">*</span></label>
+    <label for="delDoor" id="delDoorLabel">Door to retire <span class="req" aria-hidden="true">*</span></label>
     <select id="delDoor" onchange="renderAddSelectionPanels()"><option value="">— Select a door —</option></select>
-    <div class="helper-text">Deleting a door removes the retailer door record and all brand assignments tied to that door. This cannot be undone except by restoring a saved state.</div>
+    <div class="helper-text">Retiring a door removes its brand assignments but keeps the store in Store, deprioritized with a graveyard marker.</div>
     <div class="pick-panel">
       <h4>Assignments that will be removed</h4>
       <div class="pick-list" id="delDoorCurrent"></div>
@@ -316,14 +316,14 @@
   </div>
 
   <label for="impFile">Matrix data</label>
-  <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>. Optional door-brand selling fields: <code>Door Number</code>, <code>Status</code>, <code>Grade</code>, <code>Gender</code>, <code>metric_1</code>, <code>metric_2</code>, <code>Notes</code>.</div>
+  <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Matrix columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>, plus optional door-brand selling fields. Door Locations owns store-level fields including <code>Check 1</code> (ISS) and <code>Check 2</code> (3C).</div>
   <label class="import-zone" for="impFile" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
     <span class="import-zone-text">Drop matrix file or click to browse</span>
     <input type="file" id="impFile" accept=".xlsx,.xls,.csv" onchange="handleImpFile(event)">
   </label>
 
   <label for="impDoorFile">Door locations</label>
-  <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Tier</code>, <code>Store Rep</code>, <code>Visit Cadence</code>.</div>
+  <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Tier</code>, <code>Store Rep</code>, <code>Visit Cadence</code>, <code>Check 1</code>, <code>Check 2</code>.</div>
   <label class="import-zone" for="impDoorFile" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDoorDrop(event)">
     <span class="import-zone-text">Drop door-location file or click to browse</span>
     <input type="file" id="impDoorFile" accept=".xlsx,.xls,.csv" onchange="handleImpDoorFile(event)">
@@ -387,7 +387,7 @@
       <ol class="step-list">
         <li>Sign in, or use <strong>Try Demo Data</strong> from the initial screen to load an anonymized working set.</li>
         <li>Import a matrix file, a door-location file, or both. Matching retailer + door number pairs update existing rows.</li>
-        <li>Use Matrix, Compact, Tabular, Data, Drafts, Store, and Research views to switch between roll-up, row-level, and map-first review.</li>
+        <li>Use Matrix, Tabular, Details, Drafts, Store, and Research views to switch between roll-up, row-level, and map-first review.</li>
         <li>Open a retailer-brand cell or a door drawer to inspect assignments, notes, map position, gender/metric fields, and history.</li>
         <li>Draft additions, exits, TBD changes, or door edits before publishing them into confirmed counts.</li>
         <li>Export the active view, save a JSON handoff file, or create a restore point before larger imports.</li>
@@ -395,8 +395,8 @@
     </div>
     <table class="info-modal-table">
       <tr><th>Moment</th><th>Best view</th></tr>
-      <tr><td>Executive count check</td><td>Matrix or Compact</td></tr>
-      <tr><td>Investigating one retailer</td><td>Tabular, Data, or Research</td></tr>
+      <tr><td>Executive count check</td><td>Matrix</td></tr>
+      <tr><td>Investigating one retailer</td><td>Tabular, Details, or Research</td></tr>
       <tr><td>Cleaning locations</td><td>Store view and map reveal</td></tr>
       <tr><td>Approving changes</td><td>Drafts, History, and Snapshots</td></tr>
     </table>
@@ -411,8 +411,8 @@
       <p>Open <strong>Modify Door</strong>, choose <strong>New Brand</strong>, select a retailer, then use <strong>Add New Brand</strong>. Select the doors that should carry it and save as draft.</p>
     </div>
     <div class="info-section">
-      <h4>How do I delete a door?</h4>
-      <p>Open <strong>Modify Door</strong>, choose <strong>Delete Door</strong>, select the retailer and door, review the affected assignments, then confirm. This removes the door location and all assignments tied to that retailer door.</p>
+      <h4>How do I retire a door?</h4>
+      <p>Open <strong>Modify</strong>, choose <strong>Remove</strong> and <strong>Door</strong>, select the retailer and door, review the affected assignments, then confirm. The store remains in Store, deprioritized with a graveyard marker.</p>
     </div>
     <div class="info-section">
       <h4>How do I remove a brand from a door?</h4>
@@ -442,7 +442,7 @@
   <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
     <div class="info-section">
       <h4>Matrix data</h4>
-      <p>Columns: <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>. Optional per door-brand fields include <code>Door Number</code>, <code>Status</code>, <code>Grade</code>, <code>Gender</code>, <code>metric_1</code>, <code>metric_2</code>, and <code>Notes</code> for selling analysis. Store reps and cadence belong on Door locations / Store.</p>
+      <p>Matrix columns include <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>, and optional per door-brand selling fields. Store reps, cadence, <code>Check 1</code> (ISS), and <code>Check 2</code> (3C) belong on Door Locations / Store.</p>
     </div>
     <div class="info-section">
       <h4>Door locations</h4>
@@ -588,11 +588,10 @@
     <table class="info-modal-table">
       <tr><th>View</th><th>Shape</th></tr>
       <tr><td>Matrix</td><td>Brand x retailer grid with confirmed door counts.</td></tr>
-      <tr><td>Compact</td><td>Brand, category, and per-retailer counts.</td></tr>
       <tr><td>Tabular</td><td>Flat retailer x brand rows with bulk gender assignment, Retailer B&amp;M, B&amp;M doors, saved goals, maintained penetration, and progress to goal.</td></tr>
-      <tr><td>Data</td><td>Retailer, door, brand, status, grade, gender, metric_1, metric_2, notes, and key rows.</td></tr>
+      <tr><td>Details</td><td>Retailer, door, brand, status, grade, gender, metric_1, metric_2, notes, and key rows.</td></tr>
       <tr><td>Research</td><td>Doors-first location list with placement detail and map reveal.</td></tr>
-      <tr><td>Store</td><td>Editable door locations: name, number, address, lat/lng, tier.</td></tr>
+      <tr><td>Store</td><td>Editable door locations: name, number, address, lat/lng, tier, ISS, and 3C.</td></tr>
     </table>
     <div class="info-section">
       <h4>Assignment state</h4>
@@ -604,6 +603,7 @@
       <tr><td><code>status</code></td><td>Confirmed, TBD, N/A, or Exit. Confirmed is the only status included in verified counts.</td></tr>
       <tr><td><code>grade</code>, <code>gender</code></td><td>Optional merchandising dimensions used for filtering and handoff context.</td></tr>
       <tr><td><code>metric_1</code>, <code>metric_2</code></td><td>Optional numeric fields for recent sales, door rank, velocity, or retailer-specific KPIs.</td></tr>
+      <tr><td><code>Check 1</code> / ISS, <code>Check 2</code> / 3C</td><td>Optional retailer-door flags displayed once per location in Store.</td></tr>
       <tr><td><code>note</code>, <code>history</code></td><td>Human-readable review trail attached to the placement key.</td></tr>
     </table>
     <div class="info-section">
@@ -727,7 +727,7 @@
         <h4 style="margin-bottom:0">Matrix Data</h4>
         <button class="btn btn-sm" type="button" onclick="downloadTemplate()">Template</button>
       </div>
-      <p>Retailer, Brand, Category, Doors. Add Door Number, Status, Grade, Gender, metric_1, metric_2, and Notes when you want per door-brand selling analysis.</p>
+      <p>Retailer, Brand, Category, Doors. Add Door Number, Status, Grade, Gender, metric_1, metric_2, and Notes for per door-brand analysis. Put Check 1 (ISS) and Check 2 (3C) on Door Locations.</p>
       <label class="login-upload-zone" for="loginMatrixFile" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleLoginMatrixDrop(event)">
         <input type="file" id="loginMatrixFile" accept=".xlsx,.xls,.csv" onchange="handleLoginMatrixFile(event)">
         <span class="login-upload-title">Drop matrix file or browse</span>
