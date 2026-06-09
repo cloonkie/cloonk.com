@@ -21,6 +21,8 @@
   function openDecision(options) {
     const opts = options || {};
     const host = ensureHost();
+    const token = (openDecision._seq = (openDecision._seq || 0) + 1);
+    host.dataset.decisionToken = String(token);
     const previousFocus = document.activeElement;
     const message = opts.message || "";
     const inputMode = opts.mode === "prompt";
@@ -55,6 +57,10 @@
         if (onHostClick) host.removeEventListener("click", onHostClick);
         document.removeEventListener("keydown", onKeydown);
         setTimeout(() => {
+          // A chained dialog (e.g. the multi-step "Add Door" flow) may have
+          // reopened the shared host before this cleanup runs. Only tear down
+          // if we're still the active dialog, otherwise we'd wipe the new one.
+          if (host.dataset.decisionToken !== String(token)) return;
           host.innerHTML = "";
           if (previousFocus && typeof previousFocus.focus === "function") previousFocus.focus();
         }, 160);
