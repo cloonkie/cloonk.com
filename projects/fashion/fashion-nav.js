@@ -36,13 +36,13 @@
     // Some tools keep the toolbar hidden until data loads (inline
     // display:none on the line sheet, a stylesheet default on assortment
     // comparison) — mirror that state on the pill so it never promises a
-    // toolbar that can't show. Measured with .is-open applied so our own
-    // collapse rule doesn't read as "page hid it".
+    // toolbar that can't show. Measured with the marker class lifted so
+    // none of our collapse/panel rules (both !important) color the probe:
+    // what's left is the page's own inline + stylesheet verdict.
     function syncVisibility() {
-      var had = toolbar.classList.contains('is-open');
-      if (!had) toolbar.classList.add('is-open');
+      document.body.classList.remove('has-toolbar-collapse');
       var available = getComputedStyle(toolbar).display !== 'none';
-      if (!had) toolbar.classList.remove('is-open');
+      document.body.classList.add('has-toolbar-collapse');
       btn.style.display = available ? '' : 'none';
     }
     syncVisibility();
