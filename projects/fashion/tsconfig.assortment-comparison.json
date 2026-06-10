@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "none",
+    "lib": ["DOM", "DOM.Iterable", "ES2020"],
+    "rootDir": "src/assortment-comparison",
+    "outDir": "dist/assortment-comparison",
+    "strict": false,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": false,
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/assortment-comparison/assortment-comparison.ts",
+    "src/assortment-comparison/assortment-comparison-globals.d.ts"
+  ],
+  "exclude": ["dist/assortment-comparison"]
+}

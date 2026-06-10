@@ -1,8 +1,12 @@
 # Fashion Tools — cloonk.com
 
-Browser-based tools for merchandising, assortment, and product analytics work. Each tool is a single self-contained HTML file with no build step — load the page, drop in a spreadsheet, work locally in the browser.
+Browser-based tools for merchandising, assortment, door distribution, and
+product analytics work. The tools run locally in the browser, with no
+application server required.
 
-All tools share the cloonk.com theme (palette + fonts) and the same `cloonk-theme` localStorage key, so toggling light/dark in any tool flips the main site too, and vice versa.
+Seven tools use TypeScript source compiled to committed browser JavaScript.
+The remaining utilities still use direct JavaScript or inline scripts. All
+tools share the cloonk.com theme and the same `cloonk-theme` localStorage key.
 
 ---
 
@@ -13,8 +17,73 @@ All tools share the cloonk.com theme (palette + fonts) and the same `cloonk-them
 | [`replenishment-linesheet.html`](replenishment-linesheet.html) | Upload a replenishment line sheet, annotate SKUs, and export selected styles. |
 | [`assortment-comparison.html`](assortment-comparison.html) | Compare retailer assortments by UPC/style + color + grid; visualize overlap. |
 | [`retailer-door-tracker.html`](retailer-door-tracker.html) | Track brand × retailer door distribution. Map reveal, change history, restore points. |
+| [`sellout-standardizer.html`](sellout-standardizer.html) | Normalize retailer sell-out workbooks into a reusable canonical schema. |
+| [`selling-analysis.html`](selling-analysis.html) | Evaluate sell-through data readiness and render merchandising analyses. |
+| [`upc-concat.html`](upc-concat.html) | Resolve product data across source files into a canonical output schema. |
+| [`image-prep.html`](image-prep.html) | Prepare product imagery for downstream line-sheet and presentation use. |
 
-More tools land here over time. The header popover in each tool links to its siblings.
+The header resource navigation in each tool links to its siblings.
+
+---
+
+## Development
+
+### TypeScript layout
+
+Maintained TypeScript lives under `src/<tool>/`. Compiled browser JavaScript
+lives under `dist/<tool>/`, and the HTML pages load those generated files.
+
+Currently migrated:
+
+- Selling Analysis
+- UPC Concat
+- Retail Data Standardizer
+- Assortment Comparison
+- DIGI Line Sheet
+- Image Prep
+- Door Tracker
+
+Do not edit files under `dist/` directly. Keep generated JavaScript committed
+because cloonk.com is deployed as a static site without a server-side build.
+
+### Setup
+
+From `projects/fashion`:
+
+```powershell
+& "C:\Program Files\nodejs\npm.cmd" install
+```
+
+Restart VS Code after installing Node.js so new terminals recognize `npm`.
+When `npm` is already available on `PATH`, the normal `npm` command works.
+
+### Check and build
+
+Check every migrated tool:
+
+```powershell
+& "C:\Program Files\nodejs\npm.cmd" run check
+```
+
+Compile every migrated tool:
+
+```powershell
+& "C:\Program Files\nodejs\npm.cmd" run build
+```
+
+Tool-specific commands follow the same pattern:
+
+```powershell
+& "C:\Program Files\nodejs\npm.cmd" run check:selling-analysis
+& "C:\Program Files\nodejs\npm.cmd" run build:selling-analysis
+```
+
+See [`TYPESCRIPT.md`](TYPESCRIPT.md) for source paths and all per-tool commands.
+
+Door Tracker's maintained source is
+[`src/door-tracker/door-tracker.ts`](src/door-tracker/door-tracker.ts). Its
+Mapbox, Supabase, IndexedDB, XLSX, authentication, and static data boundaries
+are declared in `src/door-tracker/door-tracker-globals.d.ts`.
 
 ---
 
@@ -102,8 +171,9 @@ Toggle via the sun/moon button in the header. The chosen theme is shared with `c
 
 - [SheetJS](https://sheetjs.com/) for `.xlsx` read/write.
 - [JSZip](https://stuk.github.io/jszip/) (loaded on demand) for extracting embedded `.xlsx` images.
+- TypeScript source compiled to committed browser JavaScript.
 - Cabinet Grotesk + Satoshi from [Fontshare](https://www.fontshare.com/); DM Mono from Google Fonts.
-- No framework, no build step, no backend.
+- No framework and no application backend.
 
 ### Browser support
 

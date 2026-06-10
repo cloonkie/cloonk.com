@@ -1,0 +1,25 @@
+{
+  "name": "cloonk-fashion-tools",
+  "private": true,
+  "scripts": {
+    "build:selling-analysis": "tsc -p tsconfig.selling-analysis.json",
+    "check:selling-analysis": "tsc -p tsconfig.selling-analysis.json --noEmit",
+    "build:upc-concat": "tsc -p tsconfig.upc-concat.json",
+    "check:upc-concat": "tsc -p tsconfig.upc-concat.json --noEmit",
+    "build:sellout-standardizer": "tsc -p tsconfig.sellout-standardizer.json",
+    "check:sellout-standardizer": "tsc -p tsconfig.sellout-standardizer.json --noEmit",
+    "build:assortment-comparison": "tsc -p tsconfig.assortment-comparison.json",
+    "check:assortment-comparison": "tsc -p tsconfig.assortment-comparison.json --noEmit",
+    "build:replenishment-linesheet": "tsc -p tsconfig.replenishment-linesheet.json",
+    "check:replenishment-linesheet": "tsc -p tsconfig.replenishment-linesheet.json --noEmit",
+    "build:image-prep": "tsc -p tsconfig.image-prep.json",
+    "check:image-prep": "tsc -p tsconfig.image-prep.json --noEmit",
+    "build:door-tracker": "tsc -p tsconfig.door-tracker.json",
+    "check:door-tracker": "tsc -p tsconfig.door-tracker.json --noEmit",
+    "build": "npm run build:selling-analysis && npm run build:upc-concat && npm run build:sellout-standardizer && npm run build:assortment-comparison && npm run build:replenishment-linesheet && npm run build:image-prep && npm run build:door-tracker",
+    "check": "npm run check:selling-analysis && npm run check:upc-concat && npm run check:sellout-standardizer && npm run check:assortment-comparison && npm run check:replenishment-linesheet && npm run check:image-prep && npm run check:door-tracker"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

@@ -3,13 +3,13 @@
 // STATE
 // ═══════════════════════════════════════════════════════
 const CAT_ORDER=['LIFESTYLE','SPORT','CHANEL','LUXURY','PREMIUM','FAST','LHB','META'];
-let brandCodes={}, doorLocations=[], matrixData=[], retailers=[];
-let history={};
+let brandCodes:any={}, doorLocations:any[]=[], matrixData:any[]=[], retailers:any[]=[];
+let trackerHistory:any={};
 let transposed=false, categoryColumn=false, currentView='matrix';
 let addMode='door_to_brands';
-let ctxTarget=null;
-let dataKeyState={};
-let tabularGoals={};
+let ctxTarget:any=null;
+let dataKeyState:any={};
+let tabularGoals:any={};
 let _autosaveTimer=null;
 let _dataPaneMarketLoadAttempted=false;
 let dataPanePage=1;
@@ -128,8 +128,8 @@ let _supabaseClient=null;
 let _sharedSyncRetryAt=0;
 const SHARED_SYNC_COOLDOWN_MS=60*1000;
 
-function openDb(){
-  return new Promise((resolve,reject)=>{
+function openDb():Promise<IDBDatabase>{
+  return new Promise<IDBDatabase>((resolve,reject)=>{
     if(!window.indexedDB){reject(new Error('IndexedDB unavailable'));return;}
     const r=indexedDB.open(DB_NAME,1);
     r.onupgradeneeded=()=>{
@@ -141,8 +141,8 @@ function openDb(){
     r.onerror=()=>reject(r.error);
   });
 }
-function withStore(storeName,mode,cb){
-  return openDb().then(db=>new Promise((resolve,reject)=>{
+function withStore(storeName:any,mode:any,cb:any):Promise<any>{
+  return openDb().then(db=>new Promise<any>((resolve,reject)=>{
     const tx=db.transaction(storeName,mode);
     const store=tx.objectStore(storeName);
     let result;
@@ -152,13 +152,13 @@ function withStore(storeName,mode,cb){
     tx.onabort=()=>{db.close();reject(tx.error);};
   }));
 }
-function reqAsPromise(req){
-  return new Promise((resolve,reject)=>{req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});
+function reqAsPromise(req:any):Promise<any>{
+  return new Promise<any>((resolve,reject)=>{req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});
 }
 
 function snapshotPayload(){
   removeInvalidDoorRecords();
-  return {brandCodes,doorLocations,matrixData,retailers,history,doorAssignments,dataKeyState,tabularGoals,storeNotes:window._storeNotes||{}};
+  return {brandCodes,doorLocations,matrixData,retailers,history:trackerHistory,doorAssignments,dataKeyState,tabularGoals,storeNotes:window._storeNotes||{}};
 }
 function applyPayload(p){
   if(!p) return;
@@ -168,11 +168,11 @@ function applyPayload(p){
   if(p.retailers) retailers=p.retailers;
   /* retailerInfo intentionally dropped — max doors is now derived live from
      doorLocations. Any stale field on the incoming payload is ignored. */
-  history=p.history||{};
+  trackerHistory=p.history||{};
   doorAssignments=p.doorAssignments||{};
   dataKeyState=p.dataKeyState||{};
   tabularGoals=p.tabularGoals||{};
-  Object.values(dataKeyState).forEach(st=>{
+  Object.values<any>(dataKeyState).forEach(st=>{
     if(!st) return;
     st.gender=normalizeGender(st.gender);
   });
@@ -334,7 +334,7 @@ function manualSaveNow(){
   clearTimeout(_autosaveTimer);
   _autosaveQueued=false;
   return persistAutoState()
-    .then(result=>toast(result && result.error ? 'Saved locally; shared save failed' : 'Saved'))
+    .then((result:any)=>toast(result && result.error ? 'Saved locally; shared save failed' : 'Saved'))
     .catch(err=>{ console.error('Save failed.',err); toast('Could not save'); });
 }
 let _saveIndicatorClear=null;
@@ -464,8 +464,8 @@ function scheduleAutoSnapshots(){
 
 function recordHistory(ret,brand,entry){
   const hk=k(ret,brand);
-  if(!history[hk]) history[hk]=[];
-  history[hk].push({
+  if(!trackerHistory[hk]) trackerHistory[hk]=[];
+  trackerHistory[hk].push({
     date:new Date().toISOString(),
     scope: entry.scope || 'assignment',
     action: entry.action || 'updated',
@@ -514,7 +514,7 @@ function getStoreBrandSummary(ret,doorNumber){
   const norm=normalizeRetailer(ret);
   const present=new Set();
   const exited=new Set();
-  Object.values(dataKeyState).forEach(st=>{
+  Object.values<any>(dataKeyState).forEach(st=>{
     if(!st || normalizeRetailer(st.retailer)!==norm || String(st.doorNumber)!==String(doorNumber) || !st.brand) return;
     const status=normalizeStatus(st.status);
     if(status==='confirmed' || status==='tbd') present.add(st.brand);
@@ -522,7 +522,7 @@ function getStoreBrandSummary(ret,doorNumber){
   });
   return {present:[...present].sort(),exited:[...exited].sort()};
 }
-let doorAssignments={}; // key(retailer,brand) -> [{doorNumber, doorName, note, status:'confirmed'|'draft', date}]
+let doorAssignments:any={}; // key(retailer,brand) -> [{doorNumber, doorName, note, status:'confirmed'|'draft', date}]
 if(!window._storeNotes) window._storeNotes={};
 
 function k(r,b){return r+'|'+b}
@@ -595,7 +595,7 @@ function removeInvalidDoorRecords(){
   });
 }
 function migrateDoorFlagsFromDataKeys(){
-  Object.values(dataKeyState||{}).forEach(st=>{
+  Object.values<any>(dataKeyState||{}).forEach(st=>{
     if(!st || !isPhysicalDoorNumber(st.doorNumber)) return;
     const door=getDoorInfo(st.retailer,st.doorNumber);
     if(door){
@@ -677,7 +677,7 @@ function initFromSeed(){
   retailers=srcSeed.retailers||[];
   removeInvalidDoorRecords();
   /* srcSeed.retailerInfo no longer loaded — derived from doorLocations. */
-  history={};
+  trackerHistory={};
   doorAssignments={};
   dataKeyState={};
   tabularGoals={};
@@ -717,7 +717,7 @@ function ensureAllSlots(){
    (legacy publishDraft only updated assignments). After this runs, matrix
    counts pulled from dataKeyState match what the drawer shows. */
 function reconcileDataKeyFromAssignments(){
-  Object.entries(doorAssignments).forEach(([ak,assigns])=>{
+  Object.entries<any>(doorAssignments).forEach(([ak,assigns])=>{
     const [ret,brand]=ak.split('|');
     if(!ret || !brand) return;
     const norm=normalizeRetailer(ret);
@@ -839,7 +839,7 @@ function getBMConfirmedCount(ret,brand){
 // ═══════════════════════════════════════════════════════
 function getAllDrafts(){
   const drafts=[];
-  for(const [key,assigns] of Object.entries(doorAssignments)){
+  for(const [key,assigns] of Object.entries<any>(doorAssignments)){
     const [ret,brand]=key.split('|');
     assigns.forEach((a,idx)=>{
       if(a.status==='draft'){
@@ -876,7 +876,7 @@ function getSelectValues(elOrId){
   const el=typeof elOrId==='string'?document.getElementById(elOrId):elOrId;
   if(!el) return [];
   if(el.multiple){
-    const vals=Array.from(el.selectedOptions).map(o=>o.value).filter(Boolean);
+    const vals=Array.from<any>(el.selectedOptions).map(o=>o.value).filter(Boolean);
     return vals;
   }
   return el.value ? [el.value] : [];
@@ -885,7 +885,7 @@ function setSelectValues(elOrId,vals){
   const el=typeof elOrId==='string'?document.getElementById(elOrId):elOrId;
   if(!el) return;
   const set=new Set((vals||[]).filter(Boolean));
-  Array.from(el.options).forEach(opt=>{ opt.selected=set.size?set.has(opt.value):opt.value===''; });
+  Array.from<any>(el.options).forEach(opt=>{ opt.selected=set.size?set.has(opt.value):opt.value===''; });
 }
 function hasFilterValue(vals,value){ return !vals.length || vals.includes(value); }
 function fillSel(id,vals){
@@ -907,16 +907,16 @@ function filterOptionLabel(sourceId,opt){
 function orderRefineOptions(sourceId,options){
   if(sourceId!=='fBrand') return options.map(opt=>({opt,deprioritized:false,reason:''}));
   const usedBrands=new Set();
-  Object.entries(doorAssignments).forEach(([key,assigns])=>{
+  Object.entries<any>(doorAssignments).forEach(([key,assigns])=>{
     if(!(assigns||[]).length) return;
     const divider=key.indexOf('|');
     if(divider>=0) usedBrands.add(key.slice(divider+1));
   });
-  Object.values(dataKeyState).forEach(st=>{
+  Object.values<any>(dataKeyState).forEach(st=>{
     if(st && st.brand && normalizeStatus(st.status)!=='na') usedBrands.add(st.brand);
   });
   matrixData.forEach(row=>{
-    if(row && row.brand && Object.entries(row).some(([key,value])=>
+    if(row && row.brand && Object.entries<any>(row).some(([key,value])=>
       key!=='brand' && key!=='category' && Number(value)>0
     )) usedBrands.add(row.brand);
   });
@@ -1021,7 +1021,7 @@ function renderRefineToggleGroup(sourceId,hostId,allLabel){
   if(!host || !source) return;
   const values=getSelectValues(source);
   const selected=new Set(values);
-  const options=Array.from(source.options).filter(opt=>opt.value);
+  const options=Array.from<any>(source.options).filter(opt=>opt.value);
   let mutedSectionStarted=false;
   const rows=orderRefineOptions(sourceId,options).map(({opt,deprioritized,reason})=>{
     const active=selected.has(opt.value);
@@ -1056,7 +1056,7 @@ function toggleRefineFilterValue(sourceId,value){
   const values=new Set(getSelectValues(sourceId));
   if(values.has(value)) values.delete(value);
   else values.add(value);
-  setSelectValues(sourceId,Array.from(values));
+  setSelectValues(sourceId,Array.from<any>(values));
   renderRefineToggles();
   renderMapFilterClones();
   render();
@@ -1513,7 +1513,7 @@ function renderTabular(items,visR){
 
 function getTabularGenderKeys(members,brand){
   const retailerSet=new Set((members||[]).map(normalizeRetailer));
-  return Object.entries(dataKeyState).filter(([,state])=>
+  return Object.entries<any>(dataKeyState).filter(([,state])=>
     state &&
     state.brand===brand &&
     retailerSet.has(normalizeRetailer(state.retailer)) &&
@@ -2287,7 +2287,7 @@ function renderMapToggleFilter(sourceId,filterKind){
   if(!source) return '';
   const values=getSelectValues(source);
   const selected=new Set(values);
-  const options=Array.from(source.options).filter(opt=>opt.value);
+  const options=Array.from<any>(source.options).filter(opt=>opt.value);
   const allActive=!values.length;
   const allLabel=filterKind==='retailer-group' ? 'All groups' : (filterKind==='retailer' ? 'All retailers' : (filterKind==='channel' ? 'All channels' : 'All brands'));
   let mutedSectionStarted=false;
@@ -2314,7 +2314,7 @@ function toggleMapFilterValue(sourceId,value){
   const values=new Set(getSelectValues(sourceId));
   if(values.has(value)) values.delete(value);
   else values.add(value);
-  setSelectValues(sourceId,Array.from(values));
+  setSelectValues(sourceId,Array.from<any>(values));
   renderRefineToggles();
   renderMapFilterClones();
   updateResearchMapData();
@@ -2535,7 +2535,7 @@ function renderDoorDetail(d,ret){
 
   const brandsAtDoorMap=new Map();
   const brandsAtRetailer=[];
-  for(const [key,assigns] of Object.entries(doorAssignments)){
+  for(const [key,assigns] of Object.entries<any>(doorAssignments)){
     const [r,b]=key.split('|');
     if(r===norm){
       const hasConfirmed=assigns.some(a=>a.status==='confirmed');
@@ -2694,7 +2694,7 @@ function saveEditDoor(){
   d.tier=next.tier;
   d.lat=latNum;
   d.lng=lngNum;
-  for(const [key,assigns] of Object.entries(doorAssignments)){
+  for(const [key,assigns] of Object.entries<any>(doorAssignments)){
     const [r]=key.split('|');
     if(r!==ret) continue;
     assigns.forEach(a=>{
@@ -2706,7 +2706,7 @@ function saveEditDoor(){
      tied to this door, so the audit log captures who fixed the door. */
   if(changes.length){
     const touchedBrands=new Set();
-    for(const [key,assigns] of Object.entries(doorAssignments)){
+    for(const [key,assigns] of Object.entries<any>(doorAssignments)){
       const [r,b]=key.split('|');
       if(r===ret && assigns.some(a=>String(a.doorNumber)===String(doorNumber))) touchedBrands.add(b);
     }
@@ -2944,7 +2944,7 @@ function marketMetricColorExpression(metric){
   const {min,max}=getMarketMetricRange(metric);
   const stops=cfg.colorStops;
   const step=(max-min)/Math.max(stops.length-1,1);
-  const expr=['interpolate',['linear'],['coalesce',['to-number',['get',metric]],min]];
+  const expr:any[]=['interpolate',['linear'],['coalesce',['to-number',['get',metric]],min]];
   stops.forEach((color,i)=>expr.push(min+(step*i),color));
   return expr;
 }
@@ -2956,7 +2956,7 @@ function marketMetricOpacityExpression(metric){
     const value=min+((max-min)*t);
     return [value,Math.min(0.82,getHexOpacity(value,min,max)*zoomMultiplier)];
   });
-  const expr=['interpolate',['linear'],['coalesce',['to-number',['get',metric]],min]];
+  const expr:any[]=['interpolate',['linear'],['coalesce',['to-number',['get',metric]],min]];
   stops.forEach(([value,opacity])=>expr.push(value,opacity));
   return expr;
 }
@@ -3138,7 +3138,7 @@ function initResearchMap(){
 function addResearchMapLayers(){
   addMarketMapLayers();
   if(!_resMap.getSource('doors')){
-    const sourceConfig={
+    const sourceConfig:any={
       type:'geojson',
       data:{type:'FeatureCollection',features:[]}
     };
@@ -3297,7 +3297,7 @@ function updateResearchMapData(){
   /* Pre-tally brand counts per doorNumber in a single pass through
      doorAssignments — beats O(doors × brands) lookups. */
   const brandCountByDoor=new Map();
-  for(const [key,assigns] of Object.entries(doorAssignments)){
+  for(const [key,assigns] of Object.entries<any>(doorAssignments)){
     const [r,b]=key.split('|');
     if(!allRetailers && !retVals.includes(r)) continue;
     if(brandVals.length && !brandVals.includes(b)) continue;
@@ -3390,7 +3390,7 @@ async function copyMapScreenshot(){
     _resMap.triggerRepaint();
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     const canvas=_resMap.getCanvas();
-    const blob=await new Promise((resolve,reject)=>{
+    const blob=await new Promise<Blob>((resolve,reject)=>{
       try{
         canvas.toBlob(b=>b?resolve(b):reject(new Error('Map screenshot failed.')),'image/png');
       }catch(err){ reject(err); }
@@ -3526,7 +3526,7 @@ function syncAssignmentFromDataKey(ret,doorNumber,brand){
   const state=getDataKeyState(ret,doorNumber,brand) || {};
   upsertAssignment(ret,brand,doorNumber,normalizeStatus(state.status),state.note||'');
 }
-function updateDataKeyField(ret,doorNumber,brand,field,value,el){
+function updateDataKeyField(ret,doorNumber,brand,field,value,el?){
   if(!isPhysicalDoorNumber(doorNumber)){
     toast('This row has no door number and was removed from door tracking.');
     removeInvalidDoorRecords();
@@ -4111,7 +4111,7 @@ function applyDrawerMimic(){
 
 function toggleDrawerDoorSelection(kind){
   const selector = kind === 'remove' ? '.drawerRemoveChk' : '.drawerAddChk';
-  const checks = [...document.querySelectorAll(selector)].filter(el=>el.closest('.drawer-door-row')?.style.display!=='none');
+  const checks = [...document.querySelectorAll<HTMLElement>(selector)].filter(el=>el.closest<HTMLElement>('.drawer-door-row')?.style.display!=='none');
   if(!checks.length) return;
   const shouldSelect = !checks.every(el=>el.checked);
   checks.forEach(el=>{ el.checked=shouldSelect; });
@@ -4123,11 +4123,11 @@ function updateDrawerSelectionButtons(){
   const assignedBtn=document.getElementById('drawerAssignedSelectAllBtn');
   const unassignedBtn=document.getElementById('drawerUnassignedSelectAllBtn');
   if(assignedBtn){
-    const checks=[...document.querySelectorAll('.drawerRemoveChk')].filter(el=>el.closest('.drawer-door-row')?.style.display!=='none');
+    const checks=[...document.querySelectorAll<HTMLElement>('.drawerRemoveChk')].filter(el=>el.closest<HTMLElement>('.drawer-door-row')?.style.display!=='none');
     assignedBtn.textContent=checks.length && checks.every(el=>el.checked) ? 'Deselect All' : 'Select All';
   }
   if(unassignedBtn){
-    const checks=[...document.querySelectorAll('.drawerAddChk')].filter(el=>el.closest('.drawer-door-row')?.style.display!=='none');
+    const checks=[...document.querySelectorAll<HTMLElement>('.drawerAddChk')].filter(el=>el.closest<HTMLElement>('.drawer-door-row')?.style.display!=='none');
     unassignedBtn.textContent=checks.length && checks.every(el=>el.checked) ? 'Deselect All' : 'Select All';
   }
 }
@@ -4234,8 +4234,8 @@ function saveEdit(){
   removeIdx.forEach(idx=>{
     if(doorAssignments[ak][idx]){
       const removedDoor=doorAssignments[ak][idx];
-      if(!history[ak]) history[ak]=[];
-      history[ak].push({date:new Date().toISOString(),oldVal:removedDoor.doorNumber,newVal:'REMOVED',user,note:`Removed specific door assignment ${removedDoor.doorNumber}`});
+      if(!trackerHistory[ak]) trackerHistory[ak]=[];
+      trackerHistory[ak].push({date:new Date().toISOString(),oldVal:removedDoor.doorNumber,newVal:'REMOVED',user,note:`Removed specific door assignment ${removedDoor.doorNumber}`});
       doorAssignments[ak].splice(idx,1);
       removed++;
     }
@@ -4244,8 +4244,8 @@ function saveEdit(){
     if(doorAssignments[ak].some(a=>String(a.doorNumber)===String(doorVal))) return;
     const di=getDoorInfo(r,doorVal);
     doorAssignments[ak].push({doorNumber:parseInt(doorVal,10),doorName:di?di.name:'',note:'',status:'draft',date:new Date().toISOString().slice(0,10)});
-    if(!history[ak]) history[ak]=[];
-    history[ak].push({date:new Date().toISOString(),oldVal:getMatrixVal(r,b),newVal:`DRAFT #${doorVal}`,user,note:`Added specific door assignment ${doorVal}`});
+    if(!trackerHistory[ak]) trackerHistory[ak]=[];
+    trackerHistory[ak].push({date:new Date().toISOString(),oldVal:getMatrixVal(r,b),newVal:`DRAFT #${doorVal}`,user,note:`Added specific door assignment ${doorVal}`});
     added++;
   });
   closeEdit();populateFilters();updateViewSpecificControls();render();
@@ -4275,7 +4275,7 @@ function confirmClose(){
 function openHistoryDrawer(r,b){
   activeStoreDrawer=null;
   window.__drawerRet=arguments[0]; window.__drawerBrand=arguments[1];
-  const hk=k(r,b);const entries=history[hk]||[];
+  const hk=k(r,b);const entries=trackerHistory[hk]||[];
   document.getElementById('drTitle').textContent='Assignment & Data History';
   document.getElementById('drSub').textContent=`${r} × ${b}${brandCodes[b]?' — '+brandCodes[b].name:''}`;
   document.getElementById('drContent').innerHTML=entries.length?entries.slice().reverse().map(e=>`<div class="history-entry"><div class="history-date">${new Date(e.date).toLocaleString()}</div><div><span class="history-new">${esc((e.scope||'assignment').toUpperCase())}</span> · ${esc(e.action||'updated')}${e.doorNumber!==''?` · Door ${esc(String(e.doorNumber))}`:''}</div><div>${e.oldVal!==''||e.newVal!==''?`<span class="history-old">${esc(String(e.oldVal))}</span> → <span class="history-new">${esc(String(e.newVal))}</span>`:''}${e.note?' — '+esc(e.note):''}</div><div class="history-user">${esc(e.user||'System')}</div></div>`).join(''):'<p style="color:var(--text-dim);margin-top:16px">No assignment/data changes recorded.</p>';
@@ -4375,7 +4375,7 @@ function applyModifyMode(){
   document.getElementById('typeBrand').setAttribute('aria-pressed',String(addType==='brand'));
 
   const wraps={door_to_brands:'doorToBrandsWrap',brand_to_doors:'brandToDoorsWrap',delete_door:'deleteDoorWrap',delete_brand:'deleteBrandWrap'};
-  Object.values(wraps).forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
+  Object.values<any>(wraps).forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
   const showEl=document.getElementById(wraps[addMode]); if(showEl) showEl.style.display='block';
   const deleteBrandScope=document.getElementById('deleteBrandScopeOption');
   if(deleteBrandScope) deleteBrandScope.style.display=addMode==='delete_brand'?'flex':'none';
@@ -4419,7 +4419,7 @@ function renderAddSelectionPanels(){
     return;
   }
 
-  const dsB=Object.entries(brandCodes).filter(([c,v])=>v.ds_active).sort((a,b)=>a[0].localeCompare(b[0]));
+  const dsB=Object.entries<any>(brandCodes).filter(([c,v])=>v.ds_active).sort((a,b)=>a[0].localeCompare(b[0]));
   dsB.forEach(([c,v])=>{
     brandList.innerHTML+=`<label class="pick-item"><input type="checkbox" class="aBrandChk" value="${c}"><span><strong>${c}</strong> — ${esc(v.name)}</span></label>`;
   });
@@ -4480,7 +4480,7 @@ function renderAddSelectionPanels(){
     const allRetailers=!!document.getElementById('deleteBrandAllRetailers')?.checked;
     if(selectedDeleteBrand){
       const affected=[];
-      Object.entries(doorAssignments).forEach(([key,assigns])=>{
+      Object.entries<any>(doorAssignments).forEach(([key,assigns])=>{
         const divider=key.indexOf('|');
         const keyRet=divider>=0 ? key.slice(0,divider) : '';
         const keyBrand=divider>=0 ? key.slice(divider+1) : '';
@@ -4521,7 +4521,7 @@ function populateAddDoors(){
   const delBrandSel=document.getElementById('delBrand');
   if(delBrandSel){
     delBrandSel.innerHTML='<option value="">— Select a brand —</option>';
-    const brandsHere=new Set();
+    const brandsHere=new Set<string>();
     Object.keys(doorAssignments).forEach(key=>{
       const parts=key.split('|'); const r=parts[0], b=parts.slice(1).join('|');
       if(normalizeRetailer(r)===norm && (doorAssignments[key]||[]).length) brandsHere.add(b);
@@ -4614,7 +4614,7 @@ async function deleteDoorFromModify(){
   const door=doorLocations.find(d=>normalizeRetailer(d.retailer)===norm && String(d.doorNumber)===String(doorVal));
   if(!door){ toast('Door not found.'); return; }
   const affected=[];
-  for(const [key,assigns] of Object.entries(doorAssignments)){
+  for(const [key,assigns] of Object.entries<any>(doorAssignments)){
     const [r,b]=key.split('|');
     if(r!==norm) continue;
     assigns.forEach(a=>{
@@ -4631,7 +4631,7 @@ async function deleteDoorFromModify(){
   door.retired=true;
   door.retiredAt=new Date().toISOString();
   door.retiredReason=note || 'Retired from Modify';
-  for(const [key,assigns] of Object.entries(doorAssignments)){
+  for(const [key,assigns] of Object.entries<any>(doorAssignments)){
     const [r,b]=key.split('|');
     if(r!==norm) continue;
     const kept=assigns.filter(a=>String(a.doorNumber)!==String(doorVal));
@@ -4685,7 +4685,7 @@ async function deleteBrandFromModify(){
   const affectedKeys=[];
   const affectedRetailers=new Set();
   let assignmentCount=0;
-  Object.entries(doorAssignments).forEach(([key,assigns])=>{
+  Object.entries<any>(doorAssignments).forEach(([key,assigns])=>{
     const divider=key.indexOf('|');
     const keyRet=divider>=0 ? normalizeRetailer(key.slice(0,divider)) : '';
     const keyBrand=divider>=0 ? key.slice(divider+1) : '';
@@ -4791,7 +4791,7 @@ function makeSearchable(select){
     panel.innerHTML='';
     const f=(filter||'').trim().toLowerCase();
     let n=0;
-    Array.from(select.options).forEach(o=>{
+    Array.from<any>(select.options).forEach(o=>{
       if(o.value==='') return;            // skip placeholder row
       const label=o.textContent.trim();
       if(f && label.toLowerCase().indexOf(f)===-1) return;
@@ -4822,7 +4822,7 @@ function makeSearchable(select){
     select.dispatchEvent(new Event('change',{bubbles:true}));
   }
   function move(d){
-    const opts=Array.from(panel.querySelectorAll('.combo-opt'));
+    const opts=Array.from<any>(panel.querySelectorAll('.combo-opt'));
     if(!opts.length) return;
     activeIdx = activeIdx<0 ? 0 : Math.max(0,Math.min(opts.length-1,activeIdx+d));
     opts.forEach((o,i)=>o.classList.toggle('is-active',i===activeIdx));
@@ -4836,12 +4836,12 @@ function makeSearchable(select){
     if(e.key==='ArrowDown'){ e.preventDefault(); if(!wrap.classList.contains('open')) open(''); else move(1); }
     else if(e.key==='ArrowUp'){ e.preventDefault(); move(-1); }
     else if(e.key==='Enter'){
-      const opts=Array.from(panel.querySelectorAll('.combo-opt'));
+      const opts=Array.from<any>(panel.querySelectorAll('.combo-opt'));
       if(wrap.classList.contains('open') && opts[activeIdx]){ e.preventDefault(); choose(opts[activeIdx].dataset.value); }
     }
     else if(e.key==='Escape'){ if(wrap.classList.contains('open')){ e.preventDefault(); close(); } }
   });
-  document.addEventListener('mousedown',e=>{ if(!wrap.contains(e.target)) close(); });
+  document.addEventListener('mousedown',e=>{ if(!wrap.contains(e.target as Node)) close(); });
 
   select._combo={ refresh:syncInput };
   syncInput();
@@ -4854,7 +4854,7 @@ function openAddModal(){
   allRet.forEach(r=>{el.innerHTML+=`<option value="${esc(r)}">${esc(r)}</option>`;});
   const bel=document.getElementById('aBrand');
   bel.innerHTML='<option value="">— Select brand —</option>';
-  const dsB=Object.entries(brandCodes).filter(([c,v])=>v.ds_active).sort((a,b)=>a[0].localeCompare(b[0]));
+  const dsB=Object.entries<any>(brandCodes).filter(([c,v])=>v.ds_active).sort((a,b)=>a[0].localeCompare(b[0]));
   dsB.forEach(([c,v])=>{bel.innerHTML+=`<option value="${c}">${c} — ${esc(v.name)}</option>`;});
   document.getElementById('aNote').value='';
   document.getElementById('aDoor').innerHTML='<option value="">— Select retailer first —</option><option value="TBD">TBD — Not yet confirmed</option>';
@@ -4917,7 +4917,7 @@ function populateInfoRetailerCoverage(){
   /* Union of matrix retailers and any retailers seen only in door records. */
   const allRetailers=new Set([...retailers.map(normalizeRetailer), ...doorsByRetailer.keys()]);
   const allBrands=getAllBrands();
-  const rows=Array.from(allRetailers).map(r=>{
+  const rows=Array.from<any>(allRetailers).map(r=>{
     const doors=(doorsByRetailer.get(r)||new Set()).size;
     let brands=0;
     allBrands.forEach(b=>{ if(getTotalConfirmedForRetailer(r,b)>0) brands++; });
@@ -5210,7 +5210,7 @@ function processDoorImp(file){
 // EXPORT / PERSISTENCE
 // ═══════════════════════════════════════════════════════
 function downloadJSON(){
-  const payload={brandCodes,doorLocations,matrixData,retailers,history,doorAssignments,dataKeyState,tabularGoals,storeNotes:window._storeNotes||{},exportDate:new Date().toISOString()};
+  const payload={brandCodes,doorLocations,matrixData,retailers,history:trackerHistory,doorAssignments,dataKeyState,tabularGoals,storeNotes:window._storeNotes||{},exportDate:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='door-data.json';a.click();URL.revokeObjectURL(a.href);
   toast('JSON saved');
@@ -5220,7 +5220,7 @@ function loadJSON(e){
   const reader=new FileReader();
   reader.onload=function(ev){
     try{
-      const p=JSON.parse(ev.target.result);
+      const p=JSON.parse(String(ev.target.result));
       if(p.matrixData){applyPayload(p);ensureAllSlots();populateFilters();updateViewSpecificControls();render();queueAutosave();toast(`Loaded ${matrixData.length} brands`);}
     }catch(err){toast('Error parsing JSON');}
   };
@@ -5266,7 +5266,7 @@ function loadDemoData(){
   doorLocations=JSON.parse(JSON.stringify(GUEST_SEED.doorLocations||[]));
   matrixData=JSON.parse(JSON.stringify(GUEST_SEED.matrixData||[]));
   retailers=(GUEST_SEED.retailers||[]).slice();
-  history={};
+  trackerHistory={};
   doorAssignments={};
   dataKeyState={};
   tabularGoals={};
@@ -5301,7 +5301,7 @@ function populateStatusGradeFilters(){
   const current=getSelectValues(gradeSel);
   const grades=new Set();
   doorLocations.forEach(d=>{ if(d.tier) grades.add(String(d.tier)); });
-  gradeSel.innerHTML='<option value="">All</option>'+Array.from(grades).sort().map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');
+  gradeSel.innerHTML='<option value="">All</option>'+Array.from<any>(grades).sort().map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');
   setSelectValues(gradeSel,current);
 }
 
@@ -5561,7 +5561,7 @@ window.addEventListener('storage',e=>{
 });
 
 /* ── Global history feed ─────────────────────────────────── */
-let _historyActiveTypes=new Set();
+let _historyActiveTypes=new Set<string>();
 let _historyAllEntries=[];
 
 function _historyEntryType(e){
@@ -5577,16 +5577,16 @@ function _historyEntryType(e){
   return 'other';
 }
 
-const HISTORY_TYPE_LABELS={add:'Add',remove:'Remove',edit:'Edit',door:'Door details',matrix:'Matrix',other:'Other'};
+const HISTORY_TYPE_LABELS:Record<string,string>={add:'Add',remove:'Remove',edit:'Edit',door:'Door details',matrix:'Matrix',other:'Other'};
 
 function openGlobalHistory(){
   _historyAllEntries=[];
-  Object.keys(history||{}).forEach(hk=>{
+  Object.keys(trackerHistory||{}).forEach(hk=>{
     const [ret,brand]=hk.split('|');
-    (history[hk]||[]).forEach((e,idx)=>_historyAllEntries.push(Object.assign({_ret:ret,_brand:brand,_key:hk,_idx:idx},e)));
+    (trackerHistory[hk]||[]).forEach((e,idx)=>_historyAllEntries.push(Object.assign({_ret:ret,_brand:brand,_key:hk,_idx:idx},e)));
   });
   _historyAllEntries.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-  _historyActiveTypes=new Set();
+  _historyActiveTypes=new Set<string>();
   document.getElementById('drTitle').textContent='All Changes';
   renderGlobalHistory();
   document.getElementById('ovDraw').classList.add('open');
@@ -5595,12 +5595,12 @@ function openGlobalHistory(){
 
 function renderGlobalHistory(){
   const entries=_historyAllEntries;
-  const present=new Set(entries.map(_historyEntryType));
+  const present=new Set<string>(entries.map(_historyEntryType));
   const orderedTypes=['add','remove','edit','door','matrix','other'].filter(t=>present.has(t));
   const filtered=_historyActiveTypes.size
     ? entries.filter(e=>_historyActiveTypes.has(_historyEntryType(e)))
     : entries;
-  document.getElementById('drSub').textContent=`${filtered.length.toLocaleString()} of ${entries.length.toLocaleString()} change${entries.length===1?'':'s'} across ${Object.keys(history||{}).length.toLocaleString()} pair${Object.keys(history||{}).length===1?'':'s'}`;
+  document.getElementById('drSub').textContent=`${filtered.length.toLocaleString()} of ${entries.length.toLocaleString()} change${entries.length===1?'':'s'} across ${Object.keys(trackerHistory||{}).length.toLocaleString()} pair${Object.keys(trackerHistory||{}).length===1?'':'s'}`;
   const filterPills=`<div class="history-filter-bar">
     <span style="font-size:0.66rem;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase">Type</span>
     <button class="history-filter-pill ${_historyActiveTypes.size===0?'active':''}" type="button" onclick="toggleHistoryFilter('')">All <span class="history-filter-count">${entries.length}</span></button>
@@ -5633,14 +5633,14 @@ function renderGlobalHistory(){
 }
 
 function toggleHistoryFilter(type){
-  if(!type){ _historyActiveTypes=new Set(); }
+  if(!type){ _historyActiveTypes=new Set<string>(); }
   else if(_historyActiveTypes.has(type)) _historyActiveTypes.delete(type);
   else _historyActiveTypes.add(type);
   renderGlobalHistory();
 }
 
 function revertHistoryEntry(key,idx){
-  const entries=(history||{})[key]||[];
+  const entries=(trackerHistory||{})[key]||[];
   const entry=entries[idx];
   if(!entry){ toast('Entry not found.'); return; }
   if(String(entry.scope||'').toLowerCase()!=='door'){
@@ -5768,7 +5768,7 @@ function normalizeEmail(v){ return String(v||'').trim().toLowerCase(); }
 
 async function sha256Hex(text){
   const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map(x=>x.toString(16).padStart(2,'0')).join('');
+  return Array.from<any>(new Uint8Array(buf)).map(x=>x.toString(16).padStart(2,'0')).join('');
 }
 
 function loadSession(){
@@ -5964,7 +5964,7 @@ function applyDefaultLuxuryChannel(){
     const fc=document.getElementById('fRetChannel');
     if(!fc) return;
     if(getSelectValues(fc).length) return;
-    const hasLuxury=Array.from(fc.options).some(o=>o.value==='Luxury');
+    const hasLuxury=Array.from<any>(fc.options).some(o=>o.value==='Luxury');
     if(!hasLuxury) return;
     setSelectValues(fc,['Luxury']);
     const group=document.getElementById('channelFilterGroup');
@@ -6004,7 +6004,7 @@ function applyDefaultDSBrandFilter(){
     const fb=document.getElementById('fBrand');
     if(!fb) return;
     if(getSelectValues(fb).length) return;
-    const ds=Object.entries(brandCodes).filter(([code,v])=>v && v.ds_active).map(([code])=>code);
+    const ds=Object.entries<any>(brandCodes).filter(([code,v])=>v && v.ds_active).map(([code])=>code);
     if(ds.length){
       setSelectValues(fb,ds);
       currentView='matrix';

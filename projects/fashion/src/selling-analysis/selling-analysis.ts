@@ -1,5 +1,6 @@
 /* ============================================================================
-   selling-analysis.js  —  Sell-Through Diagnostic engine
+   selling-analysis.ts  -  Sell-Through Diagnostic engine
+   TypeScript source. Builds to dist/selling-analysis/selling-analysis.js.
    Pure, side-effect-free computation. No DOM. Runs in browser or Node.
    ----------------------------------------------------------------------------
    Grain note: the current data dump is at
@@ -1018,10 +1019,10 @@
     const cell = {};
     rows.forEach(r => {
       if (r.retailer == null || r[attr] == null) return;
-      const key = r[attr] + ' ' + r.retailer;
+      const key = r[attr] + '' + r.retailer;
       cell[key] = (cell[key] || 0) + (r.tyUnits > 0 ? r.tyUnits : 0);
     });
-    const matrix = attrs.map(a => retailers.map(ret => cell[a + ' ' + ret] || 0));
+    const matrix = attrs.map(a => retailers.map(ret => cell[a + '' + ret] || 0));
     const rowTotals = matrix.map(row => row.reduce((s, x) => s + x, 0));
     const gaps = [];
     attrs.forEach((a, ai) => retailers.forEach((ret, ri) => {

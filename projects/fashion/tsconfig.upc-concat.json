@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "none",
+    "lib": ["DOM", "DOM.Iterable", "ES2020"],
+    "rootDir": "src/upc-concat",
+    "outDir": "dist/upc-concat",
+    "strict": false,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": false,
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/upc-concat/upc-concat.ts",
+    "src/upc-concat/upc-concat-globals.d.ts"
+  ],
+  "exclude": [
+    "dist/upc-concat"
+  ]
+}

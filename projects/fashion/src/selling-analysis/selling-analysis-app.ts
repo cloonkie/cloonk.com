@@ -1,11 +1,32 @@
 /* ============================================================================
-   selling-analysis-app.js  —  Sell-Through Diagnostic orchestration
+   selling-analysis-app.ts  -  Sell-Through Diagnostic orchestration
+   TypeScript source. Builds to dist/selling-analysis/selling-analysis-app.js.
    Loads the raw .xlsx via SheetJS, runs selling-analysis.js, renders the lenses,
    supports client-side theme authoring and a JSON snapshot for shared-drive use.
    ========================================================================== */
 (function () {
   'use strict';
   const A = window.SOA;
+
+  type AppState = {
+    records: any[];
+    enriched: any[];
+    viewRows: any[];
+    optionalDims: string[];
+    params: {
+      promoThreshold: number;
+      agedYear: number;
+      priceBands: number[];
+      priceBandSource: string;
+    };
+    themes: Record<string, string>;
+    filters: Record<string, Set<any>>;
+    fileName: string | null;
+    foundFields: string[];
+    analyses: SellingAnalysisReadiness[];
+    selectedAnalysis: string;
+    chartType: Record<string, string>;
+  };
 
   /* ---- brand-code -> display name (user-editable; unknowns fall back to code)
    * High-confidence EssilorLuxottica codes only; extend as needed. ---------- */
@@ -19,9 +40,10 @@
   const brandLabel = c => BRAND_NAMES[c] ? `${BRAND_NAMES[c]} (${c})` : c;
 
   /* ---- application state ------------------------------------------------- */
-  const state = {
+  const state: AppState = {
     records: [],            // canonical parsed rows
     enriched: [],           // enriched (recomputed when params/themes change)
+    viewRows: [],            // current filtered rows
     optionalDims: [],       // UPC-grain dims present in the file (if any)
     params: { promoThreshold: 0.20, agedYear: 2020, priceBands: [100, 150, 200, 250, 300], priceBandSource: 'auto' },
     themes: {},             // { collectionRelease: themeString }  (authored)
@@ -45,24 +67,28 @@
   ];
 
   /* ---- formatting helpers ------------------------------------------------ */
-  const $ = id => document.getElementById(id);
+  const $ = (id: string): any => document.getElementById(id);
   const fmtInt = n => n == null ? '–' : Math.round(n).toLocaleString();
   const fmt$ = n => n == null ? '–' : '$' + Math.round(n).toLocaleString();
   const fmtPct = n => n == null ? '–' : (n * 100).toFixed(1) + '%';
-  const el = (tag, attrs, html) => {
+  const el = <K extends keyof HTMLElementTagNameMap>(
+    tag: K,
+    attrs?: Record<string, unknown> | null,
+    html?: unknown
+  ): HTMLElementTagNameMap[K] => {
     const e = document.createElement(tag);
-    if (attrs) for (const k in attrs) e.setAttribute(k, attrs[k]);
-    if (html != null) e.innerHTML = html;
+    if (attrs) for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (html != null) e.innerHTML = String(html);
     return e;
   };
-  const setText = (node, value) => { if (node) node.textContent = value; };
-  function table(headers, rows) {
+  const setText = (node: Element | null, value: unknown) => { if (node) node.textContent = String(value); };
+  function table(headers: unknown[], rows: unknown[][]) {
     const t = el('table');
     const thead = el('thead');
     const htr = el('tr');
     headers.forEach(h => {
       const th = el('th');
-      th.textContent = h;
+      th.textContent = String(h);
       htr.appendChild(th);
     });
     thead.appendChild(htr); t.appendChild(thead);
@@ -71,7 +97,7 @@
       const tr = el('tr');
       r.forEach(c => {
         const td = el('td');
-        td.textContent = c;
+        td.textContent = String(c);
         tr.appendChild(td);
       });
       tb.appendChild(tr);
@@ -110,7 +136,8 @@
     t.style.top = Math.max(4, top) + 'px';
   }
   document.addEventListener('mouseover', e => {
-    const m = e.target.closest && e.target.closest('[data-tip]');
+    const target = e.target instanceof Element ? e.target : null;
+    const m = target?.closest('[data-tip]');
     if (!m) return;
     const t = tipNode();
     t.innerHTML = '';
@@ -124,10 +151,11 @@
   });
   document.addEventListener('mousemove', e => { if (_tipEl && _tipEl.classList.contains('show')) moveTip(e.clientX, e.clientY); });
   document.addEventListener('mouseout', e => {
-    const m = e.target.closest && e.target.closest('[data-tip]');
+    const target = e.target instanceof Element ? e.target : null;
+    const m = target?.closest('[data-tip]');
     if (m && _tipEl) _tipEl.classList.remove('show');
   });
-  function chart(host, svg, label) {
+  function chart(host: HTMLElement, svg: string, label?: unknown) {
     const wrap = el('div', { class: 'lens-chart' });
     if (label) wrap.appendChild(el('div', { class: 'lens-chart__cap' }, label));
     const holder = el('div', { class: 'lens-chart__svg' });
@@ -154,7 +182,7 @@
   };
   const axPct = v => (v * 100).toFixed(0) + '%';
   // "nice" ticks from 0 to max over ~count intervals
-  function axTicks(max, count) {
+  function axTicks(max: number, count?: number) {
     count = count || 4;
     if (!(max > 0)) return [0];
     const raw = max / count, mag = Math.pow(10, Math.floor(Math.log10(raw)));
@@ -164,7 +192,7 @@
     return ticks;
   }
   // vertical gridlines + bottom value axis (for horizontal-value charts)
-  function axisX(x0, x1, yTop, yBase, max, fmt) {
+  function axisX(x0: number, x1: number, yTop: number, yBase: number, max: number, fmt?: (value: number) => unknown) {
     fmt = fmt || axNum; let s = '';
     axTicks(max).forEach(t => {
       const x = x0 + (max ? t / max : 0) * (x1 - x0);
@@ -174,7 +202,7 @@
     return s + `<line x1="${x0}" y1="${yBase}" x2="${x1}" y2="${yBase}" class="axis"/>`;
   }
   // horizontal gridlines + left value axis (for vertical-value charts)
-  function axisY(xAxis, xRight, yTop, yBase, max, fmt) {
+  function axisY(xAxis: number, xRight: number, yTop: number, yBase: number, max: number, fmt?: (value: number) => unknown) {
     fmt = fmt || axNum; let s = '';
     axTicks(max).forEach(t => {
       const y = yBase - (max ? t / max : 0) * (yBase - yTop);
@@ -235,7 +263,7 @@
   const CAM_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
 
   /* ── Plain-language interpretation callout ("In plain terms") ──────────── */
-  function readout(host, lines, title) {
+  function readout(host: HTMLElement, lines: unknown[], title?: unknown) {
     const list = (Array.isArray(lines) ? lines : [lines]).filter(Boolean);
     if (!list.length) return;
     const box = el('div', { class: 'lens-readout' });
@@ -249,7 +277,7 @@
   /* Chart block with an aesthetic switcher. `builders` = [{ key, label, fn }],
    * where fn() returns an SVG string. The chosen type persists per analysis.
    * Every block carries a camera button that exports the live chart as PNG.   */
-  function renderChartBlock(host, id, caption, builders) {
+  function renderChartBlock(host: HTMLElement, id: string, caption: unknown, builders: any[]) {
     if (!builders || !builders.length) return;
     let sel = state.chartType[id];
     if (!builders.some(b => b.key === sel)) sel = builders[0].key;
@@ -301,7 +329,7 @@
   }
 
   // horizontal bars — items: [{label, value, valLabel, color}] ; opts {cat, fmt}
-  function svgBarsH(items, opts) {
+  function svgBarsH(items: any[], opts?: any) {
     opts = opts || {};
     const W = 720, rowH = 30, labelW = 190, valW = 96, axisH = 20;
     const barX = labelW + 12, barW = W - barX - valW;
@@ -323,7 +351,7 @@
 
   // descending Pareto bars + cumulative line — items sorted desc by value
   // left axis = bar value, right axis = cumulative %
-  function svgPareto(items, opts) {
+  function svgPareto(items: any[], opts?: any) {
     opts = opts || {};
     const W = 720, H = 272, padT = 14, padB = 70, padL = 46, padR = 40;
     const n = Math.max(1, items.length), plotW = W - padL - padR, plotH = H - padT - padB;
@@ -357,7 +385,7 @@
 
   // scatter quadrant — points: [{x, y, quad}] ; medians + xmax in same units
   // x axis = TY units, y axis = sell-through %
-  function svgScatter(points, xMed, yMed, xMax) {
+  function svgScatter(points: any[], xMed: number, yMed: number, xMax: number) {
     const W = 720, H = 380, padL = 46, padR = 22, padT = 26, padB = 40;
     const plotW = W - padL - padR, plotH = H - padT - padB;
     const xm = xMax || 1, yBase = padT + plotH;
@@ -392,7 +420,7 @@
   }
 
   // diverging bars around a centre axis — items: [{label, value, valLabel}]
-  function svgDiverging(items, opts) {
+  function svgDiverging(items: any[], opts?: any) {
     opts = opts || {};
     const W = 720, rowH = 28, labelW = 150, valW = 92, axisH = 20;
     const fieldW = W - (labelW + 12) - valW, cx = labelW + 12 + fieldW / 2, half = fieldW / 2 - 4;
@@ -423,7 +451,7 @@
   }
 
   // 100% stacked bars (full vs promo) — rows: [{label, promoPct, valLabel}]
-  function svgStacked(items) {
+  function svgStacked(items: any[]) {
     const W = 720, rowH = 30, labelW = 170, valW = 84, axisH = 20;
     const barX = labelW + 12, barW = W - barX - valW;
     const plotH = Math.max(1, items.length) * rowH + 6, H = plotH + axisH;
@@ -448,7 +476,7 @@
   }
 
   // vertical columns — items: [{label, value, valLabel, color}] ; opts {cat, fmt}
-  function svgColumn(items, opts) {
+  function svgColumn(items: any[], opts?: any) {
     opts = opts || {};
     const W = 720, H = 300, padT = 14, padB = 66, padL = 46, padR = 10;
     const n = Math.max(1, items.length), plotW = W - padL - padR, plotH = H - padT - padB;
@@ -469,7 +497,7 @@
   }
 
   // pie / donut — items: [{label, value, valLabel, color}]
-  function svgPie(items, donut) {
+  function svgPie(items: any[], donut?: boolean) {
     const W = 720, H = 330, cx = 168, cy = H / 2, r = 132, ri = donut ? 66 : 0;
     const data = items.filter(i => (i.value || 0) > 0);
     const total = data.reduce((a, i) => a + i.value, 0) || 1;
@@ -513,7 +541,7 @@
   }
 
   // lollipop — horizontal stems with a dot at the value
-  function svgLollipop(items, opts) {
+  function svgLollipop(items: any[], opts?: any) {
     opts = opts || {};
     const W = 720, rowH = 28, labelW = 190, valW = 96, axisH = 20;
     const barX = labelW + 12, barW = W - barX - valW;
@@ -536,7 +564,7 @@
   }
 
   // single 100% stacked bar from parts — parts: [{label, value, color}]
-  function svgStacked100(parts) {
+  function svgStacked100(parts: any[]) {
     const W = 720, barY = 12, barH = 38;
     const total = parts.reduce((a, p) => a + Math.max(0, p.value || 0), 0) || 1;
     const palette = PALETTE;
@@ -570,7 +598,7 @@
   }
 
   // line(s) over ordered x labels — series: [{name, values[], cls, dashed}]
-  function svgLine(xLabels, series, opts) {
+  function svgLine(xLabels: any[], series: any[], opts?: any) {
     opts = opts || {};
     const W = 720, H = 300, padL = 30, padR = 14, padT = 16, padB = 58;
     const plotW = W - padL - padR, plotH = H - padT - padB, n = Math.max(1, xLabels.length);
@@ -605,7 +633,7 @@
   }
 
   // scatter on arbitrary x/y — points: [{x, y, cls, op, r}] ; opts: axes/medians/trend
-  function svgScatterXY(points, opts) {
+  function svgScatterXY(points: any[], opts?: any) {
     opts = opts || {};
     const W = 720, H = 360, pad = 38;
     const plotW = W - pad * 2, plotH = H - pad * 2;
@@ -645,7 +673,7 @@
   }
 
   // radar / spider — axes: [labels] ; series: [{name, values[0..1], cls}]
-  function svgRadar(axesLabels, series) {
+  function svgRadar(axesLabels: any[], series: any[]) {
     const W = 720, H = 380, cx = 250, cy = H / 2, R = 150, n = Math.max(1, axesLabels.length);
     const ang = i => -Math.PI / 2 + i / n * 2 * Math.PI;
     const P = (i, r) => [cx + r * Math.cos(ang(i)), cy + r * Math.sin(ang(i))];
@@ -677,7 +705,7 @@
   }
 
   // heatmap grid — matrix[row][col] ; empty cells drawn as dashed whitespace
-  function svgHeatmap(rowLabels, colLabels, matrix) {
+  function svgHeatmap(rowLabels: any[], colLabels: any[], matrix: any[]) {
     const W = 720, padL = 132, padT = 72;
     const cell = Math.max(18, Math.min(42, (W - padL) / Math.max(1, colLabels.length)));
     const gridB = padT + rowLabels.length * cell;
@@ -826,13 +854,13 @@
   const analysisFor = id => state.analyses.find(a => a.id === lensId(id));
   const selectedMeta = () => state.analyses.find(a => a.id === state.selectedAnalysis);
 
-  function selectAnalysis(id, opts) {
+  function selectAnalysis(id: string, opts?: { renderGuide?: boolean }) {
     if (!state.analyses.some(a => a.id === id)) return;
     state.selectedAnalysis = id;
     const select = $('projectSelect');
     if (select) select.value = id;
     renderProjectChips();
-    document.querySelectorAll('.tab').forEach(tab => {
+    document.querySelectorAll<HTMLElement>('.tab').forEach(tab => {
       const active = lensId(tab.dataset.target) === id;
       tab.classList.toggle('active', active);
     });
@@ -893,7 +921,7 @@
     });
   }
 
-  function renderRequirementNotice(host, id) {
+  function renderRequirementNotice(host: HTMLElement, id: string) {
     const meta = analysisFor(id);
     if (!meta || meta.ready) return false;
     host.innerHTML = '';
@@ -960,7 +988,7 @@
   }
 
   // Generic breakdown — group by the read's main dimension, chart the primary metric
-  function fallbackBreakdown(host, rows, meta) {
+  function fallbackBreakdown(host: HTMLElement, rows: any[], meta: SellingAnalysisReadiness) {
     const groupField = pickGroupField(meta), valueField = pickValueField(meta);
     if (!groupField) {
       host.appendChild(el('p', { class: 'note' }, 'Not enough dimensional data to chart this read. Layers present:'));
@@ -1020,7 +1048,9 @@
     const data = A.sizeCurveAnalysis(rows);
     if (!data.length) return fallbackBreakdown(host, rows, meta);
     const xLabels = data.map(d => d.size);
-    const series = [{ name: 'Sell share', values: data.map(d => d.sellShare), cls: 'stroke-accent' }];
+    const series: Array<{ name: string; values: number[]; cls: string; dashed?: boolean }> = [
+      { name: 'Sell share', values: data.map(d => d.sellShare), cls: 'stroke-accent' },
+    ];
     if (data.some(d => d.buyShare != null)) series.push({ name: 'Buy share', values: data.map(d => d.buyShare), cls: 'stroke-muted', dashed: true });
     series.push({ name: 'On-hand share', values: data.map(d => d.ohShare), cls: 'stroke-warn', dashed: true });
     const barItems = data.map(d => ({ label: d.size, value: d.units, valLabel: fmtInt(d.units) }));
@@ -1200,9 +1230,9 @@
     const items = mb.pairs.slice(0, 16).map(p => ({ label: p.pair, value: p.count, valLabel: fmtInt(p.count) }));
     // affinity network — brand nodes (sized by # of groups they appear in) joined by co-occurrence links
     const links = mb.pairs.slice(0, 28).map(p => ({ source: p.a, target: p.b, value: p.count, lift: p.lift }));
-    const nodeIds = new Set();
+    const nodeIds = new Set<string>();
     links.forEach(l => { nodeIds.add(l.source); nodeIds.add(l.target); });
-    const countByBrand = {};
+    const countByBrand: Record<string, number> = {};
     mb.brands.forEach(b => { countByBrand[b.brand] = b.count; });
     const nodes = Array.from(nodeIds)
       .map(id => ({ id, label: brandLabel(id), weight: countByBrand[id] || 1 }))
@@ -1473,7 +1503,7 @@
   }
 
   function updateTabsAvailability() {
-    document.querySelectorAll('.tab').forEach(tab => {
+    document.querySelectorAll<HTMLElement>('.tab').forEach(tab => {
       const meta = analysisFor(tab.dataset.target);
       const missing = meta && !meta.ready;
       tab.classList.toggle('is-unavailable', Boolean(missing));
@@ -1486,12 +1516,14 @@
   }
 
   /* ---- ingestion --------------------------------------------------------- */
-  function loadWorkbook(file) {
+  function loadWorkbook(file: File) {
     state.fileName = file.name;
     const reader = new FileReader();
     reader.onload = e => {
       try {
-        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+        const result = e.target?.result;
+        if (!(result instanceof ArrayBuffer)) throw new Error('Workbook could not be read as binary data.');
+        const wb = XLSX.read(new Uint8Array(result), { type: 'array' });
         // prefer a sheet named like the sell-out dump; else first sheet that parses
         let sheetName = wb.SheetNames.find(n => /sell.?out/i.test(n)) || wb.SheetNames[0];
         const ws = wb.Sheets[sheetName];
@@ -1910,11 +1942,13 @@
     a.click();
     URL.revokeObjectURL(a.href);
   }
-  function importSnapshot(file) {
+  function importSnapshot(file: File) {
     const r = new FileReader();
     r.onload = e => {
       try {
-        const snap = JSON.parse(e.target.result);
+        const result = e.target?.result;
+        if (typeof result !== 'string') throw new Error('Snapshot could not be read as text.');
+        const snap = JSON.parse(result);
         if (snap.params) Object.assign(state.params, snap.params);
         if (snap.themes) state.themes = Object.assign({}, snap.themes);
         $('promoThresh').value = Math.round(state.params.promoThreshold * 100);
@@ -1936,7 +1970,7 @@
    * Drops the parsed workbook, filters, and rendered output so a new file can
    * be loaded. Keeps params (promo threshold / aged year) and authored themes
    * as configuration; pass { keepThemes:false } to wipe those too. */
-  function clearData(opts) {
+  function clearData(opts?: { keepThemes?: boolean }) {
     const hadData = state.records.length > 0 || !!state.fileName;
     state.records = [];
     state.enriched = [];
@@ -2008,7 +2042,7 @@
       if (state.records.length) recomputeAndRender();
     });
     // tab switching
-    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll<HTMLElement>('.tab').forEach(t => t.addEventListener('click', () => {
       selectAnalysis(lensId(t.dataset.target));
     }));
   }
