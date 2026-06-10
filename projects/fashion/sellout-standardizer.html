@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://cloonk.com/favicon.svg">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Retail Data Standardizer | Fashion Toolbox">
-<meta name="twitter:description" content="Normalize retailer spreadsheets into clean mapped output with pivots, calculated metrics, and local autosave.">
+<meta name="twitter:description" content="Normalize retailer spreadsheets into clean mapped output with pivots, calculated metrics, and reusable configurations.">
 <meta name="twitter:image" content="https://cloonk.com/favicon.svg">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <script src="../../js/favicon-rotator.js" defer></script>
@@ -152,22 +152,26 @@ a { color: inherit; text-decoration: none; }
 .config-history[open] summary::after { transform: rotate(180deg); }
 .config-history-list {
   max-height: 260px;
+  overflow-x: hidden;
   overflow-y: auto;
   display: grid;
   gap: 6px;
 }
 .config-history-item {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
+  min-width: 0;
   padding: 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   background: var(--surface-raised);
 }
+.config-history-item > div:first-child { min-width: 0; }
 .config-history-name {
   min-width: 0;
+  max-width: 100%;
   font-size: 0.78rem;
   font-weight: 800;
   overflow: hidden;
@@ -180,7 +184,17 @@ a { color: inherit; text-decoration: none; }
   font-family: var(--font-mono);
   font-size: 0.62rem;
 }
-.config-history-controls { display: inline-flex; gap: 4px; }
+.config-history-controls {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+.config-menu .config-history-controls .btn {
+  width: auto;
+  min-height: 28px;
+  padding: 5px 8px;
+  font-size: 0.7rem;
+}
 .btn, .theme-toggle {
   min-height: 32px;
   display: inline-flex;

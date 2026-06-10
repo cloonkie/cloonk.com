@@ -190,7 +190,7 @@ const BASE_CALCULATED_METRICS = [
     { key: "aur", label: "AUR", formula: "sale_dollars / sale_units", format: "number" },
     { key: "sell_through_pct", label: "ST%", formula: "sale_units / (sale_units + on_hand_units) * 100", format: "percent" }
 ];
-const AUTOSAVE_KEY = "sellout-standardizer-progress-v1";
+const LEGACY_PROGRESS_KEY = "sellout-standardizer-progress-v1";
 const CONFIG_HISTORY_KEY = "retail-data-standardizer-config-history-v1";
 const CONFIG_HISTORY_LIMIT = 12;
 const AUTO_INCLUDE_SHEET_LIMIT = 5;
@@ -243,8 +243,7 @@ const state = {
     config: makeDefaultConfig(),
     headers: [],
     output: [],
-    view: "output",
-    suppressAutosave: false
+    view: "output"
 };
 const els = {
     fileInput: document.getElementById("fileInput"),
@@ -2421,7 +2420,6 @@ function rebuild() {
     renderTable();
     renderStats();
     renderFlowStatus();
-    queueAutosave();
 }
 function makeCsv(rows) {
     if (!rows.length)
@@ -2894,7 +2892,6 @@ function applySavedConfig(id) {
     hydrateConfig(item.config || {});
     applyCollapseState();
     rebuild();
-    queueAutosave();
     closeConfigMenu();
     toast(`Loaded configuration: ${item.name}.`);
 }
@@ -2940,7 +2937,6 @@ async function importConfig(file) {
         hydrateConfig(config);
         applyCollapseState();
         rebuild();
-        queueAutosave();
         const saved = saveConfigToHistory(parsed.name || file.name.replace(/\.json$/i, ""), config);
         closeConfigMenu();
         toast(`Loaded and saved configuration: ${saved.name}.`);
@@ -3107,63 +3103,8 @@ function setActiveWorkflowPanel(activeId, options = {}) {
     state.config.activeWorkflowPanel = target;
     if (options.touched)
         state.config.workflowPanelTouched = true;
-    if (options.persist !== false)
-        queueAutosave();
-}
-function queueAutosave() {
-    if (state.suppressAutosave)
-        return;
-    clearTimeout(queueAutosave.timer);
-    queueAutosave.timer = setTimeout(saveProgressLocal, 350);
-}
-function saveProgressLocal() {
-    try {
-        const payload = {
-            version: 1,
-            saved_at: new Date().toISOString(),
-            config: state.config,
-            sources: state.sources,
-            view: state.view
-        };
-        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(payload));
-    }
-    catch (error) {
-        try {
-            localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
-                version: 1,
-                saved_at: new Date().toISOString(),
-                config: state.config,
-                sources: [],
-                view: state.view
-            }));
-            toast("Saved setup locally; source rows were too large to autosave.");
-        }
-        catch (innerError) { }
-    }
-}
-function loadProgressLocal() {
-    try {
-        const raw = localStorage.getItem(AUTOSAVE_KEY);
-        if (!raw)
-            return false;
-        const saved = JSON.parse(raw);
-        state.suppressAutosave = true;
-        hydrateConfig(saved.config || {});
-        state.sources = Array.isArray(saved.sources) ? saved.sources : [];
-        state.pendingWorkbooks = [];
-        state.view = saved.view || "output";
-        document.querySelectorAll(".view-tab").forEach(btn => btn.classList.toggle("active", btn.dataset.view === state.view));
-        applyCollapseState();
-        state.suppressAutosave = false;
-        return true;
-    }
-    catch (error) {
-        state.suppressAutosave = false;
-        return false;
-    }
 }
 function clearAllData() {
-    state.suppressAutosave = true;
     state.sources = [];
     state.pendingWorkbooks = [];
     state.headers = [];
@@ -3171,18 +3112,9 @@ function clearAllData() {
     hydrateConfig(makeDefaultConfig());
     state.view = "output";
     document.querySelectorAll(".view-tab").forEach(btn => btn.classList.toggle("active", btn.dataset.view === state.view));
-    try {
-        localStorage.removeItem(AUTOSAVE_KEY);
-    }
-    catch (error) { }
     applyCollapseState();
-    state.suppressAutosave = false;
     rebuild();
-    try {
-        localStorage.removeItem(AUTOSAVE_KEY);
-    }
-    catch (error) { }
-    toast("Local progress and loaded data cleared.");
+    toast("Loaded data and setup cleared.");
 }
 function toast(message) {
     els.toast.textContent = message;
@@ -3555,7 +3487,6 @@ els.showUnmappedOnly.addEventListener("change", () => {
     state.config.showUnmappedOnly = els.showUnmappedOnly.checked;
     state.config.showUnmappedOnlyTouched = true;
     renderMappings();
-    queueAutosave();
 });
 document.getElementById("autoDetectBtn").addEventListener("click", () => { autoDetect(); rebuild(); toast("Header rows detected."); });
 document.getElementById("remapBtn").addEventListener("click", () => {
@@ -3669,12 +3600,10 @@ els.tableShell.addEventListener("drop", e => {
         state.config.outputColumnOrder = reorderColumnKeys(state.config.outputColumnOrder || [], fromKey, toKey);
         renderTable();
         renderStats();
-        queueAutosave();
     }
     else if (toView === "pivot") {
         state.config.pivotColumnOrder = reorderColumnKeys(state.config.pivotColumnOrder || [], fromKey, toKey);
         renderPivotTable();
-        queueAutosave();
     }
 });
 els.tableShell.addEventListener("contextmenu", async (e) => {
@@ -3840,7 +3769,6 @@ els.outputControls.addEventListener("change", e => {
         renderOutputControls();
         renderTable();
         renderStats();
-        queueAutosave();
         return;
     }
     const dim = e.target.closest("[data-output-dimension]");
@@ -3855,7 +3783,6 @@ els.outputControls.addEventListener("change", e => {
         renderOutputControls();
         renderTable();
         renderStats();
-        queueAutosave();
         return;
     }
     const metric = e.target.closest("[data-output-metric]");
@@ -3870,7 +3797,6 @@ els.outputControls.addEventListener("change", e => {
         renderOutputControls();
         renderTable();
         renderStats();
-        queueAutosave();
         return;
     }
     const breakout = e.target.closest("[data-output-breakout]");
@@ -3886,7 +3812,6 @@ els.outputControls.addEventListener("change", e => {
         renderOutputControls();
         renderTable();
         renderStats();
-        queueAutosave();
         return;
     }
     const breakoutValue = e.target.closest("[data-output-breakout-value]");
@@ -3901,7 +3826,6 @@ els.outputControls.addEventListener("change", e => {
         renderOutputControls();
         renderTable();
         renderStats();
-        queueAutosave();
     }
 });
 document.querySelectorAll("[data-collapse]").forEach(btn => {
@@ -3927,7 +3851,6 @@ document.querySelectorAll(".view-tab").forEach(btn => {
         state.view = btn.dataset.view;
         renderOutputControls();
         renderTable();
-        queueAutosave();
     });
 });
 document.querySelectorAll(".subtab").forEach(btn => {
@@ -4001,5 +3924,8 @@ initInfoModal();
 renderConfigHistory();
 loadCachedPivotTemplate();
 renderPivotTemplateStatus();
-loadProgressLocal();
+try {
+    localStorage.removeItem(LEGACY_PROGRESS_KEY);
+}
+catch (error) { }
 rebuild();

@@ -4,8 +4,8 @@
    light overrides won't fire here, so body.light must declare all light
    token deltas explicitly. */
 :root {
-  --text-muted: #a19c96;
-  --text-dim: #6e6964;
+  --text-muted: #aaa59f;
+  --text-dim: #7b7670;
   --accent-fg: #0a0a0a;
   --accent-mid: rgba(57, 255, 20, 0.22);
   --success: #27ae60;
@@ -1707,4 +1707,39 @@ body.light .drawer-door-note:focus { background: #f4f2ee; }
   .view-tabs::-webkit-scrollbar { height: 0; }
   .view-tab { flex: 0 0 auto; }
   .logo { font-size: 1.12rem; }
+}
+
+/* ── Hamburger nav (mobile) — pattern shared with the other tools ── */
+.nav-burger {
+  display: none;
+  width: 38px; min-height: 34px;
+  align-items: center; justify-content: center; padding: 0;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text-muted); cursor: pointer;
+}
+.nav-burger:hover { color: var(--text); border-color: var(--border-hover); }
+.nav-burger svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; fill: none; }
+.nav-burger .icon-close { display: none; }
+body.nav-open .nav-burger .icon-open { display: none; }
+body.nav-open .nav-burger .icon-close { display: block; }
+@media (max-width: 720px) {
+  .header { padding-right: 60px; }
+  .nav-burger { display: inline-flex; position: absolute; top: 14px; right: 16px; z-index: 41; }
+  .header-actions {
+    position: absolute; top: calc(100% + 6px); right: 16px;
+    display: none; flex-direction: column; align-items: stretch;
+    min-width: 210px; max-width: calc(100vw - 32px); padding: 8px; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border-hover);
+    border-radius: var(--radius-sm); box-shadow: 0 18px 42px rgba(0,0,0,0.42); z-index: 40;
+  }
+  body.nav-open .header-actions { display: flex; }
+  .header-actions > * { width: 100%; justify-content: flex-start; }
+  /* the Data submenu opens inside the dropdown — let it span the panel */
+  .header-menu-panel { right: auto; left: 0; min-width: 200px; }
+  /* the signed-in chip is nowrap and wider than a phone — drop the label
+     and let it wrap under the logo instead of running beneath the burger */
+  .header-left { flex-wrap: wrap; }
+  .user-chip { max-width: 100%; }
+  .user-chip .signed-as { display: none; }
+  .user-chip .user-name { overflow: hidden; text-overflow: ellipsis; }
 }

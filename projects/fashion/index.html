@@ -33,8 +33,12 @@
     } catch (e) {}
   </script>
   <style>
-    /* Restore the clock — fashion.css hides it by default on fashion pages */
-    .fashion .nav__clock { display: inline-flex; }
+    /* Restore the clock — fashion.css hides it by default on fashion pages.
+       Desktop/tablet only; on mobile (≤640px) the global nav rule keeps it
+       hidden so the compact header isn't crowded. */
+    @media (min-width: 641px) {
+      .fashion .nav__clock { display: inline-flex; }
+    }
 
     /* ─── Use-case mini-diagrams on each tool card ───────────────
        The cards are built by fashion.js from the TOOLS manifest; the
@@ -92,9 +96,9 @@
 
   <main>
     <section class="file-stage">
-      <p class="label">Merchandising Toolbox</p>
+      <p class="label">Fashion Toolbox</p>
       <p class="file-note">
-        Browser-based tools for merchandising workflows: line sheets, assortment overlap,
+        Browser-based tools for retail-oriented workflows: line sheets, assortment overlap,
         door distribution, sell-out cleanup, and product schema mapping. Work locally,
         export clean files. <strong>Nothing leaves your machine.</strong>
       </p>
@@ -118,7 +122,6 @@
   <footer class="index-footer">
     <div class="footer__left">
       <div class="footer__socials">
-        <a href="../../index.html">cloonk.com</a>
         <a href="../../projects.html">Work</a>
         <a href="https://linkedin.com/in/cloonk/" target="_blank" rel="noopener">LinkedIn</a>
       </div>

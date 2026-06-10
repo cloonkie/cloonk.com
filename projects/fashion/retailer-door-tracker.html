@@ -15,6 +15,7 @@
 <script src="../../js/favicon-rotator.js" defer></script>
 <script src="../../js/cursor.js" defer></script>
 <script src="fashion-decisions.js" defer></script>
+<script src="fashion-nav.js" defer></script>
 <link rel="preconnect" href="https://api.fontshare.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,7 +50,11 @@
       <button type="button" class="signout" id="userChipSignout" onclick="signOut()" title="Sign out" data-cursor="exit">Sign out</button>
     </span>
   </div>
-  <div class="header-actions">
+  <button class="nav-burger" id="navBurger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="headerActions">
+    <svg class="icon-open" viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+    <svg class="icon-close" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+  </button>
+  <div class="header-actions" id="headerActions">
     <span class="save-indicator save-saved" id="saveIndicator" role="status" aria-live="polite" aria-atomic="true" title="Local autosave status">Saved</span>
     <button class="btn" onclick="manualSaveNow()" title="Persist the current state immediately" data-cursor="save">Save</button>
     <button class="btn" onclick="openAddModal()" title="Modify verified door assignments by adding or removing specific retailer-door-brand records" data-cursor="edit">Modify</button>

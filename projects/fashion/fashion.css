@@ -13,19 +13,20 @@
 
 /* ─── Fashion token ramp ─────────────────────────────────────
    Extends cloonk's --bg/--fg/--accent/--muted/--border with the
-   richer surface scale the tools need. Values match what the
-   tools previously declared inline, so retrofitting them onto
-   this file is a no-op visually. --text aliases --fg on purpose
-   so tool code that references --text keeps working.
+   higher-contrast surface scale the tools need. --text aliases
+   --fg on purpose so tool code that references --text keeps
+   working.
    ──────────────────────────────────────────────────────────── */
 :root {
-  --surface:        #141412;
-  --surface-raised: #1c1c19;
-  --surface-card:   #1f1f1c;
-  --border-hover:   #3a3a36;
+  --fg:             #faf8f3;
+  --surface:        #161614;
+  --surface-raised: #20201d;
+  --surface-card:   #252521;
+  --border:         #343430;
+  --border-hover:   #4a4a44;
   --text:           var(--fg);
-  --text-muted:     #888882;
-  --text-dim:       #5e5e58;
+  --text-muted:     #989890;
+  --text-dim:       #707069;
   --accent-hover:   #5cff44;
   --accent-fg:      #0a0a0a;
   --accent-dim:     rgba(57, 255, 20, 0.1);
@@ -88,6 +89,9 @@ html.theme-transition *::after {
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
+  /* Uppercase glyphs ride ~2px high of optical center (the font's unused
+     descender space) — pad the text down; the dot compensates below. */
+  padding-top: 2px;
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 700;
@@ -100,6 +104,7 @@ html.theme-transition *::after {
   content: "";
   width: 6px;
   height: 6px;
+  margin-top: -2px;
   margin-right: 9px;
   border-radius: 50%;
   background: var(--accent);
@@ -229,6 +234,238 @@ header.header .info-btn svg circle[fill="currentColor"] { fill: currentColor; }
 .header-actions [data-tooltip]:last-child:hover::before,
 .header-actions [data-tooltip]:last-child:focus-visible::before {
   transform: translate(0, 0) rotate(45deg);
+}
+
+/* ─── Mobile: the theme/info buttons sit inside the hamburger dropdown,
+       where icon-only rows read as bare clutter — render them as labeled
+       pills instead, and retire the hover tooltip (no hover on touch).
+       The label reuses the tooltip's ::after slot, reset to static. ─── */
+@media (max-width: 720px) {
+  header.header .header-actions .theme-toggle,
+  header.header .header-actions .info-btn {
+    width: 100%;
+    height: auto;
+    min-height: 34px !important;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 6px 14px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 999px !important;
+    background: var(--surface) !important;
+    color: var(--text);
+  }
+  header.header .header-actions .theme-toggle::before,
+  header.header .header-actions .info-btn::before {
+    content: none;
+  }
+  header.header .header-actions .theme-toggle::after,
+  header.header .header-actions .info-btn::after {
+    position: static;
+    width: auto;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    opacity: 1;
+    transform: none;
+    /* match the sibling .btn rows — same font, size, and ink as the
+       tool's own buttons rather than the mono tooltip treatment */
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: none;
+    white-space: nowrap;
+  }
+  header.header .header-actions .info-btn::after { content: "Info & appendix"; }
+  header.header .header-actions .theme-toggle::after { content: "Light / dark mode"; }
+}
+
+/* ─── Mobile header + toolbar declutter (shared by every tool) ───────
+       - header stat rows are noise on a phone — hidden
+       - tool name + subtitle stack into two rows instead of crowding
+       - hamburger dropdown gets one uniform set of metrics
+       - the toolbar folds behind a "Tools & filters" pill injected by
+         fashion-nav.js (hidden below, shown in the media query) ────── */
+.toolbar-collapse-toggle { display: none; }
+
+@media (max-width: 720px) {
+  header.header .header-stats { display: none !important; }
+
+  header.header .logo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+  header.header .logo span { margin-left: 0; }
+
+  header.header .header-actions {
+    min-width: 232px;
+    padding: 10px;
+    gap: 8px;
+  }
+  header.header .header-actions .btn {
+    min-height: 34px;
+    justify-content: flex-start;
+  }
+
+  .toolbar-collapse-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: calc(100% - 32px);
+    margin: 10px 16px 0;
+    min-height: 36px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .toolbar-collapse-toggle svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.18s ease;
+  }
+  .toolbar-collapse-toggle.is-open svg { transform: rotate(180deg); }
+  .toolbar-collapse-toggle.is-open {
+    color: var(--text);
+    border-color: var(--border-hover);
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+  }
+
+  body.has-toolbar-collapse .toolbar:not(.is-open) { display: none !important; }
+
+  /* ── Expanded toolbar = a card under the pill, not a squeezed desktop
+        strip. Groups stack label-over-control, controls go full width,
+        dividers/spacers (horizontal furniture) disappear. Scoped to
+        direct children so nested panels (e.g. door-tracker's refine
+        popover) keep their own layout. ───────────────────────────── */
+  body.has-toolbar-collapse .toolbar.is-open {
+    /* !important: some tools re-show the toolbar with inline display:flex
+       (assortment comparison) — the open panel must stay a grid */
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 10px;
+    width: calc(100% - 32px);
+    margin: 6px 16px 0;
+    padding: 16px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+  }
+
+  /* filter groups pair up two per row; wide controls (search, tab strips,
+     mode switches, button pairs) take the full row */
+  body.has-toolbar-collapse .toolbar.is-open > .mode-toggle,
+  body.has-toolbar-collapse .toolbar.is-open > .view-tabs,
+  body.has-toolbar-collapse .toolbar.is-open > .refine-wrap,
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-group:has(.search-input),
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-group:has(.btn) {
+    grid-column: 1 / -1;
+  }
+
+  /* a group of action buttons rides as one row, buttons sharing it evenly */
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-group:has(.btn) {
+    flex-direction: row;
+  }
+
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-divider,
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-spacer,
+  body.has-toolbar-collapse .toolbar.is-open > div[style*="flex:1"] {
+    display: none;
+  }
+
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    width: 100%;
+  }
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-group .toolbar-label {
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-group select,
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-group .search-input,
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-group .ms-dropdown,
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-group .ms-trigger {
+    width: 100%;
+    min-height: 38px;
+  }
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-group select,
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-group .search-input {
+    padding: 6px 12px;
+    border-radius: 10px;
+  }
+  body.has-toolbar-collapse .toolbar.is-open > .toolbar-group .btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 38px;
+    justify-content: center;
+    border-radius: 999px;
+  }
+
+  /* loose buttons sitting directly on the toolbar become pill cells
+     (two per row courtesy of the grid) */
+  body.has-toolbar-collapse .toolbar.is-open > .btn {
+    width: 100%;
+    min-height: 38px;
+    justify-content: center;
+    border-radius: 999px;
+  }
+
+  /* door-tracker: Data/Map switch splits the row in equal halves */
+  body.has-toolbar-collapse .toolbar.is-open > .mode-toggle {
+    display: flex;
+    width: 100%;
+  }
+  body.has-toolbar-collapse .toolbar.is-open > .mode-toggle .mode-btn {
+    flex: 1 1 0;
+    min-height: 38px;
+  }
+
+  /* door-tracker: view tabs wrap as an even chip grid instead of a
+     horizontally scrolling strip */
+  body.has-toolbar-collapse .toolbar.is-open > .view-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+  }
+  body.has-toolbar-collapse .toolbar.is-open > .view-tabs .view-tab {
+    flex: 1 1 calc(33.3% - 6px);
+    justify-content: center;
+    text-align: center;
+    min-height: 36px;
+  }
+
+  body.has-toolbar-collapse .toolbar.is-open > .refine-wrap { width: 100%; }
+  body.has-toolbar-collapse .toolbar.is-open > .refine-wrap .refine-trigger {
+    width: 100%;
+    min-height: 38px;
+    justify-content: center;
+    border-radius: 999px;
+  }
 }
 
 /* ─── Appendix step lists
@@ -885,14 +1122,6 @@ body.light header.header .theme-toggle .icon-moon { opacity: 1; position: static
   border-bottom: 1px solid color-mix(in srgb, var(--archive-line) 72%, var(--accent));
 }
 
-.fashion--cabinet .file__chapter {
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
 .fashion--cabinet .file__status {
   margin-left: auto;
   font-size: 0.62rem;
@@ -1101,7 +1330,7 @@ body.light header.header .theme-toggle .icon-moon { opacity: 1; position: static
   padding: 0 0 14px;
   border-bottom: 1px solid var(--archive-accent-line);
   color: var(--archive-ink-soft);
-  font-size: clamp(1rem, 1.6vw, 1.28rem);
+  font-size: clamp(0.85rem, 1.1vw, 1rem);
   line-height: 1.55;
 }
 
@@ -1132,6 +1361,14 @@ body.light header.header .theme-toggle .icon-moon { opacity: 1; position: static
   counter-reset: archive;
 }
 
+/* Wheel handler (wireHorizontalRail) suspends snapping while a trackpad
+   gesture is in flight — proximity snap would otherwise pull sub-card
+   movements straight back to the card they started on. */
+.fashion--cabinet .files.is-wheeling,
+.fashion--files .files.is-wheeling {
+  scroll-snap-type: none;
+}
+
 .fashion--files .files::-webkit-scrollbar {
   height: 4px;
 }
@@ -1157,12 +1394,13 @@ body.light header.header .theme-toggle .icon-moon { opacity: 1; position: static
 }
 
 .fashion--files .file {
+  --card-pad: clamp(18px, 2.2vh, 24px);
   height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: clamp(18px, 2.2vh, 24px);
+  padding: var(--card-pad);
   border: 1px solid var(--archive-line);
   border-radius: 8px;
   background: var(--archive-paper);
@@ -1174,14 +1412,29 @@ body.light header.header .theme-toggle .icon-moon { opacity: 1; position: static
   z-index: 1;
 }
 
-.fashion--files .file {
-  animation: none;
+/* Scroll-in reveal — cards stay hidden until they scroll into the rail's
+   view, then drift in from the right and settle. JS (wireCardReveal) adds
+   .is-reveal to the rail and .is-revealed to each card as it enters view,
+   staggering whatever appears together. No-JS / reduced-motion keep cards
+   shown so nothing is ever stuck hidden. */
+.fashion--files .files.is-reveal .file { opacity: 0; }
+.fashion--files .files.is-reveal .file.is-revealed {
+  opacity: 1;
+  animation: fileScrollIn 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes fileScrollIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fashion--files .files.is-reveal .file { opacity: 1; }
+  .fashion--files .files.is-reveal .file.is-revealed { animation: none; }
 }
 
 .fashion--files .file::before {
   content: counter(archive, decimal-leading-zero);
   position: absolute;
-  right: 20px;
+  right: var(--card-pad);
   bottom: 18px;
   color: var(--text-dim);
   font-family: var(--font-mono);
@@ -1192,6 +1445,7 @@ body.light header.header .theme-toggle .icon-moon { opacity: 1; position: static
 .fashion--files .file__tab {
   position: absolute;
   margin: 0;
+  padding: 0;
   border: 0;
   background: transparent;
   color: var(--archive-ink-soft);
@@ -1203,15 +1457,16 @@ body.light header.header .theme-toggle .icon-moon { opacity: 1; position: static
 }
 
 .fashion--files .file__tab--code {
-  top: 20px;
-  left: 20px;
+  top: var(--card-pad);
+  left: var(--card-pad);
   color: var(--accent);
 }
 
 .fashion--files .file__tab--category {
-  top: 20px;
-  right: 20px;
-  text-align: center;
+  top: var(--card-pad);
+  left: auto;
+  right: var(--card-pad);
+  text-align: right;
 }
 
 .fashion--files .file__top {
@@ -1221,14 +1476,6 @@ body.light header.header .theme-toggle .icon-moon { opacity: 1; position: static
   margin: 36px 0 14px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--archive-line);
-}
-
-.fashion--files .file__chapter {
-  color: var(--archive-ink-soft);
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 .fashion--files .file__status {
@@ -1316,14 +1563,31 @@ body.light header.header .theme-toggle .icon-moon { opacity: 1; position: static
 @media (max-width: 780px) {
   .fashion--files .files {
     grid-auto-columns: minmax(248px, 82vw);
-    padding-right: 0;
-    padding-left: 0;
+    padding: 8px 0 18px;
   }
 
   .fashion--files .file {
+    --card-pad: 16px;
     min-height: 0;
-    padding: 18px 20px 22px;
+    padding: 14px var(--card-pad) 16px;
     transform: none;
+  }
+
+  /* The top row only holds the status dot — drop it on mobile and let
+     the name clear the absolutely-positioned folder tabs itself. */
+  .fashion--files .file__top {
+    display: none;
+  }
+
+  .fashion--files .file__name {
+    margin-top: 28px;
+  }
+
+  /* Source / Output as two label-aligned rows instead of one wrapped line. */
+  .fashion--files .file__io {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 6px 12px;
   }
 
   .fashion--files .file:hover,
