@@ -38,9 +38,11 @@
   --spring:     0.7s cubic-bezier(0.16, 1.1, 0.3, 1);
 }
 [data-theme="light"] {
+  --fg:             #0a0a0a;
   --surface:        #ede9e1;
   --surface-raised: #e4dfd4;
   --surface-card:   #eae6dc;
+  --border:         #d0ccc4;
   --border-hover:   #b6b2aa;
   --text-muted:     #5a5a54;
   --text-dim:       #8a8a82;
