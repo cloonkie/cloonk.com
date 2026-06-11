@@ -38,43 +38,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 #mobile-nav-overlay .city-btn.active{color:var(--accent);border-color:var(--accent)}
 #mobile-nav-close{align-self:flex-end;font-size:20px;color:var(--muted);cursor:pointer;padding:4px 8px}
 #mobile-nav-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-@media(max-width:700px){
-  #hamburger{display:flex}
-  .topbar-controls-row #city-nav{display:none!important}
-  .topbar-title-row{padding:0 12px;height:38px}
-  .topbar-controls-row{padding:0 12px;height:34px;gap:8px}
-  .topbar-left .divider{display:none}
-  #side-panel{width:160px;top:80px;right:8px}
-  #side-panel .section-body{padding:0 8px 8px}
-  /* legend: compact, bottom-left */
-  #legend{width:104px;bottom:26px;left:6px;padding:4px 7px}
-  #legend > div{margin-bottom:4px!important}
-  #legend > div:last-child{margin-bottom:0!important}
-  .legend-gradient-wrap{height:5px;margin-bottom:2px}
-  .legend-marker{height:8px;width:1.5px}
-  .legend-marker-label{font-size:6px;top:-13px;padding:1px 3px}
-  /* hex detail: full width, anchored above legend */
-  #hex-detail{left:8px;right:8px;top:auto;bottom:64px;width:auto;max-height:36vh;padding:7px 10px;box-shadow:0 -8px 24px rgba(0,0,0,.55);z-index:120}
-  #hex-detail-title{font-size:8px;margin-bottom:3px}
-  #hex-detail-close{top:6px;right:8px;font-size:11px}
-  #hex-detail-count{font-size:16px}
-  #hex-detail-meta{font-size:7px;margin-bottom:6px}
-  .detail-cat-name{font-size:7px}
-  .detail-cat-count{font-size:8px}
-  .detail-poi-item{font-size:7px;padding:1px 3px}
-  .detail-count-bar-label,.detail-count-bar-num{font-size:7px}
-  .detail-count-bar-track{width:48px;height:3px}
-  .detail-zoom-hint{font-size:7px;margin-top:4px}
-  #coords-bar{padding:0 10px;font-size:8px}
-  .legend-label{font-size:6px;margin-bottom:2px}
-  .legend-labels{font-size:6px;margin-bottom:0}
-  #hex-score-label{font-size:7px;margin-bottom:2px}
-  .mode-btn,.time-btn{font-size:7px;padding:2px 0}
-  .cat-row-label{font-size:7px}
-  #info-modal{width:96vw;max-height:90vh}
-  .info-modal-tab{font-size:8px;padding:8px 10px}
-  .info-modal-body{padding:8px 10px;font-size:10px;line-height:1.7}
-}
 .a-term{border-bottom:1px dashed var(--border2);cursor:help;position:relative;white-space:nowrap}
 .a-term-tip{display:none;position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:5px;padding:10px 13px;font-size:10px;color:var(--text);width:260px;z-index:3000;line-height:1.6;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.4)}
 .modal-section-title{display:flex;align-items:center;gap:6px;margin:14px 0 6px}
@@ -322,6 +285,43 @@ body.mode-public .loader-bar{background:var(--accent-public)}
 .ds-arch-section[data-layer="4"].active .ds-arch-tag{border-color:rgba(255,107,53,.25);color:var(--muted)}
 .ds-arch-section[data-layer="5"].active .ds-arch-layer-num{color:var(--muted)}
 .ds-comp-body code{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--text);background:rgba(255,255,255,.05);padding:1px 4px;border-radius:2px;border:1px solid var(--border2)}
+@media(max-width:700px){
+  #hamburger{display:flex}
+  .topbar-controls-row #city-nav{display:none!important}
+  .topbar-title-row{padding:0 12px;height:38px}
+  .topbar-controls-row{padding:0 12px;height:34px;gap:8px}
+  .topbar-left .divider{display:none}
+  #side-panel{width:160px;top:80px;right:8px}
+  #side-panel .section-body{padding:0 8px 8px}
+  /* legend: compact, bottom-left */
+  #legend{width:104px;bottom:26px;left:6px;padding:4px 7px}
+  #legend > div{margin-bottom:4px!important}
+  #legend > div:last-child{margin-bottom:0!important}
+  .legend-gradient-wrap{height:5px;margin-bottom:2px}
+  .legend-marker{height:8px;width:1.5px}
+  .legend-marker-label{font-size:6px;top:-13px;padding:1px 3px}
+  /* hex detail: full width, anchored above legend */
+  #hex-detail{left:8px;right:8px;top:auto;bottom:136px;width:auto;max-height:36vh;max-height:min(36dvh,calc(100dvh - 222px));padding:7px 10px;box-shadow:0 -8px 24px rgba(0,0,0,.55);z-index:120}
+  #hex-detail-title{font-size:8px;margin-bottom:3px}
+  #hex-detail-close{top:6px;right:8px;font-size:11px}
+  #hex-detail-count{font-size:16px}
+  #hex-detail-meta{font-size:7px;margin-bottom:6px}
+  .detail-cat-name{font-size:7px}
+  .detail-cat-count{font-size:8px}
+  .detail-poi-item{font-size:7px;padding:1px 3px}
+  .detail-count-bar-label,.detail-count-bar-num{font-size:7px}
+  .detail-count-bar-track{width:48px;height:3px}
+  .detail-zoom-hint{font-size:7px;margin-top:4px}
+  #coords-bar{padding:0 10px;font-size:8px}
+  .legend-label{font-size:6px;margin-bottom:2px}
+  .legend-labels{font-size:6px;margin-bottom:0}
+  #hex-score-label{font-size:7px;margin-bottom:2px}
+  .mode-btn,.time-btn{font-size:7px;padding:2px 0}
+  .cat-row-label{font-size:7px}
+  #info-modal{width:96vw;max-height:90vh}
+  .info-modal-tab{font-size:8px;padding:8px 10px}
+  .info-modal-body{padding:8px 10px;font-size:10px;line-height:1.7}
+}
 /* ── design-tab mobile overrides (must follow the desktop .ds-arch-* rules) ── */
 @media(max-width:700px){
   .ds-arch-wrap{flex-direction:column}
@@ -400,13 +400,13 @@ body.mode-public .loader-bar{background:var(--accent-public)}
     <a class="city-btn" data-city="fort-worth" href="fort-worth.html">FTW<span class="full">Fort Worth</span></a>
 </div>
 <div id="side-panel">
-  <div class="panel-section open"><div class="section-header"><span class="section-title">Looking For</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div id="cat-btns"></div></div></div>
-  <div class="panel-section open"><div class="section-header"><span class="section-title">Travel By</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div id="mode-btns">
+  <div class="panel-section"><div class="section-header"><span class="section-title">Looking For</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div id="cat-btns"></div></div></div>
+  <div class="panel-section"><div class="section-header"><span class="section-title">Travel By</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div id="mode-btns">
     <div class="mode-btn active" data-mode="pedestrian">Walk</div>
     <div class="mode-btn" data-mode="bicycle">Bike</div>
     <div class="mode-btn" data-mode="auto">Drive</div>
   </div></div></div>
-  <div class="panel-section open"><div class="section-header"><span class="section-title">Travel Time</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div class="time-btns">
+  <div class="panel-section"><div class="section-header"><span class="section-title">Travel Time</span><span class="section-arrow">&#9650;</span></div><div class="section-body"><div class="time-btns">
     <div class="time-btn" data-minutes="5">5m</div>
     <div class="time-btn" data-minutes="10">10m</div>
     <div class="time-btn active" data-minutes="20">20m</div>

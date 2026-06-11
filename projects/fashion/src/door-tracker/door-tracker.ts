@@ -3612,12 +3612,7 @@ function openStoreDrawer(ret,brand){
   const assignedNums=new Set(assigns.filter(a=>a.doorNumber!=='TBD').map(a=>String(a.doorNumber)));
   const confirmedNums=new Set(assigns.filter(a=>a.status==='confirmed' && a.doorNumber!=='TBD').map(a=>String(a.doorNumber)));
   const draftNums=new Set(assigns.filter(a=>a.status==='draft' && a.doorNumber!=='TBD').map(a=>String(a.doorNumber)));
-  const closedDoors=rDoors.filter(dl=>{
-    const st=getDataKeyState(ret,dl.doorNumber,brand);
-    return normalizeStatus(st ? st.status : 'na')==='closed';
-  });
-  const closedNums=new Set(closedDoors.map(dl=>String(dl.doorNumber)));
-  const unassignedDoors=rDoors.filter(dl=>!assignedNums.has(String(dl.doorNumber)) && !closedNums.has(String(dl.doorNumber)));
+  const unassignedDoors=rDoors.filter(dl=>!assignedNums.has(String(dl.doorNumber)));
 
   document.getElementById('drSub').textContent=count+' confirmed doors'+(draftCt?' + '+draftCt+' drafts':'')+' carrying '+brand+' · '+unassignedDoors.length+' unassigned available';
 
