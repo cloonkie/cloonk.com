@@ -142,6 +142,9 @@ function currentSaveMode() {
 const AUTOSNAP_INTERVAL_MS = 5 * 60 * 1000;
 const AUTOSNAP_MAX = 10;
 let _autosaveQueued = false, _legacyMigrated = false, _autoSnapTimer = null;
+/* True when local state has diverged from the shared (Supabase) copy.
+   Shared saves are manual-only — the Save button clears this flag. */
+let _sharedDirty = false;
 let _supabaseClient = null;
 let _sharedSyncRetryAt = 0;
 const SHARED_SYNC_COOLDOWN_MS = 60 * 1000;
@@ -340,32 +343,20 @@ async function getSharedRestorePoint(id) {
         updatedBy: data.updated_by
     }, data.payload || {});
 }
+/* Autosave is local-only (IndexedDB). The shared Supabase copy is written
+   exclusively by manualSaveNow() so edits don't fire a network save per change. */
 function persistAutoState() {
     setSaveIndicator('saving');
     const row = Object.assign({ key: currentSaveKey(), savedAt: new Date().toISOString() }, snapshotPayload());
-    const localSave = () => withStore(STORE_LATEST, 'readwrite', s => reqAsPromise(s.put(row)));
-    if (!sharedSyncAvailable()) {
-        return localSave()
-            .then(() => { setSaveIndicator('saved'); return { shared: false, local: true }; })
-            .catch(err => { setSaveIndicator('error'); throw err; });
-    }
-    return saveSharedLatest(row)
-        .then(() => localSave())
-        .then(() => { setSaveIndicator('saved'); return { shared: true, local: true }; })
-        .catch(sharedError => {
-        pauseSharedSync(sharedError);
-        return localSave()
-            .then(() => {
-            setSaveIndicator('local');
-            return { shared: false, local: true, error: sharedError };
-        })
-            .catch(localError => {
-            setSaveIndicator('error');
-            throw localError;
-        });
-    });
+    return withStore(STORE_LATEST, 'readwrite', s => reqAsPromise(s.put(row)))
+        .then(() => {
+        setSaveIndicator(_sharedDirty && isSharedSyncEnabled() ? 'local' : 'saved');
+        return { shared: false, local: true };
+    })
+        .catch(err => { setSaveIndicator('error'); throw err; });
 }
 function queueAutosave() {
+    _sharedDirty = true;
     if (_autosaveQueued)
         return;
     _autosaveQueued = true;
@@ -376,9 +367,26 @@ function queueAutosave() {
 function manualSaveNow() {
     clearTimeout(_autosaveTimer);
     _autosaveQueued = false;
-    return persistAutoState()
-        .then((result) => toast(result && result.error ? 'Saved locally; shared save failed' : 'Saved'))
-        .catch(err => { console.error('Save failed.', err); toast('Could not save'); });
+    setSaveIndicator('saving');
+    const row = Object.assign({ key: currentSaveKey(), savedAt: new Date().toISOString() }, snapshotPayload());
+    const localSave = () => withStore(STORE_LATEST, 'readwrite', s => reqAsPromise(s.put(row)));
+    if (!sharedSyncAvailable()) {
+        return localSave()
+            .then(() => {
+            setSaveIndicator(isSharedSyncEnabled() ? 'local' : 'saved');
+            toast(isSharedSyncEnabled() ? 'Saved locally; shared sync unavailable' : 'Saved');
+        })
+            .catch(err => { setSaveIndicator('error'); console.error('Save failed.', err); toast('Could not save'); });
+    }
+    return saveSharedLatest(row)
+        .then(() => localSave())
+        .then(() => { _sharedDirty = false; setSaveIndicator('saved'); toast('Saved to shared workspace'); })
+        .catch(sharedError => {
+        pauseSharedSync(sharedError);
+        return localSave()
+            .then(() => { setSaveIndicator('local'); toast('Saved locally; shared save failed'); })
+            .catch(localError => { setSaveIndicator('error'); console.error('Save failed.', localError); toast('Could not save'); });
+    });
 }
 let _saveIndicatorClear = null;
 function setSaveIndicator(state) {
@@ -463,6 +471,7 @@ function migrateLegacyLocalStorage() {
         if (!p)
             return;
         applyPayload(p);
+        _sharedDirty = true;
         persistAutoState().then(() => { try {
             localStorage.removeItem('doorTrackerAutosave');
         }
@@ -470,12 +479,14 @@ function migrateLegacyLocalStorage() {
     }
     catch (e) { }
 }
-/* ── Restore points ─────────────────────────────────────── */
+/* ── Restore points ─────────────────────────────────────────
+   Auto snapshots stay local (IndexedDB) so the 5-minute timer never writes
+   to Supabase on its own; only manual snapshots are pushed shared. */
 function createRestorePoint(label, auto) {
     const mode = currentSaveMode();
     const id = mode + ':' + (auto ? 'auto-' : 'snap-') + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
     const row = Object.assign({ id, mode, label: label || (auto ? 'Auto' : 'Snapshot'), auto: !!auto, savedAt: new Date().toISOString() }, snapshotPayload());
-    if (sharedSyncAvailable()) {
+    if (!auto && sharedSyncAvailable()) {
         return createSharedRestorePoint(row)
             .then(() => { resumeSharedSync(); return id; })
             .catch(err => {
@@ -485,31 +496,35 @@ function createRestorePoint(label, auto) {
     }
     return withStore(STORE_RESTORE, 'readwrite', s => reqAsPromise(s.put(row))).then(() => id);
 }
-function listRestorePoints() {
+function listLocalRestorePoints() {
     const mode = currentSaveMode();
-    if (sharedSyncAvailable()) {
-        return listSharedRestorePoints().catch(err => {
-            pauseSharedSync(err);
-            return withStore(STORE_RESTORE, 'readonly', s => reqAsPromise(s.getAll()))
-                .then(rows => (rows || []).filter(r => (r.mode || 'user') === mode).sort((a, b) => String(b.savedAt).localeCompare(String(a.savedAt))));
-        });
-    }
     return withStore(STORE_RESTORE, 'readonly', s => reqAsPromise(s.getAll()))
-        .then(rows => (rows || []).filter(r => (r.mode || 'user') === mode).sort((a, b) => String(b.savedAt).localeCompare(String(a.savedAt))));
+        .then(rows => (rows || []).filter(r => (r.mode || 'user') === mode));
+}
+function listRestorePoints() {
+    /* Shared list + local list merged (auto points only ever live locally). */
+    const sharedRows = sharedSyncAvailable()
+        ? listSharedRestorePoints().catch(err => { pauseSharedSync(err); return []; })
+        : Promise.resolve([]);
+    return Promise.all([sharedRows, listLocalRestorePoints().catch(() => [])])
+        .then(([shared, local]) => {
+        const seen = new Set((shared || []).map(r => r.id));
+        const merged = [...(shared || []), ...local.filter(r => !seen.has(r.id))];
+        return merged.sort((a, b) => String(b.savedAt).localeCompare(String(a.savedAt)));
+    });
 }
 function deleteRestorePoint(id) {
-    if (sharedSyncAvailable()) {
-        return deleteSharedRestorePoint(id).catch(err => {
-            pauseSharedSync(err);
-            throw err;
-        });
-    }
-    return withStore(STORE_RESTORE, 'readwrite', s => reqAsPromise(s.delete(id)));
+    const localDelete = withStore(STORE_RESTORE, 'readwrite', s => reqAsPromise(s.delete(id))).catch(() => { });
+    const sharedDelete = sharedSyncAvailable()
+        ? deleteSharedRestorePoint(id).catch(err => { pauseSharedSync(err); })
+        : Promise.resolve(true);
+    return Promise.all([localDelete, sharedDelete]);
 }
 function restoreFromPoint(id) {
+    const localLookup = () => withStore(STORE_RESTORE, 'readonly', s => reqAsPromise(s.get(id)));
     const lookup = sharedSyncAvailable()
-        ? getSharedRestorePoint(id)
-        : withStore(STORE_RESTORE, 'readonly', s => reqAsPromise(s.get(id)));
+        ? getSharedRestorePoint(id).then(row => row || localLookup()).catch(() => localLookup())
+        : localLookup();
     return lookup.then(row => {
         if (!row) {
             toast('Snapshot not found');
@@ -517,6 +532,7 @@ function restoreFromPoint(id) {
         }
         return createRestorePoint('Auto · before restore', true).then(() => {
             applyPayload(row);
+            _sharedDirty = true;
             ensureAllSlots();
             populateFilters();
             updateViewSpecificControls();
@@ -541,6 +557,14 @@ function scheduleAutoSnapshots() {
         clearInterval(_autoSnapTimer);
     _autoSnapTimer = setInterval(() => { createRestorePoint('Auto', true).then(rotateAutoSnapshots).catch(() => { }); }, AUTOSNAP_INTERVAL_MS);
 }
+/* Shared saves are manual — nudge before leaving if the shared copy is stale
+   (or a local autosave hasn't flushed yet). */
+window.addEventListener('beforeunload', e => {
+    if (_autosaveQueued || (_sharedDirty && isSharedSyncEnabled())) {
+        e.preventDefault();
+        e.returnValue = 'You have changes that haven’t been saved to the shared workspace. Save before leaving?';
+    }
+});
 function recordHistory(ret, brand, entry) {
     const hk = k(ret, brand);
     if (!trackerHistory[hk])
@@ -2147,6 +2171,8 @@ function renderUnpivoted(items, visR) {
     }
     scopedVisR.forEach(ret => {
         getRetailerDoors(ret).forEach(door => {
+            /* Opportunity depends only on the door, not the brand. */
+            const opportunity = getDoorOpportunityAnalytics(ret, door.doorNumber);
             brands.forEach(brand => {
                 const category = getBrandCategory(brand);
                 const brandName = (brandCodes[brand] && brandCodes[brand].name) || '';
@@ -2155,7 +2181,6 @@ function renderUnpivoted(items, visR) {
                 if (!hasFilterValue(fb, brand))
                     return;
                 const state = getDataKeyState(ret, door.doorNumber, brand) || {};
-                const opportunity = getDoorOpportunityAnalytics(ret, door.doorNumber);
                 const row = {
                     retailer: ret,
                     doorNumber: String(door.doorNumber),
@@ -2752,8 +2777,17 @@ function selectDoor(idx, ret) {
     document.querySelector(`.door-item[data-idx="${idx}"]`)?.classList.add('active');
     renderDoorDetail(d, ret);
 }
+let _doorDetailCurrent = null;
 function renderDoorDetail(d, ret) {
     const norm = normalizeRetailer(ret);
+    _doorDetailCurrent = d;
+    /* Store Geographics depends on the lazily-fetched market layer. Kick the
+       load off on first open and repaint when it lands. _marketDataPromise is
+       set after the first call, so this can't re-render in a loop. */
+    if (!_marketDataPromise) {
+        loadMarketData().then(() => { if (_doorDetailCurrent === d)
+            renderDoorDetail(d, ret); }).catch(() => { });
+    }
     const retColor = retailerColor(norm);
     const doorNum = d.doorNumber;
     const brandFilters = getSelectValues('fBrand');
@@ -2862,6 +2896,7 @@ function renderDoorDetail(d, ret) {
     highlightDoorOnMap(d.doorNumber, norm);
 }
 function closeDoorDetail() {
+    _doorDetailCurrent = null;
     const det = document.getElementById('doorDetail');
     if (det)
         det.innerHTML = '';
@@ -2995,6 +3030,7 @@ let _clusterEnabled = true;
 let _marketLayerMetric = 'none';
 let _marketHexData = { type: 'FeatureCollection', features: [] };
 let _doorTradeAreaData = { type: 'FeatureCollection', features: [] };
+let _doorTradeAreaIndex = new Map();
 let _marketMetadata = null;
 let _marketDataPromise = null;
 let _marketPopup = null;
@@ -3014,8 +3050,8 @@ const MARKET_METRIC_CONFIG = {
     affluent_households: { label: 'Affluent Households', format: 'integer', colorStops: ['#f7fcfd', '#bfd3e6', '#8c96c6', '#8856a7', '#810f7c'] },
     opportunity_score: { label: 'Opportunity Score', format: 'score', colorStops: ['#ffffcc', '#c2e699', '#78c679', '#31a354', '#006837'] }
 };
-function fetchJsonQuiet(url) {
-    return fetch(url, { cache: 'no-cache' }).then(r => {
+function fetchJsonQuiet(url, opts) {
+    return fetch(url, opts).then(r => {
         if (!r.ok)
             throw new Error(`${url} ${r.status}`);
         return r.json();
@@ -3024,13 +3060,20 @@ function fetchJsonQuiet(url) {
 function loadMarketData() {
     if (_marketDataPromise)
         return _marketDataPromise;
-    _marketDataPromise = Promise.all([
-        fetchJsonQuiet(MARKET_DATA_PATHS.hex).catch(() => ({ type: 'FeatureCollection', features: [] })),
-        fetchJsonQuiet(MARKET_DATA_PATHS.trade).catch(() => ({ type: 'FeatureCollection', features: [] })),
-        fetchJsonQuiet(MARKET_DATA_PATHS.metadata).catch(() => null)
-    ]).then(([hex, trade, metadata]) => {
+    /* The metadata file is ~1 KB — revalidate it on every load, then use its
+       refresh date as a cache-busting version on the two multi-MB GeoJSON
+       files. Those come from the normal HTTP cache until a data refresh
+       changes the URL, instead of re-downloading 11 MB per visit. */
+    _marketDataPromise = fetchJsonQuiet(MARKET_DATA_PATHS.metadata, { cache: 'no-cache' }).catch(() => null).then(metadata => {
+        const v = (metadata && metadata.date_refreshed) ? '?v=' + encodeURIComponent(metadata.date_refreshed) : '';
+        return Promise.all([
+            fetchJsonQuiet(MARKET_DATA_PATHS.hex + v).catch(() => ({ type: 'FeatureCollection', features: [] })),
+            fetchJsonQuiet(MARKET_DATA_PATHS.trade + v).catch(() => ({ type: 'FeatureCollection', features: [] }))
+        ]).then(([hex, trade]) => ({ hex, trade, metadata }));
+    }).then(({ hex, trade, metadata }) => {
         _marketHexData = (hex && hex.type === 'FeatureCollection') ? hex : { type: 'FeatureCollection', features: [] };
         _doorTradeAreaData = (trade && trade.type === 'FeatureCollection') ? trade : { type: 'FeatureCollection', features: [] };
+        rebuildDoorTradeAreaIndex();
         _marketMetadata = metadata;
         invalidateGeoStatsCache();
         updateMarketMetaChip();
@@ -3270,7 +3313,10 @@ function setMarketLayer(metric) {
         localStorage.setItem('door-tracker-market-layer', _marketLayerMetric);
     }
     catch (e) { }
-    loadMarketData().then(() => updateMarketLayerPaint());
+    if (_marketLayerMetric !== 'none')
+        loadMarketData().then(() => updateMarketLayerPaint());
+    else
+        updateMarketLayerPaint();
 }
 function restoreMarketLayerState() {
     try {
@@ -3298,12 +3344,18 @@ function bindMarketMapInteractions() {
         if (!f)
             return;
         const p = f.properties || {};
-        if (_marketPopup)
-            _marketPopup.remove();
-        _marketPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 12 })
-            .setLngLat(e.lngLat)
-            .setHTML(marketPopupHtml(p))
-            .addTo(_resMap);
+        /* Reuse one popup across mousemove events — tearing it down and
+           rebuilding it per pointer frame churns DOM nodes. mouseleave nulls
+           _marketPopup, so a non-null popup is already on the map. */
+        if (_marketPopup) {
+            _marketPopup.setLngLat(e.lngLat).setHTML(marketPopupHtml(p));
+        }
+        else {
+            _marketPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 12 })
+                .setLngLat(e.lngLat)
+                .setHTML(marketPopupHtml(p))
+                .addTo(_resMap);
+        }
     };
     _resMap.on('mousemove', MARKET_HEX_LAYER_ID, show);
     _resMap.on('click', MARKET_HEX_LAYER_ID, show);
@@ -3316,8 +3368,9 @@ function bindMarketMapInteractions() {
         }
         refreshCursor();
     });
+    /* zoomstart/zoomend bracket the gesture; a per-frame 'zoom' handler would
+       run elementFromPoint/closest chains on every animation frame. */
     _resMap.on('zoomstart', refreshCursor);
-    _resMap.on('zoom', refreshCursor);
     _resMap.on('zoomend', refreshCursor);
 }
 function marketPopupHtml(p) {
@@ -3332,14 +3385,20 @@ function marketPopupHtml(p) {
 function doorTradeAreaKey(retailer, doorNumber) {
     return `${normalizeRetailer(retailer)}|${String(doorNumber)}`;
 }
-function getDoorTradeAreaMetrics(d, ret) {
-    const key = doorTradeAreaKey(ret || d.retailer, d.doorNumber);
-    const feature = (_doorTradeAreaData.features || []).find(f => {
+/* The trade-area GeoJSON has ~1,500 features and gets probed once per door
+   in table renders and exports — index it by door key instead of scanning
+   the feature list on every lookup. */
+function rebuildDoorTradeAreaIndex() {
+    _doorTradeAreaIndex = new Map();
+    (_doorTradeAreaData.features || []).forEach(f => {
         const p = f.properties || {};
-        const fKey = p.door_key || doorTradeAreaKey(p.retailer, p.door_number || p.doorNumber);
-        return fKey === key;
+        const key = p.door_key || doorTradeAreaKey(p.retailer, p.door_number || p.doorNumber);
+        if (!_doorTradeAreaIndex.has(key))
+            _doorTradeAreaIndex.set(key, p);
     });
-    return feature ? (feature.properties || {}) : null;
+}
+function getDoorTradeAreaMetrics(d, ret) {
+    return _doorTradeAreaIndex.get(doorTradeAreaKey(ret || d.retailer, d.doorNumber)) || null;
 }
 function getDoorOpportunityAnalytics(ret, doorNumber) {
     const door = getDoorInfo(ret, doorNumber);
@@ -3405,7 +3464,8 @@ function initResearchMap() {
     _resMap.on('load', () => {
         addResearchMapLayers();
         _resMapStyleReady = true;
-        loadMarketData();
+        /* Market GeoJSON loads lazily — updateResearchMapData fetches it only
+           when a market layer metric is actually selected. */
         updateResearchMapData();
     });
 }
@@ -5965,11 +6025,19 @@ function exportFullData() {
         toast('Spreadsheet engine not ready yet.');
         return;
     }
+    /* Opportunity Score / Band come from the lazily-fetched market layer —
+       make sure it's in before building the workbook. */
+    loadMarketData().catch(() => { }).then(() => _exportFullDataNow());
+}
+function _exportFullDataNow() {
     const matrixRows = [];
     const brands = getAllBrands();
     const allRetailers = [...new Set([...retailers, ...doorLocations.map(d => normalizeRetailer(d.retailer))])].filter(Boolean).sort();
     allRetailers.forEach(ret => {
         const doors = getRetailerDoors(ret);
+        /* Opportunity depends only on the door, not the brand. */
+        const doorOpportunities = new Map();
+        doors.forEach(d => doorOpportunities.set(d.doorNumber, getDoorOpportunityAnalytics(ret, d.doorNumber)));
         brands.forEach(brand => {
             const bName = (brandCodes[brand] && brandCodes[brand].name) || '';
             const category = getBrandCategory(brand) || '';
@@ -5978,7 +6046,7 @@ function exportFullData() {
                 const status = normalizeStatus(state.status);
                 if (status === 'na')
                     return;
-                const opportunity = getDoorOpportunityAnalytics(ret, door.doorNumber);
+                const opportunity = doorOpportunities.get(door.doorNumber);
                 matrixRows.push({
                     Retailer: ret,
                     'Door Number': door.doorNumber,
@@ -6151,7 +6219,6 @@ function applyThemeToMaps() {
             _resMap.once('idle', () => {
                 addResearchMapLayers();
                 _resMapStyleReady = true;
-                loadMarketData();
                 updateResearchMapData();
             });
         }
@@ -6657,7 +6724,6 @@ function bootApp() {
         restoreShowByGroupState();
         restoreResearchClusterState();
         restoreMarketLayerState();
-        loadMarketData();
         setMode(savedMode === 'map' ? 'map' : 'data');
         persistAutoState();
         scheduleAutoSnapshots();

@@ -863,7 +863,10 @@ body.mode-map .door-list .door-item:nth-child(6n+1) {
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
-body.mode-map .door-detail { position: absolute; right: 12px; bottom: 12px; z-index: 95; width: var(--map-side-panel-w); max-height: var(--map-side-panel-h); overflow-y: auto; background: color-mix(in oklab, var(--surface) 92%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 10px 34px rgba(0,0,0,0.35); }
+/* No backdrop-filter on panels that float over the WebGL map: blurring an
+   animating canvas forces a recomposite of the blur region on every
+   pan/zoom frame. Near-opaque solid fills read the same at a glance. */
+body.mode-map .door-detail { position: absolute; right: 12px; bottom: 12px; z-index: 95; width: var(--map-side-panel-w); max-height: var(--map-side-panel-h); overflow-y: auto; background: color-mix(in oklab, var(--surface) 97%, transparent); box-shadow: 0 10px 34px rgba(0,0,0,0.35); }
 #resMap .mapboxgl-popup-content { background: var(--surface-card); color: var(--text); border-radius: var(--radius-xs); padding: 8px 10px; font-family: var(--font-body); font-size: 0.74rem; }
 #resMap .mapboxgl-popup-tip { border-top-color: var(--surface-card); border-bottom-color: var(--surface-card); }
 .research-grid { display: block; }
@@ -897,12 +900,12 @@ body.mode-map .map-store-panel {
 body.mode-map .map-store-panel .door-list {
   max-height: max(150px, calc(var(--map-side-panel-h) - 94px));
 }
+/* These only render inside the research map shell, so they always sit over
+   the WebGL canvas — same no-blur constraint as .door-detail above. */
 .map-filter-section {
   border: 1px solid var(--border);
   border-radius: 5px;
-  background: color-mix(in oklab, var(--surface) 90%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: color-mix(in oklab, var(--surface) 97%, transparent);
   overflow: hidden;
   box-shadow: 0 8px 28px rgba(0,0,0,0.26);
 }

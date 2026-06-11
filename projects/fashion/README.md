@@ -257,6 +257,8 @@ python scripts/update_census_market_layer.py
 
 The refresh script pulls ACS 5-Year Detailed Tables from the Census API, joins tract-level geometry to generated hexes and store geographies, and writes static GeoJSON for the browser. It defaults to ACS 2024, tract geography, 5-mile store geographies, and 5-mile hex edges. Use `--geography block-group` when block-group runtime and file size are acceptable.
 
+The export is size-optimized: coordinates are rounded to 5 decimals (~1 m), float properties to 4, hexes with no population and no doors are dropped, and the JSON is compact. The browser fetches these files lazily — only when a market layer is enabled, the Details pane renders, a door detail opens, or the full-data export runs — and lets the HTTP cache keep them. `market_metadata.json` (tiny, always revalidated) supplies `date_refreshed` as a `?v=` cache-buster on the two big files, so a data refresh invalidates clients automatically.
+
 Variables used:
 
 | Metric | ACS variable |

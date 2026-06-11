@@ -283,10 +283,27 @@ def add_opportunity_score(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return out
 
 
-def export_geojson(gdf: gpd.GeoDataFrame, path: Path) -> None:
+def _round_coords(coords, decimals: int):
+    if isinstance(coords[0], (list, tuple)):
+        return [_round_coords(c, decimals) for c in coords]
+    return [round(coords[0], decimals), round(coords[1], decimals)]
+
+
+def export_geojson(gdf: gpd.GeoDataFrame, path: Path, coord_decimals: int = 5, prop_decimals: int = 4) -> None:
+    """Write compact GeoJSON. Coordinates are rounded to 5 decimals (~1 m);
+    float properties to 4 — full precision roughly doubles file size for no
+    visible benefit at 5-mile hex/trade-area scale."""
     path.parent.mkdir(parents=True, exist_ok=True)
     serializable = gdf.to_crs(WGS84).copy()
-    path.write_text(serializable.to_json(drop_id=True), encoding="utf-8")
+    data = json.loads(serializable.to_json(drop_id=True))
+    for feature in data.get("features", []):
+        geometry = feature.get("geometry")
+        if geometry and geometry.get("coordinates"):
+            geometry["coordinates"] = _round_coords(geometry["coordinates"], coord_decimals)
+        for key, value in (feature.get("properties") or {}).items():
+            if isinstance(value, float) and math.isfinite(value) and not value.is_integer():
+                feature["properties"][key] = round(value, prop_decimals)
+    path.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
 
 
 def build_layers(args: argparse.Namespace) -> None:
@@ -317,6 +334,13 @@ def build_layers(args: argparse.Namespace) -> None:
 
     hex_metrics = add_opportunity_score(weighted_metrics(hexes, census, door_proj, "hex_id"))
     trade_metrics = add_opportunity_score(weighted_metrics(trade, census, door_proj, "door_key"))
+
+    # Empty water/wilderness hexes carry no signal — drop them from the export.
+    hex_metrics = hex_metrics[
+        (hex_metrics["population"].fillna(0) > 0)
+        | (hex_metrics["existing_door_count"].fillna(0) > 0)
+        | (hex_metrics["nearby_door_count"].fillna(0) > 0)
+    ]
 
     output_dir = args.output_dir
     export_geojson(hex_metrics, output_dir / "hex_market_data.geojson")
