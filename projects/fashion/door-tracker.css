@@ -1746,3 +1746,62 @@ body.nav-open .nav-burger .icon-close { display: block; }
   .user-chip .signed-as { display: none; }
   .user-chip .user-name { overflow: hidden; text-overflow: ellipsis; }
 }
+
+/* ── Loading screen ──────────────────────────────────────────
+   Cycles the cloonk-logo kaomoji set (js/logo.js) while the page
+   boots, then fades out. Markup + cycling script live in the HTML. */
+.dt-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: var(--bg);
+  opacity: 1;
+  transition: opacity 0.45s ease;
+}
+.dt-loader[hidden] { display: none; }
+.dt-loader--out { opacity: 0; pointer-events: none; }
+.dt-loader__kao {
+  font-family: var(--font-mono);
+  font-size: clamp(1.5rem, 5vw, 2.6rem);
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-align: center;
+  animation: dt-loader-bob 1.4s ease-in-out infinite;
+}
+.dt-loader__label {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.dt-loader__bar {
+  width: clamp(160px, 32vw, 280px);
+  height: 3px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+.dt-loader__bar-fill {
+  width: 0;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.18s ease-out;
+}
+@keyframes dt-loader-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-loader__kao { animation: none; }
+}

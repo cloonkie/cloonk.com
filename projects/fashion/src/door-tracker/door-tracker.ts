@@ -5996,6 +5996,7 @@ async function signOut(){
 function bootApp(){
   if(_appBooted) return Promise.resolve();
   _appBooted=true;
+  (window as any).__dtLoaderShow?.();
   initFromSeed();
   const tBtn=document.getElementById('tBtn'); if(tBtn) tBtn.style.display='inline-flex';
   restoreCategoryColumnState();
@@ -6013,6 +6014,7 @@ function bootApp(){
     setMode(savedMode==='map'?'map':'data');
     persistAutoState();
     scheduleAutoSnapshots();
+    (window as any).__dtLoaderHide?.();
   });
 }
 

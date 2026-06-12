@@ -6705,6 +6705,7 @@ function bootApp() {
     if (_appBooted)
         return Promise.resolve();
     _appBooted = true;
+    window.__dtLoaderShow?.();
     initFromSeed();
     const tBtn = document.getElementById('tBtn');
     if (tBtn)
@@ -6727,6 +6728,7 @@ function bootApp() {
         setMode(savedMode === 'map' ? 'map' : 'data');
         persistAutoState();
         scheduleAutoSnapshots();
+        window.__dtLoaderHide?.();
     });
 }
 /* Start each session focused on Luxury unless a channel is already selected. */

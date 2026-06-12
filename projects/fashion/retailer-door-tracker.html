@@ -41,6 +41,72 @@
     }
   } catch (e) {}
 </script>
+
+<div class="dt-loader" id="dtLoader" role="status" aria-live="polite" aria-label="Loading Door Tracker" hidden>
+  <div class="dt-loader__kao" id="dtLoaderKao" aria-hidden="true">ʕ·ᴥ·ʔ</div>
+  <div class="dt-loader__label">Door Tracker</div>
+  <div class="dt-loader__bar" aria-hidden="true"><div class="dt-loader__bar-fill" id="dtLoaderBar"></div></div>
+</div>
+<script>
+  /* Loading screen — cycles the kaomoji set used on the cloonk logo hover
+     (see js/logo.js). It is NOT shown on page open; the tracker calls
+     __dtLoaderShow when it starts initializing and __dtLoaderHide when ready. */
+  (function () {
+    var loader = document.getElementById('dtLoader');
+    var kao = document.getElementById('dtLoaderKao');
+    var bar = document.getElementById('dtLoaderBar');
+    if (!loader || !kao) return;
+    var VARIANTS = [
+      'ʕ·ᴥ·ʔ⭐',
+      'ʕง•ᴥ•ʔง',
+      'ʕ༼ƈل͜ƈ༽ʔ',
+      'ʕ⊙ᴥ⊙ʔ',
+      'ʕ´•㈨•`ʔ',
+      'ʕ◉ᴥ◉ʔ',
+      'ʕっ•ᴥ•ʔっ',
+      'ʕ´•ᴥ•`ʔ',
+    ];
+    var spin = null, shownAt = 0, safety = null, creep = null, pct = 0;
+
+    function setBar(p) { pct = p; if (bar) bar.style.width = p + '%'; }
+
+    window.__dtLoaderShow = function () {
+      if (spin) return;
+      loader.hidden = false;
+      loader.classList.remove('dt-loader--out');
+      shownAt = Date.now();
+      var i = 0;
+      kao.textContent = VARIANTS[0];
+      spin = setInterval(function () {
+        i++;
+        kao.textContent = VARIANTS[i % VARIANTS.length];
+      }, 260);
+      /* Load time is unknown, so ease the bar toward ~90% and let __dtLoaderHide
+         snap it to 100% — a steadily slowing creep reads as real progress. */
+      setBar(0);
+      creep = setInterval(function () {
+        if (pct < 90) setBar(pct + (90 - pct) * 0.08);
+      }, 120);
+      /* Safety net: never trap the user behind the loader. */
+      safety = setTimeout(window.__dtLoaderHide, 8000);
+    };
+
+    window.__dtLoaderHide = function () {
+      if (!spin) return;
+      clearInterval(spin); spin = null;
+      clearInterval(creep); creep = null;
+      clearTimeout(safety); safety = null;
+      setBar(100);
+      /* Keep the kaomojis on screen at least briefly so the animation reads. */
+      var elapsed = Date.now() - shownAt;
+      setTimeout(function () {
+        loader.classList.add('dt-loader--out');
+        setTimeout(function () { loader.hidden = true; }, 480);
+      }, Math.max(0, 600 - elapsed));
+    };
+  })();
+</script>
+
 <header class="header">
   <div class="header-left">
     <a class="logo" href="index.html" title="Back to Fashion Toolbox">Door Tracker <span>Door Distribution</span></a>
