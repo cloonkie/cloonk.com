@@ -35,43 +35,49 @@
   <!-- Fashion tools -->
   <url>
     <loc>https://cloonk.com/projects/fashion/</loc>
-    <lastmod>2026-06-03</lastmod>
+    <lastmod>2026-06-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cloonk.com/projects/fashion/replenishment-linesheet.html</loc>
-    <lastmod>2026-06-03</lastmod>
+    <loc>https://cloonk.com/projects/fashion/image-prep/</loc>
+    <lastmod>2026-06-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://cloonk.com/projects/fashion/assortment-comparison.html</loc>
-    <lastmod>2026-06-03</lastmod>
+    <loc>https://cloonk.com/projects/fashion/replenishment-linesheet/</loc>
+    <lastmod>2026-06-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://cloonk.com/projects/fashion/retailer-door-tracker.html</loc>
-    <lastmod>2026-06-03</lastmod>
+    <loc>https://cloonk.com/projects/fashion/assortment-comparison/</loc>
+    <lastmod>2026-06-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://cloonk.com/projects/fashion/sellout-standardizer.html</loc>
-    <lastmod>2026-06-03</lastmod>
+    <loc>https://cloonk.com/projects/fashion/door-tracker/</loc>
+    <lastmod>2026-06-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://cloonk.com/projects/fashion/selling-analysis.html</loc>
-    <lastmod>2026-06-03</lastmod>
+    <loc>https://cloonk.com/projects/fashion/sellout-standardizer/</loc>
+    <lastmod>2026-06-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://cloonk.com/projects/fashion/upc-concat.html</loc>
-    <lastmod>2026-06-03</lastmod>
+    <loc>https://cloonk.com/projects/fashion/selling-analysis/</loc>
+    <lastmod>2026-06-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cloonk.com/projects/fashion/upc-concat/</loc>
+    <lastmod>2026-06-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

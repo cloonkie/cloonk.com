@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF Studio | Kevin Zhang</title>
+<meta name="description" content="A local, browser-based PDF and media toolkit — view, organize, merge, split, compress, watermark, number, convert and edit PDFs, plus compress images. Nothing is uploaded; everything runs on your machine.">
+<meta name="author" content="Kevin Zhang">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="canonical" href="https://cloonk.com/projects/pdf-studio/">
+<meta property="og:title" content="PDF Studio — local, browser-based PDF toolkit">
+<meta property="og:description" content="View, organize, merge, split, compress, watermark, convert and edit PDFs — entirely in your browser. Nothing uploaded.">
+<meta property="og:image" content="https://cloonk.com/favicon.svg">
+<meta name="twitter:image" content="https://cloonk.com/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script src="../../js/favicon-rotator.js" defer></script>
+<script src="../../js/cursor.js" defer></script>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700,800&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pdf-studio.css">
+<script>
+  try {
+    document.documentElement.setAttribute(
+      'data-theme',
+      localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark'
+    );
+  } catch (e) {}
+</script>
+
+<!-- Third-party engines (all client-side) -->
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-left">
+    <a class="logo" href="../../index.html">cloonk ʕ·ᴥ·ʔ<span>PDF Studio</span></a>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-sm" id="open-files-btn" title="Open PDFs or images">＋ Open files</button>
+    <a class="btn btn-sm" href="../../projects.html">All work</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle theme">
+      <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ── Privacy strip ───────────────────────────────────────── -->
+<div class="privacy-bar" id="privacy-bar">
+  <span class="dot"></span>
+  Everything runs in this browser tab. No file is ever uploaded.
+</div>
+
+<main class="layout">
+
+  <!-- ── Tool rail ─────────────────────────────────────────── -->
+  <nav class="rail" id="rail" aria-label="Tools">
+    <div class="rail-group">
+      <p class="rail-label">Document</p>
+      <button class="rail-btn active" data-tool="organize">
+        <span class="rail-ico" aria-hidden="true">▤</span> Organize &amp; view
+      </button>
+      <button class="rail-btn" data-tool="merge"><span class="rail-ico">⊞</span> Merge</button>
+      <button class="rail-btn" data-tool="split"><span class="rail-ico">✂</span> Split &amp; extract</button>
+      <button class="rail-btn" data-tool="compress"><span class="rail-ico">⤓</span> Compress</button>
+    </div>
+    <div class="rail-group">
+      <p class="rail-label">Edit</p>
+      <button class="rail-btn" data-tool="watermark"><span class="rail-ico">◈</span> Watermark</button>
+      <button class="rail-btn" data-tool="numbers"><span class="rail-ico">№</span> Page numbers</button>
+      <button class="rail-btn" data-tool="metadata"><span class="rail-ico">ℹ</span> Metadata</button>
+    </div>
+    <div class="rail-group">
+      <p class="rail-label">Convert</p>
+      <button class="rail-btn" data-tool="img2pdf"><span class="rail-ico">⇨</span> Images → PDF</button>
+      <button class="rail-btn" data-tool="pdf2img"><span class="rail-ico">⇦</span> PDF → Images</button>
+      <button class="rail-btn" data-tool="extract"><span class="rail-ico">¶</span> Extract text</button>
+    </div>
+    <div class="rail-group">
+      <p class="rail-label">Media</p>
+      <button class="rail-btn" data-tool="imgcompress"><span class="rail-ico">▣</span> Image compressor</button>
+    </div>
+  </nav>
+
+  <!-- ── Work surface ──────────────────────────────────────── -->
+  <section class="surface" id="surface">
+
+    <!-- ORGANIZE & VIEW -->
+    <div class="panel active" data-panel="organize">
+      <div class="panel-head">
+        <div>
+          <h1>Organize &amp; view</h1>
+          <p class="sub">Open a PDF to read it, search its text, then drag pages to reorder, rotate or delete — and export a fresh PDF.</p>
+        </div>
+        <div class="panel-tools" id="organize-tools" hidden>
+          <input type="search" id="search-input" class="field search" placeholder="Search text…" />
+          <span class="search-count" id="search-count"></span>
+          <button class="btn btn-sm" id="org-rotate-all">Rotate all ↻</button>
+          <button class="btn btn-sm btn-accent" id="org-export" disabled>Export PDF</button>
+        </div>
+      </div>
+
+      <div class="dropzone" id="organize-drop">
+        <input type="file" id="organize-file" accept="application/pdf" hidden>
+        <div class="dz-inner">
+          <div class="dz-icon">▤</div>
+          <p class="dz-title">Drop a PDF here</p>
+          <p class="dz-hint">or <button class="link-btn" id="organize-browse">browse your files</button></p>
+        </div>
+      </div>
+
+      <div class="organize-stage" id="organize-stage" hidden>
+        <div class="thumbs" id="thumbs" aria-label="Pages — drag to reorder"></div>
+        <div class="viewer" id="viewer">
+          <div class="viewer-toolbar">
+            <button class="btn btn-sm" id="page-prev">‹</button>
+            <span class="page-indicator" id="page-indicator">—</span>
+            <button class="btn btn-sm" id="page-next">›</button>
+            <span class="vt-sep"></span>
+            <button class="btn btn-sm" id="zoom-out">−</button>
+            <span class="zoom-indicator" id="zoom-indicator">100%</span>
+            <button class="btn btn-sm" id="zoom-in">+</button>
+            <span class="vt-sep"></span>
+            <button class="btn btn-sm" id="print-btn">Print</button>
+          </div>
+          <div class="canvas-wrap" id="canvas-wrap">
+            <canvas id="page-canvas"></canvas>
+            <div class="text-layer" id="text-layer"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MERGE -->
+    <div class="panel" data-panel="merge">
+      <div class="panel-head">
+        <div><h1>Merge</h1><p class="sub">Combine several PDFs (and images) into one file. Drag the cards to set the order.</p></div>
+      </div>
+      <div class="dropzone sm" id="merge-drop">
+        <input type="file" id="merge-file" accept="application/pdf,image/*" multiple hidden>
+        <div class="dz-inner"><div class="dz-icon">⊞</div><p class="dz-title">Drop PDFs / images here</p><p class="dz-hint">or <button class="link-btn" id="merge-browse">browse</button></p></div>
+      </div>
+      <div class="file-cards" id="merge-list"></div>
+      <div class="panel-actions">
+        <button class="btn btn-accent" id="merge-run" disabled>Merge → download</button>
+        <button class="btn" id="merge-clear" disabled>Clear</button>
+      </div>
+    </div>
+
+    <!-- SPLIT -->
+    <div class="panel" data-panel="split">
+      <div class="panel-head">
+        <div><h1>Split &amp; extract</h1><p class="sub">Pull out page ranges as separate PDFs, or burst every page into its own file.</p></div>
+      </div>
+      <div class="dropzone sm" id="split-drop">
+        <input type="file" id="split-file" accept="application/pdf" hidden>
+        <div class="dz-inner"><div class="dz-icon">✂</div><p class="dz-title">Drop a PDF here</p><p class="dz-hint">or <button class="link-btn" id="split-browse">browse</button></p></div>
+      </div>
+      <div class="config-block" id="split-config" hidden>
+        <p class="meta-line" id="split-info"></p>
+        <div class="radio-row">
+          <label class="radio"><input type="radio" name="split-mode" value="ranges" checked> Custom ranges</label>
+          <label class="radio"><input type="radio" name="split-mode" value="every"> Every page separately</label>
+          <label class="radio"><input type="radio" name="split-mode" value="size"> Fixed chunk size</label>
+        </div>
+        <div class="field-row" id="split-ranges-row">
+          <label class="field-label">Ranges
+            <input type="text" class="field" id="split-ranges" placeholder="e.g. 1-3, 5, 8-10">
+          </label>
+          <span class="hint">Each comma-separated group becomes one PDF.</span>
+        </div>
+        <div class="field-row" id="split-size-row" hidden>
+          <label class="field-label">Pages per file
+            <input type="number" class="field" id="split-size" min="1" value="5">
+          </label>
+        </div>
+        <div class="panel-actions">
+          <button class="btn btn-accent" id="split-run">Split → download .zip</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPRESS -->
+    <div class="panel" data-panel="compress">
+      <div class="panel-head">
+        <div><h1>Compress</h1><p class="sub">Shrink a heavy PDF by re-rendering its pages at a chosen resolution and JPEG quality. Best for scans and image-heavy documents.</p></div>
+      </div>
+      <div class="dropzone sm" id="compress-drop">
+        <input type="file" id="compress-file" accept="application/pdf" hidden>
+        <div class="dz-inner"><div class="dz-icon">⤓</div><p class="dz-title">Drop a PDF here</p><p class="dz-hint">or <button class="link-btn" id="compress-browse">browse</button></p></div>
+      </div>
+      <div class="config-block" id="compress-config" hidden>
+        <p class="meta-line" id="compress-info"></p>
+        <div class="slider-row">
+          <label class="field-label">Resolution <output id="compress-dpi-out">120 DPI</output></label>
+          <input type="range" id="compress-dpi" min="72" max="220" value="120" step="4">
+        </div>
+        <div class="slider-row">
+          <label class="field-label">JPEG quality <output id="compress-q-out">65%</output></label>
+          <input type="range" id="compress-q" min="30" max="95" value="65" step="1">
+        </div>
+        <div class="panel-actions">
+          <button class="btn btn-accent" id="compress-run">Compress → download</button>
+        </div>
+        <div class="result-line" id="compress-result" hidden></div>
+      </div>
+    </div>
+
+    <!-- WATERMARK -->
+    <div class="panel" data-panel="watermark">
+      <div class="panel-head">
+        <div><h1>Watermark</h1><p class="sub">Stamp text diagonally across every page — draft notices, confidentiality marks, ownership.</p></div>
+      </div>
+      <div class="dropzone sm" id="wm-drop">
+        <input type="file" id="wm-file" accept="application/pdf" hidden>
+        <div class="dz-inner"><div class="dz-icon">◈</div><p class="dz-title">Drop a PDF here</p><p class="dz-hint">or <button class="link-btn" id="wm-browse">browse</button></p></div>
+      </div>
+      <div class="config-block" id="wm-config" hidden>
+        <p class="meta-line" id="wm-info"></p>
+        <div class="field-row">
+          <label class="field-label">Text <input type="text" class="field" id="wm-text" value="DRAFT"></label>
+        </div>
+        <div class="slider-row">
+          <label class="field-label">Opacity <output id="wm-op-out">18%</output></label>
+          <input type="range" id="wm-op" min="3" max="60" value="18">
+        </div>
+        <div class="slider-row">
+          <label class="field-label">Size <output id="wm-size-out">60</output></label>
+          <input type="range" id="wm-size" min="20" max="140" value="60">
+        </div>
+        <div class="slider-row">
+          <label class="field-label">Angle <output id="wm-angle-out">45°</output></label>
+          <input type="range" id="wm-angle" min="0" max="90" value="45">
+        </div>
+        <div class="panel-actions">
+          <button class="btn btn-accent" id="wm-run">Apply → download</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE NUMBERS -->
+    <div class="panel" data-panel="numbers">
+      <div class="panel-head">
+        <div><h1>Page numbers</h1><p class="sub">Add page numbers in the position and format you choose.</p></div>
+      </div>
+      <div class="dropzone sm" id="num-drop">
+        <input type="file" id="num-file" accept="application/pdf" hidden>
+        <div class="dz-inner"><div class="dz-icon">№</div><p class="dz-title">Drop a PDF here</p><p class="dz-hint">or <button class="link-btn" id="num-browse">browse</button></p></div>
+      </div>
+      <div class="config-block" id="num-config" hidden>
+        <p class="meta-line" id="num-info"></p>
+        <div class="field-row">
+          <label class="field-label">Format
+            <select class="field" id="num-format">
+              <option value="n">1, 2, 3…</option>
+              <option value="n/N">1 / N</option>
+              <option value="Page n">Page 1</option>
+              <option value="Page n of N">Page 1 of N</option>
+            </select>
+          </label>
+          <label class="field-label">Position
+            <select class="field" id="num-pos">
+              <option value="bc">Bottom center</option>
+              <option value="br">Bottom right</option>
+              <option value="bl">Bottom left</option>
+              <option value="tc">Top center</option>
+              <option value="tr">Top right</option>
+              <option value="tl">Top left</option>
+            </select>
+          </label>
+          <label class="field-label">Start at <input type="number" class="field" id="num-start" min="1" value="1"></label>
+        </div>
+        <div class="panel-actions">
+          <button class="btn btn-accent" id="num-run">Apply → download</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- METADATA -->
+    <div class="panel" data-panel="metadata">
+      <div class="panel-head">
+        <div><h1>Metadata</h1><p class="sub">Read and rewrite a PDF's title, author, subject and keywords.</p></div>
+      </div>
+      <div class="dropzone sm" id="meta-drop">
+        <input type="file" id="meta-file" accept="application/pdf" hidden>
+        <div class="dz-inner"><div class="dz-icon">ℹ</div><p class="dz-title">Drop a PDF here</p><p class="dz-hint">or <button class="link-btn" id="meta-browse">browse</button></p></div>
+      </div>
+      <div class="config-block" id="meta-config" hidden>
+        <div class="field-row col">
+          <label class="field-label">Title <input type="text" class="field" id="meta-title"></label>
+          <label class="field-label">Author <input type="text" class="field" id="meta-author"></label>
+          <label class="field-label">Subject <input type="text" class="field" id="meta-subject"></label>
+          <label class="field-label">Keywords <input type="text" class="field" id="meta-keywords" placeholder="comma, separated"></label>
+        </div>
+        <p class="meta-line" id="meta-readout"></p>
+        <div class="panel-actions">
+          <button class="btn btn-accent" id="meta-run">Save → download</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMAGES → PDF -->
+    <div class="panel" data-panel="img2pdf">
+      <div class="panel-head">
+        <div><h1>Images → PDF</h1><p class="sub">Turn JPGs and PNGs into a single PDF, one image per page. Drag to reorder.</p></div>
+      </div>
+      <div class="dropzone sm" id="i2p-drop">
+        <input type="file" id="i2p-file" accept="image/*" multiple hidden>
+        <div class="dz-inner"><div class="dz-icon">⇨</div><p class="dz-title">Drop images here</p><p class="dz-hint">or <button class="link-btn" id="i2p-browse">browse</button></p></div>
+      </div>
+      <div class="file-cards" id="i2p-list"></div>
+      <div class="config-block" id="i2p-config" hidden>
+        <div class="field-row">
+          <label class="field-label">Page size
+            <select class="field" id="i2p-size">
+              <option value="fit">Fit to image</option>
+              <option value="a4">A4 portrait</option>
+              <option value="a4l">A4 landscape</option>
+              <option value="letter">US Letter</option>
+            </select>
+          </label>
+          <label class="field-label">Margin
+            <select class="field" id="i2p-margin">
+              <option value="0">None</option>
+              <option value="24" selected>Small</option>
+              <option value="48">Medium</option>
+              <option value="72">Large</option>
+            </select>
+          </label>
+        </div>
+        <div class="panel-actions">
+          <button class="btn btn-accent" id="i2p-run">Build PDF → download</button>
+          <button class="btn" id="i2p-clear">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF → IMAGES -->
+    <div class="panel" data-panel="pdf2img">
+      <div class="panel-head">
+        <div><h1>PDF → Images</h1><p class="sub">Render every page to a PNG or JPEG and download them as a .zip.</p></div>
+      </div>
+      <div class="dropzone sm" id="p2i-drop">
+        <input type="file" id="p2i-file" accept="application/pdf" hidden>
+        <div class="dz-inner"><div class="dz-icon">⇦</div><p class="dz-title">Drop a PDF here</p><p class="dz-hint">or <button class="link-btn" id="p2i-browse">browse</button></p></div>
+      </div>
+      <div class="config-block" id="p2i-config" hidden>
+        <p class="meta-line" id="p2i-info"></p>
+        <div class="field-row">
+          <label class="field-label">Format
+            <select class="field" id="p2i-format"><option value="png">PNG</option><option value="jpeg">JPEG</option></select>
+          </label>
+          <label class="field-label">Scale
+            <select class="field" id="p2i-scale">
+              <option value="1">1× (screen)</option>
+              <option value="2" selected>2× (sharp)</option>
+              <option value="3">3× (print)</option>
+            </select>
+          </label>
+        </div>
+        <div class="panel-actions">
+          <button class="btn btn-accent" id="p2i-run">Render → download .zip</button>
+        </div>
+        <div class="result-line" id="p2i-result" hidden></div>
+      </div>
+    </div>
+
+    <!-- EXTRACT TEXT -->
+    <div class="panel" data-panel="extract">
+      <div class="panel-head">
+        <div><h1>Extract text</h1><p class="sub">Pull the selectable text out of a PDF. (Scanned images have no text layer to extract — those need OCR, which this tool doesn't do.)</p></div>
+      </div>
+      <div class="dropzone sm" id="ext-drop">
+        <input type="file" id="ext-file" accept="application/pdf" hidden>
+        <div class="dz-inner"><div class="dz-icon">¶</div><p class="dz-title">Drop a PDF here</p><p class="dz-hint">or <button class="link-btn" id="ext-browse">browse</button></p></div>
+      </div>
+      <div class="config-block" id="ext-config" hidden>
+        <div class="panel-actions">
+          <button class="btn" id="ext-copy">Copy all</button>
+          <button class="btn btn-accent" id="ext-download">Download .txt</button>
+        </div>
+        <textarea class="field text-out" id="ext-out" readonly spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <!-- IMAGE COMPRESSOR -->
+    <div class="panel" data-panel="imgcompress">
+      <div class="panel-head">
+        <div><h1>Image compressor</h1><p class="sub">Resize, re-quality and convert images to JPEG, PNG or WebP. Batch a whole folder at once.</p></div>
+      </div>
+      <div class="dropzone sm" id="ic-drop">
+        <input type="file" id="ic-file" accept="image/*" multiple hidden>
+        <div class="dz-inner"><div class="dz-icon">▣</div><p class="dz-title">Drop images here</p><p class="dz-hint">or <button class="link-btn" id="ic-browse">browse</button></p></div>
+      </div>
+      <div class="config-block" id="ic-config" hidden>
+        <div class="field-row">
+          <label class="field-label">Output format
+            <select class="field" id="ic-format">
+              <option value="image/jpeg">JPEG</option>
+              <option value="image/webp">WebP</option>
+              <option value="image/png">PNG</option>
+            </select>
+          </label>
+          <label class="field-label">Max width (px)
+            <input type="number" class="field" id="ic-maxw" placeholder="keep original" min="16">
+          </label>
+        </div>
+        <div class="slider-row">
+          <label class="field-label">Quality <output id="ic-q-out">72%</output></label>
+          <input type="range" id="ic-q" min="20" max="100" value="72">
+        </div>
+        <div class="panel-actions">
+          <button class="btn btn-accent" id="ic-run">Compress all</button>
+          <button class="btn" id="ic-zip" disabled>Download .zip</button>
+          <button class="btn" id="ic-clear">Clear</button>
+        </div>
+        <div class="ic-grid" id="ic-grid"></div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<!-- global file input used by header "Open files" -->
+<input type="file" id="global-file" accept="application/pdf,image/*" multiple hidden>
+
+<!-- progress overlay -->
+<div class="overlay" id="overlay" hidden>
+  <div class="overlay-card">
+    <div class="spinner"></div>
+    <p class="overlay-msg" id="overlay-msg">Working…</p>
+  </div>
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast" hidden></div>
+
+<footer class="studio-footer">
+  <span>PDF Studio — runs entirely in your browser</span>
+  <span>© 2026 Kevin Zhang · <a href="../../index.html">cloonk.com</a></span>
+</footer>
+
+<script type="module" src="pdf-studio.js"></script>
+</body>
+</html>

@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retail Data Standardizer | Kevin Zhang</title>
+<meta name="description" content="A local browser tool for mapping, cleaning, pivoting, and exporting retailer sales reports into standardized analytics-ready data.">
+<meta name="author" content="Kevin Zhang">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="canonical" href="https://cloonk.com/projects/fashion/sellout-standardizer/">
+<meta name="keywords" content="retail data standardizer, sell-through report mapping, fashion analytics, retail sales parser, spreadsheet normalizer">
+<meta property="og:title" content="Retail Data Standardizer | Fashion Toolbox">
+<meta property="og:description" content="Map retailer report headers, standardize dimensions and metrics, build pivots, and export clean analytics-ready data locally in the browser.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://cloonk.com/favicon.svg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Retail Data Standardizer | Fashion Toolbox">
+<meta name="twitter:description" content="Normalize retailer spreadsheets into clean mapped output with pivots, calculated metrics, and reusable configurations.">
+<meta name="twitter:image" content="https://cloonk.com/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script src="../../../js/favicon-rotator.js" defer></script>
+<script src="../../../js/cursor.js" defer></script>
+<script src="../fashion-decisions.js" defer></script>
+<script src="../fashion-nav.js" defer></script>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700,800&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../fashion.css">
+<script>
+  try {
+    document.documentElement.setAttribute(
+      'data-theme',
+      localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark'
+    );
+  } catch (e) {}
+</script>
+<style>
+[hidden] { display: none !important; }
+:root {
+  --text-muted: #aaa59a;
+  --text-dim: #7d786f;
+  --accent-mid: rgba(57, 255, 20, 0.22);
+  --success: #39ff14;
+  --warn: #e8b931;
+}
+[data-theme="light"] {
+  --text-muted: #3f3f3a;
+  --text-dim: #676760;
+  --accent-mid: rgba(27, 9, 188, 0.20);
+  --success: #1e8a4a;
+  --warn: #b86d00;
+}
+html { font-size: 15px; }
+body {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; }
+button { color: inherit; }
+a { color: inherit; text-decoration: none; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.header {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 32px;
+  background: color-mix(in oklab, var(--bg) 86%, transparent);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+}
+[data-theme="light"] .header { background: rgba(245, 242, 236, 0.88); }
+.header-left { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.logo {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.3rem;
+  white-space: nowrap;
+  transition: color var(--transition);
+}
+.logo:hover { color: var(--accent); }
+.logo span {
+  margin-left: 10px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.header-stats {
+  display: flex;
+  gap: 14px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+.header-stats .stat-val { color: var(--accent); }
+.header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.config-menu-wrap { position: relative; }
+.config-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  width: min(320px, calc(100vw - 28px));
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: 0 18px 42px rgba(0,0,0,0.34);
+}
+.config-menu .btn { width: 100%; justify-content: flex-start; }
+.config-menu-actions { display: grid; gap: 6px; margin-bottom: 8px; }
+.config-history {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+.config-history summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 4px 8px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.config-history summary::-webkit-details-marker { display: none; }
+.config-history summary::after {
+  content: "⌄";
+  color: var(--text-dim);
+}
+.config-history[open] summary::after { transform: rotate(180deg); }
+.config-history-list {
+  max-height: 260px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: grid;
+  gap: 6px;
+}
+.config-history-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-raised);
+}
+.config-history-item > div:first-child { min-width: 0; }
+.config-history-name {
+  min-width: 0;
+  max-width: 100%;
+  font-size: 0.78rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.config-history-meta {
+  margin-top: 2px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+.config-history-controls {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+.config-menu .config-history-controls .btn {
+  width: auto;
+  min-height: 28px;
+  padding: 5px 8px;
+  font-size: 0.7rem;
+}
+.btn, .theme-toggle {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: background var(--transition), border-color var(--transition), color var(--transition), opacity var(--transition);
+  white-space: nowrap;
+}
+.btn:hover, .theme-toggle:hover { background: var(--surface-raised); border-color: var(--border-hover); }
+.btn:disabled { cursor: not-allowed; opacity: 0.45; }
+.btn-accent { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 700; }
+.btn-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--accent-fg); }
+.btn-danger { color: var(--danger); }
+.btn-sm { min-height: 28px; padding: 5px 10px; font-size: 0.72rem; }
+.header-actions .btn:not(.info-btn) { padding: 5px 10px; font-size: 0.72rem; }
+.theme-toggle { width: 32px; padding: 0; color: var(--text-muted); }
+.theme-toggle svg, .info-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.theme-toggle .icon-moon { display: none; }
+[data-theme="light"] .theme-toggle .icon-sun { display: none; }
+[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+.info-btn { width: 32px; min-height: 32px; padding: 0; color: var(--text-muted); }
+.shell {
+  height: 100%;
+  min-height: 0;
+  padding: 14px 18px 18px;
+  overflow: hidden;
+}
+.intro {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(420px, 1.6fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.intro-copy {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.eyebrow {
+  margin-bottom: 14px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+h1 {
+  margin-bottom: 12px;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 3.3rem);
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+.intro-copy p { color: var(--text-muted); line-height: 1.6; }
+.dropzone {
+  position: relative;
+  min-height: 232px;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  border: 1px dashed var(--border-hover);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, var(--accent-dim), transparent 44%),
+    var(--surface-card);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.dropzone:hover, .dropzone.dragging { border-color: var(--accent); background: var(--surface-raised); }
+.dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.drop-inner { text-align: center; pointer-events: none; }
+.drop-icon {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 16px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  color: var(--accent);
+}
+.drop-title {
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.drop-sub { color: var(--text-muted); font-size: 0.9rem; }
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  height: 100%;
+  min-height: 0;
+}
+.workspace > .control-stack {
+  grid-column: 1;
+  grid-row: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  overflow: hidden;
+}
+#panelInput,
+#panelHeader,
+#panelMapping {
+  display: contents;
+}
+#panelInput > .panel-header { grid-column: 1; }
+#panelHeader > .panel-header { grid-column: 2; }
+#panelMapping > .panel-header { grid-column: 3; }
+#panelInput > .panel-header,
+#panelHeader > .panel-header,
+#panelMapping > .panel-header {
+  grid-row: 1;
+  min-width: 0;
+  min-height: 64px;
+  align-items: flex-start;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.workspace > .control-stack .panel-toggle {
+  display: none;
+}
+#panelInput > .panel-body,
+#panelHeader > .panel-body,
+#panelMapping > .panel-body {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.workspace > .control-stack > .flow-panel:not(.collapsed) > .panel-header {
+  border-color: var(--border-hover);
+  background: var(--surface-card);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.02);
+}
+.workspace > .panel[data-flow-step="preview"] { grid-column: 2; grid-row: 1; }
+.flow-num {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+.flow-panel.ready {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-dim);
+}
+.flow-panel.ready > .panel-header .flow-num {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.panel {
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.flow-panel {
+  display: flex;
+  flex-direction: column;
+}
+.control-stack > .flow-panel:not(.collapsed) { flex: 1 1 0; }
+.control-stack > .flow-panel.collapsed { min-height: 58px; }
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-raised);
+}
+.panel-header .flow-num { flex-shrink: 0; }
+.flow-panel > .panel-header { cursor: pointer; }
+.panel-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+}
+.panel-sub {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+.panel-body {
+  min-height: 0;
+  padding: 14px;
+  overflow: auto;
+}
+.panel-body.control-stack {
+  align-content: start;
+  align-items: start;
+  grid-auto-rows: max-content;
+}
+.panel-body.control-stack > * {
+  width: 100%;
+}
+.workspace > .panel[data-flow-step="preview"] > .panel-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.workspace > .panel[data-flow-step="preview"] .table-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+.control-stack { display: grid; gap: 12px; }
+.field { display: grid; gap: 7px; }
+.field label {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.field input, .field select, .field textarea {
+  width: 100%;
+  min-height: 34px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+[data-theme="light"] .field input,
+[data-theme="light"] .field select,
+[data-theme="light"] .field textarea { background: #f4f2ee; }
+.field textarea {
+  min-height: 132px;
+  resize: vertical;
+  line-height: 1.4;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+.inline-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.segmented {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+.segmented button {
+  flex: 1;
+  min-height: 32px;
+  border: 0;
+  border-right: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.segmented button:last-child { border-right: 0; }
+.segmented button.active { background: var(--accent); color: var(--accent-fg); }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chips:empty { display: none; }
+.check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+}
+.check-row input {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+.check-row strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.84rem;
+}
+.check-row span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+.chip.good { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.chip.warn { border-color: var(--warn); color: var(--warn); }
+.file-list {
+  --file-list-visible-items: 8;
+  --file-row-compact-height: 40px;
+  display: grid;
+  gap: 8px;
+  max-height: calc((var(--file-row-compact-height) * var(--file-list-visible-items)) + (8px * (var(--file-list-visible-items) - 1)));
+  overflow: auto;
+}
+.file-row-wrap {
+  display: grid;
+  gap: 0;
+}
+.file-row-wrap.has-overrides .file-row { border-radius: var(--radius-xs) var(--radius-xs) 0 0; }
+.file-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+}
+.file-row-compact { gap: 6px; padding: 6px 8px; }
+.file-row-text { display: inline-flex; align-items: baseline; gap: 4px; min-width: 0; }
+.file-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+.file-row strong { font-size: 0.82rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+.file-row span { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.66rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-row .icon-btn { width: 26px; min-height: 26px; padding: 0; font-size: 0.95rem; line-height: 1; }
+.file-status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.file-status-dot.active { background: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+.file-status-dot.dormant { background: var(--warn); opacity: 0.6; }
+.workbook-pending {
+  border: 1px solid var(--warn);
+  border-radius: var(--radius-xs);
+  background: rgba(232, 185, 49, 0.06);
+  overflow: hidden;
+}
+.workbook-pending-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 9px;
+  border-bottom: 1px solid color-mix(in oklab, var(--warn) 40%, transparent);
+}
+.workbook-pending-title {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.workbook-pending-title strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+}
+.workbook-pending-title span {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+}
+.workbook-sheet-actions {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.workbook-sheet-list {
+  display: grid;
+  gap: 2px;
+  max-height: 160px;
+  overflow-y: auto;
+  padding: 7px;
+}
+.workbook-sheet-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+.workbook-sheet-option:hover { background: var(--accent-dim); color: var(--text); }
+.workbook-sheet-option input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+}
+.override-active-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid var(--warn);
+  border-radius: var(--radius-xs);
+  background: rgba(232, 185, 49, 0.08);
+}
+.override-active-row input { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--accent); flex-shrink: 0; }
+.override-active-row strong { display: block; font-size: 0.78rem; }
+.override-active-row span { display: block; color: var(--text-muted); font-size: 0.72rem; line-height: 1.35; }
+.file-overrides {
+  display: none;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-top: 0;
+  border-radius: 0 0 var(--radius-xs) var(--radius-xs);
+  background: var(--bg);
+}
+.file-overrides.open { display: grid; }
+.file-overrides .override-block { display: grid; gap: 5px; }
+.file-overrides .override-block > label {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.file-overrides select, .file-overrides input {
+  min-height: 30px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  color: var(--text);
+  font-size: 0.82rem;
+}
+.override-add-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; }
+.override-chips-row { display: flex; flex-wrap: wrap; gap: 5px; min-height: 22px; }
+.override-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+.override-chip button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 0;
+}
+.override-chip button:hover { color: var(--danger); }
+.override-empty {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+.subtabs {
+  display: flex;
+  gap: 0;
+  margin: -4px -4px 8px;
+  border-bottom: 1px solid var(--border);
+  align-self: start;
+}
+.subtab {
+  flex: 1;
+  min-height: 36px;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 8px 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color var(--transition), border-color var(--transition);
+}
+.subtab:hover { color: var(--text); }
+.subtab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.subtab-pane { display: none; }
+.subtab-pane.active { display: grid; gap: 12px; }
+.status-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+.status-line:empty { display: none; }
+.status-sep { color: var(--text-dim); }
+.status-source { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+.status-cadence { color: var(--accent); }
+.mapping-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.toolbar-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  cursor: pointer;
+  user-select: none;
+}
+.toolbar-toggle input { width: 14px; height: 14px; accent-color: var(--accent); cursor: pointer; }
+.toolbar-actions { display: inline-flex; gap: 6px; }
+.export-menu-wrap { position: relative; display: inline-flex; }
+.export-menu-trigger {
+  width: 28px;
+  padding-left: 0;
+  padding-right: 0;
+}
+.export-menu-trigger::after {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+}
+.export-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 35;
+  width: 220px;
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: 0 18px 42px rgba(0,0,0,0.34);
+}
+.export-menu .btn { width: 100%; justify-content: flex-start; }
+.pivot-template-status {
+  margin-top: 4px;
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.work-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-height: 28px;
+  margin: -4px 0 0;
+  padding: 0;
+}
+.work-actions:first-child { margin-bottom: -2px; }
+.work-actions .btn {
+  min-height: 26px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.add-field-popover {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+}
+.add-field-popover[hidden] { display: none; }
+.add-field-row { display: grid; grid-template-columns: auto 1fr; gap: 6px; }
+.add-field-popover select,
+.add-field-popover input {
+  min-height: 32px;
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.84rem;
+}
+.add-field-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.map-row.is-mapped { opacity: 0.55; }
+.map-row.is-mapped:hover { opacity: 1; }
+.definition-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.definition-card {
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+}
+.definition-card b {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--text);
+  font-size: 0.82rem;
+}
+.definition-card span {
+  display: block;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+}
+.schema-builder {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.schema-builder-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.schema-builder-row input {
+  min-height: 34px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+}
+[data-theme="light"] .schema-builder-row input { background: #f4f2ee; }
+.mini-checklist {
+  display: none;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 96px;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+}
+.mini-checklist.open { display: flex; }
+.mini-checklist label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.mini-checklist input { width: auto; min-height: 0; accent-color: var(--accent); }
+.row-skip-preview {
+  display: grid;
+  gap: 6px;
+  max-height: 180px;
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+}
+.dropdown-field { position: relative; }
+.dropdown-field input { padding-right: 28px; cursor: pointer; }
+.dropdown-field::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  bottom: 13px;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--text-muted);
+  pointer-events: none;
+  transition: transform var(--transition);
+}
+.dropdown-field.open::after { transform: rotate(180deg); }
+.dropdown-panel { display: none; }
+.dropdown-panel.open { display: grid; gap: 10px; }
+th[data-col-key] { cursor: grab; user-select: none; }
+th[data-col-key]:active { cursor: grabbing; }
+th[data-col-key].col-dragging { opacity: 0.45; }
+th[data-col-key].col-drag-over { box-shadow: inset 3px 0 0 var(--accent); }
+.row-skip-item {
+  display: grid;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+}
+.row-skip-item strong { color: var(--text); font-size: 0.76rem; }
+.row-skip-item span {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mapping-grid { display: grid; gap: 9px; }
+.mapping-grid.scroll-map {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x proximity;
+}
+#panelMapping .mapping-grid.scroll-map {
+  display: grid;
+  overflow: visible;
+  padding-bottom: 0;
+  scroll-snap-type: none;
+}
+#panelMapping .mapping-section { min-width: 0; }
+#panelMapping .map-row,
+#panelInput .inline-fields {
+  grid-template-columns: 1fr;
+}
+.mapping-section {
+  min-width: min(360px, 86vw);
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  scroll-snap-align: start;
+}
+.map-row {
+  display: grid;
+  grid-template-columns: minmax(126px, 0.62fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+}
+.map-row label {
+  display: grid;
+  gap: 3px;
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.map-row label code {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+}
+.map-row label span {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+.map-row select {
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+}
+[data-theme="light"] .map-row select { background: #f4f2ee; }
+.data-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex: 0 0 auto;
+}
+.view-tabs { display: flex; gap: 0; }
+.view-tab {
+  min-height: 32px;
+  padding: 6px 13px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 700;
+}
+.view-tab:first-child { border-radius: var(--radius-xs) 0 0 var(--radius-xs); }
+.view-tab:last-child { border-radius: 0 var(--radius-xs) var(--radius-xs) 0; border-left: 0; }
+.view-tab.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.table-shell {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: auto;
+  max-height: 66vh;
+  background: var(--bg);
+  min-height: 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+th, td {
+  max-width: 240px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+th.assigned-col,
+th.dimension-col {
+  background-color: var(--surface-raised);
+  background-image: linear-gradient(var(--accent-dim), var(--accent-dim));
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+td.dimension-col { background: var(--accent-dim); }
+th.metric-col {
+  background-color: var(--surface-raised);
+  background-image: linear-gradient(rgba(232, 185, 49, 0.12), rgba(232, 185, 49, 0.12));
+  color: var(--warn);
+  box-shadow: inset 0 -2px 0 var(--warn);
+}
+td.metric-col { background: rgba(232, 185, 49, 0.12); }
+th.metadata-col { background: var(--surface-raised); }
+td.metadata-col { background: transparent; }
+th.raw-mapped-metric {
+  background-color: var(--surface-raised);
+  background-image: linear-gradient(rgba(232, 185, 49, 0.12), rgba(232, 185, 49, 0.12));
+  color: var(--warn);
+  box-shadow: inset 0 -2px 0 var(--warn);
+}
+th.raw-mapped-metric .raw-header-map button { color: var(--warn); }
+th.raw-row-index,
+td.raw-row-index {
+  position: sticky;
+  left: 0;
+  min-width: 64px;
+  max-width: 64px;
+  background: var(--surface-raised);
+  z-index: 2;
+  box-shadow: inset -1px 0 0 var(--border);
+}
+td.raw-row-index {
+  background: var(--bg);
+  color: var(--text-muted);
+}
+th.raw-row-index { z-index: 4; }
+td.raw-mapped-metric { background: rgba(232, 185, 49, 0.12); }
+tr:hover td.raw-mapped-metric { background: rgba(232, 185, 49, 0.20); }
+td { color: var(--text); }
+tr:hover td { background: var(--accent-dim); }
+.table-select {
+  width: 100%;
+  min-width: 160px;
+  min-height: 30px;
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+[data-theme="light"] .table-select { background: #f4f2ee; }
+.raw-header-map {
+  display: grid;
+  gap: 5px;
+  min-width: 168px;
+}
+.raw-header-map button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+.raw-header-map span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.assign-popover {
+  position: fixed;
+  z-index: 1200;
+  width: min(520px, calc(100vw - 28px));
+  max-height: min(540px, calc(100vh - 28px));
+  overflow: auto;
+  display: none;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+}
+.assign-popover.open { display: grid; }
+.assign-popover-section {
+  display: grid;
+  gap: 8px;
+}
+.assign-popover-section > span {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.assign-pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.assign-pill {
+  min-height: 28px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.72rem;
+}
+.assign-pill:hover { border-color: var(--border-hover); color: var(--text); }
+.assign-pill.dimension { border-color: var(--accent); color: var(--accent); }
+.assign-pill.metric { border-color: var(--warn); color: var(--warn); }
+.assign-pill.is-assigned {
+  border-color: var(--border);
+  background: color-mix(in oklab, var(--surface-card) 72%, var(--text-dim));
+  color: var(--text-dim);
+  opacity: 0.72;
+}
+.assign-pill.is-current {
+  background: var(--accent-dim);
+  color: var(--text);
+  opacity: 1;
+}
+.assign-pill.metric.is-current {
+  background: rgba(232, 185, 49, 0.16);
+  color: var(--warn);
+}
+.custom-assign-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+}
+.custom-assign-row input {
+  min-height: 32px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+}
+.pivot-controls {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.output-controls {
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  flex: 0 0 auto;
+}
+.output-controls[hidden] { display: none !important; }
+.output-controls summary {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+.output-controls summary::-webkit-details-marker { display: none; }
+.output-controls summary::after {
+  content: "▾";
+  margin-left: auto;
+  color: var(--text-dim);
+}
+.output-controls[open] summary::after { content: "▴"; }
+.output-controls-body {
+  display: grid;
+  gap: 10px;
+  padding: 0 10px 10px;
+}
+.pivot-control-group {
+  display: grid;
+  gap: 6px;
+}
+.pivot-control-group > span {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.empty-state {
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  padding: 36px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.empty-state strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+.panel-header-meta { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.panel-header-meta .panel-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.panel-info-btn {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.panel-info-btn:hover { color: var(--accent-fg); border-color: var(--accent); background: var(--accent); }
+.load-progress {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xs);
+  background: var(--accent-dim);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+}
+.load-progress.show { display: flex; }
+.load-progress .spinner {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border: 2px solid var(--accent);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.load-progress-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.load-progress-count { color: var(--text-muted); font-size: 0.68rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.info-modal-pane h4 {
+  margin: 16px 0 6px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+.info-modal-pane h4 .step-num {
+  margin-right: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.info-modal-pane .panel-info-section { scroll-margin-top: 12px; padding-top: 6px; }
+.info-modal-pane .panel-info-section:first-child { padding-top: 0; }
+.info-modal-pane ul { margin: 4px 0 10px 18px; }
+.info-modal-pane li { margin-bottom: 4px; }
+.panel-toggle {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  padding: 0;
+  transition: color var(--transition), background var(--transition);
+}
+.panel-toggle:hover { color: var(--text); background: var(--surface-card); }
+.panel-toggle svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform var(--transition);
+}
+.panel.collapsed .panel-toggle svg { transform: rotate(-90deg); }
+.panel.collapsed .panel-body { display: none; }
+.dropzone-compact { min-height: 152px; }
+.chip-select { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-select label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color var(--transition), background var(--transition), color var(--transition);
+}
+.chip-select label:hover { border-color: var(--border-hover); color: var(--text); }
+.chip-select label.active { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+.chip-select input { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
+.map-section-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+  margin-bottom: 1px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.map-section-title span:last-child {
+  color: var(--text-muted);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.map-section-title:first-child { margin-top: 0; }
+.map-section-title.spacer { margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.dropzone-inline {
+  margin-bottom: 4px;
+}
+.field-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.field-label-row input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.field-label-row label {
+  margin: 0;
+  cursor: pointer;
+}
+.field input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: var(--surface-card);
+}
+.info-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.info-modal-overlay.open { display: flex; }
+.info-modal {
+  width: min(760px, 92vw);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.info-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.info-modal-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.info-modal-title span { color: var(--accent); }
+.info-modal-close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.3rem;
+}
+.info-modal-close:hover { color: var(--text); background: var(--surface-raised); }
+.info-modal-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--border);
+}
+.info-modal-tab {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 12px 10px 10px;
+  text-transform: uppercase;
+}
+.info-modal-tab:hover { color: var(--text); }
+.info-modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.info-modal-body {
+  overflow: auto;
+  padding: 20px 22px 24px;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+.info-modal-pane { display: none; }
+.info-modal-pane.active { display: block; }
+.info-modal-body h3 {
+  margin: 18px 0 8px;
+  color: var(--text);
+  font-family: var(--font-display);
+}
+.info-modal-body h3:first-child { margin-top: 0; }
+.info-modal-body p { margin-bottom: 10px; }
+.info-modal-body code {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+.info-modal-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0 16px;
+  font-size: 0.78rem;
+}
+.info-modal-body th, .info-modal-body td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+.info-modal-body th { color: var(--text); font-family: var(--font-mono); }
+.info-link-list { display: grid; gap: 10px; margin-top: 12px; }
+.info-link {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text);
+  text-decoration: none;
+  background: var(--bg);
+}
+.info-link:hover { border-color: var(--accent); background: var(--accent-dim); }
+.info-link-meta { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.72rem; }
+.toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1100;
+  max-width: min(360px, calc(100vw - 40px));
+  padding: 11px 14px;
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity var(--transition), transform var(--transition);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+@media (max-width: 1040px) {
+  body {
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    display: block;
+  }
+  .shell {
+    height: auto;
+    overflow: visible;
+  }
+  .intro, .workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    height: auto;
+  }
+  .workspace > .control-stack {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 18px;
+    overflow: visible;
+  }
+  #panelInput,
+  #panelHeader,
+  #panelMapping,
+  .workspace > .panel[data-flow-step="preview"] {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  #panelInput,
+  #panelHeader,
+  #panelMapping {
+    display: flex;
+    flex-direction: column;
+  }
+  #panelInput > .panel-header,
+  #panelHeader > .panel-header,
+  #panelMapping > .panel-header,
+  #panelInput > .panel-body,
+  #panelHeader > .panel-body,
+  #panelMapping > .panel-body {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  #panelInput > .panel-header,
+  #panelHeader > .panel-header,
+  #panelMapping > .panel-header {
+    min-height: 48px;
+    align-items: center;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .workspace > .control-stack .panel-toggle {
+    display: inline-flex;
+  }
+  #panelInput > .panel-body,
+  #panelHeader > .panel-body,
+  #panelMapping > .panel-body {
+    border: 0;
+    border-radius: 0;
+  }
+}
+@media (max-width: 720px) {
+  .header { padding: 12px 16px; align-items: flex-start; flex-direction: column; }
+  .header-left { flex-wrap: wrap; gap: 8px 14px; }
+  .logo { font-size: 1.1rem; white-space: normal; }
+  .header-actions { justify-content: flex-start; }
+  .header-stats { flex-wrap: wrap; }
+  .shell { padding: 16px 14px 54px; }
+  .inline-fields { grid-template-columns: 1fr; }
+  .definition-grid { grid-template-columns: 1fr; }
+  .map-row { grid-template-columns: 1fr; }
+}
+/* ── Hamburger nav (mobile) ── */
+.nav-burger {
+  display: none;
+  width: 38px; min-height: 34px;
+  align-items: center; justify-content: center; padding: 0;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text-muted); cursor: pointer;
+}
+.nav-burger:hover { color: var(--text); border-color: var(--border-hover); }
+.nav-burger svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; fill: none; }
+.nav-burger .icon-close { display: none; }
+body.nav-open .nav-burger .icon-open { display: none; }
+body.nav-open .nav-burger .icon-close { display: block; }
+@media (max-width: 720px) {
+  .header { padding-right: 60px; }
+  .nav-burger { display: inline-flex; position: absolute; top: 14px; right: 16px; z-index: 41; }
+  .header-actions {
+    position: absolute; top: calc(100% + 6px); right: 16px;
+    display: none; flex-direction: column; align-items: stretch;
+    min-width: 210px; max-width: calc(100vw - 32px); padding: 8px; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border-hover);
+    border-radius: var(--radius-sm); box-shadow: 0 18px 42px rgba(0,0,0,0.42); z-index: 40;
+  }
+  body.nav-open .header-actions { display: flex; }
+  .header-actions > * { width: 100%; justify-content: flex-start; }
+}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-left">
+    <a class="logo" href="../index.html">Retail Data Standardizer <span>Fashion Toolbox</span></a>
+    <div class="header-stats" id="headerStats">
+      <span><span class="stat-val" id="statSources">0</span> sources</span>
+      <span><span class="stat-val" id="statRows">0</span> rows</span>
+      <span><span class="stat-val" id="statPreview">0</span> preview</span>
+    </div>
+  </div>
+  <button class="nav-burger" id="navBurger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="headerActions">
+    <svg class="icon-open" viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+    <svg class="icon-close" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+  </button>
+  <div class="header-actions" id="headerActions">
+    <button class="btn btn-danger" id="clearDataBtn" data-cursor="clear">Clear Data</button>
+    <div class="config-menu-wrap">
+      <button class="btn" id="configMenuBtn" type="button" aria-expanded="false" aria-haspopup="true" data-cursor="menu">Configuration</button>
+      <div class="config-menu" id="configMenu" hidden>
+        <div class="config-menu-actions">
+          <button class="btn" id="saveConfigBtn" type="button" data-cursor="save">Save Configuration</button>
+          <button class="btn" id="loadConfigBtn" type="button" data-cursor="load">Load Configuration</button>
+        </div>
+        <details class="config-history" id="configHistory" open>
+          <summary>Load Configuration History</summary>
+          <div class="config-history-list" id="configHistoryList"></div>
+        </details>
+      </div>
+    </div>
+    <button class="btn btn-accent" id="exportBtn" disabled data-cursor="export">Export Output</button>
+    <input type="file" id="configInput" accept=".json" style="display:none">
+    <button class="btn info-btn" id="infoBtn" aria-label="Open information and appendix" data-tooltip="Information and appendix">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg>
+    </button>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" data-tooltip="Toggle light/dark mode">
+      <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="shell">
+  <section class="workspace">
+    <aside class="control-stack">
+      <section class="panel flow-panel" id="panelInput" data-flow-step="input">
+        <div class="panel-header">
+          <button class="panel-toggle" data-collapse="panelInput" aria-label="Toggle Input panel">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <span class="flow-num">01</span>
+          <div class="panel-header-meta">
+            <div>
+              <div class="panel-title-row">
+                <span class="panel-title">Source</span>
+                <button class="panel-info-btn" data-panel-info="input" type="button" data-tooltip="What this panel does" aria-label="How the Input panel works">i</button>
+              </div>
+              <div class="panel-sub" id="flowInputText">Files and pasted grids</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-body control-stack">
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple style="display:none">
+          <div class="work-actions">
+            <button class="btn btn-sm" id="insertFileBtn">Insert File</button>
+            <button class="btn btn-sm btn-danger" id="clearBtn">Clear</button>
+          </div>
+          <div class="load-progress" id="loadProgress" role="status" aria-live="polite">
+            <span class="spinner"></span>
+            <span class="load-progress-text" id="loadProgressText">Reading...</span>
+            <span class="load-progress-count" id="loadProgressCount"></span>
+          </div>
+          <label class="dropzone dropzone-compact dropzone-inline" id="dropzone" hidden>
+            <input type="file" id="dropzoneInput" accept=".xlsx,.xls,.csv" multiple>
+            <span class="drop-inner">
+              <span class="drop-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+              </span>
+              <span class="drop-title">Drop weekly files here</span>
+              <span class="drop-sub">.xlsx, .xls, or .csv - local browser parsing</span>
+            </span>
+          </label>
+          <div class="segmented" role="tablist" aria-label="Input mode">
+            <button class="active" id="fileModeBtn" type="button">Files</button>
+            <button id="pasteModeBtn" type="button">Paste</button>
+          </div>
+          <div id="fileMode">
+            <div class="file-list" id="fileList">
+              <div class="empty-state" style="min-height:120px;padding:18px;"><strong>No sources yet</strong><span>Use Insert File or drop files above.</span></div>
+            </div>
+          </div>
+          <div id="pasteMode" style="display:none">
+            <div class="field">
+              <label for="pasteName">Source Name</label>
+              <input id="pasteName" value="Pasted Excel Report">
+            </div>
+            <div class="field">
+              <label for="pasteBox">Excel Range</label>
+              <textarea id="pasteBox" placeholder="Paste cells copied from Excel here. Tabs and new lines are preserved."></textarea>
+            </div>
+            <button class="btn btn-accent" id="addPasteBtn">Add Pasted Report</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel flow-panel" id="panelHeader" data-flow-step="header">
+        <div class="panel-header">
+          <button class="panel-toggle" data-collapse="panelHeader" aria-label="Toggle Header Detection panel">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <span class="flow-num">02</span>
+          <div class="panel-header-meta">
+            <div>
+              <div class="panel-title-row">
+                <span class="panel-title">Headers</span>
+                <button class="panel-info-btn" data-panel-info="header" type="button" data-tooltip="What this panel does" aria-label="How Header Detection works">i</button>
+              </div>
+              <div class="panel-sub" id="flowHeaderText">Headers + cadence layout</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-body control-stack">
+          <div class="work-actions">
+            <button class="btn btn-sm" id="autoDetectBtn">Auto Detect</button>
+          </div>
+          <div class="subtabs" role="tablist" aria-label="Mapping Setup sections">
+            <button class="subtab active" type="button" data-subtab="rows" role="tab">Rows</button>
+            <button class="subtab" type="button" data-subtab="cadences" role="tab">Cadences</button>
+            <button class="subtab" type="button" data-subtab="metrics" role="tab">Metrics</button>
+          </div>
+          <div class="subtab-pane active" data-subtab-pane="rows">
+            <div class="inline-fields">
+              <div class="field">
+                <label for="headerRow">Column Header Row</label>
+                <input type="number" id="headerRow" min="1" value="1">
+              </div>
+              <div class="field">
+                <div class="field-label-row">
+                  <input type="checkbox" id="hasCadenceRow">
+                  <label for="hasCadenceRow">Header Group Row</label>
+                </div>
+                <input type="number" id="cadenceRow" min="1" value="1" hidden>
+              </div>
+            </div>
+            <div class="inline-fields">
+              <div class="field dropdown-field" id="deleteRowsField">
+                <label for="deleteRows">Delete Rows</label>
+                <input id="deleteRows" placeholder="Rows, ex: 1, 3-5">
+              </div>
+              <div class="field dropdown-field" id="deleteColumnsField">
+                <label for="deleteColumns">Delete Columns</label>
+                <input id="deleteColumns" placeholder="Click to choose columns" readonly>
+              </div>
+            </div>
+            <div class="dropdown-panel" id="deleteRowsPanel">
+              <div class="field">
+                <label for="skipRowsContaining">Skip Rows Containing</label>
+                <input id="skipRowsContaining" placeholder="subtotal, total, grand total, brand total, retailer total">
+              </div>
+              <div class="row-skip-preview" id="rowSkipPreview"></div>
+            </div>
+            <div class="mini-checklist" id="deleteColumnChecklist"></div>
+          </div>
+          <div class="subtab-pane" data-subtab-pane="cadences">
+            <div class="field">
+              <label>Cadence Type</label>
+              <div class="chip-select" id="cadenceTypeSelect"></div>
+            </div>
+            <div class="field">
+              <label>Cadence Metrics</label>
+              <div class="chip-select" id="cadenceMetricSelect"></div>
+            </div>
+          </div>
+          <div class="subtab-pane" data-subtab-pane="metrics">
+            <div class="field">
+              <label>Calculated Metrics</label>
+              <div class="chip-select" id="calculatedMetricSelect"></div>
+            </div>
+            <div class="schema-builder" id="customCalcBuilder" hidden>
+              <div class="schema-builder-row">
+                <input id="customCalcName" placeholder="Custom calculated metric name">
+                <button class="btn btn-sm" id="saveCustomCalcBtn" type="button">Save Custom</button>
+              </div>
+              <input id="customCalcFormula" placeholder="Formula, ex: sale_dollars / sale_units">
+            </div>
+            <label class="check-row" for="skipZeroValues">
+              <input type="checkbox" id="skipZeroValues">
+              <span>
+                <strong>Skip zero metric values</strong>
+                <span>Removes numeric <code>0</code> rows from output and pivot; blank cells are still skipped.</span>
+              </span>
+            </label>
+          </div>
+          <div class="status-line" id="headerDefinition"></div>
+          <div class="chips" id="detectedChips"></div>
+        </div>
+      </section>
+
+      <section class="panel flow-panel" id="panelMapping" data-flow-step="mapping">
+        <div class="panel-header">
+          <button class="panel-toggle" data-collapse="panelMapping" aria-label="Toggle Field Mapping panel">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <span class="flow-num">03</span>
+          <div class="panel-header-meta">
+            <div>
+              <div class="panel-title-row">
+                <span class="panel-title">Map Fields</span>
+                <button class="panel-info-btn" data-panel-info="mapping" type="button" data-tooltip="What this panel does" aria-label="How Field Mapping works">i</button>
+              </div>
+              <div class="panel-sub" id="flowMappingText">Drag across sections or use dropdowns</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="mapping-toolbar">
+            <label class="toolbar-toggle">
+              <input type="checkbox" id="showUnmappedOnly">
+              <span>Show unmapped only</span>
+            </label>
+            <div class="toolbar-actions">
+              <button class="btn btn-sm" id="remapBtn">Remap</button>
+              <button class="btn btn-sm" id="addFieldBtn" type="button">+ Add field</button>
+            </div>
+          </div>
+          <div class="add-field-popover" id="addFieldPopover" hidden>
+            <div class="add-field-row">
+              <select id="addFieldType">
+                <option value="dimension">Dimension</option>
+                <option value="metric">Metric</option>
+                <option value="calculated">Calculated metric</option>
+              </select>
+              <input id="addFieldName" placeholder="Field name">
+            </div>
+            <input id="addFieldFormula" placeholder="Formula (e.g. sale_dollars / sale_units)" hidden>
+            <div class="add-field-actions">
+              <button class="btn btn-sm" type="button" id="addFieldCancelBtn">Cancel</button>
+              <button class="btn btn-sm btn-accent" type="button" id="addFieldSaveBtn">Add</button>
+            </div>
+          </div>
+          <div class="status-line" id="mappingSummary"></div>
+          <div class="mapping-grid" id="mappingGrid"></div>
+        </div>
+      </section>
+    </aside>
+
+    <section class="panel flow-panel" data-flow-step="preview">
+      <div class="panel-header">
+        <span class="flow-num">04</span>
+        <div class="panel-header-meta">
+          <div>
+            <div class="panel-title-row">
+              <span class="panel-title">Review Output</span>
+              <button class="panel-info-btn" data-panel-info="preview" type="button" data-tooltip="What this panel does" aria-label="How Preview works">i</button>
+            </div>
+            <div class="panel-sub"><span id="flowPreviewText">Final standardized output</span> · <span id="previewSub">Ready</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="data-tools">
+          <div class="view-tabs">
+            <button class="view-tab active" data-view="output">Output</button>
+            <button class="view-tab" data-view="pivot">Pivot</button>
+            <button class="view-tab" data-view="headers">Headers</button>
+            <button class="view-tab" data-view="raw">Raw</button>
+          </div>
+          <div class="chips">
+            <span class="chip" id="metricChip">0 metrics</span>
+            <span class="chip" id="dimChip">0 dimensions</span>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-sm" id="downloadCsvBtn" disabled>CSV</button>
+            <button class="btn btn-sm" id="downloadJsonBtn" disabled>JSON</button>
+            <button class="btn btn-sm btn-accent" id="downloadXlsxBtn" disabled>XLSX</button>
+            <div class="export-menu-wrap">
+              <button class="btn btn-sm export-menu-trigger" id="exportMenuBtn" type="button" aria-label="Specialized XLSX exports" aria-expanded="false" aria-haspopup="true" disabled></button>
+              <div class="export-menu" id="exportMenu" hidden>
+                <button class="btn btn-sm" id="downloadStakeholderXlsxBtn" type="button" disabled>Stakeholder Workbook</button>
+                <button class="btn btn-sm" id="downloadPivotXlsxBtn" type="button" disabled>Pivot Workbook</button>
+                <button class="btn btn-sm" id="setPivotTemplateBtn" type="button">Set Pivot Template…</button>
+                <div class="pivot-template-status" id="pivotTemplateStatus">No template loaded</div>
+                <input type="file" id="pivotTemplateInput" accept=".xlsx" hidden>
+              </div>
+            </div>
+          </div>
+        </div>
+        <details class="output-controls" id="outputControls"></details>
+        <div class="table-shell" id="tableShell">
+          <div class="empty-state">
+            <div>
+              <strong>Ready when the spreadsheet is.</strong>
+              <span>Load a report to see the standardized preview before export.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </section>
+</main>
+
+<div class="assign-popover" id="assignPopover" role="dialog" aria-label="Assign column"></div>
+
+<div class="info-modal-overlay" id="infoModalOverlay" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
+  <div class="info-modal">
+    <div class="info-modal-header">
+      <span class="info-modal-title" id="infoModalTitle">Retail Data Standardizer <span>— Appendix</span></span>
+      <button class="info-modal-close" id="infoModalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="info-modal-tabs" role="tablist">
+      <button class="info-modal-tab active" data-tab="about" role="tab">About</button>
+      <button class="info-modal-tab" data-tab="panels" role="tab">Panels</button>
+      <button class="info-modal-tab" data-tab="schema" role="tab">Schema</button>
+      <button class="info-modal-tab" data-tab="appendix" role="tab">Appendix</button>
+      <button class="info-modal-tab" data-tab="resources" role="tab">Resources</button>
+    </div>
+    <div class="info-modal-body">
+      <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
+        <h3>What this is</h3>
+        <p>Normalize wide retailer sell-out reports into one analytics-ready table. The tool flattens stacked headers such as WTD / MTD / YTD over repeated metrics, keeps product fields as dimensions, and saves repeatable mappings for recurring report formats.</p>
+        <h3>Mental model</h3>
+        <p>The app separates <strong>source sheets</strong>, <strong>header detection</strong>, <strong>canonical field mappings</strong>, and <strong>export formats</strong>. Once a source shape is mapped, you can reload the same configuration and process the next reporting cycle with much less manual cleanup.</p>
+        <div class="step-viz">
+          <div class="viz-line"><strong>Standardization path</strong> — stacked retailer reports become a long metric table with source lineage.</div>
+          <div class="viz-row">
+            <div class="viz-stack">
+              <div class="viz-pill">WTD / YTD header row</div>
+              <div class="viz-pill">Sale U / Sale $ columns</div>
+            </div>
+            <div class="viz-arrow">→</div>
+            <div class="viz-stack">
+              <div class="viz-pill viz-tag">dimension map</div>
+              <div class="viz-pill viz-tag">metric map</div>
+            </div>
+            <div class="viz-arrow">→</div>
+            <div class="viz-formula"><span class="field">cadence</span> + <span class="field">metric</span> + <span class="field">value</span></div>
+          </div>
+          <div class="viz-result-large">analytics-ready long format</div>
+        </div>
+        <h3>Steps</h3>
+        <ol class="step-list">
+          <li><strong>Insert reports</strong> as files or pasted ranges. Each workbook sheet becomes a source.</li>
+          <li><strong>Confirm header rows</strong> so cadence labels and metric labels are interpreted correctly.</li>
+          <li><strong>Map dimensions and metrics</strong> to the canonical field list.</li>
+          <li><strong>Preview output</strong> and inspect the Headers/Raw debug tabs when something looks off.</li>
+          <li><strong>Export CSV, JSON, XLSX, stakeholder workbook, or pivot workbook</strong> depending on the downstream use.</li>
+        </ol>
+        <h3>Privacy</h3>
+        <p>All parsing happens locally in your browser. Imported spreadsheets are not uploaded to a server.</p>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-panels" role="tabpanel">
+        <div class="panel-info-section" id="panelinfo-input">
+          <h4><span class="step-num">01</span>Input</h4>
+          <p>Load weekly sell-out reports into the tool. Each file's sheets become individual sources you can include or exclude.</p>
+          <ul>
+            <li><strong>Insert File</strong> — opens the system file picker. Accepts <code>.xlsx</code>, <code>.xls</code>, <code>.csv</code>; multi-select is allowed.</li>
+            <li><strong>Drop zone</strong> — shows when no sources are loaded. Drag files onto it to import.</li>
+            <li><strong>Files / Paste tabs</strong> — switch between uploading files and pasting an Excel range as a single source.</li>
+            <li><strong>File rows</strong> — each row is one sheet from one file. Checkbox toggles whether the sheet is included; Remove deletes the source.</li>
+            <li><strong>Clear</strong> — drops every loaded source and resets the preview.</li>
+          </ul>
+        </div>
+        <div class="panel-info-section" id="panelinfo-header">
+          <h4><span class="step-num">02</span>Header Detection</h4>
+          <p>Tell the tool where the header rows are and which cadences and metrics to expect. These settings drive the Field Mapping panel.</p>
+          <ul>
+            <li><strong>Header Group Row</strong> - optional 1-based row number that holds cadence labels like <code>WTD</code>, <code>MTD</code>, or <code>YTD</code>.</li>
+            <li><strong>Column Header Row</strong> - 1-based row number for the actual field and metric names.</li>
+            <li><strong>Delete Rows</strong> - Excel row numbers stripped before parsing, useful for totals or subtitle rows.</li>
+            <li><strong>Cadence Type</strong> - multi-select. Choosing <code>WTD + YTD</code> adds those cadence slots to Field Mapping.</li>
+            <li><strong>Cadence Metrics</strong> - multi-select. Each metric times cadence creates a mapping row.</li>
+            <li><strong>LY</strong> - select it in Cadence Type to add a Last-Year variant for every selected cadence and metric.</li>
+            <li><strong>Calculated Metrics</strong> - adds formula-based metrics such as <code>AUR</code>, <code>ST%</code>, or a custom formula using mapped metric and dimension keys.</li>
+            <li><strong>Auto</strong> - scans the first 12 rows of the first included sheet and chooses likely header rows.</li>
+          </ul>
+        </div>
+        <div class="panel-info-section" id="panelinfo-mapping">
+          <h4><span class="step-num">03</span>Field Mapping</h4>
+          <p>Bind canonical fields to source columns. Dimension groups stay wide; cadence metrics become the long-format fact rows.</p>
+          <ul>
+            <li><strong>Retail Context</strong> - maps account, channel, location type, and store/door labels.</li>
+            <li><strong>Product Identity</strong> - maps brand, style, SKU, UPC, and description fields.</li>
+            <li><strong>Product Attributes</strong> - maps color, size, category, season, status, and related product descriptors.</li>
+            <li><strong>Custom dimensions</strong> - add extra source attributes that should stay wide on every output row.</li>
+            <li><strong>Cadence Metrics</strong> - one mapping row per cadence, metric, and TY/LY basis. Empty selections produce no output rows for that combination.</li>
+            <li><strong>Custom metrics</strong> - add extra metric names when a retailer report has fields outside the default metric set.</li>
+            <li><strong>Remap</strong> - clears all current mappings and re-runs auto-matching against header text.</li>
+          </ul>
+        </div>
+        <div class="panel-info-section" id="panelinfo-preview">
+          <h4><span class="step-num">04</span>Preview</h4>
+          <p>Inspect the result before exporting. The first 500 rows are rendered; the full set is still exported.</p>
+          <ul>
+            <li><strong>Output</strong> tab — the standardized long-format table that will be exported.</li>
+            <li><strong>Headers</strong> tab — debug view: every detected column with its detected cadence, year-basis, and current mapping.</li>
+            <li><strong>Raw</strong> tab — the first 80 unmodified rows of the first included sheet, so you can sanity-check what was parsed.</li>
+            <li><strong>CSV / JSON / XLSX</strong> — download the full standardized output. Buttons stay disabled until at least one mapped metric produces values.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
+        <h3>Standard Output</h3>
+        <p>The export uses a long metric schema. Product and retail columns stay as dimensions, while each mapped cadence metric becomes one output row.</p>
+        <table>
+          <tr><th>Schema area</th><th>Fields</th></tr>
+          <tr><td>Lineage</td><td><code>source_file</code>, <code>source_sheet</code>, <code>source_row</code></td></tr>
+          <tr><td>Retail context</td><td><code>retailer</code>, <code>channel</code>, <code>location_type</code>, <code>store_name</code></td></tr>
+          <tr><td>Product identity</td><td><code>brand</code>, <code>style</code>, <code>sku</code>, <code>upc</code>, <code>description</code></td></tr>
+          <tr><td>Product attributes</td><td><code>color</code>, <code>size</code>, <code>product_type</code>, <code>material</code>, <code>release</code>, <code>seasonality</code>, <code>sale_status</code>, plus custom dimensions</td></tr>
+          <tr><td>Metric fact</td><td><code>cadence</code>, <code>year_basis</code>, <code>metric</code>, <code>value</code>, <code>value_source</code></td></tr>
+        </table>
+        <p>Metric rows include <code>sale_units</code>, <code>sale_dollars</code>, <code>on_hand_units</code>, custom metric keys, and optional calculated <code>sell_through_pct</code>.</p>
+        <h3>Source lineage</h3>
+        <p>Every output row carries source metadata so exported records can be traced back to the original workbook, sheet, and row. Header debug output also carries detected cadence and year-basis for each source column.</p>
+        <table>
+          <tr><th>Source layer</th><th>What it preserves</th></tr>
+          <tr><td>Workbook</td><td>Original filename and included sheets.</td></tr>
+          <tr><td>Header detection</td><td>Group row, column header row, deleted rows, and inferred cadence/year-basis.</td></tr>
+          <tr><td>Mapping</td><td>Canonical field key, source column, role as dimension/metric/calculation.</td></tr>
+          <tr><td>Export</td><td>Value plus the field/metric source used to produce it.</td></tr>
+        </table>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-appendix" role="tabpanel">
+        <h3>Stacked Headers</h3>
+        <p>When a row above the metric headers contains timing labels such as <code>WTD</code>, <code>MTD</code>, <code>QTD</code>, or <code>YTD</code>, the app carries that cadence across repeated columns like <code>Sale U</code> and <code>Sale $</code>.</p>
+        <h3>LY and Calculated Metrics</h3>
+        <p>The LY toggle treats <code>LY</code> and <code>Last Year</code> labels as comparison values instead of cadences. Calculated metrics add formula-based rows when the needed mapped fields are available.</p>
+        <table>
+          <tr><th>Calculation</th><th>Definition</th></tr>
+          <tr><td>AUR</td><td><code>sale_dollars / sale_units</code>, only when units are positive.</td></tr>
+          <tr><td>ST%</td><td><code>sale_units / (sale_units + on_hand_units)</code>, when both mapped inputs are available.</td></tr>
+          <tr><td>Custom calculated metric</td><td>Formula based on mapped dimension/metric keys, emitted as a metric row.</td></tr>
+        </table>
+        <h3>Sheets and Rows</h3>
+        <p>Use sheet checkboxes to include workbook tabs. <code>Delete Rows</code> removes 1-based Excel row numbers before parsing.</p>
+        <h3>Configuration</h3>
+        <p>Saving a configuration preserves detected rows, cadence choices, and field mapping so the same retailer report shape can be normalized again.</p>
+        <h3>Export formats</h3>
+        <ul>
+          <li><strong>CSV</strong> — fastest handoff for BI tools and spreadsheet review.</li>
+          <li><strong>JSON</strong> — structured output for scripts or app handoff.</li>
+          <li><strong>XLSX</strong> — workbook version of the standardized output.</li>
+          <li><strong>Stakeholder Workbook</strong> — formatted workbook intended for non-technical review.</li>
+          <li><strong>Pivot Workbook</strong> — output inserted into a pivot-ready workbook structure.</li>
+        </ul>
+        <h3>Common failure modes</h3>
+        <ul>
+          <li>Metric values do not export until at least one dimension and one metric are mapped.</li>
+          <li>Stacked reports need the group row and header row set separately.</li>
+          <li>Totals/subtotal rows should be removed with <code>Delete Rows</code> before parsing.</li>
+          <li>Saved configurations describe report shape; they do not store private workbook contents.</li>
+        </ul>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-resources" role="tabpanel">
+        <h3>Fashion Toolbox</h3>
+        <div class="info-link-list">
+          <a class="info-link" href="../index.html"><strong>Fashion Toolbox</strong><span class="info-link-meta">Index</span></a>
+          <a class="info-link" href="../replenishment-linesheet/index.html"><strong>DIGI LINE SHEET</strong><span class="info-link-meta">Product Review</span></a>
+          <a class="info-link" href="../assortment-comparison/index.html"><strong>Assortment Comparison</strong><span class="info-link-meta">Retailer Overlap</span></a>
+          <a class="info-link" href="../door-tracker/index.html"><strong>Door Tracker</strong><span class="info-link-meta">Door Distribution</span></a>
+          <a class="info-link" href="index.html" aria-current="page"><strong>Retail Data Standardizer</strong><span class="info-link-meta">Weekly Sell-Out</span></a>
+          <a class="info-link" href="../selling-analysis/index.html"><strong>Selling Analysis</strong><span class="info-link-meta">Sell-Through Diagnostic</span></a>
+          <a class="info-link" href="../upc-concat/index.html"><strong>UPC Concat</strong><span class="info-link-meta">Schema Mapping</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<!-- Generated from src/sellout-standardizer via npm run build:sellout-standardizer. -->
+<script src="dist/sellout-standardizer.js"></script>
+</body>
+</html>

@@ -1,0 +1,321 @@
+/* intake.css */
+
+:root {
+  --text: var(--fg);
+  --surface: color-mix(in srgb, var(--fg) 3%, var(--bg));
+  --surface-2: color-mix(in srgb, var(--fg) 6%, var(--bg));
+  --border-solid: var(--border);
+  --btn-primary-fg: var(--bg);
+  --font-grotesk: var(--font-body);
+  --font-serif: var(--font-display);
+}
+
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding-right: var(--page-pad);
+  padding-left: var(--page-pad);
+}
+
+.intake-progress {
+  margin-top: var(--nav-h);
+  top: var(--nav-h) !important;
+  background: color-mix(in srgb, var(--bg) 94%, transparent) !important;
+}
+
+.intake-body main {
+  padding-top: 0;
+}
+
+.intake-content {
+  min-height: calc(100vh - var(--nav-h));
+}
+
+.form-step-title {
+  font-family: var(--font-display) !important;
+  font-size: clamp(40px, 7vw, 76px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 0.95 !important;
+}
+
+.form-step-number,
+.intake-step-tab.active,
+.char-count.over {
+  color: var(--accent) !important;
+}
+
+.intake-step-tab.active::after,
+.intake-progress-fill {
+  background: var(--accent) !important;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  border-color: var(--accent) !important;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  transition: border-color 0.2s, color 0.2s, background 0.2s, opacity 0.2s;
+}
+
+.button:hover {
+  border-color: var(--accent);
+}
+
+.button-primary,
+.copy-btn {
+  border-color: var(--accent) !important;
+  background: var(--accent) !important;
+  color: var(--bg) !important;
+}
+
+.button-primary:hover,
+.copy-btn:hover {
+  opacity: 0.7;
+}
+
+.button-secondary {
+  background: transparent;
+  color: var(--muted);
+}
+
+.form-tag-chip.selected {
+  border-color: var(--accent) !important;
+  background: var(--accent) !important;
+  color: var(--bg) !important;
+}
+
+.intake-page {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.intake-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.6fr);
+  gap: clamp(40px, 8vw, 120px);
+  align-items: end;
+  min-height: clamp(360px, 52vh, 620px);
+  padding: clamp(56px, 8vw, 120px) 0;
+}
+
+.intake-title {
+  font-family: var(--font-display);
+  font-size: clamp(52px, 8vw, 116px);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 0.86;
+}
+
+.intake-title em {
+  color: var(--accent);
+  font-weight: 400;
+}
+
+.intake-intro {
+  max-width: 34ch;
+  color: var(--muted);
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.7;
+}
+
+.intake-form {
+  border-top: 1px solid var(--border);
+}
+
+.intake-section {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.35fr) minmax(0, 1fr);
+  gap: clamp(32px, 7vw, 110px);
+  padding: clamp(42px, 6vw, 88px) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.intake-section__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.intake-section__number {
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.intake-section__meta h2 {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 40px);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.intake-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(28px, 4vw, 48px) clamp(24px, 4vw, 56px);
+}
+
+.intake-field {
+  min-width: 0;
+}
+
+.intake-field--wide {
+  grid-column: 1 / -1;
+}
+
+.intake-field label {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 9px;
+  color: var(--fg);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.intake-field label span {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.intake-field input,
+.intake-field select,
+.intake-field textarea {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  padding: 10px 0 12px;
+  transition: border-color 0.2s;
+}
+
+.intake-field textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.intake-field input:focus,
+.intake-field select:focus,
+.intake-field textarea:focus {
+  border-bottom-color: var(--accent);
+}
+
+.intake-field input::placeholder,
+.intake-field textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.75;
+}
+
+.intake-field select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 5px) calc(50% - 2px),
+    100% calc(50% - 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.intake-field select option {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.intake-submit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: clamp(36px, 5vw, 64px) 0;
+}
+
+.intake-submit p {
+  max-width: 42ch;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.intake-submit button {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  border-bottom: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 0;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.intake-submit button:hover {
+  opacity: 0.65;
+}
+
+.intake-submit button span {
+  font-size: 18px;
+  line-height: 1;
+}
+
+@media (max-width: 760px) {
+  .intake-header,
+  .intake-section {
+    grid-template-columns: 1fr;
+  }
+
+  .intake-header {
+    align-items: start;
+    min-height: auto;
+    gap: 32px;
+  }
+
+  .intake-section {
+    gap: 36px;
+  }
+}
+
+@media (max-width: 540px) {
+  .intake-title {
+    font-size: clamp(44px, 15vw, 68px);
+  }
+
+  .intake-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .intake-field--wide {
+    grid-column: auto;
+  }
+
+  .intake-submit {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

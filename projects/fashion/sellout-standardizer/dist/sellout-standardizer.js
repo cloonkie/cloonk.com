@@ -1,0 +1,3931 @@
+// TypeScript source. Builds to dist/sellout-standardizer.js.
+// Workbook, configuration, and DOM contracts are typed incrementally below.
+"use strict";
+const BASE_STANDARD_FIELDS = [
+    { key: "retailer", label: "Retailer", aliases: ["retailer", "account", "customer", "banner", "door"] },
+    { key: "brand", label: "Brand", aliases: ["brand", "vendor", "label"] },
+    { key: "style", label: "Style", aliases: ["style", "style no", "style number", "style #", "model"] },
+    { key: "color", label: "Color", aliases: ["color", "colour", "colorway", "clr"] },
+    { key: "sku", label: "SKU", aliases: ["sku", "item", "item no", "item number", "item #"] },
+    { key: "upc", label: "UPC", aliases: ["upc", "ean", "barcode"] },
+    { key: "size", label: "Size", aliases: ["size", "sz"] },
+    { key: "description", label: "Description", aliases: ["description", "desc", "product name", "item description"] },
+    { key: "product_type", label: "Product Type", aliases: ["product type", "prod type", "category", "class", "classification"] },
+    { key: "channel", label: "Channel", aliases: ["channel", "sales channel", "business channel", "marketplace"] },
+    { key: "material", label: "Material", aliases: ["material", "fabric", "fabrication", "composition"] },
+    { key: "shape", label: "Shape", aliases: ["shape", "silhouette", "fit shape"] },
+    { key: "release", label: "Release", aliases: ["release", "drop", "launch", "launch date", "release date"] },
+    { key: "seasonality", label: "Seasonality", aliases: ["seasonality", "season", "season code", "season name"] },
+    { key: "sale_status", label: "Sale Status", aliases: ["sale status", "status", "selling status", "markdown status"] },
+    { key: "location_type", label: "Location Type", aliases: ["location type", "store type", "door type", "location format"] },
+    { key: "store_name", label: "Store Name", aliases: ["store name", "store", "door name", "location name", "retail location"] },
+    { key: "us_msrp", label: "US MSRP", aliases: ["us msrp", "usa msrp", "msrp us", "u.s. msrp", "usd msrp"] },
+    { key: "cad_msrp", label: "CAD MSRP", aliases: ["cad msrp", "canada msrp", "msrp cad", "canadian msrp"] },
+    { key: "color_description", label: "Color Description", aliases: ["color description", "colour description", "color desc", "colour desc"] },
+    { key: "nrf_code", label: "NRF CODE", aliases: ["nrf code", "nrf", "nrf color code", "nrf colour code"] },
+    { key: "nrf_color", label: "NRF COLOR", aliases: ["nrf color", "nrf colour", "nrf color name", "nrf colour name"] }
+];
+const FIELD_GROUPS = [
+    { title: "Retail Context", keys: ["retailer", "channel", "location_type", "store_name"] },
+    { title: "Product Identity", keys: ["brand", "style", "sku", "upc", "description"] },
+    { title: "Product Attributes", keys: ["color", "color_description", "nrf_code", "nrf_color", "size", "shape", "product_type", "material", "release", "seasonality", "sale_status"] },
+    { title: "Pricing", keys: ["us_msrp", "cad_msrp"] }
+];
+const FIELD_NOTES = {
+    retailer: "Account, banner, customer, or door owner.",
+    channel: "E-commerce, wholesale, store, marketplace, or similar.",
+    location_type: "Door format such as store, outlet, or online.",
+    store_name: "Physical door, location, or store label.",
+    brand: "Brand, vendor, label, or division.",
+    style: "Style number, model, or item family.",
+    sku: "Internal item or SKU identifier.",
+    upc: "UPC, EAN, or barcode.",
+    description: "Product name or item description.",
+    color: "Color, colour, colorway, or short color code.",
+    color_description: "Long-form color or colour description.",
+    nrf_code: "NRF color code.",
+    nrf_color: "NRF color name.",
+    size: "Size or size code.",
+    shape: "Shape, silhouette, or fit shape.",
+    product_type: "Category, class, or product type.",
+    material: "Fabric, material, composition, or fabrication.",
+    release: "Launch, release, or drop timing.",
+    seasonality: "Season code/name or selling season.",
+    sale_status: "Status such as regular, markdown, or exit.",
+    us_msrp: "US MSRP or USD retail price.",
+    cad_msrp: "Canadian MSRP or CAD retail price."
+};
+const CADENCES = ["WTD", "MTD", "QTD", "YTD", "LTD"];
+const CADENCE_TYPE_OPTIONS = [...CADENCES, "LY"];
+const CADENCE_VOCAB = [
+    { canonical: "WTD", aliases: ["wtd", "week to date", "this week", "current week", "tw", "wk"] },
+    { canonical: "WTD", aliases: ["lw", "last week", "lcw", "last comp week", "last comparable week", "lwk"], yearBasis: "LY" },
+    { canonical: "MTD", aliases: ["mtd", "month to date", "this month", "mtw", "tm"] },
+    { canonical: "MTD", aliases: ["lm", "last month", "lmtd", "last month to date"], yearBasis: "LY" },
+    { canonical: "QTD", aliases: ["qtd", "quarter to date", "this quarter", "qtw", "tq"] },
+    { canonical: "QTD", aliases: ["lq", "last quarter", "lqtd", "last quarter to date"], yearBasis: "LY" },
+    { canonical: "YTD", aliases: ["ytd", "year to date", "ytw"] },
+    { canonical: "YTD", aliases: ["lytd", "last year ytd", "last year to date"], yearBasis: "LY" },
+    { canonical: "LTD", aliases: ["ltd", "life to date", "lifetime", "inception to date", "itd", "season to date", "std"] }
+];
+const YEAR_BASIS_RE = /\b(LY|LAST\s+YEAR|TY|THIS\s+YEAR)\b/i;
+const LY_LABEL_RE = /\b(LY|LAST\s+YEAR)\b/i;
+const TY_LABEL_RE = /\b(TY|THIS\s+YEAR)\b/i;
+let _cadenceLookup = null;
+let _cadenceStripRe = null;
+function getCadenceLookup() {
+    if (_cadenceLookup)
+        return _cadenceLookup;
+    const flat = [];
+    CADENCE_VOCAB.forEach(entry => {
+        entry.aliases.forEach(alias => {
+            const tokens = normalize(alias).split(/\s+/).filter(Boolean);
+            if (tokens.length)
+                flat.push({ tokens, canonical: entry.canonical, yearBasis: entry.yearBasis || null });
+        });
+    });
+    _cadenceLookup = flat.sort((a, b) => b.tokens.length - a.tokens.length);
+    return _cadenceLookup;
+}
+function getCadenceStripRe() {
+    if (_cadenceStripRe)
+        return _cadenceStripRe;
+    const raw = [];
+    CADENCE_VOCAB.forEach(entry => entry.aliases.forEach(a => { if (a)
+        raw.push(a); }));
+    raw.sort((a, b) => b.length - a.length);
+    const patterns = raw.map(a => a.split(/\s+/).map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s+"));
+    _cadenceStripRe = new RegExp(`\\b(?:${patterns.join("|")})\\b`, "gi");
+    return _cadenceStripRe;
+}
+function containsTokenSequence(haystack, needle) {
+    if (!needle.length || !haystack.length || needle.length > haystack.length)
+        return false;
+    const last = haystack.length - needle.length;
+    for (let i = 0; i <= last; i++) {
+        let match = true;
+        for (let j = 0; j < needle.length; j++) {
+            if (haystack[i + j] !== needle[j]) {
+                match = false;
+                break;
+            }
+        }
+        if (match)
+            return true;
+    }
+    return false;
+}
+function detectCadenceInfo(text) {
+    if (!text)
+        return null;
+    const tokens = normalize(text).split(/\s+/).filter(Boolean);
+    if (!tokens.length)
+        return null;
+    for (const entry of getCadenceLookup()) {
+        if (containsTokenSequence(tokens, entry.tokens)) {
+            return { cadence: entry.canonical, yearBasis: entry.yearBasis };
+        }
+    }
+    return null;
+}
+function scoreAliasOverlap(headerNorm, aliasNorm) {
+    if (!headerNorm || !aliasNorm)
+        return 0;
+    if (headerNorm === aliasNorm)
+        return 1.5;
+    const headerTokens = headerNorm.split(/\s+/).filter(Boolean);
+    const aliasTokens = aliasNorm.split(/\s+/).filter(Boolean);
+    if (!headerTokens.length || !aliasTokens.length)
+        return 0;
+    const headerSet = new Set(headerTokens);
+    let matched = 0;
+    for (const t of aliasTokens)
+        if (headerSet.has(t))
+            matched++;
+    if (!matched)
+        return 0;
+    const coverage = matched / aliasTokens.length;
+    const sequenceBonus = containsTokenSequence(headerTokens, aliasTokens) ? 0.25 : 0;
+    const lengthPenalty = headerTokens.length > aliasTokens.length * 3 ? 0.1 : 0;
+    return Math.max(0, coverage + sequenceBonus - lengthPenalty);
+}
+function bestAliasScore(headerLabel, aliases) {
+    if (!headerLabel || !aliases || !aliases.length)
+        return 0;
+    const headerNorm = normalize(headerLabel);
+    let best = 0;
+    for (const alias of aliases) {
+        const score = scoreAliasOverlap(headerNorm, normalize(alias));
+        if (score > best)
+            best = score;
+    }
+    return best;
+}
+const DIMENSION_ONLY_KEYS = new Set(["us_msrp", "cad_msrp", "color_description", "nrf_code", "nrf_color", "shape"]);
+const BASE_CADENCE_METRIC_OPTIONS = [
+    { key: "sale_dollars", label: "Sales $", aliases: [
+            "sale $", "sales $", "sale dollars", "sales dollars",
+            "net sales", "gross sales", "merch net sales", "merch sales",
+            "retail $", "retail dollars", "sales retail", "net retail sales",
+            "sls rtl", "sls $", "sls dollars", "sls retail",
+            "rtl $", "rtl dollars", "rtl sales",
+            "dollars sold", "$ sold"
+        ] },
+    { key: "sale_units", label: "Sales U", aliases: [
+            "sale u", "sales u", "sale units", "sales units",
+            "merch net sales units", "units sold", "sold units",
+            "qty sold", "quantity sold", "qty",
+            "sls u", "sls unt", "sls units", "sls un",
+            "u sold", "unt sold", "units"
+        ] },
+    { key: "on_hand_units", label: "On Hand U", aliases: [
+            "on hand", "on-hand", "oh u", "on hand units", "on hand u",
+            "inventory units", "eop units", "eop u", "eop day units",
+            "eoh u", "eoh unt", "eoh units",
+            "str oh u", "str oh units", "store on hand", "store on hand units",
+            "store dc on hand units"
+        ] }
+];
+const BASE_CALCULATED_METRICS = [
+    { key: "aur", label: "AUR", formula: "sale_dollars / sale_units", format: "number" },
+    { key: "sell_through_pct", label: "ST%", formula: "sale_units / (sale_units + on_hand_units) * 100", format: "percent" }
+];
+const LEGACY_PROGRESS_KEY = "sellout-standardizer-progress-v1";
+const CONFIG_HISTORY_KEY = "retail-data-standardizer-config-history-v1";
+const CONFIG_HISTORY_LIMIT = 12;
+const AUTO_INCLUDE_SHEET_LIMIT = 5;
+const STAKEHOLDER_DIMENSION_SHEETS = [
+    { name: "Business Unit", aliases: ["business unit", "division", "banner", "retailer", "brand"] },
+    { name: "Region", aliases: ["region", "rona", "ecna", "rfna", "channel", "location type"] },
+    { name: "Color", aliases: ["color", "colour", "colorway"] },
+    { name: "NRF Color", aliases: ["nrf color", "nrf colour", "nrf color name"] },
+    { name: "Shape", aliases: ["shape", "silhouette", "fit shape"] },
+    { name: "Frame Shape", aliases: ["frame shape", "shape", "silhouette"] },
+    { name: "Product Sub-Class", aliases: ["product sub class", "product subclass", "product sub-class", "sub class", "product type", "category", "class"] },
+    { name: "Launch", aliases: ["launch", "launch year", "release", "seasonality", "season"] },
+    { name: "Style", aliases: ["style", "style number", "style #", "model"] },
+    { name: "Typology", aliases: ["typology", "core seasonal fashion", "sale status", "seasonality"] },
+    { name: "Door Location", aliases: ["door location", "store name", "door name", "location name", "store"] }
+];
+const STAKEHOLDER_METRIC_SUITE = [
+    { label: "% of Total", type: "share", metric: "sale_units", cadence: "YTD" },
+    { label: "WTD U", type: "value", metric: "sale_units", cadence: "WTD", yearBasis: "TY" },
+    { label: "LY WTD U", type: "value", metric: "sale_units", cadence: "WTD", yearBasis: "LY" },
+    { label: "WTD U Var.", type: "variance", metric: "sale_units", cadence: "WTD" },
+    { label: "MTD U", type: "value", metric: "sale_units", cadence: "MTD", yearBasis: "TY" },
+    { label: "LY MTD U", type: "value", metric: "sale_units", cadence: "MTD", yearBasis: "LY" },
+    { label: "MTD U Var.", type: "variance", metric: "sale_units", cadence: "MTD" },
+    { label: "YTD U", type: "value", metric: "sale_units", cadence: "YTD", yearBasis: "TY" },
+    { label: "LY YTD U", type: "value", metric: "sale_units", cadence: "YTD", yearBasis: "LY" },
+    { label: "YTD U Var.", type: "variance", metric: "sale_units", cadence: "YTD" },
+    { label: "WTD $", type: "value", metric: "sale_dollars", cadence: "WTD", yearBasis: "TY" },
+    { label: "LY WTD $", type: "value", metric: "sale_dollars", cadence: "WTD", yearBasis: "LY" },
+    { label: "WTD $ Var.", type: "variance", metric: "sale_dollars", cadence: "WTD" },
+    { label: "MTD $", type: "value", metric: "sale_dollars", cadence: "MTD", yearBasis: "TY" },
+    { label: "LY MTD $", type: "value", metric: "sale_dollars", cadence: "MTD", yearBasis: "LY" },
+    { label: "MTD $ Var.", type: "variance", metric: "sale_dollars", cadence: "MTD" },
+    { label: "YTD $", type: "value", metric: "sale_dollars", cadence: "YTD", yearBasis: "TY" },
+    { label: "LY YTD $", type: "value", metric: "sale_dollars", cadence: "YTD", yearBasis: "LY" },
+    { label: "YTD $ Var.", type: "variance", metric: "sale_dollars", cadence: "YTD" },
+    { label: "WTD OH U", type: "value", metric: "on_hand_units", cadence: "WTD", yearBasis: "TY" },
+    { label: "LY WTD OH U", type: "value", metric: "on_hand_units", cadence: "WTD", yearBasis: "LY" },
+    { label: "WTD OH Var.", type: "variance", metric: "on_hand_units", cadence: "WTD" },
+    { label: "MTD OH U", type: "value", metric: "on_hand_units", cadence: "MTD", yearBasis: "TY" },
+    { label: "LY MTD OH U", type: "value", metric: "on_hand_units", cadence: "MTD", yearBasis: "LY" },
+    { label: "MTD OH Var.", type: "variance", metric: "on_hand_units", cadence: "MTD" },
+    { label: "YTD OH U", type: "value", metric: "on_hand_units", cadence: "YTD", yearBasis: "TY" },
+    { label: "LY YTD OH U", type: "value", metric: "on_hand_units", cadence: "YTD", yearBasis: "LY" },
+    { label: "YTD OH Var.", type: "variance", metric: "on_hand_units", cadence: "YTD" }
+];
+const state = {
+    sources: [],
+    pendingWorkbooks: [],
+    config: makeDefaultConfig(),
+    headers: [],
+    output: [],
+    view: "output"
+};
+const els = {
+    fileInput: document.getElementById("fileInput"),
+    dropzone: document.getElementById("dropzone"),
+    dropzoneInput: document.getElementById("dropzoneInput"),
+    insertFileBtn: document.getElementById("insertFileBtn"),
+    fileList: document.getElementById("fileList"),
+    fileModeBtn: document.getElementById("fileModeBtn"),
+    pasteModeBtn: document.getElementById("pasteModeBtn"),
+    fileMode: document.getElementById("fileMode"),
+    pasteMode: document.getElementById("pasteMode"),
+    pasteName: document.getElementById("pasteName"),
+    pasteBox: document.getElementById("pasteBox"),
+    addPasteBtn: document.getElementById("addPasteBtn"),
+    hasCadenceRow: document.getElementById("hasCadenceRow"),
+    cadenceRow: document.getElementById("cadenceRow"),
+    headerRow: document.getElementById("headerRow"),
+    deleteRows: document.getElementById("deleteRows"),
+    skipRowsContaining: document.getElementById("skipRowsContaining"),
+    rowSkipPreview: document.getElementById("rowSkipPreview"),
+    deleteColumns: document.getElementById("deleteColumns"),
+    deleteColumnChecklist: document.getElementById("deleteColumnChecklist"),
+    addFieldBtn: document.getElementById("addFieldBtn"),
+    addFieldPopover: document.getElementById("addFieldPopover"),
+    addFieldType: document.getElementById("addFieldType"),
+    addFieldName: document.getElementById("addFieldName"),
+    addFieldFormula: document.getElementById("addFieldFormula"),
+    addFieldSaveBtn: document.getElementById("addFieldSaveBtn"),
+    addFieldCancelBtn: document.getElementById("addFieldCancelBtn"),
+    showUnmappedOnly: document.getElementById("showUnmappedOnly"),
+    cadenceTypeSelect: document.getElementById("cadenceTypeSelect"),
+    cadenceMetricSelect: document.getElementById("cadenceMetricSelect"),
+    calculatedMetricSelect: document.getElementById("calculatedMetricSelect"),
+    customCalcBuilder: document.getElementById("customCalcBuilder"),
+    customCalcName: document.getElementById("customCalcName"),
+    customCalcFormula: document.getElementById("customCalcFormula"),
+    saveCustomCalcBtn: document.getElementById("saveCustomCalcBtn"),
+    skipZeroValues: document.getElementById("skipZeroValues"),
+    outputControls: document.getElementById("outputControls"),
+    assignPopover: document.getElementById("assignPopover"),
+    detectedChips: document.getElementById("detectedChips"),
+    headerDefinition: document.getElementById("headerDefinition"),
+    mappingSummary: document.getElementById("mappingSummary"),
+    mappingGrid: document.getElementById("mappingGrid"),
+    tableShell: document.getElementById("tableShell"),
+    statSources: document.getElementById("statSources"),
+    statRows: document.getElementById("statRows"),
+    statPreview: document.getElementById("statPreview"),
+    metricChip: document.getElementById("metricChip"),
+    dimChip: document.getElementById("dimChip"),
+    previewSub: document.getElementById("previewSub"),
+    exportBtn: document.getElementById("exportBtn"),
+    downloadCsvBtn: document.getElementById("downloadCsvBtn"),
+    downloadJsonBtn: document.getElementById("downloadJsonBtn"),
+    downloadXlsxBtn: document.getElementById("downloadXlsxBtn"),
+    exportMenuBtn: document.getElementById("exportMenuBtn"),
+    exportMenu: document.getElementById("exportMenu"),
+    downloadStakeholderXlsxBtn: document.getElementById("downloadStakeholderXlsxBtn"),
+    downloadPivotXlsxBtn: document.getElementById("downloadPivotXlsxBtn"),
+    setPivotTemplateBtn: document.getElementById("setPivotTemplateBtn"),
+    pivotTemplateStatus: document.getElementById("pivotTemplateStatus"),
+    pivotTemplateInput: document.getElementById("pivotTemplateInput"),
+    configInput: document.getElementById("configInput"),
+    configMenuBtn: document.getElementById("configMenuBtn"),
+    configMenu: document.getElementById("configMenu"),
+    saveConfigBtn: document.getElementById("saveConfigBtn"),
+    loadConfigBtn: document.getElementById("loadConfigBtn"),
+    configHistoryList: document.getElementById("configHistoryList"),
+    toast: document.getElementById("toast"),
+    loadProgress: document.getElementById("loadProgress"),
+    loadProgressText: document.getElementById("loadProgressText"),
+    loadProgressCount: document.getElementById("loadProgressCount"),
+    flowInput: document.querySelector('[data-flow-step="input"]'),
+    flowHeader: document.querySelector('[data-flow-step="header"]'),
+    flowMapping: document.querySelector('[data-flow-step="mapping"]'),
+    flowPreview: document.querySelector('[data-flow-step="preview"]'),
+    flowInputText: document.getElementById("flowInputText"),
+    flowHeaderText: document.getElementById("flowHeaderText"),
+    flowMappingText: document.getElementById("flowMappingText"),
+    flowPreviewText: document.getElementById("flowPreviewText")
+};
+function esc(value) {
+    return String(value ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+function normalize(value) {
+    return String(value ?? "")
+        .toLowerCase()
+        .replace(/[%$#]/g, m => ({ "%": " percent ", "$": " dollars ", "#": " number " }[m]))
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+}
+function cleanHeader(value) {
+    return String(value ?? "").replace(/\s+/g, " ").trim();
+}
+function makeDefaultConfig() {
+    return {
+        hasCadenceRow: false,
+        cadenceRow: 1,
+        headerRow: 1,
+        deleteRows: "",
+        skipRowsContaining: "subtotal, total, grand total, brand total, retailer total",
+        deleteColumns: "",
+        cadenceTypes: ["WTD"],
+        cadenceMetrics: ["sale_dollars", "sale_units"],
+        customDimensions: [],
+        customMetrics: [],
+        includeLy: false,
+        calculatedMetrics: [],
+        customCalculatedMetrics: [],
+        skipZeroValues: false,
+        outputMeta: { source_file: true, source_sheet: true, source_row: true, value_source: true },
+        outputDimensions: [],
+        outputDimensionsTouched: false,
+        outputMetrics: [],
+        outputMetricsTouched: false,
+        outputBreakouts: [],
+        outputBreakoutValueAxes: [],
+        outputColumnOrder: [],
+        sheetIncludes: {},
+        sourceOverrides: {},
+        showUnmappedOnly: false,
+        showUnmappedOnlyTouched: false,
+        mappings: {},
+        metricMappings: {},
+        pivotDimensions: [],
+        pivotColumnDimensions: [],
+        pivotMetrics: [],
+        pivotMetricsTouched: false,
+        pivotColumnOrder: [],
+        collapsed: {}
+    };
+}
+function slugifyKey(value) {
+    const slug = normalize(value).replace(/\s+/g, "_");
+    return slug || "";
+}
+function uniqueKey(baseKey, existingKeys) {
+    let key = baseKey;
+    let count = 2;
+    while (existingKeys.has(key)) {
+        key = `${baseKey}_${count}`;
+        count += 1;
+    }
+    return key;
+}
+function getCustomDimensions() {
+    return Array.isArray(state.config.customDimensions) ? state.config.customDimensions : [];
+}
+function getCustomMetrics() {
+    return Array.isArray(state.config.customMetrics) ? state.config.customMetrics : [];
+}
+function normalizedMetricLabel(label) {
+    return stripMetaLabels(label) || cleanHeader(label);
+}
+function normalizeMetricDefinition(metric) {
+    const label = normalizedMetricLabel(metric.label);
+    if (!label)
+        return null;
+    const aliases = Array.from(new Set([label].concat(metric.aliases || []).map(normalizedMetricLabel).filter(Boolean)));
+    return {
+        ...metric,
+        label,
+        aliases
+    };
+}
+function getStandardFields() {
+    return BASE_STANDARD_FIELDS.concat(getCustomDimensions().map(field => ({
+        key: field.key,
+        label: field.label,
+        aliases: Array.isArray(field.aliases) ? field.aliases : [field.label],
+        custom: true
+    })));
+}
+function getFieldByKey() {
+    return Object.fromEntries(getStandardFields().map(field => [field.key, field]));
+}
+function getMetricOptions() {
+    const options = [];
+    const seenKeys = new Set();
+    const seenLabels = new Set();
+    BASE_CADENCE_METRIC_OPTIONS.concat(getCustomMetrics().map(metric => ({ ...metric, custom: true }))).forEach(metric => {
+        if (!metric || DIMENSION_ONLY_KEYS.has(metric.key) || seenKeys.has(metric.key))
+            return;
+        const normalized = metric.custom ? normalizeMetricDefinition(metric) : metric;
+        if (!normalized)
+            return;
+        const labelKey = normalize(normalized.label);
+        if (!metric.custom && seenLabels.has(labelKey))
+            return;
+        if (metric.custom && options.some(existing => bestAliasScore(normalized.label, existing.aliases) >= 1))
+            return;
+        seenKeys.add(normalized.key);
+        seenLabels.add(labelKey);
+        options.push(normalized);
+    });
+    return options.sort((a, b) => a.label.localeCompare(b.label) || a.key.localeCompare(b.key));
+}
+function getCalculatedMetricOptions() {
+    return BASE_CALCULATED_METRICS.concat((state.config.customCalculatedMetrics || []).map(metric => ({
+        key: metric.key,
+        label: metric.label,
+        formula: metric.formula,
+        format: metric.format || "number",
+        custom: true
+    })));
+}
+function sheetKey(name, sheet) {
+    return `${name}::${sheet}`;
+}
+function getSheetIncluded(source) {
+    state.config.sheetIncludes = state.config.sheetIncludes || {};
+    const exact = state.config.sheetIncludes[sheetKey(source.name, source.sheet)];
+    if (exact !== undefined)
+        return !!exact;
+    const bySheet = state.config.sheetIncludes[source.sheet];
+    if (bySheet !== undefined)
+        return !!bySheet;
+    return source.included !== false;
+}
+function getSourceOverride(source) {
+    if (!state.config.sourceOverrides)
+        return null;
+    return state.config.sourceOverrides[sheetKey(source.name, source.sheet)] || null;
+}
+function ensureSourceOverride(source) {
+    state.config.sourceOverrides = state.config.sourceOverrides || {};
+    const key = sheetKey(source.name, source.sheet);
+    if (!state.config.sourceOverrides[key]) {
+        state.config.sourceOverrides[key] = { active: false, yearBasis: "", dimensions: {} };
+    }
+    if (!state.config.sourceOverrides[key].dimensions)
+        state.config.sourceOverrides[key].dimensions = {};
+    if (typeof state.config.sourceOverrides[key].active !== "boolean")
+        state.config.sourceOverrides[key].active = false;
+    return state.config.sourceOverrides[key];
+}
+const CHANNEL_SUGGEST_PATTERNS = [
+    { value: "Wholesale", aliases: ["wholesale", "whsl"] },
+    { value: "Ecommerce", aliases: ["ecom", "ecommerce", "e commerce", "dtc", "online", "digital"] },
+    { value: "Retail", aliases: ["retail stores", "owned retail", "stores"] },
+    { value: "Outlet", aliases: ["outlet"] },
+    { value: "Marketplace", aliases: ["marketplace", "amazon", "tmall"] }
+];
+function suggestSourceOverrides(name, sheet) {
+    const text = `${name} ${sheet}`;
+    const result = { active: false, yearBasis: "", dimensions: {} };
+    if (/\b(ly|last\s*year|restated|prior\s*year)\b/i.test(text))
+        result.yearBasis = "LY";
+    const normalized = normalize(text);
+    for (const pat of CHANNEL_SUGGEST_PATTERNS) {
+        if (pat.aliases.some(a => normalized.includes(normalize(a)))) {
+            result.dimensions.channel = pat.value;
+            break;
+        }
+    }
+    return result;
+}
+function parseRowSpec(spec) {
+    const rows = new Set();
+    String(spec || "").split(",").forEach(part => {
+        const trimmed = part.trim();
+        if (!trimmed)
+            return;
+        const range = trimmed.match(/^(\d+)\s*-\s*(\d+)$/);
+        if (range) {
+            const start = Math.min(Number(range[1]), Number(range[2]));
+            const end = Math.max(Number(range[1]), Number(range[2]));
+            for (let row = start; row <= end; row++)
+                rows.add(row);
+            return;
+        }
+        const row = Number(trimmed);
+        if (Number.isInteger(row) && row > 0)
+            rows.add(row);
+    });
+    return rows;
+}
+function columnLabelToIndex(label) {
+    const raw = cleanHeader(label).toUpperCase();
+    if (/^\d+$/.test(raw))
+        return Number(raw) - 1;
+    if (!/^[A-Z]+$/.test(raw))
+        return NaN;
+    let index = 0;
+    for (let i = 0; i < raw.length; i++)
+        index = index * 26 + (raw.charCodeAt(i) - 64);
+    return index - 1;
+}
+function indexToColumnLabel(index) {
+    let n = index + 1;
+    let label = "";
+    while (n > 0) {
+        const mod = (n - 1) % 26;
+        label = String.fromCharCode(65 + mod) + label;
+        n = Math.floor((n - mod) / 26);
+    }
+    return label;
+}
+function parseColumnSpec(spec) {
+    const cols = new Set();
+    String(spec || "").split(",").forEach(part => {
+        const trimmed = part.trim();
+        if (!trimmed)
+            return;
+        const range = trimmed.match(/^([A-Za-z]+|\d+)\s*-\s*([A-Za-z]+|\d+)$/);
+        if (range) {
+            const start = columnLabelToIndex(range[1]);
+            const end = columnLabelToIndex(range[2]);
+            if (!Number.isFinite(start) || !Number.isFinite(end))
+                return;
+            for (let col = Math.min(start, end); col <= Math.max(start, end); col++)
+                cols.add(col);
+            return;
+        }
+        const col = columnLabelToIndex(trimmed);
+        if (Number.isInteger(col) && col >= 0)
+            cols.add(col);
+    });
+    return cols;
+}
+function getDeletedRows() {
+    return parseRowSpec(state.config.deleteRows);
+}
+function getSkipRowTerms() {
+    return String(state.config.skipRowsContaining || "")
+        .split(",")
+        .map(term => normalize(term))
+        .filter(Boolean);
+}
+function getRowSkipReason(row, originalRow) {
+    if (getDeletedRows().has(originalRow))
+        return "manual delete";
+    const terms = getSkipRowTerms();
+    if (!terms.length)
+        return "";
+    const text = normalize(row.join(" "));
+    const matched = terms.find(term => text.includes(term));
+    return matched ? `contains "${matched.replace(/_/g, " ")}"` : "";
+}
+function getDeletedColumns() {
+    return parseColumnSpec(state.config.deleteColumns);
+}
+function getRowsForSource(source, options = {}) {
+    const deleted = getDeletedRows();
+    const deletedColumns = getDeletedColumns();
+    return source.rows
+        .map((row, idx) => ({
+        row: options.keepDeletedColumns ? row : row.filter((_, colIdx) => !deletedColumns.has(colIdx)),
+        originalRow: idx + 1
+    }))
+        .filter(item => !getRowSkipReason(item.row, item.originalRow));
+}
+function getIncludedSources() {
+    return state.sources.filter(getSheetIncluded);
+}
+function stripMetaLabels(label) {
+    return cleanHeader(label).replace(/[_/\\-]+/g, " ")
+        .replace(getCadenceStripRe(), " ")
+        .replace(YEAR_BASIS_RE, " ")
+        .replace(/[()\[\]]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+function getYearBasis(label) {
+    const match = cleanHeader(label).match(YEAR_BASIS_RE);
+    if (!match)
+        return "TY";
+    return /^L/i.test(match[1]) ? "LY" : "TY";
+}
+function toMetricName(label) {
+    const cleaned = stripMetaLabels(label);
+    if (!cleaned)
+        return "metric";
+    let bestKey = null;
+    let bestScore = 0;
+    for (const metric of getMetricOptions()) {
+        const score = bestAliasScore(cleaned, metric.aliases);
+        if (score > bestScore) {
+            bestScore = score;
+            bestKey = metric.key;
+        }
+    }
+    if (bestKey && bestScore >= 0.6)
+        return bestKey;
+    return normalize(cleaned).replace(/\s+/g, "_") || "metric";
+}
+function parseDelimited(text) {
+    const rows = [];
+    let row = [], cell = "", quoted = false;
+    const delimiter = text.includes("\t") ? "\t" : ",";
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i], next = text[i + 1];
+        if (ch === '"' && quoted && next === '"') {
+            cell += '"';
+            i++;
+            continue;
+        }
+        if (ch === '"') {
+            quoted = !quoted;
+            continue;
+        }
+        if (!quoted && ch === delimiter) {
+            row.push(cell);
+            cell = "";
+            continue;
+        }
+        if (!quoted && (ch === "\n" || ch === "\r")) {
+            if (ch === "\r" && next === "\n")
+                i++;
+            row.push(cell);
+            rows.push(row);
+            row = [];
+            cell = "";
+            continue;
+        }
+        cell += ch;
+    }
+    row.push(cell);
+    if (row.some(v => String(v).trim()))
+        rows.push(row);
+    return rows;
+}
+function normalizeRows(rows) {
+    const width = rows.reduce((max, row) => Math.max(max, row.length), 0);
+    return rows
+        .filter(row => row.some(cell => cleanHeader(cell)))
+        .map(row => Array.from({ length: width }, (_, i) => row[i] ?? ""));
+}
+function showLoadProgress(text, count) {
+    if (!els.loadProgress)
+        return;
+    els.loadProgressText.textContent = text;
+    els.loadProgressCount.textContent = count || "";
+    els.loadProgress.classList.add("show");
+}
+function hideLoadProgress() {
+    if (els.loadProgress)
+        els.loadProgress.classList.remove("show");
+}
+const yieldToBrowser = () => new Promise(resolve => setTimeout(resolve, 0));
+async function handleFiles(files) {
+    const list = Array.from(files || []);
+    if (!list.length)
+        return;
+    if (!window.XLSX) {
+        toast("Spreadsheet library did not load. CSV and pasted ranges still work.");
+    }
+    const totalFiles = list.length;
+    showLoadProgress(`Preparing ${totalFiles} file${totalFiles === 1 ? "" : "s"}...`, "");
+    await yieldToBrowser();
+    for (let fileIdx = 0; fileIdx < list.length; fileIdx++) {
+        const file = list[fileIdx];
+        const fileCount = `${fileIdx + 1} / ${totalFiles}`;
+        try {
+            const lower = file.name.toLowerCase();
+            if (lower.endsWith(".csv")) {
+                showLoadProgress(`Reading ${file.name}`, fileCount);
+                await yieldToBrowser();
+                const text = await file.text();
+                addSource(file.name, "CSV", parseDelimited(text));
+            }
+            else {
+                if (!window.XLSX)
+                    throw new Error("XLSX library unavailable");
+                showLoadProgress(`Reading ${file.name}`, fileCount);
+                await yieldToBrowser();
+                const data = await file.arrayBuffer();
+                showLoadProgress(`Parsing workbook: ${file.name}`, fileCount);
+                await yieldToBrowser();
+                const metadata = XLSX.read(data, { type: "array", bookSheets: true });
+                const sheetNames = metadata.SheetNames || [];
+                if (sheetNames.length > AUTO_INCLUDE_SHEET_LIMIT) {
+                    addPendingWorkbook(file.name, data, sheetNames);
+                    toast(`${file.name} has ${sheetNames.length} sheets. Select the sheets you need from Input.`);
+                }
+                else {
+                    const wb = XLSX.read(data, { type: "array", cellDates: true });
+                    for (let sIdx = 0; sIdx < sheetNames.length; sIdx++) {
+                        const sheetName = sheetNames[sIdx];
+                        showLoadProgress(`${file.name} → ${sheetName}`, `${fileCount} · sheet ${sIdx + 1} / ${sheetNames.length}`);
+                        await yieldToBrowser();
+                        const ws = wb.Sheets[sheetName];
+                        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
+                        addSource(file.name, sheetName, rows, { defaultIncluded: true });
+                    }
+                }
+            }
+        }
+        catch (error) {
+            toast(`Could not read ${file.name}: ${error.message}`);
+        }
+    }
+    showLoadProgress("Detecting headers and building preview...", "");
+    await yieldToBrowser();
+    autoDetect();
+    rebuild();
+    hideLoadProgress();
+    const includedCount = getIncludedSources().length;
+    const pendingCount = state.pendingWorkbooks.length;
+    toast(`Loaded ${state.sources.length} source${state.sources.length === 1 ? "" : "s"}; ${includedCount} included${pendingCount ? `; ${pendingCount} workbook${pendingCount === 1 ? "" : "s"} awaiting sheet selection` : ""}.`);
+}
+function addPendingWorkbook(name, data, sheetNames) {
+    state.pendingWorkbooks = state.pendingWorkbooks || [];
+    state.pendingWorkbooks.push({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        name,
+        data,
+        sheetNames,
+        selectedSheets: []
+    });
+}
+function addSource(name, sheet, rows, options = {}) {
+    const cleanRows = normalizeRows(rows);
+    if (!cleanRows.length)
+        return;
+    state.config.sheetIncludes = state.config.sheetIncludes || {};
+    state.config.sourceOverrides = state.config.sourceOverrides || {};
+    const exactKey = sheetKey(name, sheet);
+    const included = state.config.sheetIncludes[exactKey] ?? state.config.sheetIncludes[sheet] ?? options.defaultIncluded ?? true;
+    if (!state.config.sourceOverrides[exactKey]) {
+        const suggested = suggestSourceOverrides(name, sheet);
+        if (suggested.yearBasis || Object.keys(suggested.dimensions).length) {
+            state.config.sourceOverrides[exactKey] = suggested;
+        }
+    }
+    state.sources.push({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        name,
+        sheet,
+        included,
+        rows: cleanRows
+    });
+}
+async function loadPendingWorkbook(id) {
+    const workbook = (state.pendingWorkbooks || []).find(item => item.id === id);
+    if (!workbook)
+        return;
+    const selected = (workbook.selectedSheets || []).filter(sheet => workbook.sheetNames.includes(sheet));
+    if (!selected.length) {
+        toast("Select at least one sheet first.");
+        return;
+    }
+    try {
+        showLoadProgress(`Parsing selected sheets: ${workbook.name}`, `${selected.length} / ${workbook.sheetNames.length}`);
+        await yieldToBrowser();
+        const wb = XLSX.read(workbook.data, { type: "array", cellDates: true, sheets: selected });
+        for (let sIdx = 0; sIdx < selected.length; sIdx++) {
+            const sheetName = selected[sIdx];
+            showLoadProgress(`${workbook.name} → ${sheetName}`, `sheet ${sIdx + 1} / ${selected.length}`);
+            await yieldToBrowser();
+            const ws = wb.Sheets[sheetName];
+            if (!ws)
+                continue;
+            const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
+            addSource(workbook.name, sheetName, rows, { defaultIncluded: true });
+        }
+        state.pendingWorkbooks = (state.pendingWorkbooks || []).filter(item => item.id !== id);
+        showLoadProgress("Detecting headers and building preview...", "");
+        await yieldToBrowser();
+        autoDetect();
+        rebuild();
+        toast(`Loaded ${selected.length} selected sheet${selected.length === 1 ? "" : "s"} from ${workbook.name}.`);
+    }
+    catch (error) {
+        toast(`Could not load selected sheets: ${error.message}`);
+    }
+    finally {
+        hideLoadProgress();
+    }
+}
+function autoDetect() {
+    const source = getIncludedSources()[0];
+    if (!source)
+        return;
+    const workingRows = getRowsForSource(source).map(item => item.row);
+    const rowScores = workingRows.slice(0, 12).map((row, idx) => {
+        const filled = row.filter(v => cleanHeader(v)).length;
+        const cadenceHits = row.filter(v => detectCadenceInfo(v)).length;
+        const metricHits = row.filter(v => toMetricName(v) !== normalize(v).replace(/\s+/g, "_")).length;
+        return { idx, filled, cadenceHits, metricHits };
+    });
+    const header = rowScores
+        .filter(r => r.filled >= 2)
+        .sort((a, b) => (b.metricHits + b.filled / 10) - (a.metricHits + a.filled / 10))[0];
+    const cadence = rowScores
+        .filter(r => header && r.idx < header.idx)
+        .sort((a, b) => b.cadenceHits - a.cadenceHits)[0];
+    if (header)
+        state.config.headerRow = header.idx + 1;
+    if (cadence && cadence.cadenceHits) {
+        state.config.hasCadenceRow = true;
+        state.config.cadenceRow = cadence.idx + 1;
+    }
+    else {
+        state.config.hasCadenceRow = false;
+        state.config.cadenceRow = 0;
+    }
+    const scanRows = workingRows.slice(0, Math.max(state.config.headerRow, state.config.cadenceRow) + 1).flat();
+    const detected = new Set();
+    let detectedLy = false;
+    scanRows.forEach(cell => {
+        const text = cleanHeader(cell);
+        if (!text)
+            return;
+        const info = detectCadenceInfo(text);
+        if (info) {
+            detected.add(info.cadence);
+            if (info.yearBasis === "LY")
+                detectedLy = true;
+        }
+        if (LY_LABEL_RE.test(text))
+            detectedLy = true;
+    });
+    if (detected.size) {
+        const merged = new Set([...(state.config.cadenceTypes || []), ...detected]);
+        state.config.cadenceTypes = CADENCES.filter(c => merged.has(c));
+    }
+    if (detectedLy)
+        state.config.includeLy = true;
+    els.headerRow.value = state.config.headerRow;
+    els.hasCadenceRow.checked = state.config.hasCadenceRow;
+    els.cadenceRow.value = state.config.hasCadenceRow ? state.config.cadenceRow : 1;
+    els.cadenceRow.hidden = !state.config.hasCadenceRow;
+}
+function syncConfigFromControls() {
+    state.config.sheetIncludes = state.config.sheetIncludes || {};
+    state.config.hasCadenceRow = els.hasCadenceRow.checked;
+    state.config.cadenceRow = state.config.hasCadenceRow ? Math.max(1, Number(els.cadenceRow.value) || 1) : 0;
+    state.config.headerRow = Math.max(1, Number(els.headerRow.value) || 1);
+    state.config.deleteRows = els.deleteRows.value.trim();
+    state.config.skipRowsContaining = els.skipRowsContaining.value.trim();
+    state.config.skipZeroValues = els.skipZeroValues.checked;
+    els.cadenceRow.hidden = !state.config.hasCadenceRow;
+}
+function metricMapKey(cadence, yearBasis, metricKey) {
+    return `${cadence}|${yearBasis}|${metricKey}`;
+}
+function metricSlotLabel(cadence, metric, yearBasis) {
+    return `${yearBasis} ${cadence} ${metric.label}`;
+}
+function getActiveCadences() {
+    return CADENCES.filter(c => (state.config.cadenceTypes || []).includes(c));
+}
+function getActiveMetrics() {
+    return getMetricOptions().filter(m => (state.config.cadenceMetrics || []).includes(m.key));
+}
+function getYearBases() {
+    return state.config.includeLy ? ["TY", "LY"] : ["TY"];
+}
+function getActiveMappingTriples() {
+    const triples = [];
+    getActiveCadences().forEach(cadence => {
+        getActiveMetrics().forEach(metric => {
+            getYearBases().forEach(yearBasis => {
+                triples.push({ cadence, yearBasis, metric });
+            });
+        });
+    });
+    return triples;
+}
+function buildHeaders() {
+    syncConfigFromControls();
+    const source = getIncludedSources()[0];
+    if (!source) {
+        state.headers = [];
+        return;
+    }
+    const workingRows = getRowsForSource(source).map(item => item.row);
+    const headerIdx = state.config.headerRow - 1;
+    const cadenceIdx = state.config.cadenceRow ? state.config.cadenceRow - 1 : -1;
+    const headerRow = workingRows[headerIdx] || [];
+    const cadenceRow = cadenceIdx >= 0 ? (workingRows[cadenceIdx] || []) : [];
+    const maxCols = Math.max(headerRow.length, cadenceRow.length);
+    const filledCadenceRow = Array.from({ length: maxCols }, (_, idx) => {
+        const raw = cleanHeader(cadenceRow[idx]);
+        if (raw)
+            return raw;
+        return idx > 0 ? cleanHeader(cadenceRow.slice(0, idx).reverse().find(cleanHeader)) : "";
+    });
+    let inheritedCadenceInfo = null;
+    const cadenceInfoByCol = Array.from({ length: maxCols }, (_, idx) => {
+        const cadenceRaw = cleanHeader(filledCadenceRow[idx]);
+        if (cadenceRaw) {
+            const info = detectCadenceInfo(cadenceRaw);
+            if (info) {
+                inheritedCadenceInfo = info;
+                return info;
+            }
+            inheritedCadenceInfo = null;
+            return null;
+        }
+        return inheritedCadenceInfo;
+    });
+    let lastHeaderBase = "";
+    const repeatedHeaderCounts = {};
+    state.headers = Array.from({ length: maxCols }, (_, idx) => {
+        const cadenceRaw = cleanHeader(filledCadenceRow[idx]);
+        const label = headerRow[idx];
+        const rawLabel = cleanHeader(label);
+        let header = rawLabel;
+        if (rawLabel) {
+            lastHeaderBase = rawLabel;
+            repeatedHeaderCounts[lastHeaderBase] = 0;
+        }
+        else if (cadenceRaw) {
+            header = cadenceRaw;
+            lastHeaderBase = cadenceRaw;
+            repeatedHeaderCounts[lastHeaderBase] = 0;
+        }
+        else if (lastHeaderBase) {
+            repeatedHeaderCounts[lastHeaderBase] = (repeatedHeaderCounts[lastHeaderBase] || 0) + 1;
+            header = `${lastHeaderBase}_${repeatedHeaderCounts[lastHeaderBase]}`;
+        }
+        else {
+            header = cadenceRaw || `Column ${idx + 1}`;
+        }
+        const labelCadenceInfo = detectCadenceInfo(header);
+        const inherited = cadenceInfoByCol[idx];
+        const effectiveCadenceInfo = labelCadenceInfo || inherited;
+        const directCadence = effectiveCadenceInfo ? effectiveCadenceInfo.cadence : "";
+        let yearBasis;
+        if (LY_LABEL_RE.test(header))
+            yearBasis = "LY";
+        else if (TY_LABEL_RE.test(header))
+            yearBasis = "TY";
+        else if (cadenceRaw && LY_LABEL_RE.test(cadenceRaw))
+            yearBasis = "LY";
+        else if (effectiveCadenceInfo && effectiveCadenceInfo.yearBasis)
+            yearBasis = effectiveCadenceInfo.yearBasis;
+        else
+            yearBasis = "TY";
+        const contextLabel = cadenceRaw && cadenceRaw !== header
+            ? `${cadenceRaw} / ${header}`
+            : (!cadenceRaw && inherited ? `${inherited.cadence} / ${header}` : header);
+        return {
+            index: idx,
+            raw: header,
+            contextLabel,
+            detectedCadence: directCadence,
+            detectedYearBasis: yearBasis
+        };
+    });
+    autoMap();
+}
+function autoMap() {
+    const DIM_THRESHOLD = 0.6;
+    const METRIC_THRESHOLD = 0.55;
+    state.config.metricMappings = state.config.metricMappings || {};
+    const dimMappings = state.config.mappings;
+    const metricMappings = state.config.metricMappings;
+    const takenDimCols = new Set(Object.values(dimMappings).filter(isMappedColumn).map(Number));
+    const takenMetricCols = new Set(Object.values(metricMappings).filter(isMappedColumn).map(Number));
+    const dimFields = getStandardFields().filter(field => dimMappings[field.key] === undefined);
+    const dimCandidates = [];
+    state.headers.forEach(h => {
+        if (takenDimCols.has(h.index) || takenMetricCols.has(h.index))
+            return;
+        const stripped = stripMetaLabels(h.raw) || h.raw;
+        dimFields.forEach(field => {
+            const score = Math.max(bestAliasScore(stripped, field.aliases), bestAliasScore(h.raw, field.aliases));
+            if (score >= DIM_THRESHOLD)
+                dimCandidates.push({ score, fieldKey: field.key, colIdx: h.index });
+        });
+    });
+    dimCandidates.sort((a, b) => b.score - a.score);
+    dimCandidates.forEach(cand => {
+        if (isMappedColumn(dimMappings[cand.fieldKey]))
+            return;
+        if (dimMappings[cand.fieldKey] !== undefined && dimMappings[cand.fieldKey] !== null)
+            return;
+        if (takenDimCols.has(cand.colIdx) || takenMetricCols.has(cand.colIdx))
+            return;
+        dimMappings[cand.fieldKey] = cand.colIdx;
+        takenDimCols.add(cand.colIdx);
+    });
+    const metricCandidates = [];
+    getActiveMappingTriples().forEach(({ cadence, yearBasis, metric }) => {
+        const key = metricMapKey(cadence, yearBasis, metric.key);
+        if (metricMappings[key] !== undefined)
+            return;
+        state.headers.forEach(h => {
+            if (takenDimCols.has(h.index) || takenMetricCols.has(h.index))
+                return;
+            if (h.detectedCadence && h.detectedCadence !== cadence)
+                return;
+            if (h.detectedYearBasis && h.detectedYearBasis !== yearBasis)
+                return;
+            const stripped = stripMetaLabels(h.raw) || h.raw;
+            const score = bestAliasScore(stripped, metric.aliases);
+            if (score < METRIC_THRESHOLD)
+                return;
+            const cadenceMatchBonus = h.detectedCadence === cadence ? 0.1 : 0;
+            const yearMatchBonus = h.detectedYearBasis === yearBasis ? 0.05 : 0;
+            metricCandidates.push({ score: score + cadenceMatchBonus + yearMatchBonus, key, colIdx: h.index });
+        });
+    });
+    metricCandidates.sort((a, b) => b.score - a.score);
+    metricCandidates.forEach(cand => {
+        if (metricMappings[cand.key] !== undefined && metricMappings[cand.key] !== null)
+            return;
+        if (takenMetricCols.has(cand.colIdx))
+            return;
+        metricMappings[cand.key] = cand.colIdx;
+        takenMetricCols.add(cand.colIdx);
+    });
+}
+function isDimensionColumn(header) {
+    return Object.values(state.config.mappings).filter(isMappedColumn).map(Number).includes(header.index);
+}
+function isMetricColumn(header) {
+    return Object.values(state.config.metricMappings || {}).filter(isMappedColumn).map(Number).includes(header.index);
+}
+function parseNumber(value) {
+    const raw = cleanHeader(value);
+    if (!raw)
+        return NaN;
+    const isParenNegative = /^\(.*\)$/.test(raw);
+    const number = Number(raw.replace(/[(),$%]/g, ""));
+    return Number.isFinite(number) ? (isParenNegative ? -number : number) : NaN;
+}
+function getFormulaContext(rowMetrics, dims) {
+    const context = {};
+    getMetricOptions().forEach(metric => {
+        context[metric.key] = parseNumber(rowMetrics.get(metric.key));
+    });
+    Object.entries(dims).forEach(([key, value]) => {
+        const parsed = parseNumber(value);
+        context[key] = Number.isFinite(parsed) ? parsed : value;
+    });
+    return context;
+}
+function evaluateFormula(formula, context) {
+    const keys = Object.keys(context).filter(key => /^[A-Za-z_][A-Za-z0-9_]*$/.test(key));
+    const values = keys.map(key => context[key]);
+    try {
+        const result = Function(...keys, `"use strict"; return (${formula});`)(...values);
+        return Number(result);
+    }
+    catch (error) {
+        return NaN;
+    }
+}
+function formatCalculatedValue(value, metric) {
+    if (!Number.isFinite(value))
+        return "";
+    return metric.format === "percent" ? `${value.toFixed(2)}%` : String(Number(value.toFixed(2)));
+}
+function buildOutput() {
+    const headerIdx = state.config.headerRow - 1;
+    const outputs = [];
+    const triples = getActiveMappingTriples();
+    getIncludedSources().forEach(source => {
+        const overrideRaw = getSourceOverride(source);
+        const override = overrideRaw && overrideRaw.active ? overrideRaw : null;
+        const overrideDims = (override && override.dimensions) || {};
+        const overrideYb = override && (override.yearBasis === "TY" || override.yearBasis === "LY") ? override.yearBasis : null;
+        const workingRows = getRowsForSource(source);
+        workingRows.slice(headerIdx + 1).forEach(item => {
+            const row = item.row;
+            if (!row.some(cell => cleanHeader(cell)))
+                return;
+            const dims = {};
+            getStandardFields().forEach(field => {
+                const mapped = state.config.mappings[field.key];
+                const col = Number(mapped);
+                dims[field.key] = isMappedColumn(mapped) ? cleanHeader(row[col]) : "";
+            });
+            Object.entries(overrideDims).forEach(([key, value]) => {
+                const v = cleanHeader(value);
+                if (v)
+                    dims[key] = v;
+            });
+            const rowMetrics = new Map();
+            triples.forEach(({ cadence, yearBasis, metric }) => {
+                const key = metricMapKey(cadence, yearBasis, metric.key);
+                const mapped = (state.config.metricMappings || {})[key];
+                if (!isMappedColumn(mapped))
+                    return;
+                const col = Number(mapped);
+                const rawValue = row[col];
+                if (rawValue === undefined || cleanHeader(rawValue) === "")
+                    return;
+                if (state.config.skipZeroValues && parseNumber(rawValue) === 0)
+                    return;
+                rowMetrics.set(key, rawValue);
+                outputs.push({
+                    source_file: source.name,
+                    source_sheet: source.sheet,
+                    source_row: item.originalRow,
+                    cadence,
+                    year_basis: overrideYb || yearBasis,
+                    metric: metric.key,
+                    value: cleanHeader(rawValue),
+                    value_source: "imported",
+                    ...dims
+                });
+            });
+            const calculatedMetrics = getCalculatedMetricOptions().filter(metric => (state.config.calculatedMetrics || []).includes(metric.key));
+            if (calculatedMetrics.length) {
+                getActiveCadences().forEach(cadence => {
+                    getYearBases().forEach(yearBasis => {
+                        const scopedMetrics = new Map();
+                        getMetricOptions().forEach(metric => {
+                            scopedMetrics.set(metric.key, rowMetrics.get(metricMapKey(cadence, yearBasis, metric.key)));
+                        });
+                        calculatedMetrics.forEach(metric => {
+                            const value = evaluateFormula(metric.formula, getFormulaContext(scopedMetrics, dims));
+                            if (!Number.isFinite(value))
+                                return;
+                            if (state.config.skipZeroValues && value === 0)
+                                return;
+                            outputs.push({
+                                source_file: source.name,
+                                source_sheet: source.sheet,
+                                source_row: item.originalRow,
+                                cadence,
+                                year_basis: overrideYb || yearBasis,
+                                metric: metric.key,
+                                value: formatCalculatedValue(value, metric),
+                                value_source: "calculated",
+                                ...dims
+                            });
+                        });
+                    });
+                });
+            }
+        });
+    });
+    state.output = outputs;
+}
+function renderFileList() {
+    state.pendingWorkbooks = state.pendingWorkbooks || [];
+    if (els.dropzone)
+        els.dropzone.hidden = state.sources.length > 0 || state.pendingWorkbooks.length > 0;
+    if (!state.sources.length && !state.pendingWorkbooks.length) {
+        els.fileList.innerHTML = '<div class="empty-state" style="min-height:96px;padding:14px;"><strong>No sources yet</strong><span>Use Insert File or drop files above.</span></div>';
+        return;
+    }
+    state.expandedOverrides = state.expandedOverrides instanceof Set ? state.expandedOverrides : new Set();
+    const formatRows = n => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+    const pendingHtml = state.pendingWorkbooks.map(workbook => {
+        const selected = new Set(workbook.selectedSheets || []);
+        return `<div class="workbook-pending">
+      <div class="workbook-pending-header">
+        <div class="workbook-pending-title">
+          <strong title="${esc(workbook.name)}">${esc(workbook.name)}</strong>
+          <span>${workbook.sheetNames.length} sheets · ${selected.size} selected</span>
+        </div>
+        <div class="workbook-sheet-actions">
+          <button class="btn btn-sm" type="button" data-pending-select-all="${esc(workbook.id)}">Select all</button>
+          <button class="btn btn-sm" type="button" data-pending-clear="${esc(workbook.id)}">Clear</button>
+          <button class="btn btn-sm btn-accent" type="button" data-pending-load="${esc(workbook.id)}" ${selected.size ? "" : "disabled"}>Load selected</button>
+          <button class="btn btn-sm btn-danger" type="button" data-pending-remove="${esc(workbook.id)}">×</button>
+        </div>
+      </div>
+      <div class="workbook-sheet-list">
+        ${workbook.sheetNames.map(sheet => `
+          <label class="workbook-sheet-option">
+            <input type="checkbox" data-pending-sheet="${esc(workbook.id)}" value="${esc(sheet)}" ${selected.has(sheet) ? "checked" : ""}>
+            <span>${esc(sheet)}</span>
+          </label>
+        `).join("")}
+      </div>
+    </div>`;
+    }).join("");
+    const sourceHtml = state.sources.map(source => {
+        const override = getSourceOverride(source) || { active: false, yearBasis: "", dimensions: {} };
+        const isExpanded = state.expandedOverrides.has(source.id);
+        const dimEntries = Object.entries(override.dimensions || {}).filter(([_, v]) => cleanHeader(v));
+        const dimChips = dimEntries.length ? dimEntries.map(([k, v]) => `<span class="override-chip">${esc(k)} = ${esc(v)}<button type="button" data-remove-override-dim="${esc(source.id)}|${esc(k)}" aria-label="Remove ${esc(k)} override">&times;</button></span>`).join("") : '<span class="override-empty">No dimension overrides set</span>';
+        const fieldOptions = getStandardFields()
+            .map(f => `<option value="${esc(f.key)}">${esc(f.label)} (${esc(f.key)})</option>`)
+            .join("");
+        const hasSetup = !!(override.yearBasis || dimEntries.length);
+        const isActive = !!override.active && hasSetup;
+        const statusDot = isActive ? '<span class="file-status-dot active" title="Configuration active"></span>'
+            : hasSetup ? '<span class="file-status-dot dormant" title="Configuration saved but inactive"></span>'
+                : "";
+        return `
+      <div class="file-row-wrap${isExpanded ? " has-overrides" : ""}">
+        <div class="file-row file-row-compact">
+          <input type="checkbox" data-include="${esc(source.id)}" ${getSheetIncluded(source) ? "checked" : ""} aria-label="Include ${esc(source.sheet)}">
+          <div class="file-row-text"><strong title="${esc(source.name)}">${esc(source.name)}</strong><span> › ${esc(source.sheet)} · ${formatRows(source.rows.length)}${hasSetup ? " · configuration" : ""}</span></div>
+          ${statusDot}
+          <button class="btn btn-sm icon-btn" type="button" data-toggle-override="${esc(source.id)}" aria-expanded="${isExpanded ? "true" : "false"}" title="Configuration" aria-label="Configuration">⚙</button>
+          <button class="btn btn-sm icon-btn btn-danger" type="button" data-remove="${esc(source.id)}" title="Remove" aria-label="Remove">×</button>
+        </div>
+        <div class="file-overrides${isExpanded ? " open" : ""}" data-overrides-for="${esc(source.id)}">
+          <label class="override-active-row">
+            <input type="checkbox" data-override-active="${esc(source.id)}" ${isActive ? "checked" : ""}>
+            <span><strong>Apply configuration</strong> — off by default. Settings stay dormant until this is enabled.</span>
+          </label>
+          <div class="override-block">
+            <label>Year Basis (force all rows from this sheet)</label>
+            <select data-override-yearbasis="${esc(source.id)}">
+              <option value="" ${!override.yearBasis ? "selected" : ""}>Auto (from headers)</option>
+              <option value="TY" ${override.yearBasis === "TY" ? "selected" : ""}>Force TY</option>
+              <option value="LY" ${override.yearBasis === "LY" ? "selected" : ""}>Force LY</option>
+            </select>
+          </div>
+          <div class="override-block">
+            <label>Dimension Overrides (force value on all rows)</label>
+            <div class="override-chips-row">${dimChips}</div>
+            <div class="override-add-row">
+              <select data-override-add-field="${esc(source.id)}">
+                <option value="">Select dimension...</option>
+                ${fieldOptions}
+              </select>
+              <input type="text" data-override-add-value="${esc(source.id)}" placeholder="Force value">
+              <button class="btn btn-sm" type="button" data-override-add-btn="${esc(source.id)}">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    }).join("");
+    els.fileList.innerHTML = pendingHtml + sourceHtml;
+}
+function renderCadenceSelectors() {
+    const types = state.config.cadenceTypes || [];
+    els.cadenceTypeSelect.innerHTML = CADENCE_TYPE_OPTIONS.map(c => `
+    <label class="${(c === "LY" ? state.config.includeLy : types.includes(c)) ? "active" : ""}">
+      <input type="checkbox" data-cadence-type="${c}" ${(c === "LY" ? state.config.includeLy : types.includes(c)) ? "checked" : ""}>
+      <span>${c}</span>
+    </label>
+  `).join("");
+    const metrics = state.config.cadenceMetrics || [];
+    els.cadenceMetricSelect.innerHTML = getMetricOptions().map(m => `
+    <label class="${metrics.includes(m.key) ? "active" : ""}">
+      <input type="checkbox" data-cadence-metric="${m.key}" ${metrics.includes(m.key) ? "checked" : ""}>
+      <span>${esc(m.label)}</span>
+    </label>
+  `).join("");
+    const calculated = state.config.calculatedMetrics || [];
+    els.calculatedMetricSelect.innerHTML = getCalculatedMetricOptions().map(m => `
+    <label class="${calculated.includes(m.key) ? "active" : ""}">
+      <input type="checkbox" data-calculated-metric="${esc(m.key)}" ${calculated.includes(m.key) ? "checked" : ""}>
+      <span>${esc(m.label)}</span>
+    </label>
+  `).join("") + `
+    <label class="${els.customCalcBuilder && !els.customCalcBuilder.hidden ? "active" : ""}">
+      <input type="checkbox" data-custom-calc-toggle>
+      <span>Custom</span>
+    </label>
+  `;
+}
+function getCheckedValues(container, selector, datasetKey) {
+    return Array.from(container.querySelectorAll(selector))
+        .filter(input => input.checked)
+        .map(input => input.dataset[datasetKey]);
+}
+function renderDeleteColumnChecklist() {
+    if (!els.deleteColumnChecklist)
+        return;
+    const source = getIncludedSources()[0];
+    if (!source) {
+        els.deleteColumnChecklist.innerHTML = '<span class="chip">Load a source to select columns.</span>';
+        return;
+    }
+    const maxCols = source.rows.reduce((max, row) => Math.max(max, row.length), 0);
+    const workingRows = getRowsForSource(source, { keepDeletedColumns: true }).map(item => item.row);
+    const headerRow = workingRows[Math.max(0, Number(state.config.headerRow) - 1)] || [];
+    const cadenceRow = state.config.hasCadenceRow ? (workingRows[Math.max(0, Number(state.config.cadenceRow) - 1)] || []) : [];
+    const deleted = getDeletedColumns();
+    els.deleteColumnChecklist.innerHTML = Array.from({ length: maxCols }, (_, idx) => {
+        const letter = indexToColumnLabel(idx);
+        const title = cleanHeader(headerRow[idx]) || cleanHeader(cadenceRow[idx]) || letter;
+        return `
+      <label title="Delete column ${letter}: ${esc(title)}">
+        <input type="checkbox" data-delete-column="${idx}" ${deleted.has(idx) ? "checked" : ""}>
+        ${esc(title)}
+      </label>
+    `;
+    }).join("");
+}
+function refreshDeleteColumnsLabel() {
+    const deleted = getDeletedColumns();
+    if (!deleted.size) {
+        els.deleteColumns.value = "";
+        return;
+    }
+    const source = getIncludedSources()[0];
+    const workingRows = source ? getRowsForSource(source, { keepDeletedColumns: true }).map(item => item.row) : [];
+    const headerRow = workingRows[Math.max(0, Number(state.config.headerRow) - 1)] || [];
+    els.deleteColumns.value = [...deleted].sort((a, b) => a - b).map(idx => cleanHeader(headerRow[idx]) || indexToColumnLabel(idx)).join(", ");
+}
+function getSkippedRowPreview() {
+    const source = getIncludedSources()[0];
+    if (!source)
+        return [];
+    const deletedColumns = getDeletedColumns();
+    return source.rows
+        .map((row, idx) => ({
+        row: row.filter((_, colIdx) => !deletedColumns.has(colIdx)),
+        originalRow: idx + 1
+    }))
+        .map(item => ({ ...item, reason: getRowSkipReason(item.row, item.originalRow) }))
+        .filter(item => item.reason)
+        .slice(0, 80);
+}
+function renderRowSkipPreview() {
+    if (!els.rowSkipPreview)
+        return;
+    const rows = getSkippedRowPreview();
+    if (!rows.length) {
+        els.rowSkipPreview.innerHTML = '<div class="row-skip-item"><strong>No skipped rows detected</strong><span>Manual row deletes and keyword matches will appear here.</span></div>';
+        return;
+    }
+    els.rowSkipPreview.innerHTML = rows.map(item => `
+    <div class="row-skip-item">
+      <strong>Row ${item.originalRow} · ${esc(item.reason)}</strong>
+      <span title="${esc(item.row.join(" | "))}">${esc(item.row.join(" | "))}</span>
+    </div>
+  `).join("");
+}
+function confirmDelete(message) {
+    return window.fashionConfirm
+        ? window.fashionConfirm(message, { title: "Confirm Delete", confirmLabel: "Delete" })
+        : Promise.resolve(window.confirm(message));
+}
+function headerOptionLabel(h) {
+    return h.contextLabel || h.raw;
+}
+function countMappedMetrics() {
+    return getActiveMappingTriples().filter(({ cadence, yearBasis, metric }) => {
+        const k = metricMapKey(cadence, yearBasis, metric.key);
+        return isMappedColumn((state.config.metricMappings || {})[k]);
+    }).length;
+}
+function isMappedColumn(value) {
+    return value !== "" && value !== undefined && value !== null && Number.isFinite(Number(value));
+}
+function countMappedDimensions() {
+    return getStandardFields().filter(field => isMappedColumn(state.config.mappings[field.key])).length;
+}
+function renderFlowStatus() {
+    const included = getIncludedSources();
+    const triples = getActiveMappingTriples();
+    const mappedMetrics = countMappedMetrics();
+    const mappedDims = countMappedDimensions();
+    const hasHeaders = state.headers.length > 0;
+    const suggestedPanel = !included.length ? "panelInput" : (!hasHeaders ? "panelHeader" : "panelMapping");
+    const flowData = [
+        [els.flowInput, els.flowInputText, "panelInput", included.length > 0, included.length ? `${included.length} included sheet${included.length === 1 ? "" : "s"}` : "Load files or paste a grid"],
+        [els.flowHeader, els.flowHeaderText, "panelHeader", hasHeaders, hasHeaders ? `${state.headers.length} columns from row ${state.config.headerRow}` : "Set header rows and cadences"],
+        [els.flowMapping, els.flowMappingText, "panelMapping", mappedMetrics > 0, `${mappedDims} dimensions, ${mappedMetrics}/${triples.length} metrics mapped`],
+        [els.flowPreview, els.flowPreviewText, null, state.output.length > 0, state.output.length ? `${state.output.length.toLocaleString()} output rows` : "Review output and pivot"]
+    ];
+    flowData.forEach(([step, textEl, panelId, ready, text]) => {
+        step.classList.toggle("ready", !!ready);
+        textEl.textContent = text;
+    });
+    if (!included.length && state.config.activeWorkflowPanel !== "panelInput") {
+        state.config.workflowPanelTouched = false;
+        setActiveWorkflowPanel("panelInput", { persist: false });
+        return;
+    }
+    if (!state.config.activeWorkflowPanel || !state.config.workflowPanelTouched) {
+        setActiveWorkflowPanel(suggestedPanel, { persist: false });
+    }
+    else {
+        applyCollapseState();
+    }
+}
+function renderHeaderDefinition() {
+    if (!els.headerDefinition)
+        return;
+    const source = getIncludedSources()[0];
+    if (!source) {
+        els.headerDefinition.innerHTML = "";
+        return;
+    }
+    const detectedCadences = [...new Set(state.headers.map(h => h.detectedCadence).filter(Boolean))];
+    const metricHeaders = state.headers.filter(h => cleanHeader(h.raw)).length;
+    const sourceLabel = `${source.name} / ${source.sheet}`;
+    const groupText = state.config.hasCadenceRow ? `group row ${state.config.cadenceRow}` : "no group row";
+    const cadenceText = detectedCadences.length ? detectedCadences.join(", ") : "cadence from chips";
+    els.headerDefinition.innerHTML = `
+    <span class="status-source" title="${esc(sourceLabel)}">${esc(sourceLabel)}</span>
+    <span class="status-sep">·</span>
+    <span>header row ${esc(state.config.headerRow)}</span>
+    <span class="status-sep">·</span>
+    <span>${esc(groupText)}</span>
+    <span class="status-sep">·</span>
+    <span>${metricHeaders} columns</span>
+    <span class="status-sep">·</span>
+    <span class="status-cadence">${esc(cadenceText)}</span>
+  `;
+}
+function renderMappingSummary() {
+    if (!els.mappingSummary)
+        return;
+    if (!state.headers.length) {
+        els.mappingSummary.innerHTML = "";
+        return;
+    }
+    const triples = getActiveMappingTriples();
+    const mappedDims = countMappedDimensions();
+    const mappedMetrics = countMappedMetrics();
+    const totalFields = getStandardFields().length;
+    const metricText = triples.length ? `${mappedMetrics}/${triples.length} metrics` : "no metric slots";
+    els.mappingSummary.innerHTML = `
+    <span>${mappedDims}/${totalFields} dimensions</span>
+    <span class="status-sep">·</span>
+    <span>${esc(metricText)}</span>
+    <span class="status-sep">·</span>
+    <span class="status-cadence">${triples.length ? "ready" : "select cadence + metrics"}</span>
+  `;
+}
+function renderMappings() {
+    if (!state.headers.length) {
+        els.mappingGrid.classList.remove("scroll-map");
+        if (els.mappingSummary)
+            els.mappingSummary.innerHTML = "";
+        els.mappingGrid.innerHTML = '<div class="empty-state" style="min-height:140px;padding:18px;"><strong>No headers yet</strong><span>Load data to map fields.</span></div>';
+        return;
+    }
+    if (!state.config.showUnmappedOnlyTouched) {
+        const total = getStandardFields().length;
+        const mapped = countMappedDimensions();
+        if (total > 0 && mapped / total >= 0.5) {
+            state.config.showUnmappedOnly = true;
+            if (els.showUnmappedOnly)
+                els.showUnmappedOnly.checked = true;
+        }
+    }
+    const showUnmappedOnly = !!state.config.showUnmappedOnly;
+    els.mappingGrid.classList.add("scroll-map");
+    const options = ['<option value="">Unmapped</option>'].concat(state.headers.map(h => `<option value="${h.index}">${esc(headerOptionLabel(h))}</option>`)).join("");
+    renderMappingSummary();
+    const fieldByKey = getFieldByKey();
+    const groups = FIELD_GROUPS.concat(getCustomDimensions().length ? [{ title: "Custom Dimensions", keys: getCustomDimensions().map(field => field.key) }] : []);
+    const dimRows = groups.map(group => {
+        const fieldRows = group.keys
+            .map(key => fieldByKey[key])
+            .filter(Boolean)
+            .filter(field => !showUnmappedOnly || !isMappedColumn(state.config.mappings[field.key]))
+            .map(field => {
+            const mapped = isMappedColumn(state.config.mappings[field.key]);
+            return `
+          <div class="map-row ${mapped ? "is-mapped" : ""}" draggable="true" data-drag-assign="dimension:${esc(field.key)}">
+            <label for="map-${field.key}">
+              ${esc(field.label)}
+              <code>${esc(field.key)}</code>
+              <span>${esc(FIELD_NOTES[field.key] || "Custom output dimension.")}</span>
+            </label>
+            <select id="map-${field.key}" data-map="${field.key}">${options}</select>
+          </div>
+        `;
+        }).join("");
+        const mappedCount = group.keys.filter(key => isMappedColumn(state.config.mappings[key])).length;
+        if (showUnmappedOnly && mappedCount === group.keys.length)
+            return "";
+        return `
+      <section class="mapping-section">
+        <div class="map-section-title"><span>${esc(group.title)}</span><span>${mappedCount}/${group.keys.length} mapped</span></div>
+        ${fieldRows || '<div class="map-section-title" style="color:var(--text-dim);font-weight:500;letter-spacing:0;font-family:var(--font-body);text-transform:none;font-size:0.78rem;">All mapped.</div>'}
+      </section>
+    `;
+    }).join("");
+    const triples = getActiveMappingTriples();
+    const visibleTriples = triples.filter(({ cadence, yearBasis, metric }) => !showUnmappedOnly || !isMappedColumn((state.config.metricMappings || {})[metricMapKey(cadence, yearBasis, metric.key)]));
+    const metricRowsHtml = triples.length ? (visibleTriples.length ? visibleTriples.map(({ cadence, yearBasis, metric }) => {
+        const key = metricMapKey(cadence, yearBasis, metric.key);
+        const id = `metricmap-${key.replace(/[^a-z0-9]+/gi, "-")}`;
+        const labelText = metricSlotLabel(cadence, metric, yearBasis);
+        const mapped = isMappedColumn((state.config.metricMappings || {})[key]);
+        return `
+      <div class="map-row ${mapped ? "is-mapped" : ""}" draggable="true" data-drag-assign="metric:${esc(key)}">
+        <label for="${id}">
+          ${esc(labelText)}
+          <code>${esc(key)}</code>
+          <span>Creates long-format rows where metric = ${esc(metric.key)}.</span>
+        </label>
+        <select id="${id}" data-metric-map="${esc(key)}">${options}</select>
+      </div>
+    `;
+    }).join("") : '<div class="map-section-title" style="color:var(--text-dim);font-weight:500;letter-spacing:0;font-family:var(--font-body);text-transform:none;font-size:0.78rem;">All metric slots mapped.</div>') : `<div class="map-section-title" style="color:var(--text-dim);font-weight:500;letter-spacing:0;font-family:var(--font-body);text-transform:none;font-size:0.78rem;">Select Cadence Type and Cadence Metrics to add metric mappings.</div>`;
+    els.mappingGrid.innerHTML = `
+    ${dimRows}
+    <section class="mapping-section">
+      <div class="map-section-title spacer"><span>Cadence Metrics</span><span>${countMappedMetrics()}/${triples.length} mapped</span></div>
+      ${metricRowsHtml}
+    </section>
+  `;
+    getStandardFields().forEach(field => {
+        const select = document.getElementById(`map-${field.key}`);
+        if (select && isMappedColumn(state.config.mappings[field.key]))
+            select.value = String(state.config.mappings[field.key]);
+    });
+    triples.forEach(({ cadence, yearBasis, metric }) => {
+        const key = metricMapKey(cadence, yearBasis, metric.key);
+        const id = `metricmap-${key.replace(/[^a-z0-9]+/gi, "-")}`;
+        const select = document.getElementById(id);
+        if (select && state.config.metricMappings && isMappedColumn(state.config.metricMappings[key])) {
+            select.value = String(state.config.metricMappings[key]);
+        }
+    });
+}
+function renderChips() {
+    const triples = getActiveMappingTriples();
+    const mappedDimCount = countMappedDimensions();
+    const deletedRows = getDeletedRows().size;
+    const deletedCols = getDeletedColumns().size;
+    const customDims = getCustomDimensions().length;
+    const customMetrics = getCustomMetrics().length;
+    const calcMetrics = (state.config.calculatedMetrics || []).length;
+    const chips = [];
+    if (deletedRows)
+        chips.push(`<span class="chip warn">${deletedRows} rows deleted</span>`);
+    if (deletedCols)
+        chips.push(`<span class="chip warn">${deletedCols} cols deleted</span>`);
+    if (state.config.skipZeroValues)
+        chips.push(`<span class="chip warn">zero skipped</span>`);
+    if (state.config.includeLy)
+        chips.push(`<span class="chip good">LY on</span>`);
+    if (customDims)
+        chips.push(`<span class="chip good">+${customDims} dim</span>`);
+    if (customMetrics)
+        chips.push(`<span class="chip good">+${customMetrics} metric</span>`);
+    if (calcMetrics)
+        chips.push(`<span class="chip good">${calcMetrics} calc</span>`);
+    els.detectedChips.innerHTML = chips.join("");
+    els.metricChip.textContent = `${triples.length} metric slots`;
+    els.dimChip.textContent = `${mappedDimCount} dimensions`;
+}
+function getOutputMetricOptions() {
+    return [...new Set(state.output.map(row => row.metric).filter(Boolean))]
+        .map(key => ({ value: key, label: getMetricLabel(key) }));
+}
+function getOutputDimensionOptions() {
+    return getStandardFields()
+        .filter(field => state.output.some(row => cleanHeader(row[field.key])))
+        .map(field => ({ value: field.key, label: field.label }));
+}
+function getActiveOutputMetrics() {
+    const options = getOutputMetricOptions();
+    const selected = new Set((state.config.outputMetrics || []).filter(key => options.some(item => item.value === key)));
+    if (!state.config.outputMetricsTouched && !selected.size)
+        return new Set(options.map(item => item.value));
+    return selected;
+}
+function getActiveOutputDimensions() {
+    const options = getOutputDimensionOptions();
+    const selected = new Set((state.config.outputDimensions || []).filter(key => options.some(item => item.value === key)));
+    if (!state.config.outputDimensionsTouched && !selected.size)
+        return new Set(options.map(item => item.value));
+    return selected;
+}
+const OUTPUT_BREAKOUT_AXES = ["year_basis", "cadence", "metric"];
+function getActiveOutputBreakouts() {
+    const selected = Array.isArray(state.config.outputBreakouts) ? state.config.outputBreakouts : [];
+    return OUTPUT_BREAKOUT_AXES.filter(axis => selected.includes(axis));
+}
+function getActiveOutputBreakoutValueAxes() {
+    const breakouts = getActiveOutputBreakouts();
+    const selected = Array.isArray(state.config.outputBreakoutValueAxes) ? state.config.outputBreakoutValueAxes : [];
+    return OUTPUT_BREAKOUT_AXES.filter(axis => breakouts.includes(axis) && selected.includes(axis));
+}
+function getBreakoutAxisLabel(axis) {
+    return { year_basis: "Year", cadence: "Cadence", metric: "Metric" }[axis] || axis;
+}
+function getBreakoutAxisValue(row, axis) {
+    if (axis === "year_basis")
+        return row.year_basis || "TY";
+    if (axis === "cadence")
+        return row.cadence || "";
+    if (axis === "metric")
+        return row.metric || "";
+    return "";
+}
+function getBreakoutAxisDisplay(row, axis) {
+    const value = getBreakoutAxisValue(row, axis);
+    return axis === "metric" ? getMetricLabel(value) : value;
+}
+function getBreakoutValueColumn(row, axes) {
+    const label = axes.map(axis => getBreakoutAxisDisplay(row, axis)).filter(Boolean).join(" ");
+    return label || "Value";
+}
+function outputGroupKey(row, dimensionKeys, metaKeys, rowAxes) {
+    return metaKeys.concat(dimensionKeys).map(key => cleanHeader(row[key]))
+        .concat(rowAxes.map(axis => cleanHeader(getBreakoutAxisValue(row, axis))))
+        .join("\u001f");
+}
+function getFilteredOutputRows() {
+    const activeMetrics = getActiveOutputMetrics();
+    const activeDimensions = getActiveOutputDimensions();
+    const meta = state.config.outputMeta || {};
+    const dimensionKeys = getStandardFields().filter(field => activeDimensions.has(field.key)).map(field => field.key);
+    const metaKeys = ["source_file", "source_sheet", "source_row"].filter(key => meta[key] !== false);
+    const baseRows = state.output.filter(row => activeMetrics.has(row.metric));
+    const breakoutAxes = getActiveOutputBreakouts();
+    const retainedBreakoutAxes = getActiveOutputBreakoutValueAxes();
+    let rows;
+    if (breakoutAxes.length) {
+        const rowAxes = OUTPUT_BREAKOUT_AXES.filter(axis => !breakoutAxes.includes(axis) || retainedBreakoutAxes.includes(axis));
+        const grouped = new Map();
+        baseRows.forEach(row => {
+            const numeric = parseNumber(row.value);
+            if (!Number.isFinite(numeric))
+                return;
+            const key = outputGroupKey(row, dimensionKeys, metaKeys, rowAxes);
+            if (!grouped.has(key)) {
+                const groupedRow = {};
+                metaKeys.forEach(metaKey => { groupedRow[metaKey] = row[metaKey]; });
+                dimensionKeys.forEach(dimKey => { groupedRow[dimKey] = row[dimKey] || ""; });
+                rowAxes.forEach(axis => { groupedRow[axis] = getBreakoutAxisValue(row, axis); });
+                grouped.set(key, groupedRow);
+            }
+            const groupedRow = grouped.get(key);
+            const valueCol = getBreakoutValueColumn(row, breakoutAxes);
+            groupedRow[valueCol] = (parseNumber(groupedRow[valueCol]) || 0) + numeric;
+        });
+        rows = Array.from(grouped.values()).map(row => Object.fromEntries(Object.entries(row).map(([key, value]) => [key, typeof value === "number" ? String(value) : value])));
+    }
+    else {
+        rows = baseRows.map(row => {
+            const filtered = {};
+            metaKeys.forEach(key => { filtered[key] = row[key]; });
+            if (meta.value_source !== false)
+                filtered.value_source = row.value_source;
+            dimensionKeys.forEach(key => { filtered[key] = row[key] || ""; });
+            ["cadence", "year_basis", "metric", "value"].forEach(key => { filtered[key] = row[key]; });
+            return filtered;
+        });
+    }
+    if (!rows.length)
+        return rows;
+    const baseCols = rows.reduce((cols, row) => {
+        Object.keys(row).forEach(key => { if (!cols.includes(key))
+            cols.push(key); });
+        return cols;
+    }, []);
+    const ordered = applyOutputColumnOrder(baseCols, state.config.outputColumnOrder || []);
+    state.config.outputColumnOrder = ordered;
+    return rows.map(row => {
+        const out = {};
+        ordered.forEach(key => { out[key] = row[key]; });
+        return out;
+    });
+}
+const METRIC_SUBRANK = { cadence: 0, year_basis: 1, metric: 2, value: 3 };
+const METADATA_SUBRANK = { source_file: 0, source_sheet: 1, source_row: 2, value_source: 3 };
+const CATEGORY_RANK = { metadata: 0, dimension: 1, metric: 2 };
+function applyOutputColumnOrder(baseKeys, currentOrder) {
+    const baseSet = new Set(baseKeys);
+    const kept = (currentOrder || []).filter(key => baseSet.has(key));
+    const present = new Set(kept);
+    const newKeys = baseKeys.filter(key => !present.has(key));
+    if (!kept.length)
+        return sortByCategory(baseKeys);
+    newKeys.forEach(key => insertNewByCategory(kept, key));
+    return kept;
+}
+function sortByCategory(keys) {
+    return [...keys].sort((a, b) => compareColumnKeys(a, b, keys));
+}
+function compareColumnKeys(a, b, keys) {
+    const aRole = getOutputColumnRole(a);
+    const bRole = getOutputColumnRole(b);
+    const rankDelta = CATEGORY_RANK[aRole] - CATEGORY_RANK[bRole];
+    if (rankDelta)
+        return rankDelta;
+    if (aRole === "metadata") {
+        const aSub = METADATA_SUBRANK[a] ?? 99;
+        const bSub = METADATA_SUBRANK[b] ?? 99;
+        if (aSub !== bSub)
+            return aSub - bSub;
+    }
+    if (aRole === "metric") {
+        const aSub = METRIC_SUBRANK[a] ?? 99;
+        const bSub = METRIC_SUBRANK[b] ?? 99;
+        if (aSub !== bSub)
+            return aSub - bSub;
+    }
+    if (aRole === "dimension") {
+        const allFields = getStandardFields().map(f => f.key);
+        const aIdx = allFields.indexOf(a);
+        const bIdx = allFields.indexOf(b);
+        if (aIdx !== bIdx)
+            return aIdx - bIdx;
+    }
+    return keys.indexOf(a) - keys.indexOf(b);
+}
+function insertNewByCategory(ordered, newKey) {
+    const newRank = CATEGORY_RANK[getOutputColumnRole(newKey)];
+    let insertIdx = ordered.length;
+    for (let i = 0; i < ordered.length; i++) {
+        if (CATEGORY_RANK[getOutputColumnRole(ordered[i])] > newRank) {
+            insertIdx = i;
+            break;
+        }
+    }
+    ordered.splice(insertIdx, 0, newKey);
+}
+function applyColumnOrder(baseKeys, currentOrder) {
+    const baseSet = new Set(baseKeys);
+    const ordered = (currentOrder || []).filter(key => baseSet.has(key));
+    const present = new Set(ordered);
+    baseKeys.forEach(key => { if (!present.has(key))
+        ordered.push(key); });
+    return ordered;
+}
+function reorderColumnKeys(orderArr, fromKey, toKey) {
+    const fromIdx = orderArr.indexOf(fromKey);
+    const toIdx = orderArr.indexOf(toKey);
+    if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx)
+        return orderArr;
+    const next = [...orderArr];
+    const [moved] = next.splice(fromIdx, 1);
+    const insertIdx = next.indexOf(toKey);
+    next.splice(insertIdx, 0, moved);
+    return next;
+}
+function getOutputColumnRole(col) {
+    if (["source_file", "source_sheet", "source_row", "value_source"].includes(col))
+        return "metadata";
+    if (["cadence", "year_basis", "metric", "value"].includes(col))
+        return "metric";
+    if (getStandardFields().some(field => field.key === col))
+        return "dimension";
+    return "metric";
+}
+function toTitleLabel(value) {
+    return cleanHeader(value)
+        .replace(/_/g, " ")
+        .replace(/\w\S*/g, word => /^[A-Z0-9]+$/.test(word) ? word : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+}
+function getExportColumnLabel(key) {
+    const field = getStandardFields().find(item => item.key === key);
+    if (field)
+        return toTitleLabel(field.label);
+    if (/[\s$%]/.test(key))
+        return cleanHeader(key);
+    return toTitleLabel(key);
+}
+function getExportMetricValue(key) {
+    return toTitleLabel(getMetricLabel(key));
+}
+function isOutputValueColumnKey(key) {
+    if (key === "value")
+        return true;
+    if (["cadence", "year_basis", "metric"].includes(key))
+        return false;
+    return getOutputColumnRole(key) === "metric";
+}
+function getExportNumericLabels(sourceRows = getFilteredOutputRows()) {
+    const labels = new Set(["Value", "Source Row"]);
+    if (sourceRows.length) {
+        Object.keys(sourceRows[0]).forEach(key => {
+            if (isOutputValueColumnKey(key))
+                labels.add(getExportColumnLabel(key));
+        });
+    }
+    return labels;
+}
+function getExportOutputRows() {
+    return getFilteredOutputRows().map(row => {
+        const out = {};
+        Object.entries(row).forEach(([key, value]) => {
+            const label = getExportColumnLabel(key);
+            out[label] = key === "metric" ? getExportMetricValue(value) : value;
+        });
+        return out;
+    });
+}
+function renderOutputControls() {
+    if (!els.outputControls)
+        return;
+    els.outputControls.hidden = state.view !== "output";
+    if (state.view !== "output") {
+        els.outputControls.innerHTML = "";
+        return;
+    }
+    const meta = state.config.outputMeta || {};
+    const dimensionOptions = getOutputDimensionOptions();
+    const metricOptions = getOutputMetricOptions();
+    const dimensionSelected = state.config.outputDimensionsTouched ? state.config.outputDimensions : dimensionOptions.map(item => item.value);
+    const metricSelected = state.config.outputMetricsTouched ? state.config.outputMetrics : metricOptions.map(item => item.value);
+    const selectedDimCount = dimensionSelected.length;
+    const selectedMetricCount = metricSelected.length;
+    const breakouts = getActiveOutputBreakouts();
+    const retainedBreakoutAxes = getActiveOutputBreakoutValueAxes();
+    const metadataKeys = breakouts.length ? ["source_file", "source_sheet", "source_row"] : ["source_file", "source_sheet", "source_row", "value_source"];
+    const breakoutValueOptions = breakouts.length ? breakouts.map(axis => `
+    <label class="${retainedBreakoutAxes.includes(axis) ? "active" : ""}">
+      <input type="checkbox" data-output-breakout-value="${axis}" ${retainedBreakoutAxes.includes(axis) ? "checked" : ""}>
+      <span>${esc(getBreakoutAxisLabel(axis))}</span>
+    </label>
+  `).join("") : '<span class="chip">Select breakout axes first</span>';
+    els.outputControls.innerHTML = `
+    <summary>
+      Output Columns
+      <span class="chip">${selectedDimCount}/${dimensionOptions.length} dimensions</span>
+      <span class="chip">${selectedMetricCount}/${metricOptions.length} metrics</span>
+      <span class="chip">${breakouts.length ? breakouts.map(getBreakoutAxisLabel).join(" + ") : "long value"}</span>
+    </summary>
+    <div class="output-controls-body">
+      <div class="pivot-control-group">
+        <span>Dimensions</span>
+        <div class="chip-select">${renderChipOptions(dimensionOptions, dimensionSelected, "data-output-dimension", "No mapped dimensions")}</div>
+      </div>
+      <div class="pivot-control-group">
+        <span>Metrics</span>
+        <div class="chip-select">${renderChipOptions(metricOptions, metricSelected, "data-output-metric", "No output metrics")}</div>
+      </div>
+      <div class="pivot-control-group">
+        <span>Breakout By</span>
+        <div class="chip-select">
+          ${OUTPUT_BREAKOUT_AXES.map(axis => `
+            <label class="${breakouts.includes(axis) ? "active" : ""}">
+              <input type="checkbox" data-output-breakout="${axis}" ${breakouts.includes(axis) ? "checked" : ""}>
+              <span>${esc(getBreakoutAxisLabel(axis))}</span>
+            </label>
+          `).join("")}
+        </div>
+      </div>
+      <div class="pivot-control-group">
+        <span>Keep As Values</span>
+        <div class="chip-select">
+          ${breakoutValueOptions}
+        </div>
+      </div>
+      <div class="pivot-control-group">
+        <span>Metadata</span>
+        <div class="chip-select">
+          ${metadataKeys.map(key => `
+            <label class="${meta[key] !== false ? "active" : ""}">
+              <input type="checkbox" data-output-meta="${key}" ${meta[key] !== false ? "checked" : ""}>
+              <span>${esc(key)}</span>
+            </label>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+function renderTable() {
+    if (state.view === "headers") {
+        renderHeaderTable();
+        return;
+    }
+    if (state.view === "pivot") {
+        renderPivotTable();
+        return;
+    }
+    if (state.view === "raw") {
+        renderRawTable();
+        return;
+    }
+    const rows = getFilteredOutputRows();
+    if (!rows.length) {
+        els.tableShell.innerHTML = '<div class="empty-state"><div><strong>No preview rows yet.</strong><span>Load a report, then adjust the header and mapping controls.</span></div></div>';
+        return;
+    }
+    const cols = Object.keys(rows[0]);
+    els.tableShell.innerHTML = `
+    <table>
+      <thead><tr>${cols.map(col => `<th class="${getOutputColumnRole(col)}-col" draggable="true" data-col-key="${esc(col)}" data-col-view="output" title="Drag to reorder">${esc(col)}</th>`).join("")}</tr></thead>
+      <tbody>${rows.slice(0, 500).map(row => `<tr>${cols.map(col => `<td class="${getOutputColumnRole(col)}-col" title="${esc(row[col])}">${esc(row[col])}</td>`).join("")}</tr>`).join("")}</tbody>
+    </table>
+  `;
+}
+function formatPivotValue(value) {
+    if (!Number.isFinite(value))
+        return "";
+    return Math.abs(value) >= 1000 ? Math.round(value).toLocaleString() : Number(value.toFixed(2)).toLocaleString();
+}
+function getMetricLabel(metricKey) {
+    const metric = getMetricOptions().find(item => item.key === metricKey);
+    if (metric)
+        return metric.label;
+    const calculated = getCalculatedMetricOptions().find(item => item.key === metricKey);
+    return calculated ? calculated.label : metricKey;
+}
+function getPivotMetricOptions() {
+    const outputMetrics = [...new Set(state.output.map(row => row.metric).filter(Boolean))];
+    return outputMetrics.map(key => ({ value: key, label: getMetricLabel(key) }));
+}
+function getPivotDimensionOptions() {
+    return getStandardFields()
+        .filter(field => state.output.some(row => cleanHeader(row[field.key])))
+        .map(field => ({ value: field.key, label: field.label }));
+}
+function getAssignmentOptions() {
+    const dimensionOptions = getStandardFields().map(field => ({ value: `dimension:${field.key}`, label: `Dimension: ${field.label}` }));
+    const metricOptions = getActiveMappingTriples().map(({ cadence, yearBasis, metric }) => {
+        const key = metricMapKey(cadence, yearBasis, metric.key);
+        return { value: `metric:${key}`, label: `Metric: ${metricSlotLabel(cadence, metric, yearBasis)}` };
+    });
+    return dimensionOptions.concat(metricOptions);
+}
+function getHeaderAssignmentValue(headerIndex) {
+    const dimensionKey = getHeaderDimensionKey(headerIndex);
+    if (dimensionKey)
+        return `dimension:${dimensionKey}`;
+    const metricKey = getHeaderMetricKey(headerIndex);
+    if (metricKey)
+        return `metric:${metricKey}`;
+    return "";
+}
+function assignHeaderColumn(headerIndex, value) {
+    const previousDimensionKeys = [];
+    const previousMetricKeys = [];
+    Object.entries(state.config.mappings).forEach(([key, idx]) => {
+        if (Number(idx) === headerIndex)
+            previousDimensionKeys.push(key);
+    });
+    state.config.metricMappings = state.config.metricMappings || {};
+    Object.entries(state.config.metricMappings).forEach(([key, idx]) => {
+        if (Number(idx) === headerIndex)
+            previousMetricKeys.push(key);
+    });
+    previousDimensionKeys.forEach(key => { state.config.mappings[key] = null; });
+    previousMetricKeys.forEach(key => { state.config.metricMappings[key] = null; });
+    if (!value)
+        return;
+    const [type, ...rest] = value.split(":");
+    const key = rest.join(":");
+    if (type === "dimension")
+        state.config.mappings[key] = headerIndex;
+    if (type === "metric")
+        state.config.metricMappings[key] = headerIndex;
+    if (type === "custom-dimension") {
+        const custom = addCustomFieldFromHeader(headerIndex, "dimension");
+        if (custom)
+            state.config.mappings[custom.key] = headerIndex;
+    }
+    if (type === "custom-metric") {
+        const custom = addCustomFieldFromHeader(headerIndex, "metric");
+        if (custom)
+            state.config.metricMappings[metricMapKey(getActiveCadences()[0] || "WTD", "TY", custom.key)] = headerIndex;
+    }
+}
+function addCustomFieldFromHeader(headerIndex, type) {
+    const header = state.headers[headerIndex];
+    const label = cleanHeader(header?.raw || `Column ${headerIndex + 1}`);
+    return addCustomFieldWithLabel(label, type);
+}
+function addCustomFieldWithLabel(label, type) {
+    const cleanLabel = type === "metric" ? normalizedMetricLabel(label) : cleanHeader(label);
+    const baseKey = slugifyKey(cleanLabel);
+    if (!baseKey)
+        return null;
+    if (type === "dimension") {
+        const existing = getStandardFields().find(field => field.key === baseKey);
+        if (existing)
+            return existing;
+        const key = uniqueKey(baseKey, new Set(getStandardFields().map(field => field.key)));
+        const field = { key, label: cleanLabel, aliases: [cleanLabel] };
+        state.config.customDimensions = getCustomDimensions().concat(field);
+        return field;
+    }
+    const existingMetric = getMetricOptions().find(metric => metric.key === baseKey || bestAliasScore(cleanLabel, metric.aliases) >= 1);
+    if (existingMetric)
+        return existingMetric;
+    const key = uniqueKey(baseKey, new Set(getMetricOptions().map(metric => metric.key)));
+    const metric = { key, label: cleanLabel, aliases: [cleanLabel] };
+    state.config.customMetrics = getCustomMetrics().concat(metric);
+    state.config.cadenceMetrics = Array.from(new Set([...(state.config.cadenceMetrics || []), key]));
+    return metric;
+}
+function mergeNumberSpec(existingSpec, value) {
+    const values = parseRowSpec(existingSpec);
+    values.add(value);
+    return [...values].sort((a, b) => a - b).join(", ");
+}
+function mergeColumnSpec(existingSpec, columnIndex) {
+    const values = getDeletedColumns();
+    values.add(columnIndex);
+    return [...values].sort((a, b) => a - b).map(indexToColumnLabel).join(", ");
+}
+function adjustMappingsAfterColumnDelete(currentIndex) {
+    Object.entries(state.config.mappings || {}).forEach(([key, value]) => {
+        if (!isMappedColumn(value))
+            return;
+        const idx = Number(value);
+        if (idx === currentIndex)
+            state.config.mappings[key] = null;
+        else if (idx > currentIndex)
+            state.config.mappings[key] = idx - 1;
+    });
+    Object.entries(state.config.metricMappings || {}).forEach(([key, value]) => {
+        if (!isMappedColumn(value))
+            return;
+        const idx = Number(value);
+        if (idx === currentIndex)
+            state.config.metricMappings[key] = null;
+        else if (idx > currentIndex)
+            state.config.metricMappings[key] = idx - 1;
+    });
+}
+function visibleIndexForOriginalColumn(originalIndex) {
+    const deleted = getDeletedColumns();
+    let visible = 0;
+    for (let idx = 0; idx < originalIndex; idx++) {
+        if (!deleted.has(idx))
+            visible += 1;
+    }
+    return visible;
+}
+function renderPivotTable() {
+    if (!state.output.length) {
+        els.tableShell.innerHTML = '<div class="empty-state"><div><strong>No pivot yet.</strong><span>Map at least one metric to create standardized output.</span></div></div>';
+        return;
+    }
+    const metricOptions = getPivotMetricOptions();
+    const dimensionOptions = getPivotDimensionOptions();
+    if (!state.config.pivotMetricsTouched && !(state.config.pivotMetrics || []).length) {
+        state.config.pivotMetrics = metricOptions.map(item => item.value);
+    }
+    const selectedMetricSet = new Set((state.config.pivotMetrics || []).filter(key => metricOptions.some(item => item.value === key)));
+    const rowDimSet = new Set((state.config.pivotDimensions || []).filter(key => dimensionOptions.some(item => item.value === key)));
+    const colDimSet = new Set((state.config.pivotColumnDimensions || []).filter(key => dimensionOptions.some(item => item.value === key) && !rowDimSet.has(key)));
+    const activeMetricSet = state.config.pivotMetricsTouched ? selectedMetricSet : (selectedMetricSet.size ? selectedMetricSet : new Set(metricOptions.map(item => item.value)));
+    state.config.pivotMetrics = [...selectedMetricSet];
+    state.config.pivotDimensions = [...rowDimSet];
+    state.config.pivotColumnDimensions = [...colDimSet];
+    const rowDimOptions = dimensionOptions.filter(o => !colDimSet.has(o.value));
+    const colDimOptions = dimensionOptions.filter(o => !rowDimSet.has(o.value));
+    const controlsHtml = `
+    <div class="pivot-controls">
+      <div class="pivot-control-group">
+        <span>Row dimensions</span>
+        <div class="chip-select">${renderChipOptions(rowDimOptions, [...rowDimSet], "data-pivot-dimension", "No mapped dimensions")}</div>
+      </div>
+      <div class="pivot-control-group">
+        <span>Column dimensions</span>
+        <div class="chip-select">${renderChipOptions(colDimOptions, [...colDimSet], "data-pivot-col-dimension", "Move dimensions to columns to break out values")}</div>
+      </div>
+      <div class="pivot-control-group">
+        <span>Metrics</span>
+        <div class="chip-select">${renderChipOptions(metricOptions, state.config.pivotMetrics, "data-pivot-metric", "No output metrics")}</div>
+      </div>
+    </div>
+  `;
+    const rowDims = [...rowDimSet];
+    const colDims = [...colDimSet];
+    const cadenceCols = [];
+    const cadenceColSet = new Set();
+    const colDimComboMap = new Map();
+    const rows = new Map();
+    state.output.forEach(row => {
+        if (!activeMetricSet.has(row.metric))
+            return;
+        const numeric = parseNumber(row.value);
+        if (!Number.isFinite(numeric))
+            return;
+        const cadenceCol = `${row.cadence || "NA"}|${row.year_basis || "TY"}`;
+        if (!cadenceColSet.has(cadenceCol)) {
+            cadenceColSet.add(cadenceCol);
+            cadenceCols.push(cadenceCol);
+        }
+        const colDimValues = colDims.map(key => cleanHeader(row[key]) || "—");
+        const colDimKey = colDimValues.join("|");
+        if (!colDimComboMap.has(colDimKey))
+            colDimComboMap.set(colDimKey, colDimValues);
+        const dimValues = rowDims.map(key => cleanHeader(row[key]));
+        const rowKey = [...dimValues, row.metric].join("\u001f");
+        if (!rows.has(rowKey))
+            rows.set(rowKey, { metric: row.metric, dimensions: dimValues, total: 0, cells: {} });
+        const pivotRow = rows.get(rowKey);
+        const cellKey = colDimKey ? `${colDimKey}|${cadenceCol}` : cadenceCol;
+        pivotRow.cells[cellKey] = (pivotRow.cells[cellKey] || 0) + numeric;
+        pivotRow.total += numeric;
+    });
+    const cadenceBroadRank = { LTD: 0, YTD: 1, QTD: 2, MTD: 3, WTD: 4 };
+    const yearBasisRank = { TY: 0, LY: 1 };
+    cadenceCols.sort((a, b) => {
+        const [ca, ya] = a.split("|");
+        const [cb, yb] = b.split("|");
+        const cadenceDelta = (cadenceBroadRank[ca] ?? 99) - (cadenceBroadRank[cb] ?? 99);
+        if (cadenceDelta)
+            return cadenceDelta;
+        return (yearBasisRank[ya] ?? 99) - (yearBasisRank[yb] ?? 99);
+    });
+    const colDimCombos = Array.from(colDimComboMap.entries())
+        .map(([key, values]) => ({ key, values }))
+        .sort((a, b) => a.values.join(" ").localeCompare(b.values.join(" ")));
+    const selectedDimensions = rowDims;
+    const sortedRows = Array.from(rows.values()).sort((a, b) => {
+        const dimCompare = a.dimensions.join(" ").localeCompare(b.dimensions.join(" "));
+        return dimCompare || getMetricLabel(a.metric).localeCompare(getMetricLabel(b.metric));
+    });
+    if (!sortedRows.length) {
+        els.tableShell.innerHTML = `${controlsHtml}<div class="empty-state"><div><strong>No numeric pivot values.</strong><span>Choose at least one numeric metric to summarize.</span></div></div>`;
+        return;
+    }
+    const pivotColumns = [];
+    selectedDimensions.forEach((key, idx) => pivotColumns.push({
+        colKey: `dim:${key}`,
+        kind: "dim",
+        role: "dimension",
+        dimIndex: idx,
+        label: getFieldByKey()[key]?.label || key
+    }));
+    pivotColumns.push({ colKey: "__metric__", kind: "metric", role: "metric", label: "metric" });
+    if (colDimCombos.length) {
+        colDimCombos.forEach(combo => {
+            cadenceCols.forEach(cadenceCol => {
+                const [cadence, yearBasis] = cadenceCol.split("|");
+                pivotColumns.push({
+                    colKey: `cell:${combo.key}|${cadenceCol}`,
+                    kind: "cell",
+                    role: "metric",
+                    cellKey: `${combo.key}|${cadenceCol}`,
+                    label: `${combo.values.join(" / ")} · ${cadence} ${yearBasis}`
+                });
+            });
+        });
+    }
+    else {
+        cadenceCols.forEach(cadenceCol => {
+            const [cadence, yearBasis] = cadenceCol.split("|");
+            pivotColumns.push({ colKey: `cell:${cadenceCol}`, kind: "cell", role: "metric", cellKey: cadenceCol, label: `${cadence} ${yearBasis}` });
+        });
+    }
+    pivotColumns.push({ colKey: "__total__", kind: "total", role: "metric", label: "total" });
+    const orderedKeys = applyColumnOrder(pivotColumns.map(c => c.colKey), state.config.pivotColumnOrder || []);
+    state.config.pivotColumnOrder = orderedKeys;
+    const orderedCols = orderedKeys.map(key => pivotColumns.find(c => c.colKey === key)).filter(Boolean);
+    els.tableShell.innerHTML = `
+    ${controlsHtml}
+    <table>
+      <thead>
+        <tr>
+          ${orderedCols.map(col => `<th class="${col.role}-col" draggable="true" data-col-key="${esc(col.colKey)}" data-col-view="pivot" title="Drag to reorder">${esc(col.label)}</th>`).join("")}
+        </tr>
+      </thead>
+      <tbody>
+        ${sortedRows.map(row => `
+          <tr>
+            ${orderedCols.map(col => {
+        if (col.kind === "dim") {
+            const value = row.dimensions[col.dimIndex] ?? "";
+            return `<td class="${col.role}-col" title="${esc(value)}">${esc(value)}</td>`;
+        }
+        if (col.kind === "metric")
+            return `<td class="${col.role}-col" title="${esc(row.metric)}">${esc(getMetricLabel(row.metric))}</td>`;
+        if (col.kind === "cell")
+            return `<td class="${col.role}-col">${esc(formatPivotValue(row.cells[col.cellKey] || 0))}</td>`;
+        return `<td class="${col.role}-col">${esc(formatPivotValue(row.total))}</td>`;
+    }).join("")}
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+function getColumnAssignment(headerIndex) {
+    const dimensionKey = getHeaderDimensionKey(headerIndex);
+    if (dimensionKey) {
+        const field = getFieldByKey()[dimensionKey];
+        return { key: dimensionKey, label: field ? field.label : dimensionKey, type: "dimension" };
+    }
+    const metricKey = getHeaderMetricKey(headerIndex);
+    if (metricKey) {
+        const parts = metricKey.split("|");
+        const metric = getMetricOptions().find(item => item.key === parts[2]);
+        const label = metric ? metricSlotLabel(parts[0], metric, parts[1]) : metricKey;
+        return { key: metricKey, label, type: "metric" };
+    }
+    return null;
+}
+function getAssignmentClass(assignment) {
+    if (!assignment)
+        return "";
+    return assignment.type === "metric" ? "metric-col" : "dimension-col";
+}
+function getRawColumnLabels(rows) {
+    const maxCols = rows.reduce((max, item) => Math.max(max, item.row.length), 0);
+    const deletedColumns = getDeletedColumns();
+    const originalIndexes = [];
+    for (let original = 0; originalIndexes.length < maxCols; original++) {
+        if (!deletedColumns.has(original))
+            originalIndexes.push(original);
+    }
+    return Array.from({ length: maxCols }, (_, idx) => {
+        const assignment = getColumnAssignment(idx);
+        return {
+            key: assignment ? assignment.key : `col_${idx + 1}`,
+            label: assignment ? assignment.label : `col_${idx + 1}`,
+            assigned: !!assignment,
+            assignedMetric: !!(assignment && assignment.type === "metric"),
+            roleClass: getAssignmentClass(assignment),
+            originalIndex: originalIndexes[idx] ?? idx
+        };
+    });
+}
+function renderRawTable() {
+    const source = getIncludedSources()[0];
+    const rowItems = source ? getRowsForSource(source).slice(0, 80) : [];
+    if (!rowItems.length) {
+        els.tableShell.innerHTML = '<div class="empty-state"><div><strong>No raw rows yet.</strong><span>Load a report to inspect the parsed source rows.</span></div></div>';
+        return;
+    }
+    const cols = getRawColumnLabels(rowItems);
+    els.tableShell.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th class="raw-row-index">row</th>
+          ${cols.map((col, idx) => `
+            <th class="${col.roleClass}${col.assignedMetric ? " raw-mapped-metric" : ""}" title="${esc(col.assigned ? "Assigned: " + col.label : col.label)}" data-raw-drop="${idx}" data-delete-column-original="${col.originalIndex}">
+              <div class="raw-header-map">
+                <button type="button" data-open-assign="${idx}" aria-label="Assign raw column ${idx + 1}">
+                  <span>${esc(col.label)}</span>
+                </button>
+              </div>
+            </th>
+          `).join("")}
+        </tr>
+      </thead>
+      <tbody>
+        ${rowItems.map(item => `
+          <tr data-raw-row="${item.originalRow}" title="Right-click to use row ${item.originalRow} as a header row">
+            <td class="raw-row-index" data-row-delete="${item.originalRow}" title="Right-click for row ${item.originalRow} actions">${item.originalRow}</td>
+            ${cols.map((col, idx) => `<td class="${col.assignedMetric ? "raw-mapped-metric" : ""}" title="${esc(item.row[idx])}">${esc(item.row[idx])}</td>`).join("")}
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+function closeAssignPopover() {
+    if (!els.assignPopover)
+        return;
+    els.assignPopover.classList.remove("open");
+    els.assignPopover.innerHTML = "";
+}
+function renderAssignPopover(headerIndex, anchor) {
+    if (!els.assignPopover)
+        return;
+    const currentValue = getHeaderAssignmentValue(headerIndex);
+    const assignedDimensionColumns = new Map(Object.entries(state.config.mappings || {})
+        .filter(([, idx]) => isMappedColumn(idx))
+        .map(([key, idx]) => [`dimension:${key}`, Number(idx)]));
+    const assignedMetricColumns = new Map(Object.entries(state.config.metricMappings || {})
+        .filter(([, idx]) => isMappedColumn(idx))
+        .map(([key, idx]) => [`metric:${key}`, Number(idx)]));
+    const optionStateClass = value => {
+        const assignedIndex = (value.startsWith("dimension:") ? assignedDimensionColumns : assignedMetricColumns).get(value);
+        if (assignedIndex === undefined)
+            return "";
+        if (assignedIndex === headerIndex || value === currentValue)
+            return " is-current";
+        return " is-assigned";
+    };
+    const optionTitle = value => {
+        const assignedIndex = (value.startsWith("dimension:") ? assignedDimensionColumns : assignedMetricColumns).get(value);
+        if (assignedIndex === undefined)
+            return "";
+        return assignedIndex === headerIndex ? "Assigned to this column" : `Already assigned to COL_${assignedIndex + 1}`;
+    };
+    const dimensionOptions = getStandardFields().map(field => ({ value: `dimension:${field.key}`, label: field.label }));
+    const metricOptions = getActiveMappingTriples().map(({ cadence, yearBasis, metric }) => {
+        const key = metricMapKey(cadence, yearBasis, metric.key);
+        return { value: `metric:${key}`, label: metricSlotLabel(cadence, metric, yearBasis) };
+    });
+    const header = state.headers[headerIndex]?.raw || `Column ${headerIndex + 1}`;
+    els.assignPopover.innerHTML = `
+    <div class="assign-popover-section">
+      <span>Dimensions</span>
+      <div class="assign-pill-list">
+        ${dimensionOptions.map(item => `<button class="assign-pill dimension${optionStateClass(item.value)}" data-assign-value="${esc(item.value)}" title="${esc(optionTitle(item.value))}">${esc(item.label)}</button>`).join("")}
+      </div>
+    </div>
+    <div class="assign-popover-section">
+      <span>Metrics</span>
+      <div class="assign-pill-list">
+        ${metricOptions.map(item => `<button class="assign-pill metric${optionStateClass(item.value)}" data-assign-value="${esc(item.value)}" title="${esc(optionTitle(item.value))}">${esc(item.label)}</button>`).join("") || '<span class="chip">No metric slots</span>'}
+      </div>
+    </div>
+    <div class="assign-popover-section">
+      <span>Custom</span>
+      <div class="custom-assign-row">
+        <input id="assignCustomName" value="${esc(header)}" placeholder="Custom name">
+        <button class="btn btn-sm" data-custom-assign="dimension">Dimension</button>
+        <button class="btn btn-sm" data-custom-assign="metric">Metric</button>
+      </div>
+      <div class="assign-pill-list">
+        <button class="assign-pill" data-assign-value="">Unmap</button>
+      </div>
+    </div>
+  `;
+    els.assignPopover.dataset.headerIndex = String(headerIndex);
+    const rect = anchor.getBoundingClientRect();
+    els.assignPopover.style.left = `${Math.min(rect.left, window.innerWidth - 540)}px`;
+    els.assignPopover.style.top = `${Math.min(rect.bottom + 8, window.innerHeight - 560)}px`;
+    els.assignPopover.classList.add("open");
+}
+function selectOptions(items, currentValue, emptyLabel) {
+    return [`<option value="">${esc(emptyLabel)}</option>`].concat(items.map(item => `<option value="${esc(item.value)}" ${String(currentValue || "") === String(item.value) ? "selected" : ""}>${esc(item.label)}</option>`)).join("");
+}
+function getHeaderDimensionKey(headerIndex) {
+    return Object.entries(state.config.mappings).find(([, idx]) => isMappedColumn(idx) && Number(idx) === headerIndex)?.[0] || "";
+}
+function getHeaderMetricKey(headerIndex) {
+    return Object.entries(state.config.metricMappings || {}).find(([, idx]) => isMappedColumn(idx) && Number(idx) === headerIndex)?.[0] || "";
+}
+function renderHeaderTable() {
+    if (!state.headers.length) {
+        els.tableShell.innerHTML = '<div class="empty-state"><div><strong>No headers yet.</strong><span>Load a report, then adjust the header rows.</span></div></div>';
+        return;
+    }
+    const dimensionOptions = getStandardFields().map(field => ({ value: field.key, label: `${field.label} (${field.key})` }));
+    const metricOptions = getActiveMappingTriples().map(({ cadence, yearBasis, metric }) => {
+        const key = metricMapKey(cadence, yearBasis, metric.key);
+        return { value: key, label: metricSlotLabel(cadence, metric, yearBasis) };
+    });
+    els.tableShell.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>index</th>
+          <th>raw_header</th>
+          <th>cadence_row_label</th>
+          <th>detected_cadence</th>
+          <th>detected_year_basis</th>
+          <th>mapped_dimension</th>
+          <th>mapped_metric</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${state.headers.map(h => {
+        const dimensionKey = getHeaderDimensionKey(h.index);
+        const metricKey = getHeaderMetricKey(h.index);
+        return `
+            <tr>
+              <td>${h.index + 1}</td>
+              <td title="${esc(h.raw)}">${esc(h.raw)}</td>
+              <td title="${esc(h.contextLabel !== h.raw ? h.contextLabel : "")}">${esc(h.contextLabel !== h.raw ? h.contextLabel : "")}</td>
+              <td>${esc(h.detectedCadence)}</td>
+              <td>${esc(h.detectedYearBasis)}</td>
+              <td>
+                <select class="table-select" data-header-dimension="${h.index}" aria-label="Map dimension for column ${h.index + 1}">
+                  ${selectOptions(dimensionOptions, dimensionKey, "Unmapped")}
+                </select>
+              </td>
+              <td>
+                <select class="table-select" data-header-metric="${h.index}" aria-label="Map metric for column ${h.index + 1}">
+                  ${selectOptions(metricOptions, metricKey, metricOptions.length ? "Unmapped" : "No metric slots")}
+                </select>
+              </td>
+            </tr>
+          `;
+    }).join("")}
+      </tbody>
+    </table>
+  `;
+}
+function renderStats() {
+    const included = getIncludedSources();
+    els.statSources.textContent = included.length;
+    els.statRows.textContent = included.reduce((sum, s) => sum + Math.max(0, getRowsForSource(s).length - state.config.headerRow), 0);
+    els.statPreview.textContent = state.output.length;
+    els.previewSub.textContent = state.output.length ? `${state.output.length.toLocaleString()} standardized rows, preview capped at 500` : "Final standardized output";
+    const canExport = getFilteredOutputRows().length > 0;
+    [els.exportBtn, els.downloadCsvBtn, els.downloadJsonBtn, els.downloadXlsxBtn, els.exportMenuBtn, els.downloadStakeholderXlsxBtn, els.downloadPivotXlsxBtn].forEach(btn => { btn.disabled = !canExport; });
+    if (!canExport)
+        closeExportMenu();
+}
+function rebuild() {
+    buildHeaders();
+    buildOutput();
+    renderFileList();
+    renderCadenceSelectors();
+    renderDeleteColumnChecklist();
+    renderRowSkipPreview();
+    renderHeaderDefinition();
+    renderMappings();
+    renderChips();
+    renderOutputControls();
+    renderTable();
+    renderStats();
+    renderFlowStatus();
+}
+function makeCsv(rows) {
+    if (!rows.length)
+        return "";
+    const cols = Object.keys(rows[0]);
+    const quote = value => `"${String(value ?? "").replace(/"/g, '""')}"`;
+    return [cols.map(quote).join(","), ...rows.map(row => cols.map(col => quote(row[col])).join(","))].join("\n");
+}
+function downloadBlob(name, type, body) {
+    const blob = new Blob([body], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+}
+function exportXlsx() {
+    const sourceRows = getFilteredOutputRows();
+    const rows = getExportOutputRows();
+    if (!rows.length)
+        return;
+    if (!window.XLSX) {
+        downloadBlob(`Sellout_Standardized_${today()}.csv`, "text/csv", makeCsv(rows));
+        toast("XLSX library unavailable, exported CSV instead.");
+        return;
+    }
+    const numericKeys = getExportNumericLabels(sourceRows);
+    const compact = rows.map(row => {
+        const out = {};
+        for (const key of Object.keys(row)) {
+            const raw = row[key];
+            if (numericKeys.has(key)) {
+                const n = parseNumber(raw);
+                out[key] = Number.isFinite(n) ? n : raw;
+            }
+            else {
+                out[key] = raw;
+            }
+        }
+        return out;
+    });
+    const ws = XLSX.utils.json_to_sheet(compact);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Output");
+    XLSX.writeFile(wb, `Sellout_Standardized_${today()}.xlsx`, { compression: true, bookType: "xlsx" });
+}
+function outputMetricKey(row) {
+    return slugifyKey(row.metric);
+}
+function stakeholderMetricValue(bucket, spec, totalBasis = 0) {
+    if (spec.type === "share") {
+        const value = bucket[`${spec.metric}|${spec.cadence}|TY`] || bucket[`${spec.metric}|${spec.cadence}|LY`] || 0;
+        return totalBasis ? value / totalBasis : 0;
+    }
+    if (spec.type === "variance") {
+        return (bucket[`${spec.metric}|${spec.cadence}|TY`] || 0) - (bucket[`${spec.metric}|${spec.cadence}|LY`] || 0);
+    }
+    return bucket[`${spec.metric}|${spec.cadence}|${spec.yearBasis || "TY"}`] || 0;
+}
+function addStakeholderValue(bucket, row) {
+    const numeric = parseNumber(row.value);
+    if (!Number.isFinite(numeric))
+        return;
+    const key = `${outputMetricKey(row)}|${row.cadence || ""}|${row.year_basis || "TY"}`;
+    bucket[key] = (bucket[key] || 0) + numeric;
+}
+function resolveStakeholderDimension(spec) {
+    const fields = getStandardFields();
+    const available = fields.filter(field => state.output.some(row => cleanHeader(row[field.key])));
+    const aliases = [spec.name].concat(spec.aliases || []);
+    for (const alias of aliases) {
+        const exact = available.find(field => normalize(field.label) === normalize(alias) || normalize(field.key) === normalize(alias));
+        if (exact)
+            return exact;
+    }
+    let best = null;
+    let bestScore = 0;
+    available.forEach(field => {
+        aliases.forEach(alias => {
+            const score = bestAliasScore(field.label, [alias]);
+            if (score > bestScore) {
+                best = field;
+                bestScore = score;
+            }
+        });
+    });
+    return bestScore >= 0.9 ? best : null;
+}
+function buildStakeholderRowsForDimension(sheetSpec, field) {
+    const groups = new Map();
+    state.output.forEach(row => {
+        const rawValue = cleanHeader(row[field.key]) || "Unassigned";
+        if (!groups.has(rawValue))
+            groups.set(rawValue, {});
+        addStakeholderValue(groups.get(rawValue), row);
+    });
+    const totalBucket = {};
+    state.output.forEach(row => addStakeholderValue(totalBucket, row));
+    const totalBasis = totalBucket["sale_units|YTD|TY"] || totalBucket["sale_units|YTD|LY"] || totalBucket["sale_units|WTD|TY"] || 0;
+    return Array.from(groups.entries()).map(([value, bucket], index) => {
+        const row = {
+            SheetRow: index + 1,
+            Dimension: sheetSpec.name,
+            Filter: "All",
+            [field.label]: value
+        };
+        STAKEHOLDER_METRIC_SUITE.forEach(spec => {
+            row[spec.label] = stakeholderMetricValue(bucket, spec, totalBasis);
+        });
+        return row;
+    }).sort((a, b) => {
+        const metric = "YTD U";
+        const delta = (parseNumber(b[metric]) || 0) - (parseNumber(a[metric]) || 0);
+        return delta || String(a[field.label]).localeCompare(String(b[field.label]));
+    }).map((row, index) => ({ ...row, SheetRow: index + 1 }));
+}
+function buildTopRows(label, fieldKey, limit = 10) {
+    const field = getFieldByKey()[fieldKey];
+    if (!field)
+        return [];
+    const groups = new Map();
+    state.output.forEach(row => {
+        const rawValue = cleanHeader(row[fieldKey]);
+        if (!rawValue)
+            return;
+        if (!groups.has(rawValue))
+            groups.set(rawValue, {});
+        addStakeholderValue(groups.get(rawValue), row);
+    });
+    return Array.from(groups.entries())
+        .map(([value, bucket]) => ({
+        Section: label,
+        Rank: 0,
+        Name: value,
+        "YTD U": stakeholderMetricValue(bucket, { type: "value", metric: "sale_units", cadence: "YTD", yearBasis: "TY" }),
+        "WTD U": stakeholderMetricValue(bucket, { type: "value", metric: "sale_units", cadence: "WTD", yearBasis: "TY" }),
+        "YTD $": stakeholderMetricValue(bucket, { type: "value", metric: "sale_dollars", cadence: "YTD", yearBasis: "TY" }),
+        "YTD OH U": stakeholderMetricValue(bucket, { type: "value", metric: "on_hand_units", cadence: "YTD", yearBasis: "TY" })
+    }))
+        .sort((a, b) => (b["YTD U"] || 0) - (a["YTD U"] || 0))
+        .slice(0, limit)
+        .map((row, index) => ({ ...row, Rank: index + 1 }));
+}
+function buildStakeholderSummaryRows() {
+    const totalBucket = {};
+    state.output.forEach(row => addStakeholderValue(totalBucket, row));
+    const kpiRows = STAKEHOLDER_METRIC_SUITE
+        .filter(spec => spec.type !== "share")
+        .map(spec => ({ Section: "KPI", Rank: "", Name: spec.label, Value: stakeholderMetricValue(totalBucket, spec) }));
+    const topSkuRows = buildTopRows("Top 10 SKU", "sku");
+    const topDoorRows = buildTopRows("Top 10 Doors", "store_name");
+    return kpiRows.concat([{}], topSkuRows, [{}], topDoorRows);
+}
+function fitWorksheetColumns(ws, rows) {
+    const cols = rows.length ? Object.keys(rows[0]) : [];
+    ws["!cols"] = cols.map(col => {
+        const maxLen = rows.reduce((max, row) => Math.max(max, String(row[col] ?? "").length), col.length);
+        return { wch: Math.min(Math.max(maxLen + 2, 10), 28) };
+    });
+}
+function appendJsonSheet(wb, rows, sheetName) {
+    const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ Notice: "No data available" }]);
+    fitWorksheetColumns(ws, rows.length ? rows : [{ Notice: "No data available" }]);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0, 31));
+}
+function exportStakeholderWorkbook() {
+    if (!state.output.length)
+        return;
+    if (!window.XLSX) {
+        toast("XLSX library unavailable. Stakeholder workbook requires XLSX export.");
+        return;
+    }
+    const wb = XLSX.utils.book_new();
+    appendJsonSheet(wb, getExportOutputRows(), "Data Dump");
+    appendJsonSheet(wb, buildStakeholderSummaryRows(), "Summary");
+    STAKEHOLDER_DIMENSION_SHEETS.forEach(sheetSpec => {
+        const field = resolveStakeholderDimension(sheetSpec);
+        const rows = field ? buildStakeholderRowsForDimension(sheetSpec, field) : [{ Notice: `No mapped dimension found for ${sheetSpec.name}.` }];
+        appendJsonSheet(wb, rows, sheetSpec.name);
+    });
+    XLSX.writeFile(wb, `Sellout_Stakeholder_Workbook_${today()}.xlsx`, { compression: true, bookType: "xlsx" });
+}
+// === Pivot Workbook export — template-based ===
+// Workflow: user creates a template .xlsx in Excel (data on first sheet + a pivot
+// already built from that data on another sheet), uploads it once via the
+// "Pivot Template" button. Each export grafts the current export rows into the
+// template's first sheet and marks the pivot cache to refresh on open, so the
+// user's pivot configuration (rows, cols, filters, values) is preserved while
+// the data updates.
+const PIVOT_TEMPLATE_STORAGE_KEY = "sellout-pivot-template-v1";
+let pivotTemplateBuffer = null;
+let pivotTemplateName = "";
+function colLetterAt(idx) {
+    let s = "", n = idx;
+    while (n >= 0) {
+        s = String.fromCharCode(65 + (n % 26)) + s;
+        n = Math.floor(n / 26) - 1;
+    }
+    return s;
+}
+function bufferToBase64(buf) {
+    const view = new Uint8Array(buf);
+    let bin = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < view.length; i += chunk) {
+        bin += String.fromCharCode.apply(null, view.subarray(i, i + chunk));
+    }
+    return btoa(bin);
+}
+function base64ToBuffer(b64) {
+    const bin = atob(b64);
+    const buf = new ArrayBuffer(bin.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i < bin.length; i++)
+        view[i] = bin.charCodeAt(i);
+    return buf;
+}
+function loadCachedPivotTemplate() {
+    try {
+        const raw = localStorage.getItem(PIVOT_TEMPLATE_STORAGE_KEY);
+        if (!raw)
+            return;
+        const meta = JSON.parse(raw);
+        if (meta && meta.b64) {
+            pivotTemplateBuffer = base64ToBuffer(meta.b64);
+            pivotTemplateName = meta.name || "";
+        }
+    }
+    catch (e) { }
+}
+async function setPivotTemplate(file) {
+    const buf = await file.arrayBuffer();
+    pivotTemplateBuffer = buf;
+    pivotTemplateName = file.name;
+    try {
+        localStorage.setItem(PIVOT_TEMPLATE_STORAGE_KEY, JSON.stringify({
+            name: file.name, b64: bufferToBase64(buf)
+        }));
+        toast(`Pivot template saved: ${file.name}`);
+    }
+    catch (e) {
+        toast("Template loaded for this session (too large to persist).");
+    }
+    renderPivotTemplateStatus();
+}
+function clearPivotTemplate() {
+    pivotTemplateBuffer = null;
+    pivotTemplateName = "";
+    try {
+        localStorage.removeItem(PIVOT_TEMPLATE_STORAGE_KEY);
+    }
+    catch (e) { }
+    renderPivotTemplateStatus();
+    toast("Pivot template cleared.");
+}
+function renderPivotTemplateStatus() {
+    if (!els.pivotTemplateStatus)
+        return;
+    els.pivotTemplateStatus.textContent = pivotTemplateName ? `Template: ${pivotTemplateName}` : "No template loaded";
+}
+async function exportPivotWorkbook() {
+    if (!state.output.length)
+        return;
+    if (!window.XLSX) {
+        toast("XLSX library unavailable.");
+        return;
+    }
+    if (!window.JSZip) {
+        toast("JSZip library unavailable.");
+        return;
+    }
+    if (!pivotTemplateBuffer) {
+        toast("Upload a Pivot Template first (export menu → Set Pivot Template).");
+        return;
+    }
+    const rows = getExportOutputRows();
+    if (!rows.length) {
+        toast("No rows to export.");
+        return;
+    }
+    try {
+        const buf = await fillPivotTemplate(pivotTemplateBuffer, rows, getExportNumericLabels());
+        const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Sellout_Pivot_${today()}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    }
+    catch (err) {
+        console.error("Pivot workbook export failed:", err);
+        toast("Pivot export failed. See console.");
+    }
+}
+async function fillPivotTemplate(templateBuf, rows, numericLabels = new Set(["Value", "Source Row"])) {
+    // Clone the template (JSZip mutates the buffer it loads from)
+    const cloneBuf = templateBuf.slice ? templateBuf.slice(0) : new Uint8Array(templateBuf).slice().buffer;
+    const zip = await JSZip.loadAsync(cloneBuf);
+    const headers = Object.keys(rows[0]);
+    const coerced = rows.map(row => {
+        const out = {};
+        for (const key of headers) {
+            const v = row[key];
+            if (numericLabels.has(key)) {
+                const n = parseNumber(v);
+                out[key] = Number.isFinite(n) ? n : null;
+            }
+            else {
+                out[key] = v == null ? "" : String(v);
+            }
+        }
+        return out;
+    });
+    // Generate a fresh data sheet via SheetJS in a scratch workbook, then graft sheet1.xml
+    // (and the sharedStrings table that goes with it) into the template.
+    const tmpWb = XLSX.utils.book_new();
+    const tmpWs = XLSX.utils.json_to_sheet(coerced, { header: headers });
+    XLSX.utils.book_append_sheet(tmpWb, tmpWs, "Data");
+    const tmpBuf = XLSX.write(tmpWb, { type: "array", bookType: "xlsx", compression: true });
+    const tmpZip = await JSZip.loadAsync(tmpBuf);
+    const newSheetXml = await tmpZip.file("xl/worksheets/sheet1.xml").async("string");
+    zip.file("xl/worksheets/sheet1.xml", newSheetXml);
+    const ssFile = tmpZip.file("xl/sharedStrings.xml");
+    if (ssFile) {
+        const ssXml = await ssFile.async("string");
+        zip.file("xl/sharedStrings.xml", ssXml);
+        let ct = await zip.file("[Content_Types].xml").async("string");
+        if (!ct.includes('PartName="/xl/sharedStrings.xml"')) {
+            ct = ct.replace("</Types>", '<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>');
+            zip.file("[Content_Types].xml", ct);
+        }
+        let wbRels = await zip.file("xl/_rels/workbook.xml.rels").async("string");
+        if (!wbRels.includes('Target="sharedStrings.xml"')) {
+            const ids = [...wbRels.matchAll(/Id="rId(\d+)"/g)].map(m => +m[1]);
+            const nextId = (ids.length ? Math.max(...ids) : 0) + 1;
+            wbRels = wbRels.replace("</Relationships>", `<Relationship Id="rId${nextId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/></Relationships>`);
+            zip.file("xl/_rels/workbook.xml.rels", wbRels);
+        }
+    }
+    // Repoint each pivotCacheDefinition's worksheetSource to the new data extent
+    // and force the cache to refresh on open so values update from the new data.
+    const lastColLetter = colLetterAt(headers.length - 1);
+    const newRange = `A1:${lastColLetter}${coerced.length + 1}`;
+    const cacheDefPaths = Object.keys(zip.files).filter(p => /^xl\/pivotCache\/pivotCacheDefinition\d+\.xml$/.test(p));
+    for (const path of cacheDefPaths) {
+        let xml = await zip.file(path).async("string");
+        xml = xml.replace(/<worksheetSource[^>]*\/>/g, m => /ref="/.test(m) ? m.replace(/ref="[^"]+"/, `ref="${newRange}"`) : m);
+        if (/refreshOnLoad="0"/.test(xml)) {
+            xml = xml.replace(/refreshOnLoad="0"/, 'refreshOnLoad="1"');
+        }
+        else if (!/\brefreshOnLoad=/.test(xml)) {
+            xml = xml.replace("<pivotCacheDefinition", '<pivotCacheDefinition refreshOnLoad="1"');
+        }
+        zip.file(path, xml);
+    }
+    return zip.generateAsync({ type: "arraybuffer", compression: "DEFLATE", compressionOptions: { level: 6 } });
+}
+function today() {
+    return new Date().toISOString().slice(0, 10);
+}
+function exportConfig() {
+    syncConfigFromControls();
+    const config = {
+        name: "Retail Data Standardizer Configuration",
+        version: 1,
+        exported_at: new Date().toISOString(),
+        config: state.config
+    };
+    downloadBlob(`Retail_Data_Standardizer_Configuration_${today()}.json`, "application/json", JSON.stringify(config, null, 2));
+}
+function makeConfigEnvelope(name) {
+    syncConfigFromControls();
+    return {
+        id: `cfg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        name: (name || "").trim() || defaultConfigName(),
+        version: 1,
+        saved_at: new Date().toISOString(),
+        config: JSON.parse(JSON.stringify(state.config))
+    };
+}
+function defaultConfigName() {
+    const firstSource = state.sources[0];
+    const base = firstSource ? String(firstSource.name || firstSource.sheet || "").replace(/\.[^.]+$/, "") : "";
+    return base ? `${base} configuration` : `Configuration ${today()}`;
+}
+function configFileName(name) {
+    const safe = String(name || "Retail Data Standardizer Configuration")
+        .trim()
+        .replace(/[^a-z0-9]+/gi, "_")
+        .replace(/^_+|_+$/g, "")
+        .slice(0, 80) || "Retail_Data_Standardizer_Configuration";
+    return `${safe}_${today()}.json`;
+}
+function getConfigHistory() {
+    try {
+        const raw = localStorage.getItem(CONFIG_HISTORY_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed.filter(item => item && item.config) : [];
+    }
+    catch (error) {
+        return [];
+    }
+}
+function setConfigHistory(items) {
+    try {
+        localStorage.setItem(CONFIG_HISTORY_KEY, JSON.stringify(items.slice(0, CONFIG_HISTORY_LIMIT)));
+    }
+    catch (error) {
+        toast("Could not save configuration history locally.");
+    }
+}
+function saveConfigToHistory(name, config) {
+    const envelope = config
+        ? { ...makeConfigEnvelope(name), config: JSON.parse(JSON.stringify(config)) }
+        : makeConfigEnvelope(name);
+    const history = getConfigHistory().filter(item => item.name !== envelope.name);
+    setConfigHistory([envelope, ...history]);
+    renderConfigHistory();
+    return envelope;
+}
+async function saveCurrentConfig() {
+    const name = window.fashionPrompt
+        ? await window.fashionPrompt("Name this reusable mapping setup.", {
+            title: "Configuration Name",
+            defaultValue: defaultConfigName(),
+            confirmLabel: "Save",
+        })
+        : prompt("Configuration name", defaultConfigName());
+    if (name === null)
+        return;
+    const saved = saveConfigToHistory(name);
+    downloadBlob(configFileName(saved.name), "application/json", JSON.stringify(saved, null, 2));
+    closeConfigMenu();
+    toast(`Saved configuration locally and downloaded: ${saved.name}.`);
+}
+function renderConfigHistory() {
+    if (!els.configHistoryList)
+        return;
+    const history = getConfigHistory();
+    if (!history.length) {
+        els.configHistoryList.innerHTML = '<div class="empty-state" style="min-height:72px;padding:12px;"><span>No saved configurations yet.</span></div>';
+        return;
+    }
+    els.configHistoryList.innerHTML = history.map(item => {
+        const date = item.saved_at ? new Date(item.saved_at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "Saved configuration";
+        return `<div class="config-history-item" data-config-id="${esc(item.id)}">
+      <div>
+        <div class="config-history-name" title="${esc(item.name)}">${esc(item.name)}</div>
+        <div class="config-history-meta">${esc(date)}</div>
+      </div>
+      <div class="config-history-controls">
+        <button class="btn btn-sm" type="button" data-load-saved-config="${esc(item.id)}">Load</button>
+        <button class="btn btn-sm btn-danger" type="button" data-delete-saved-config="${esc(item.id)}" aria-label="Delete ${esc(item.name)}">Delete</button>
+      </div>
+    </div>`;
+    }).join("");
+}
+function applySavedConfig(id) {
+    const item = getConfigHistory().find(cfg => cfg.id === id);
+    if (!item) {
+        toast("Saved configuration not found.");
+        return;
+    }
+    hydrateConfig(item.config || {});
+    applyCollapseState();
+    rebuild();
+    closeConfigMenu();
+    toast(`Loaded configuration: ${item.name}.`);
+}
+function deleteSavedConfig(id) {
+    const history = getConfigHistory();
+    const item = history.find(cfg => cfg.id === id);
+    setConfigHistory(history.filter(cfg => cfg.id !== id));
+    renderConfigHistory();
+    toast(item ? `Deleted configuration: ${item.name}.` : "Deleted configuration.");
+}
+function toggleConfigMenu() {
+    if (!els.configMenu || !els.configMenuBtn)
+        return;
+    const open = els.configMenu.hidden;
+    els.configMenu.hidden = !open;
+    els.configMenuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open)
+        renderConfigHistory();
+}
+function closeConfigMenu() {
+    if (!els.configMenu || !els.configMenuBtn)
+        return;
+    els.configMenu.hidden = true;
+    els.configMenuBtn.setAttribute("aria-expanded", "false");
+}
+function toggleExportMenu() {
+    if (!els.exportMenu || !els.exportMenuBtn)
+        return;
+    const open = els.exportMenu.hidden;
+    els.exportMenu.hidden = !open;
+    els.exportMenuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+}
+function closeExportMenu() {
+    if (!els.exportMenu || !els.exportMenuBtn)
+        return;
+    els.exportMenu.hidden = true;
+    els.exportMenuBtn.setAttribute("aria-expanded", "false");
+}
+async function importConfig(file) {
+    try {
+        const parsed = JSON.parse(await file.text());
+        const config = parsed.config || parsed;
+        hydrateConfig(config);
+        applyCollapseState();
+        rebuild();
+        const saved = saveConfigToHistory(parsed.name || file.name.replace(/\.json$/i, ""), config);
+        closeConfigMenu();
+        toast(`Loaded and saved configuration: ${saved.name}.`);
+    }
+    catch (error) {
+        toast(`Could not import configuration: ${error.message}`);
+    }
+}
+function hydrateConfig(config) {
+    state.config = { ...makeDefaultConfig(), ...(config || {}) };
+    state.config.sheetIncludes = state.config.sheetIncludes || {};
+    state.config.cadenceTypes = Array.isArray(state.config.cadenceTypes) ? state.config.cadenceTypes : ["WTD"];
+    state.config.cadenceMetrics = Array.isArray(state.config.cadenceMetrics) ? state.config.cadenceMetrics : ["sale_dollars", "sale_units"];
+    state.config.customDimensions = Array.isArray(state.config.customDimensions) ? state.config.customDimensions : [];
+    state.config.customMetrics = Array.isArray(state.config.customMetrics) ? state.config.customMetrics : [];
+    const metricKeyRenames = new Map();
+    const reservedMetricKeys = new Set(BASE_CADENCE_METRIC_OPTIONS.map(metric => metric.key));
+    const normalizedCustomMetrics = [];
+    state.config.customMetrics.forEach(rawMetric => {
+        const metric = normalizeMetricDefinition(rawMetric);
+        if (!metric || DIMENSION_ONLY_KEYS.has(metric.key))
+            return;
+        const baseMatch = BASE_CADENCE_METRIC_OPTIONS.find(baseMetric => baseMetric.key === slugifyKey(metric.label) || bestAliasScore(metric.label, baseMetric.aliases) >= 1);
+        if (baseMatch) {
+            metricKeyRenames.set(metric.key, baseMatch.key);
+            return;
+        }
+        const preferredKey = slugifyKey(metric.label);
+        const existingKeys = new Set([...reservedMetricKeys, ...normalizedCustomMetrics.map(item => item.key)]);
+        const nextKey = preferredKey && preferredKey !== metric.key ? uniqueKey(preferredKey, existingKeys) : metric.key;
+        if (nextKey !== metric.key)
+            metricKeyRenames.set(metric.key, nextKey);
+        normalizedCustomMetrics.push({ ...metric, key: nextKey });
+    });
+    state.config.customMetrics = normalizedCustomMetrics;
+    const renameMetricKey = key => metricKeyRenames.get(key) || key;
+    const renameMetricList = list => Array.from(new Set((Array.isArray(list) ? list : []).map(renameMetricKey)));
+    state.config.cadenceMetrics = renameMetricList(state.config.cadenceMetrics);
+    state.config.outputMetrics = renameMetricList(state.config.outputMetrics);
+    state.config.pivotMetrics = renameMetricList(state.config.pivotMetrics);
+    if (state.config.metricMappings && typeof state.config.metricMappings === "object") {
+        Object.entries({ ...state.config.metricMappings }).forEach(([key, value]) => {
+            const parts = key.split("|");
+            if (parts.length !== 3)
+                return;
+            const renamed = renameMetricKey(parts[2]);
+            if (renamed === parts[2])
+                return;
+            const nextKey = metricMapKey(parts[0], parts[1], renamed);
+            if (state.config.metricMappings[nextKey] === undefined)
+                state.config.metricMappings[nextKey] = value;
+            delete state.config.metricMappings[key];
+        });
+    }
+    state.config.cadenceMetrics = state.config.cadenceMetrics.filter(key => !DIMENSION_ONLY_KEYS.has(key) && getMetricOptions().some(metric => metric.key === key));
+    state.config.calculatedMetrics = Array.isArray(state.config.calculatedMetrics) ? state.config.calculatedMetrics : (state.config.calculateSt ? ["sell_through_pct"] : []);
+    state.config.customCalculatedMetrics = Array.isArray(state.config.customCalculatedMetrics) ? state.config.customCalculatedMetrics : [];
+    state.config.outputMeta = { source_file: true, source_sheet: true, source_row: true, value_source: true, ...(state.config.outputMeta || {}) };
+    state.config.outputDimensions = Array.isArray(state.config.outputDimensions) ? state.config.outputDimensions : [];
+    state.config.outputMetrics = Array.isArray(state.config.outputMetrics) ? state.config.outputMetrics : [];
+    state.config.outputDimensionsTouched = !!state.config.outputDimensionsTouched;
+    state.config.outputMetricsTouched = !!state.config.outputMetricsTouched;
+    const legacyBreakouts = state.config.outputMetricLayout === "value_columns" ? ["metric"] : [];
+    state.config.outputBreakouts = Array.isArray(state.config.outputBreakouts) ? state.config.outputBreakouts : legacyBreakouts;
+    state.config.outputBreakouts = OUTPUT_BREAKOUT_AXES.filter(axis => state.config.outputBreakouts.includes(axis));
+    state.config.outputBreakoutValueAxes = Array.isArray(state.config.outputBreakoutValueAxes) ? state.config.outputBreakoutValueAxes : [];
+    state.config.outputBreakoutValueAxes = OUTPUT_BREAKOUT_AXES.filter(axis => state.config.outputBreakouts.includes(axis) && state.config.outputBreakoutValueAxes.includes(axis));
+    delete state.config.outputMetricLayout;
+    state.config.outputColumnOrder = Array.isArray(state.config.outputColumnOrder) ? state.config.outputColumnOrder : [];
+    state.config.pivotDimensions = Array.isArray(state.config.pivotDimensions) ? state.config.pivotDimensions : [];
+    state.config.pivotColumnDimensions = Array.isArray(state.config.pivotColumnDimensions) ? state.config.pivotColumnDimensions : [];
+    state.config.pivotMetrics = Array.isArray(state.config.pivotMetrics) ? state.config.pivotMetrics : [];
+    state.config.pivotColumnOrder = Array.isArray(state.config.pivotColumnOrder) ? state.config.pivotColumnOrder : [];
+    state.config.sourceOverrides = state.config.sourceOverrides && typeof state.config.sourceOverrides === "object" ? state.config.sourceOverrides : {};
+    state.config.mappings = state.config.mappings || {};
+    state.config.metricMappings = state.config.metricMappings || {};
+    Object.keys(state.config.metricMappings).forEach(key => {
+        const metricKey = key.split("|")[2];
+        if (DIMENSION_ONLY_KEYS.has(metricKey))
+            delete state.config.metricMappings[key];
+    });
+    state.config.collapsed = state.config.collapsed || {};
+    state.config.hasCadenceRow = state.config.hasCadenceRow === undefined ? Number(state.config.cadenceRow) > 0 : !!state.config.hasCadenceRow;
+    els.hasCadenceRow.checked = state.config.hasCadenceRow;
+    els.cadenceRow.value = state.config.hasCadenceRow ? (Number(state.config.cadenceRow) || 1) : 1;
+    els.cadenceRow.hidden = !state.config.hasCadenceRow;
+    els.headerRow.value = state.config.headerRow;
+    els.deleteRows.value = state.config.deleteRows || "";
+    els.skipRowsContaining.value = state.config.skipRowsContaining || "";
+    refreshDeleteColumnsLabel();
+    els.skipZeroValues.checked = !!state.config.skipZeroValues;
+    if (els.showUnmappedOnly)
+        els.showUnmappedOnly.checked = !!state.config.showUnmappedOnly;
+}
+function addCustomDimension(label) {
+    const baseKey = slugifyKey(label);
+    if (!label || !baseKey) {
+        toast("Enter a dimension name first.");
+        return false;
+    }
+    state.config.customDimensions = getCustomDimensions();
+    const existing = new Set(getStandardFields().map(field => field.key));
+    const key = uniqueKey(baseKey, existing);
+    state.config.customDimensions.push({ key, label, aliases: [label] });
+    rebuild();
+    toast(`Added custom dimension: ${label}.`);
+    return true;
+}
+function addCustomMetric(label) {
+    const cleanLabel = normalizedMetricLabel(label);
+    const baseKey = slugifyKey(cleanLabel);
+    if (!cleanLabel || !baseKey) {
+        toast("Enter a metric name first.");
+        return false;
+    }
+    state.config.customMetrics = getCustomMetrics();
+    const existingMetric = getMetricOptions().find(metric => metric.key === baseKey || bestAliasScore(cleanLabel, metric.aliases) >= 1);
+    if (existingMetric) {
+        state.config.cadenceMetrics = Array.from(new Set([...(state.config.cadenceMetrics || []), existingMetric.key]));
+        rebuild();
+        toast(`Added metric slot: ${existingMetric.label}.`);
+        return true;
+    }
+    const existing = new Set(getMetricOptions().map(metric => metric.key));
+    const key = uniqueKey(baseKey, existing);
+    state.config.customMetrics.push({ key, label: cleanLabel, aliases: [cleanLabel] });
+    state.config.cadenceMetrics = Array.from(new Set([...(state.config.cadenceMetrics || []), key]));
+    rebuild();
+    toast(`Added custom metric: ${cleanLabel}.`);
+    return true;
+}
+function addCustomCalculatedMetric(label, formula) {
+    const baseKey = slugifyKey(label);
+    if (!label || !baseKey || !formula) {
+        toast("Provide both a name and a formula.");
+        return false;
+    }
+    const key = uniqueKey(baseKey, new Set(getCalculatedMetricOptions().map(m => m.key)));
+    state.config.customCalculatedMetrics = (state.config.customCalculatedMetrics || []).concat({ key, label, formula, format: "number" });
+    state.config.calculatedMetrics = Array.from(new Set([...(state.config.calculatedMetrics || []), key]));
+    rebuild();
+    toast(`Added calculated metric: ${label}.`);
+    return true;
+}
+function closeAddFieldPopover() {
+    if (!els.addFieldPopover)
+        return;
+    els.addFieldPopover.hidden = true;
+    els.addFieldName.value = "";
+    els.addFieldFormula.value = "";
+    els.addFieldFormula.hidden = true;
+}
+function applyCollapseState() {
+    setActiveWorkflowPanel(state.config.activeWorkflowPanel || "panelInput", { persist: false });
+}
+function setActiveWorkflowPanel(activeId, options = {}) {
+    const ids = ["panelInput", "panelHeader", "panelMapping"];
+    const target = ids.includes(activeId) ? activeId : "panelInput";
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el)
+            el.classList.toggle("collapsed", id !== target);
+    });
+    state.config.activeWorkflowPanel = target;
+    if (options.touched)
+        state.config.workflowPanelTouched = true;
+}
+function clearAllData() {
+    state.sources = [];
+    state.pendingWorkbooks = [];
+    state.headers = [];
+    state.output = [];
+    hydrateConfig(makeDefaultConfig());
+    state.view = "output";
+    document.querySelectorAll(".view-tab").forEach(btn => btn.classList.toggle("active", btn.dataset.view === state.view));
+    applyCollapseState();
+    rebuild();
+    toast("Loaded data and setup cleared.");
+}
+function toast(message) {
+    els.toast.textContent = message;
+    els.toast.classList.add("show");
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => els.toast.classList.remove("show"), 3200);
+}
+/* One unified viewport-level cross-fade via View Transitions API.
+   theme-switching (in style.css) suppresses per-element transitions so the
+   single cross-fade isn't competing with thousands of element animations. */
+let _themePending = 0;
+function _applyTheme(next) {
+    document.documentElement.setAttribute("data-theme", next);
+    try {
+        localStorage.setItem("cloonk-theme", next);
+    }
+    catch (e) { }
+}
+function _swapTheme(next) {
+    const root = document.documentElement;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    root.classList.add("theme-switching");
+    _themePending++;
+    const settle = () => {
+        if (--_themePending <= 0) {
+            _themePending = 0;
+            root.classList.remove("theme-switching");
+        }
+    };
+    if (typeof document.startViewTransition === "function" && !reduce) {
+        document.startViewTransition(() => _applyTheme(next)).finished.finally(settle);
+    }
+    else {
+        _applyTheme(next);
+        requestAnimationFrame(() => requestAnimationFrame(settle));
+    }
+}
+function toggleTheme() {
+    const next = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+    _swapTheme(next);
+}
+window.addEventListener("storage", e => {
+    if (e.key !== "cloonk-theme")
+        return;
+    _swapTheme(e.newValue === "light" ? "light" : "dark");
+});
+function initInfoModal() {
+    const overlay = document.getElementById("infoModalOverlay");
+    const openBtn = document.getElementById("infoBtn");
+    const closeBtn = document.getElementById("infoModalClose");
+    const close = () => overlay.classList.remove("open");
+    const activateTab = tabKey => {
+        document.querySelectorAll(".info-modal-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tabKey));
+        document.querySelectorAll(".info-modal-pane").forEach(p => p.classList.toggle("active", p.id === "modal-tab-" + tabKey));
+    };
+    openBtn.addEventListener("click", () => overlay.classList.add("open"));
+    closeBtn.addEventListener("click", close);
+    overlay.addEventListener("click", e => { if (e.target === overlay)
+        close(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape")
+        close(); });
+    document.querySelectorAll(".info-modal-tab").forEach(tab => {
+        tab.addEventListener("click", () => activateTab(tab.dataset.tab));
+    });
+    document.querySelectorAll("[data-panel-info]").forEach(btn => {
+        btn.addEventListener("click", e => {
+            e.stopPropagation();
+            overlay.classList.add("open");
+            activateTab("panels");
+            const target = document.getElementById("panelinfo-" + btn.dataset.panelInfo);
+            if (target) {
+                setTimeout(() => target.scrollIntoView({ block: "start", behavior: "smooth" }), 40);
+            }
+        });
+    });
+}
+els.fileInput.addEventListener("change", e => {
+    handleFiles(e.target.files);
+    e.target.value = "";
+});
+function renderChipOptions(items, selectedValues, dataAttr, emptyText) {
+    if (!items.length)
+        return `<span class="chip">${esc(emptyText)}</span>`;
+    const selected = new Set(selectedValues || []);
+    return items.map(item => `
+    <label class="${selected.has(item.value) ? "active" : ""}">
+      <input type="checkbox" ${dataAttr}="${esc(item.value)}" ${selected.has(item.value) ? "checked" : ""}>
+      <span>${esc(item.label)}</span>
+    </label>
+  `).join("");
+}
+els.dropzoneInput.addEventListener("change", e => {
+    handleFiles(e.target.files);
+    e.target.value = "";
+});
+els.insertFileBtn.addEventListener("click", () => els.fileInput.click());
+els.dropzone.addEventListener("dragover", e => { e.preventDefault(); els.dropzone.classList.add("dragging"); });
+els.dropzone.addEventListener("dragleave", () => els.dropzone.classList.remove("dragging"));
+els.dropzone.addEventListener("drop", e => {
+    e.preventDefault();
+    els.dropzone.classList.remove("dragging");
+    handleFiles(e.dataTransfer.files);
+});
+els.fileModeBtn.addEventListener("click", () => {
+    els.fileModeBtn.classList.add("active");
+    els.pasteModeBtn.classList.remove("active");
+    els.fileMode.style.display = "";
+    els.pasteMode.style.display = "none";
+});
+els.pasteModeBtn.addEventListener("click", () => {
+    els.pasteModeBtn.classList.add("active");
+    els.fileModeBtn.classList.remove("active");
+    els.pasteMode.style.display = "";
+    els.fileMode.style.display = "none";
+});
+els.addPasteBtn.addEventListener("click", () => {
+    const rows = parseDelimited(els.pasteBox.value);
+    if (!rows.length)
+        return toast("Paste a copied Excel range first.");
+    addSource(els.pasteName.value || "Pasted Excel Report", "Pasted Range", rows);
+    els.pasteBox.value = "";
+    autoDetect();
+    rebuild();
+    toast("Pasted report added.");
+});
+els.fileList.addEventListener("click", e => {
+    const pendingSelectAll = e.target.closest("[data-pending-select-all]");
+    if (pendingSelectAll) {
+        const workbook = (state.pendingWorkbooks || []).find(item => item.id === pendingSelectAll.dataset.pendingSelectAll);
+        if (!workbook)
+            return;
+        workbook.selectedSheets = workbook.sheetNames.slice();
+        renderFileList();
+        return;
+    }
+    const pendingClear = e.target.closest("[data-pending-clear]");
+    if (pendingClear) {
+        const workbook = (state.pendingWorkbooks || []).find(item => item.id === pendingClear.dataset.pendingClear);
+        if (!workbook)
+            return;
+        workbook.selectedSheets = [];
+        renderFileList();
+        return;
+    }
+    const pendingLoad = e.target.closest("[data-pending-load]");
+    if (pendingLoad) {
+        loadPendingWorkbook(pendingLoad.dataset.pendingLoad);
+        return;
+    }
+    const pendingRemove = e.target.closest("[data-pending-remove]");
+    if (pendingRemove) {
+        state.pendingWorkbooks = (state.pendingWorkbooks || []).filter(item => item.id !== pendingRemove.dataset.pendingRemove);
+        rebuild();
+        return;
+    }
+    const remove = e.target.closest("[data-remove]");
+    if (remove) {
+        state.sources = state.sources.filter(source => source.id !== remove.dataset.remove);
+        rebuild();
+        return;
+    }
+    const toggle = e.target.closest("[data-toggle-override]");
+    if (toggle) {
+        state.expandedOverrides = state.expandedOverrides instanceof Set ? state.expandedOverrides : new Set();
+        const id = toggle.dataset.toggleOverride;
+        if (state.expandedOverrides.has(id))
+            state.expandedOverrides.delete(id);
+        else
+            state.expandedOverrides.add(id);
+        renderFileList();
+        return;
+    }
+    const addBtn = e.target.closest("[data-override-add-btn]");
+    if (addBtn) {
+        const sourceId = addBtn.dataset.overrideAddBtn;
+        const fieldSel = els.fileList.querySelector(`[data-override-add-field="${CSS.escape(sourceId)}"]`);
+        const valInput = els.fileList.querySelector(`[data-override-add-value="${CSS.escape(sourceId)}"]`);
+        const field = fieldSel ? fieldSel.value : "";
+        const value = valInput ? cleanHeader(valInput.value) : "";
+        if (!field || !value) {
+            toast("Pick a dimension and enter a value.");
+            return;
+        }
+        const source = state.sources.find(s => s.id === sourceId);
+        if (!source)
+            return;
+        const override = ensureSourceOverride(source);
+        override.dimensions[field] = value;
+        rebuild();
+        return;
+    }
+    const removeDim = e.target.closest("[data-remove-override-dim]");
+    if (removeDim) {
+        const [sourceId, dimKey] = removeDim.dataset.removeOverrideDim.split("|");
+        const source = state.sources.find(s => s.id === sourceId);
+        if (!source)
+            return;
+        const override = getSourceOverride(source);
+        if (override && override.dimensions) {
+            delete override.dimensions[dimKey];
+            rebuild();
+        }
+    }
+});
+els.fileList.addEventListener("change", e => {
+    const pendingSheet = e.target.closest("[data-pending-sheet]");
+    if (pendingSheet) {
+        const workbook = (state.pendingWorkbooks || []).find(item => item.id === pendingSheet.dataset.pendingSheet);
+        if (!workbook)
+            return;
+        const selected = new Set(workbook.selectedSheets || []);
+        if (pendingSheet.checked)
+            selected.add(pendingSheet.value);
+        else
+            selected.delete(pendingSheet.value);
+        workbook.selectedSheets = workbook.sheetNames.filter(sheet => selected.has(sheet));
+        renderFileList();
+        return;
+    }
+    const includeInput = e.target.closest("[data-include]");
+    if (includeInput) {
+        const source = state.sources.find(item => item.id === includeInput.dataset.include);
+        if (!source)
+            return;
+        source.included = includeInput.checked;
+        state.config.sheetIncludes[sheetKey(source.name, source.sheet)] = includeInput.checked;
+        state.config.sheetIncludes[source.sheet] = includeInput.checked;
+        rebuild();
+        return;
+    }
+    const ybSel = e.target.closest("[data-override-yearbasis]");
+    if (ybSel) {
+        const source = state.sources.find(s => s.id === ybSel.dataset.overrideYearbasis);
+        if (!source)
+            return;
+        const override = ensureSourceOverride(source);
+        override.yearBasis = ybSel.value;
+        rebuild();
+        return;
+    }
+    const activeToggle = e.target.closest("[data-override-active]");
+    if (activeToggle) {
+        const source = state.sources.find(s => s.id === activeToggle.dataset.overrideActive);
+        if (!source)
+            return;
+        const override = ensureSourceOverride(source);
+        override.active = activeToggle.checked;
+        rebuild();
+        toast(activeToggle.checked ? "Configuration active for this source." : "Configuration dormant.");
+    }
+});
+["change", "input"].forEach(evt => {
+    [els.cadenceRow, els.headerRow, els.deleteRows, els.skipRowsContaining, els.skipZeroValues].forEach(el => el.addEventListener(evt, rebuild));
+});
+els.deleteRows.addEventListener("click", () => {
+    const panel = document.getElementById("deleteRowsPanel");
+    const field = document.getElementById("deleteRowsField");
+    const isOpen = panel.classList.toggle("open");
+    if (field)
+        field.classList.toggle("open", isOpen);
+});
+els.deleteColumns.addEventListener("click", () => {
+    const field = document.getElementById("deleteColumnsField");
+    const isOpen = els.deleteColumnChecklist.classList.toggle("open");
+    if (field)
+        field.classList.toggle("open", isOpen);
+});
+els.deleteColumnChecklist.addEventListener("change", e => {
+    const input = e.target.closest("[data-delete-column]");
+    if (!input)
+        return;
+    const deleted = getDeletedColumns();
+    const col = Number(input.dataset.deleteColumn);
+    if (input.checked) {
+        adjustMappingsAfterColumnDelete(visibleIndexForOriginalColumn(col));
+        deleted.add(col);
+    }
+    else
+        deleted.delete(col);
+    state.config.deleteColumns = [...deleted].sort((a, b) => a - b).map(indexToColumnLabel).join(", ");
+    refreshDeleteColumnsLabel();
+    rebuild();
+});
+els.cadenceTypeSelect.addEventListener("change", e => {
+    const input = e.target.closest("[data-cadence-type]");
+    if (!input)
+        return;
+    if (input.dataset.cadenceType === "LY") {
+        state.config.includeLy = input.checked;
+        rebuild();
+        return;
+    }
+    const set = new Set(state.config.cadenceTypes || []);
+    if (input.checked)
+        set.add(input.dataset.cadenceType);
+    else
+        set.delete(input.dataset.cadenceType);
+    state.config.cadenceTypes = CADENCES.filter(c => set.has(c));
+    rebuild();
+});
+els.cadenceMetricSelect.addEventListener("change", e => {
+    const input = e.target.closest("[data-cadence-metric]");
+    if (!input)
+        return;
+    const set = new Set(getCheckedValues(els.cadenceMetricSelect, "[data-cadence-metric]", "cadenceMetric"));
+    state.config.cadenceMetrics = getMetricOptions().map(m => m.key).filter(k => set.has(k));
+    rebuild();
+});
+els.calculatedMetricSelect.addEventListener("change", e => {
+    const customToggle = e.target.closest("[data-custom-calc-toggle]");
+    if (customToggle) {
+        els.customCalcBuilder.hidden = !customToggle.checked;
+        renderCadenceSelectors();
+        return;
+    }
+    const input = e.target.closest("[data-calculated-metric]");
+    if (!input)
+        return;
+    const set = new Set(getCheckedValues(els.calculatedMetricSelect, "[data-calculated-metric]", "calculatedMetric"));
+    state.config.calculatedMetrics = getCalculatedMetricOptions().map(m => m.key).filter(k => set.has(k));
+    rebuild();
+});
+els.saveCustomCalcBtn.addEventListener("click", () => {
+    const label = cleanHeader(els.customCalcName.value);
+    const formula = cleanHeader(els.customCalcFormula.value);
+    const baseKey = slugifyKey(label);
+    if (!label || !baseKey || !formula)
+        return toast("Name the calculated metric and enter a formula.");
+    const key = uniqueKey(baseKey, new Set(getCalculatedMetricOptions().map(metric => metric.key)));
+    state.config.customCalculatedMetrics = (state.config.customCalculatedMetrics || []).concat({ key, label, formula, format: "number" });
+    state.config.calculatedMetrics = Array.from(new Set([...(state.config.calculatedMetrics || []), key]));
+    els.customCalcName.value = "";
+    els.customCalcFormula.value = "";
+    els.customCalcBuilder.hidden = true;
+    rebuild();
+    toast(`Added calculated metric: ${label}.`);
+});
+els.addFieldBtn.addEventListener("click", () => {
+    const isOpen = !els.addFieldPopover.hidden;
+    els.addFieldPopover.hidden = isOpen;
+    if (!isOpen) {
+        els.addFieldType.value = "dimension";
+        els.addFieldFormula.hidden = true;
+        els.addFieldName.focus();
+    }
+});
+els.addFieldCancelBtn.addEventListener("click", closeAddFieldPopover);
+els.addFieldType.addEventListener("change", () => {
+    els.addFieldFormula.hidden = els.addFieldType.value !== "calculated";
+});
+els.addFieldSaveBtn.addEventListener("click", () => {
+    const type = els.addFieldType.value;
+    const label = cleanHeader(els.addFieldName.value);
+    const formula = cleanHeader(els.addFieldFormula.value);
+    let ok = false;
+    if (type === "dimension")
+        ok = addCustomDimension(label);
+    else if (type === "metric")
+        ok = addCustomMetric(label);
+    else if (type === "calculated")
+        ok = addCustomCalculatedMetric(label, formula);
+    if (ok)
+        closeAddFieldPopover();
+});
+els.addFieldName.addEventListener("keydown", e => { if (e.key === "Enter")
+    els.addFieldSaveBtn.click(); });
+els.addFieldFormula.addEventListener("keydown", e => { if (e.key === "Enter")
+    els.addFieldSaveBtn.click(); });
+els.showUnmappedOnly.addEventListener("change", () => {
+    state.config.showUnmappedOnly = els.showUnmappedOnly.checked;
+    state.config.showUnmappedOnlyTouched = true;
+    renderMappings();
+});
+document.getElementById("autoDetectBtn").addEventListener("click", () => { autoDetect(); rebuild(); toast("Header rows detected."); });
+document.getElementById("remapBtn").addEventListener("click", () => {
+    state.config.mappings = {};
+    state.config.metricMappings = {};
+    buildHeaders();
+    rebuild();
+    toast("Mappings refreshed.");
+});
+document.getElementById("clearBtn").addEventListener("click", () => {
+    state.sources = [];
+    state.headers = [];
+    state.output = [];
+    rebuild();
+});
+document.getElementById("clearDataBtn").addEventListener("click", clearAllData);
+els.mappingGrid.addEventListener("change", e => {
+    const dimSelect = e.target.closest("[data-map]");
+    if (dimSelect) {
+        if (dimSelect.value === "")
+            state.config.mappings[dimSelect.dataset.map] = null;
+        else
+            state.config.mappings[dimSelect.dataset.map] = Number(dimSelect.value);
+        rebuild();
+        return;
+    }
+    const metricSelect = e.target.closest("[data-metric-map]");
+    if (metricSelect) {
+        state.config.metricMappings = state.config.metricMappings || {};
+        if (metricSelect.value === "")
+            state.config.metricMappings[metricSelect.dataset.metricMap] = null;
+        else
+            state.config.metricMappings[metricSelect.dataset.metricMap] = Number(metricSelect.value);
+        rebuild();
+    }
+});
+els.mappingGrid.addEventListener("dragstart", e => {
+    const row = e.target.closest("[data-drag-assign]");
+    if (!row || !e.dataTransfer)
+        return;
+    e.dataTransfer.setData("text/plain", row.dataset.dragAssign);
+    e.dataTransfer.effectAllowed = "copy";
+});
+els.tableShell.addEventListener("dragover", e => {
+    const target = e.target.closest("[data-raw-drop]");
+    if (!target)
+        return;
+    e.preventDefault();
+    if (e.dataTransfer)
+        e.dataTransfer.dropEffect = "copy";
+});
+els.tableShell.addEventListener("drop", e => {
+    const target = e.target.closest("[data-raw-drop]");
+    if (!target || !e.dataTransfer)
+        return;
+    const value = e.dataTransfer.getData("text/plain");
+    if (!value)
+        return;
+    e.preventDefault();
+    assignHeaderColumn(Number(target.dataset.rawDrop), value);
+    rebuild();
+});
+const COL_DRAG_TYPE = "application/x-sellout-col";
+els.tableShell.addEventListener("dragstart", e => {
+    const th = e.target.closest("th[data-col-key]");
+    if (!th || !e.dataTransfer)
+        return;
+    e.dataTransfer.setData(COL_DRAG_TYPE, `${th.dataset.colView}|${th.dataset.colKey}`);
+    e.dataTransfer.setData("text/plain", th.dataset.colKey);
+    e.dataTransfer.effectAllowed = "move";
+    th.classList.add("col-dragging");
+});
+els.tableShell.addEventListener("dragend", e => {
+    els.tableShell.querySelectorAll("th.col-dragging").forEach(el => el.classList.remove("col-dragging"));
+    els.tableShell.querySelectorAll("th.col-drag-over").forEach(el => el.classList.remove("col-drag-over"));
+});
+els.tableShell.addEventListener("dragover", e => {
+    const th = e.target.closest("th[data-col-key]");
+    if (!th || !e.dataTransfer)
+        return;
+    const payload = e.dataTransfer.types.includes(COL_DRAG_TYPE);
+    if (!payload)
+        return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    els.tableShell.querySelectorAll("th.col-drag-over").forEach(el => { if (el !== th)
+        el.classList.remove("col-drag-over"); });
+    th.classList.add("col-drag-over");
+});
+els.tableShell.addEventListener("dragleave", e => {
+    const th = e.target.closest("th[data-col-key]");
+    if (th)
+        th.classList.remove("col-drag-over");
+});
+els.tableShell.addEventListener("drop", e => {
+    const th = e.target.closest("th[data-col-key]");
+    if (!th || !e.dataTransfer)
+        return;
+    const raw = e.dataTransfer.getData(COL_DRAG_TYPE);
+    if (!raw)
+        return;
+    e.preventDefault();
+    const [fromView, ...rest] = raw.split("|");
+    const fromKey = rest.join("|");
+    const toView = th.dataset.colView;
+    const toKey = th.dataset.colKey;
+    th.classList.remove("col-drag-over");
+    if (fromView !== toView || fromKey === toKey)
+        return;
+    if (toView === "output") {
+        state.config.outputColumnOrder = reorderColumnKeys(state.config.outputColumnOrder || [], fromKey, toKey);
+        renderTable();
+        renderStats();
+    }
+    else if (toView === "pivot") {
+        state.config.pivotColumnOrder = reorderColumnKeys(state.config.pivotColumnOrder || [], fromKey, toKey);
+        renderPivotTable();
+    }
+});
+els.tableShell.addEventListener("contextmenu", async (e) => {
+    const rowTarget = e.target.closest("[data-raw-row]");
+    if (rowTarget) {
+        e.preventDefault();
+        const rowNumber = Number(rowTarget.dataset.rawRow);
+        const actionValue = window.fashionChoice
+            ? await window.fashionChoice(`Choose what row ${rowNumber} should do for this import.`, {
+                title: `Row ${rowNumber} Actions`,
+                choices: [
+                    { label: "Header Row", value: "h", kind: "confirm" },
+                    { label: "Group Row", value: "g", kind: "confirm" },
+                    { label: "Delete Row", value: "d", kind: "confirm" },
+                    { label: "Cancel", value: "", kind: "cancel" },
+                ],
+            })
+            : prompt(`Row ${rowNumber} actions:\nH = Column Header Row\nG = Header Group Row\nD = Delete Row`, "H");
+        const action = cleanHeader(actionValue).toLowerCase();
+        if (!action)
+            return;
+        if (action === "h" || action === "header") {
+            state.config.headerRow = rowNumber;
+            els.headerRow.value = rowNumber;
+            rebuild();
+            toast(`Row ${rowNumber} set as column header row.`);
+            return;
+        }
+        if (action === "g" || action === "group") {
+            state.config.hasCadenceRow = true;
+            state.config.cadenceRow = rowNumber;
+            els.hasCadenceRow.checked = true;
+            els.cadenceRow.hidden = false;
+            els.cadenceRow.value = rowNumber;
+            rebuild();
+            toast(`Row ${rowNumber} set as header group row.`);
+            return;
+        }
+        if (action !== "d" && action !== "delete")
+            return;
+        if (!await confirmDelete(`Delete row ${rowNumber} from this import?`))
+            return;
+        state.config.deleteRows = mergeNumberSpec(state.config.deleteRows, rowNumber);
+        els.deleteRows.value = state.config.deleteRows;
+        rebuild();
+        toast(`Deleted row ${rowNumber}.`);
+        return;
+    }
+    const colTarget = e.target.closest("[data-raw-drop]");
+    if (colTarget) {
+        e.preventDefault();
+        const col = Number(colTarget.dataset.deleteColumnOriginal ?? colTarget.dataset.rawDrop);
+        const source = getIncludedSources()[0];
+        const workingRows = source ? getRowsForSource(source, { keepDeletedColumns: true }).map(item => item.row) : [];
+        const headerRow = workingRows[Math.max(0, Number(state.config.headerRow) - 1)] || [];
+        const label = cleanHeader(headerRow[col]) || indexToColumnLabel(col);
+        if (!await confirmDelete(`Delete column ${label} from this import?`))
+            return;
+        adjustMappingsAfterColumnDelete(Number(colTarget.dataset.rawDrop));
+        state.config.deleteColumns = mergeColumnSpec(state.config.deleteColumns, col);
+        refreshDeleteColumnsLabel();
+        rebuild();
+        toast(`Deleted column ${indexToColumnLabel(col)}.`);
+    }
+});
+els.tableShell.addEventListener("click", e => {
+    const opener = e.target.closest("[data-open-assign]");
+    if (!opener)
+        return;
+    e.preventDefault();
+    renderAssignPopover(Number(opener.dataset.openAssign), opener);
+});
+els.assignPopover.addEventListener("click", e => {
+    const headerIndex = Number(els.assignPopover.dataset.headerIndex);
+    const assign = e.target.closest("[data-assign-value]");
+    if (assign) {
+        assignHeaderColumn(headerIndex, assign.dataset.assignValue);
+        closeAssignPopover();
+        rebuild();
+        return;
+    }
+    const custom = e.target.closest("[data-custom-assign]");
+    if (custom) {
+        const name = cleanHeader(document.getElementById("assignCustomName")?.value);
+        if (!name)
+            return toast("Name the custom field first.");
+        const field = addCustomFieldWithLabel(name, custom.dataset.customAssign);
+        if (!field)
+            return;
+        if (custom.dataset.customAssign === "dimension")
+            assignHeaderColumn(headerIndex, `dimension:${field.key}`);
+        else
+            assignHeaderColumn(headerIndex, `metric:${metricMapKey(getActiveCadences()[0] || "WTD", "TY", field.key)}`);
+        closeAssignPopover();
+        rebuild();
+    }
+});
+document.addEventListener("click", e => {
+    if (!els.assignPopover?.classList.contains("open"))
+        return;
+    if (e.target.closest("#assignPopover") || e.target.closest("[data-open-assign]"))
+        return;
+    closeAssignPopover();
+});
+els.tableShell.addEventListener("change", e => {
+    const pivotDimension = e.target.closest("[data-pivot-dimension]");
+    if (pivotDimension) {
+        const key = pivotDimension.dataset.pivotDimension;
+        const set = new Set(state.config.pivotDimensions || []);
+        if (pivotDimension.checked)
+            set.add(key);
+        else
+            set.delete(key);
+        state.config.pivotDimensions = getPivotDimensionOptions().map(item => item.value).filter(k => set.has(k));
+        state.config.pivotColumnDimensions = (state.config.pivotColumnDimensions || []).filter(k => k !== key);
+        renderPivotTable();
+        return;
+    }
+    const pivotColDim = e.target.closest("[data-pivot-col-dimension]");
+    if (pivotColDim) {
+        const key = pivotColDim.dataset.pivotColDimension;
+        const set = new Set(state.config.pivotColumnDimensions || []);
+        if (pivotColDim.checked)
+            set.add(key);
+        else
+            set.delete(key);
+        state.config.pivotColumnDimensions = getPivotDimensionOptions().map(item => item.value).filter(k => set.has(k));
+        state.config.pivotDimensions = (state.config.pivotDimensions || []).filter(k => k !== key);
+        renderPivotTable();
+        return;
+    }
+    const pivotMetric = e.target.closest("[data-pivot-metric]");
+    if (pivotMetric) {
+        state.config.pivotMetricsTouched = true;
+        const set = new Set(state.config.pivotMetrics || []);
+        if (pivotMetric.checked)
+            set.add(pivotMetric.dataset.pivotMetric);
+        else
+            set.delete(pivotMetric.dataset.pivotMetric);
+        state.config.pivotMetrics = getPivotMetricOptions().map(item => item.value).filter(key => set.has(key));
+        renderPivotTable();
+        return;
+    }
+    const dimSelect = e.target.closest("[data-header-dimension]");
+    if (dimSelect) {
+        const headerIndex = Number(dimSelect.dataset.headerDimension);
+        assignHeaderColumn(headerIndex, dimSelect.value ? `dimension:${dimSelect.value}` : "");
+        rebuild();
+        return;
+    }
+    const metricSelect = e.target.closest("[data-header-metric]");
+    if (metricSelect) {
+        const headerIndex = Number(metricSelect.dataset.headerMetric);
+        assignHeaderColumn(headerIndex, metricSelect.value ? `metric:${metricSelect.value}` : "");
+        rebuild();
+    }
+});
+els.outputControls.addEventListener("change", e => {
+    const meta = e.target.closest("[data-output-meta]");
+    if (meta) {
+        state.config.outputMeta = state.config.outputMeta || {};
+        state.config.outputMeta[meta.dataset.outputMeta] = meta.checked;
+        renderOutputControls();
+        renderTable();
+        renderStats();
+        return;
+    }
+    const dim = e.target.closest("[data-output-dimension]");
+    if (dim) {
+        state.config.outputDimensionsTouched = true;
+        const set = new Set(getActiveOutputDimensions());
+        if (dim.checked)
+            set.add(dim.dataset.outputDimension);
+        else
+            set.delete(dim.dataset.outputDimension);
+        state.config.outputDimensions = getOutputDimensionOptions().map(item => item.value).filter(key => set.has(key));
+        renderOutputControls();
+        renderTable();
+        renderStats();
+        return;
+    }
+    const metric = e.target.closest("[data-output-metric]");
+    if (metric) {
+        state.config.outputMetricsTouched = true;
+        const set = new Set(getActiveOutputMetrics());
+        if (metric.checked)
+            set.add(metric.dataset.outputMetric);
+        else
+            set.delete(metric.dataset.outputMetric);
+        state.config.outputMetrics = getOutputMetricOptions().map(item => item.value).filter(key => set.has(key));
+        renderOutputControls();
+        renderTable();
+        renderStats();
+        return;
+    }
+    const breakout = e.target.closest("[data-output-breakout]");
+    if (breakout) {
+        const set = new Set(getActiveOutputBreakouts());
+        if (breakout.checked)
+            set.add(breakout.dataset.outputBreakout);
+        else
+            set.delete(breakout.dataset.outputBreakout);
+        state.config.outputBreakouts = OUTPUT_BREAKOUT_AXES.filter(axis => set.has(axis));
+        state.config.outputBreakoutValueAxes = getActiveOutputBreakoutValueAxes();
+        state.config.outputColumnOrder = [];
+        renderOutputControls();
+        renderTable();
+        renderStats();
+        return;
+    }
+    const breakoutValue = e.target.closest("[data-output-breakout-value]");
+    if (breakoutValue) {
+        const set = new Set(getActiveOutputBreakoutValueAxes());
+        if (breakoutValue.checked)
+            set.add(breakoutValue.dataset.outputBreakoutValue);
+        else
+            set.delete(breakoutValue.dataset.outputBreakoutValue);
+        state.config.outputBreakoutValueAxes = OUTPUT_BREAKOUT_AXES.filter(axis => getActiveOutputBreakouts().includes(axis) && set.has(axis));
+        state.config.outputColumnOrder = [];
+        renderOutputControls();
+        renderTable();
+        renderStats();
+    }
+});
+document.querySelectorAll("[data-collapse]").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const id = btn.dataset.collapse;
+        setActiveWorkflowPanel(id, { touched: true });
+    });
+});
+document.querySelectorAll(".flow-panel > .panel-header").forEach(header => {
+    header.addEventListener("click", e => {
+        if (e.target.closest("button, a, input, select, textarea"))
+            return;
+        const panel = header.closest(".flow-panel");
+        if (!panel || !panel.id)
+            return;
+        setActiveWorkflowPanel(panel.id, { touched: true });
+    });
+});
+document.querySelectorAll(".view-tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+        document.querySelectorAll(".view-tab").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.view = btn.dataset.view;
+        renderOutputControls();
+        renderTable();
+    });
+});
+document.querySelectorAll(".subtab").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const target = btn.dataset.subtab;
+        const tabs = btn.parentElement.querySelectorAll(".subtab");
+        const panel = btn.closest(".panel-body");
+        tabs.forEach(b => b.classList.toggle("active", b === btn));
+        panel.querySelectorAll(".subtab-pane").forEach(p => p.classList.toggle("active", p.dataset.subtabPane === target));
+    });
+});
+els.downloadCsvBtn.addEventListener("click", () => downloadBlob(`Sellout_Standardized_${today()}.csv`, "text/csv", makeCsv(getExportOutputRows())));
+els.downloadJsonBtn.addEventListener("click", () => downloadBlob(`Sellout_Standardized_${today()}.json`, "application/json", JSON.stringify(getExportOutputRows(), null, 2)));
+els.downloadXlsxBtn.addEventListener("click", exportXlsx);
+els.exportMenuBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    toggleExportMenu();
+});
+els.downloadStakeholderXlsxBtn.addEventListener("click", () => {
+    closeExportMenu();
+    exportStakeholderWorkbook();
+});
+els.downloadPivotXlsxBtn.addEventListener("click", () => {
+    closeExportMenu();
+    exportPivotWorkbook();
+});
+els.setPivotTemplateBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    els.pivotTemplateInput.click();
+});
+els.pivotTemplateInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (file)
+        await setPivotTemplate(file);
+    e.target.value = "";
+});
+els.exportBtn.addEventListener("click", exportXlsx);
+els.configMenuBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    toggleConfigMenu();
+});
+els.saveConfigBtn.addEventListener("click", saveCurrentConfig);
+els.loadConfigBtn.addEventListener("click", () => els.configInput.click());
+els.configMenu.addEventListener("click", e => {
+    e.stopPropagation();
+    const loadBtn = e.target.closest("[data-load-saved-config]");
+    const deleteBtn = e.target.closest("[data-delete-saved-config]");
+    if (loadBtn)
+        applySavedConfig(loadBtn.dataset.loadSavedConfig);
+    if (deleteBtn)
+        deleteSavedConfig(deleteBtn.dataset.deleteSavedConfig);
+});
+document.addEventListener("click", e => {
+    if (!e.target.closest(".config-menu-wrap"))
+        closeConfigMenu();
+    if (!e.target.closest(".export-menu-wrap"))
+        closeExportMenu();
+});
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape") {
+        closeConfigMenu();
+        closeExportMenu();
+    }
+});
+els.configInput.addEventListener("change", e => {
+    if (e.target.files[0])
+        importConfig(e.target.files[0]);
+    e.target.value = "";
+});
+initInfoModal();
+renderConfigHistory();
+loadCachedPivotTemplate();
+renderPivotTemplateStatus();
+try {
+    localStorage.removeItem(LEGACY_PROGRESS_KEY);
+}
+catch (error) { }
+rebuild();

@@ -6,6 +6,43 @@
 
 window.PROJECTS = [
   {
+      "num": "33",
+      "id": "pdf-studio",
+      "title": "PDF Studio",
+      "short": "An Acrobat-style PDF toolkit that runs entirely in the browser.",
+      "desc": "A local, browser-based document toolkit modeled on the everyday jobs people open Acrobat for — view, organize, merge, split, compress, watermark, number, convert and edit PDFs, plus a batch image compressor. Eleven tools share one work surface and the cloonk theme.\n\nThe whole thing runs client-side: pdf.js renders and reads pages, pdf-lib rewrites them, JSZip packages multi-file output. No account, no upload, no server — a file dropped in never leaves the tab. It's the rare case where 'on-device' isn't a privacy nicety but the entire architecture: there is no backend to send anything to.",
+      "topic": "data analysis",
+      "type": "Tools",
+      "year": "2026",
+      "affiliation": null,
+      "img": "https://cloonk.com/favicon.svg",
+      "gallery": [],
+      "media": [],
+      "pdf": null,
+      "pdf_label": null,
+      "figma": null, "sheets": null, "canva": null,
+      "github": "https://github.com/cloonkie/cloonk.com/tree/main/projects/pdf-studio",
+      "live": "https://cloonk.com/projects/pdf-studio/",
+      "hideStatMoments": true,
+      "hideStatements": true,
+      "quotes": null, "findings": null, "statMoments": null, "impact": null, "statements": null,
+      "context": {
+        "problem": "The everyday PDF jobs — combine a few files, pull out a page range, shrink a scan small enough to email, drop a DRAFT watermark, turn photos into a PDF — usually mean a paid Acrobat seat or uploading sensitive documents to a free web converter whose privacy terms nobody reads. Both are bad options for a quick, one-off task on a file you'd rather not hand to a stranger's server."
+      },
+      "approach": {
+        "summary": "A single-page app with eleven focused tools on a shared work surface, styled in the cloonk light/dark system. pdf.js handles rendering, search, and text extraction; pdf-lib handles every structural edit (merge, split, rotate, reorder, delete, watermark, page numbers, metadata, image embedding); JSZip packages multi-file downloads. The compressor re-renders pages to JPEG at a chosen DPI and quality. Nothing is uploaded — there is no backend.",
+        "data": ["JavaScript (ES modules)", "pdf.js", "pdf-lib", "JSZip", "Canvas API", "Client-side processing", "GitHub Pages"]
+      },
+      "results": {
+        "before": ["Routine PDF edits required a paid desktop app or an upload-to-a-stranger web tool", "Sensitive documents left the user's machine to get processed", "No single place for view + organize + convert + compress"],
+        "after": ["Eleven tools — organize/view, merge, split, compress, watermark, page numbers, metadata, images→PDF, PDF→images, extract text, image compressor — in one browser tab", "Files never leave the device; the privacy guarantee is structural, not a promise", "Free, login-free, installs nothing, works offline once loaded"]
+      },
+      "takeaways": [
+        { "title": "On-device is a feature, not a footnote", "body": "For documents, 'nothing is uploaded' is the whole value proposition. Browsers can now render, rewrite, and repackage PDFs entirely client-side — so the honest version of a PDF tool is one with no server to send your file to in the first place. The constraint and the selling point are the same thing." }
+      ]
+    },
+
+  {
       "num": "32",
       "id": "fashion-toolbox",
       "title": "Fashion Toolbox",

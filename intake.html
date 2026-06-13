@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio Intake | cloonk.com</title>
+  <meta name="description" content="A guided content intake for building a portfolio website." />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#0a0c0f" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/intake.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark');</script>
+  <style>
+    /* ── Intake-specific ── */
+
+    .intake-progress {
+      position: sticky;
+      top: 57px;
+      z-index: 30;
+      background: rgba(244, 237, 227, 0.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .intake-steps-nav {
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .intake-steps-nav::-webkit-scrollbar { display: none; }
+
+    .intake-step-tab {
+      flex-shrink: 0;
+      font-family: var(--font-grotesk);
+      font-size: 0.63rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0.9rem 1.25rem;
+      border: none;
+      background: transparent;
+      cursor: default;
+      white-space: nowrap;
+      transition: color 0.18s;
+      position: relative;
+    }
+
+    .intake-step-tab.active { color: var(--text); }
+
+    .intake-step-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 1.25rem; right: 1.25rem;
+      height: 2px;
+      background: var(--text);
+    }
+
+    .intake-step-tab.done { color: var(--muted); opacity: 0.55; }
+
+    .intake-progress-bar {
+      height: 2px;
+      background: var(--border-solid);
+    }
+
+    .intake-progress-fill {
+      height: 100%;
+      background: var(--text);
+      transition: width 0.45s ease;
+    }
+
+    /* Content */
+    .intake-content { padding: 4rem 0 7rem; }
+
+    .form-step { display: none; }
+    .form-step.active { display: block; }
+
+    /* Step header */
+    .form-step-header {
+      margin-bottom: 3rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-step-number {
+      font-family: var(--font-grotesk);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .form-step-title {
+      font-family: var(--font-serif);
+      font-size: clamp(2.25rem, 3.5vw, 3.5rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.03;
+    }
+
+    .form-step-desc {
+      font-family: var(--font-body);
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.8;
+      margin-top: 0.85rem;
+      max-width: 50ch;
+    }
+
+    /* Grids */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-grid--full { grid-template-columns: 1fr; }
+
+    .form-field { display: flex; flex-direction: column; gap: 0.5rem; }
+    .form-field--full { grid-column: 1 / -1; }
+
+    /* Labels & inputs */
+    .form-label {
+      font-family: var(--font-grotesk);
+      font-size: 0.61rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .form-label em {
+      font-style: normal;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 0.78rem;
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+      font-family: var(--font-body);
+      font-size: 0.925rem;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border-solid);
+      border-radius: 2px;
+      padding: 0.75rem 1rem;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s;
+      line-height: 1.5;
+      -webkit-appearance: none;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus,
+    .form-select:focus {
+      border-color: var(--text);
+      box-shadow: 0 0 0 3px rgba(28,19,9,0.06);
+    }
+
+    .form-input::placeholder,
+    .form-textarea::placeholder { color: var(--muted); opacity: 0.55; }
+
+    .form-textarea { resize: vertical; min-height: 108px; }
+
+    .form-hint {
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* Char counter */
+    .char-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .char-count {
+      font-family: var(--font-grotesk);
+      font-size: 0.62rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+
+    .char-count.over { color: #c0392b; }
+
+    /* Section divider */
+    .form-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 3rem 0;
+    }
+
+    .form-section-label {
+      font-family: var(--font-grotesk);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    /* Entry cards */
+    .entry-card {
+      border: 1px solid var(--border-solid);
+      border-radius: 2px;
+      padding: 2rem;
+      margin-bottom: 1.25rem;
+      background: var(--surface);
+    }
+
+    .entry-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .entry-card-label {
+      font-family: var(--font-grotesk);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .entry-remove-btn {
+      font-family: var(--font-grotesk);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid var(--border-solid);
+      border-radius: 2px;
+      padding: 0.3rem 0.8rem;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .entry-remove-btn:hover { color: var(--text); border-color: var(--muted); }
+
+    .add-entry-btn {
+      font-family: var(--font-grotesk);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: transparent;
+      border: 1px dashed var(--border-solid);
+      border-radius: 2px;
+      padding: 1rem;
+      width: 100%;
+      cursor: pointer;
+      text-align: center;
+      transition: color 0.18s, border-color 0.18s;
+      margin-top: 0.25rem;
+    }
+
+    .add-entry-btn:hover { color: var(--text); border-color: var(--muted); }
+
+    /* Tag chips */
+    .form-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .form-tag-chip {
+      font-family: var(--font-grotesk);
+      font-size: 0.61rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: 1px solid var(--border-solid);
+      border-radius: 2px;
+      padding: 0.3rem 0.8rem;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .form-tag-chip:hover { color: var(--text); border-color: var(--muted); }
+
+    .form-tag-chip.selected {
+      background: var(--text);
+      color: var(--btn-primary-fg);
+      border-color: var(--text);
+    }
+
+    /* Navigation */
+    .form-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 3rem;
+      margin-top: 3rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Summary */
+    .output-code {
+      font-family: 'Courier New', monospace;
+      font-size: 0.78rem;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border-solid);
+      border-radius: 2px;
+      padding: 1.5rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 420px;
+      overflow-y: auto;
+      margin-top: 1rem;
+    }
+
+    .summary-section {
+      margin-bottom: 2rem;
+    }
+
+    .summary-section-title {
+      font-family: var(--font-grotesk);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .copy-btn {
+      font-family: var(--font-grotesk);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: var(--text);
+      color: var(--btn-primary-fg);
+      border: none;
+      border-radius: 2px;
+      padding: 0.7rem 1.5rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: opacity 0.15s;
+    }
+
+    .copy-btn:hover { opacity: 0.82; }
+    .copy-btn.copied { opacity: 0.6; }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .intake-content { padding: 2.5rem 0 5rem; }
+      .entry-card { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body class="intake-body">
+
+  <nav>
+    <a class="nav__logo" id="nav-logo" href="index.html">cloonk ʕ·ᴥ·ʔ</a>
+    <div class="nav__links">
+      <a href="projects.html">Work</a>
+      <a href="resume.html">Resume</a>
+      <a href="info.html">Info</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="nav__right">
+      <span class="nav__clock" id="nav-clock"></span>
+      <button class="nav__theme-toggle" id="nav-theme-toggle" aria-label="Toggle light/dark mode">
+        <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <button class="nav__hamburger" id="nav-hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="nav__mobile-menu" id="nav-mobile-menu">
+    <a href="projects.html">Work</a>
+    <a href="resume.html">Resume</a>
+    <a href="info.html">Info</a>
+    <a href="contact.html">Contact</a>
+  </div>
+
+  <!-- Step progress bar -->
+  <div class="intake-progress">
+    <div class="intake-steps-nav" id="stepsNav">
+      <button class="intake-step-tab active" data-step="0">01&nbsp;&nbsp;Identity</button>
+      <button class="intake-step-tab" data-step="1">02&nbsp;&nbsp;About</button>
+      <button class="intake-step-tab" data-step="2">03&nbsp;&nbsp;Projects</button>
+      <button class="intake-step-tab" data-step="3">04&nbsp;&nbsp;Experience</button>
+      <button class="intake-step-tab" data-step="4">05&nbsp;&nbsp;Education</button>
+      <button class="intake-step-tab" data-step="5">06&nbsp;&nbsp;Contact</button>
+      <button class="intake-step-tab" data-step="6">07&nbsp;&nbsp;Export</button>
+    </div>
+    <div class="intake-progress-bar">
+      <div class="intake-progress-fill" id="progressFill" style="width:0%;"></div>
+    </div>
+  </div>
+
+  <main>
+    <div class="intake-content">
+      <div class="container" style="max-width:820px;">
+
+        <!-- ──────────────────── Step 0: Identity ──────────────────── -->
+        <div class="form-step active" id="step-0">
+          <div class="form-step-header">
+            <p class="form-step-number">Step 01 of 07</p>
+            <h2 class="form-step-title">Who are you?</h2>
+            <p class="form-step-desc">The basics that anchor your entire site — your name, how you describe yourself, and the first words a visitor reads.</p>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="form-label" for="f-name">Full name</label>
+              <input class="form-input" id="f-name" type="text" placeholder="Charles Bui" autocomplete="name" />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-title">Professional title <em>— browser tab &amp; hero</em></label>
+              <input class="form-input" id="f-title" type="text" placeholder="Digital Media Strategist" />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-location">City, State</label>
+              <input class="form-input" id="f-location" type="text" placeholder="Los Angeles, CA" />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-eyebrow">Hero eyebrow <em>— tiny label above h1</em></label>
+              <input class="form-input" id="f-eyebrow" type="text" placeholder="Digital Media Strategist · Los Angeles" />
+            </div>
+          </div>
+
+          <div class="form-grid form-grid--full">
+            <div class="form-field">
+              <label class="form-label" for="f-tagline">Hero headline <em>— wrap the italic line in &lt;em&gt;&lt;/em&gt;</em></label>
+              <input class="form-input" id="f-tagline" type="text" placeholder="Howdy, I'm Charles. &lt;em&gt;I make things people actually feel.&lt;/em&gt;" />
+            </div>
+
+            <div class="form-field" style="margin-top:1rem;">
+              <label class="form-label" for="f-hero-text">Hero subtext <em>— 1–2 sentences below the headline</em></label>
+              <textarea class="form-textarea" id="f-hero-text" rows="3" placeholder="I'm a strategist, creative producer, and occasional over-thinker based in LA. I've spent years figuring out how to make brands feel like people — and people feel genuinely seen."></textarea>
+            </div>
+
+            <div class="form-field" style="margin-top:1rem;">
+              <div class="char-row">
+                <label class="form-label" for="f-meta-desc">Meta description <em>— shown in Google search results, max 160 chars</em></label>
+                <span class="char-count" id="meta-count">0 / 160</span>
+              </div>
+              <textarea class="form-textarea" id="f-meta-desc" rows="2" maxlength="200" placeholder="Charles Bui is a digital media strategist and creative producer based in Los Angeles — campaign strategy, media planning, event marketing, and brand storytelling."></textarea>
+            </div>
+
+            <div class="form-field" style="margin-top:1rem;">
+              <label class="form-label" for="f-og-tagline">Social share blurb <em>— shown when shared on LinkedIn, Twitter, iMessage</em></label>
+              <input class="form-input" id="f-og-tagline" type="text" placeholder="Strategist, creative producer, and storyteller based in LA. I make brands feel like people — and people feel genuinely seen." />
+            </div>
+          </div>
+
+          <div class="form-nav">
+            <div></div>
+            <button class="button button-primary" onclick="goStep(1)">Next — About &rarr;</button>
+          </div>
+        </div>
+
+        <!-- ──────────────────── Step 1: About ──────────────────── -->
+        <div class="form-step" id="step-1">
+          <div class="form-step-header">
+            <p class="form-step-number">Step 02 of 07</p>
+            <h2 class="form-step-title">Your story.</h2>
+            <p class="form-step-desc">Write 3 short paragraphs like you're talking to someone at a dinner party — personal, specific, grounded. The closing note appears in a lighter color as a casual aside.</p>
+          </div>
+
+          <div class="form-grid form-grid--full">
+            <div class="form-field">
+              <label class="form-label" for="f-about-1">Paragraph 1 <em>— background, upbringing, what made you curious</em></label>
+              <textarea class="form-textarea" id="f-about-1" rows="5" placeholder="Hey — I'm [Name] (he/they). I grew up in [city], [background], and deeply in love with [things]. That upbringing made me curious about why things resonate — what makes a moment feel real rather than manufactured."></textarea>
+            </div>
+
+            <div class="form-field" style="margin-top:1rem;">
+              <label class="form-label" for="f-about-2">Paragraph 2 <em>— education pivot, what you got obsessed with, where you are now</em></label>
+              <textarea class="form-textarea" id="f-about-2" rows="5" placeholder="I studied [X] at [school] before going deep into [Y] at [school 2], where I got obsessed with [specific thing]. Now at [company], I get to put that thinking to work."></textarea>
+            </div>
+
+            <div class="form-field" style="margin-top:1rem;">
+              <label class="form-label" for="f-about-3">Paragraph 3 <em>— what your hands-on practice taught you, the bar you hold yourself to</em></label>
+              <textarea class="form-textarea" id="f-about-3" rows="5" placeholder="[N] years of [work] taught me something no classroom could: the strategy only matters if the execution makes people feel something. That's the bar I hold myself to."></textarea>
+            </div>
+
+            <div class="form-field" style="margin-top:1rem;">
+              <label class="form-label" for="f-about-closer">Closing aside <em>— light, offhand, human. Shown in muted color.</em></label>
+              <input class="form-input" id="f-about-closer" type="text" placeholder="When I'm not at a desk, I'm probably at a concert." />
+            </div>
+          </div>
+
+          <div class="form-nav">
+            <button class="button button-secondary" onclick="goStep(0)">&larr; Back</button>
+            <button class="button button-primary" onclick="goStep(2)">Next — Projects &rarr;</button>
+          </div>
+        </div>
+
+        <!-- ──────────────────── Step 2: Projects ──────────────────── -->
+        <div class="form-step" id="step-2">
+          <div class="form-step-header">
+            <p class="form-step-number">Step 03 of 07</p>
+            <h2 class="form-step-title">Your work.</h2>
+            <p class="form-step-desc">Add up to 6 projects. The first two are automatically featured on the homepage. Each project can be a full case-study page or just a card in the work grid.</p>
+          </div>
+
+          <div id="projects-container"></div>
+          <button class="add-entry-btn" id="add-project-btn">+ Add a project</button>
+
+          <div class="form-nav">
+            <button class="button button-secondary" onclick="goStep(1)">&larr; Back</button>
+            <button class="button button-primary" onclick="goStep(3)">Next — Experience &rarr;</button>
+          </div>
+        </div>
+
+        <!-- ──────────────────── Step 3: Experience ──────────────────── -->
+        <div class="form-step" id="step-3">
+          <div class="form-step-header">
+            <p class="form-step-number">Step 04 of 07</p>
+            <h2 class="form-step-title">Your experience.</h2>
+            <p class="form-step-desc">List roles in reverse chronological order. Include full-time, part-time, and significant freelance. Use concise, active-voice descriptions — one to three sentences each.</p>
+          </div>
+
+          <div id="experience-container"></div>
+          <button class="add-entry-btn" id="add-exp-btn">+ Add a role</button>
+
+          <div class="form-nav">
+            <button class="button button-secondary" onclick="goStep(2)">&larr; Back</button>
+            <button class="button button-primary" onclick="goStep(4)">Next — Education &rarr;</button>
+          </div>
+        </div>
+
+        <!-- ──────────────────── Step 4: Education ──────────────────── -->
+        <div class="form-step" id="step-4">
+          <div class="form-step-header">
+            <p class="form-step-number">Step 05 of 07</p>
+            <h2 class="form-step-title">Education &amp; interests.</h2>
+            <p class="form-step-desc">Academic credentials first, then the things you care about outside of work. The "outside of work" entries make your resume feel like a person wrote it.</p>
+          </div>
+
+          <p class="form-section-label">Degrees</p>
+          <div id="education-container"></div>
+          <button class="add-entry-btn" id="add-edu-btn">+ Add a degree</button>
+
+          <hr class="form-divider" />
+
+          <p class="form-section-label">Outside of work <em style="font-weight:400; font-style:normal; text-transform:none; letter-spacing:0; font-size:0.8rem; color:var(--muted);">— interests that inform your practice</em></p>
+          <div id="interests-container"></div>
+          <button class="add-entry-btn" id="add-interest-btn">+ Add an interest</button>
+
+          <div class="form-nav">
+            <button class="button button-secondary" onclick="goStep(3)">&larr; Back</button>
+            <button class="button button-primary" onclick="goStep(5)">Next — Contact &rarr;</button>
+          </div>
+        </div>
+
+        <!-- ──────────────────── Step 5: Contact ──────────────────── -->
+        <div class="form-step" id="step-5">
+          <div class="form-step-header">
+            <p class="form-step-number">Step 06 of 07</p>
+            <h2 class="form-step-title">How to reach you.</h2>
+            <p class="form-step-desc">Links that appear in the footer and as CTA buttons across the site. Email is the minimum — LinkedIn and a writing platform are strongly recommended.</p>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="form-label" for="f-email">Email address</label>
+              <input class="form-input" id="f-email" type="email" placeholder="you@example.com" autocomplete="email" />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-linkedin">LinkedIn URL</label>
+              <input class="form-input" id="f-linkedin" type="url" placeholder="https://linkedin.com/in/yourhandle" />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-writing-url">Writing platform URL <em>— Substack, Medium, etc.</em></label>
+              <input class="form-input" id="f-writing-url" type="url" placeholder="https://substack.com/@yourhandle" />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-writing-name">Writing platform name</label>
+              <input class="form-input" id="f-writing-name" type="text" placeholder="Substack" />
+            </div>
+          </div>
+
+          <hr class="form-divider" />
+          <p class="form-section-label">Domain, hosting &amp; media</p>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="form-label" for="f-domain-name">Preferred domain name</label>
+              <input class="form-input" id="f-domain-name" type="text" placeholder="yourname.com" />
+              <span class="form-hint">Check the exact domain with a registrar before marking it available.</span>
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-domain-plan">Domain setup needed</label>
+              <select class="form-input" id="f-domain-plan">
+                <option value="">Select one</option>
+                <option value="register-new">Register a new domain</option>
+                <option value="transfer-existing">Transfer an existing domain</option>
+                <option value="connect-existing">Keep the current registrar and connect the domain</option>
+                <option value="subdomain">Use an existing subdomain</option>
+                <option value="unsure">Not sure yet</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-domain-availability">Registration or transfer availability</label>
+              <select class="form-input" id="f-domain-availability">
+                <option value="">Select one</option>
+                <option value="available-confirmed">Available — confirmed</option>
+                <option value="transfer-eligible-confirmed">Transfer eligible — confirmed</option>
+                <option value="registered-connect-only">Already registered — connect only</option>
+                <option value="unavailable">Unavailable — alternatives needed</option>
+                <option value="not-checked">Not checked yet</option>
+              </select>
+              <span class="form-hint">For transfers, confirm the domain is unlocked and that an authorization code can be obtained.</span>
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-domain-registrar">Current or preferred registrar</label>
+              <input class="form-input" id="f-domain-registrar" type="text" placeholder="Cloudflare, Namecheap, Squarespace..." />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-media-database">Online media database needed?</label>
+              <select class="form-input" id="f-media-database">
+                <option value="">Select one</option>
+                <option value="no-static-assets">No — static site assets are enough</option>
+                <option value="yes-cms-library">Yes — CMS or managed media library</option>
+                <option value="yes-cloud-storage">Yes — cloud object storage</option>
+                <option value="yes-searchable-database">Yes — searchable media database</option>
+                <option value="unsure">Unsure — assess based on volume and updates</option>
+              </select>
+              <span class="form-hint">Usually needed for frequent uploads, large libraries, team editing, or searchable/filterable media.</span>
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-media-location">Current media location</label>
+              <input class="form-input" id="f-media-location" type="text" placeholder="Google Drive, Dropbox, local folders..." />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-media-compression">Are media assets compressed?</label>
+              <select class="form-input" id="f-media-compression">
+                <option value="">Select one</option>
+                <option value="optimized">Yes — web-ready and optimized</option>
+                <option value="partially-optimized">Partially — some assets still need work</option>
+                <option value="not-optimized">No — original or high-resolution files only</option>
+                <option value="unsure">Unsure — audit required</option>
+              </select>
+              <span class="form-hint">Check image dimensions, file sizes, and whether modern formats such as WebP or AVIF are available.</span>
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-media-volume">Approximate media volume</label>
+              <input class="form-input" id="f-media-volume" type="text" placeholder="e.g. 80 images, 12 videos, 4 GB total" />
+            </div>
+          </div>
+
+          <hr class="form-divider" />
+          <p class="form-section-label">Files &amp; assets</p>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="form-label" for="f-resume-url">Resume file URL <em>— PDF or image</em></label>
+              <input class="form-input" id="f-resume-url" type="url" placeholder="https://..." />
+              <span class="form-hint">Upload to Google Drive or Dropbox and paste the direct-download link.</span>
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-og-image">Social preview image URL <em>— 1200×630px ideal</em></label>
+              <input class="form-input" id="f-og-image" type="url" placeholder="https://..." />
+              <span class="form-hint">Shown when your site is shared on social media. Use your strongest project image.</span>
+            </div>
+          </div>
+
+          <hr class="form-divider" />
+          <p class="form-section-label">Writing section <em style="font-weight:400; font-style:normal; text-transform:none; letter-spacing:0; font-size:0.8rem; color:var(--muted);">— homepage blurb above the writing link</em></p>
+
+          <div class="form-grid form-grid--full">
+            <div class="form-field">
+              <label class="form-label" for="f-writing-blurb">Writing blurb <em>— 1–2 sentences</em></label>
+              <textarea class="form-textarea" id="f-writing-blurb" rows="3" placeholder="I write about the things that live between grad school and industry reality — platform disruption, ethical communication, what brands get wrong about culture. Sometimes I just write about music."></textarea>
+            </div>
+          </div>
+
+          <div class="form-nav">
+            <button class="button button-secondary" onclick="goStep(4)">&larr; Back</button>
+            <button class="button button-primary" onclick="buildExport(); goStep(6);">Review &amp; export &rarr;</button>
+          </div>
+        </div>
+
+        <!-- ──────────────────── Step 6: Export ──────────────────── -->
+        <div class="form-step" id="step-6">
+          <div class="form-step-header">
+            <p class="form-step-number">Step 07 of 07</p>
+            <h2 class="form-step-title">Here's everything.</h2>
+            <p class="form-step-desc">Copy the JSON below and send it to your developer alongside your image assets. It contains every piece of content needed to build your site from scratch.</p>
+          </div>
+
+          <div id="export-output"></div>
+
+          <div class="form-nav">
+            <button class="button button-secondary" onclick="goStep(5)">&larr; Back</button>
+            <button class="button button-primary copy-btn" id="copy-btn" onclick="copyExport()">Copy JSON to clipboard</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="index-footer">
+    <div class="footer__left">
+      <div class="footer__socials">
+        <a href="https://instagram.com/cloonk" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://linkedin.com/in/cloonk/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://open.spotify.com/user/22rxk5lrx3w4nz3y5ehvyd2ja" target="_blank" rel="noopener">Spotify</a>
+      </div>
+    </div>
+    <div class="footer__right">
+      <a href="https://cloonk.com">&copy; 2025 Kevin Zhang</a>
+    </div>
+  </footer>
+
+  <script src="js/nav.js"></script>
+  <script src="js/logo.js"></script>
+  <script src="js/cursor.js"></script>
+  <script>
+  (function () {
+
+    /* ── State ── */
+    var currentStep = 0;
+    var TOTAL = 7;
+    var counts = { project: 0, exp: 0, edu: 0, interest: 0 };
+
+    var CATS = [
+      'Campaign Strategy', 'Media Planning', 'Event Marketing',
+      'Brand Strategy', 'Content Production', 'Experiential',
+      'Social Media', 'Analytics', 'Gen Z', 'Photography',
+      'Brand Identity', 'Copywriting'
+    ];
+
+    /* ── Navigation ── */
+    window.goStep = function (n) {
+      document.getElementById('step-' + currentStep).classList.remove('active');
+      document.getElementById('step-' + n).classList.add('active');
+
+      document.querySelectorAll('.intake-step-tab').forEach(function (t, i) {
+        t.classList.remove('active', 'done');
+        if (i === n) t.classList.add('active');
+        else if (i < n) t.classList.add('done');
+      });
+
+      document.getElementById('progressFill').style.width = (n / (TOTAL - 1) * 100) + '%';
+      currentStep = n;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    /* ── Char counter ── */
+    var metaEl = document.getElementById('f-meta-desc');
+    var metaCount = document.getElementById('meta-count');
+    metaEl.addEventListener('input', function () {
+      var n = metaEl.value.length;
+      metaCount.textContent = n + ' / 160';
+      metaCount.classList.toggle('over', n > 160);
+    });
+
+    /* ── Tag chips ── */
+    window.toggleTag = function (btn) { btn.classList.toggle('selected'); };
+
+    /* ── Generic entry removal ── */
+    window.removeEntry = function (id) {
+      var el = document.getElementById(id);
+      if (el) el.parentNode.removeChild(el);
+    };
+
+    /* ── Project entries ── */
+    function buildTagChips (containerId) {
+      return CATS.map(function (c) {
+        return '<button type="button" class="form-tag-chip" data-cat="' + esc(c) + '" onclick="toggleTag(this)">' + esc(c) + '</button>';
+      }).join('');
+    }
+
+    function addProject () {
+      counts.project++;
+      var n = counts.project;
+      var el = document.createElement('div');
+      el.className = 'entry-card';
+      el.id = 'project-' + n;
+      el.innerHTML =
+        '<div class="entry-card-header">' +
+          '<span class="entry-card-label">Project ' + n + (n <= 2 ? ' &mdash; featured on homepage' : '') + '</span>' +
+          '<button class="entry-remove-btn" onclick="removeEntry(\'project-' + n + '\')">Remove</button>' +
+        '</div>' +
+        '<div class="form-grid">' +
+          '<div class="form-field form-field--full">' +
+            '<label class="form-label" for="p-title-' + n + '">Project title</label>' +
+            '<input class="form-input" id="p-title-' + n + '" type="text" placeholder="Indeed — 2023 Media Plan" />' +
+          '</div>' +
+          '<div class="form-field">' +
+            '<label class="form-label" for="p-year-' + n + '">Year</label>' +
+            '<input class="form-input" id="p-year-' + n + '" type="text" placeholder="2023" />' +
+          '</div>' +
+          '<div class="form-field">' +
+            '<label class="form-label" for="p-page-' + n + '">Case study page?</label>' +
+            '<select class="form-input" id="p-page-' + n + '">' +
+              '<option value="card-only">Card only — no full page</option>' +
+              '<option value="full-page">Yes — needs a full project page</option>' +
+            '</select>' +
+          '</div>' +
+          '<div class="form-field form-field--full">' +
+            '<label class="form-label">Categories <em>— select all that apply</em></label>' +
+            '<div class="form-tags" id="p-tags-' + n + '">' + buildTagChips('p-tags-' + n) + '</div>' +
+          '</div>' +
+          '<div class="form-field form-field--full">' +
+            '<label class="form-label" for="p-card-' + n + '">Card description <em>— 1–2 sentences for the work grid</em></label>' +
+            '<textarea class="form-textarea" id="p-card-' + n + '" rows="3" placeholder="A Gen Z brand awareness campaign for Indeed — SWOT analysis, media budgeting, and guerrilla marketing integration."></textarea>' +
+          '</div>' +
+          '<div class="form-field form-field--full">' +
+            '<label class="form-label" for="p-img-' + n + '">Hero image URL <em>— 16:9 or 4:3, min 1200px wide</em></label>' +
+            '<input class="form-input" id="p-img-' + n + '" type="url" placeholder="https://..." />' +
+            '<span class="form-hint">Upload to your hosting service and paste the direct URL here.</span>' +
+          '</div>' +
+        '</div>';
+      document.getElementById('projects-container').appendChild(el);
+    }
+
+    /* ── Experience entries ── */
+    function addExperience () {
+      counts.exp++;
+      var n = counts.exp;
+      var el = document.createElement('div');
+      el.className = 'entry-card';
+      el.id = 'exp-' + n;
+      el.innerHTML =
+        '<div class="entry-card-header">' +
+          '<span class="entry-card-label">Role ' + n + '</span>' +
+          '<button class="entry-remove-btn" onclick="removeEntry(\'exp-' + n + '\')">Remove</button>' +
+        '</div>' +
+        '<div class="form-grid">' +
+          '<div class="form-field">' +
+            '<label class="form-label" for="e-title-' + n + '">Job title</label>' +
+            '<input class="form-input" id="e-title-' + n + '" type="text" placeholder="Business Solutions Specialist" />' +
+          '</div>' +
+          '<div class="form-field">' +
+            '<label class="form-label" for="e-company-' + n + '">Company</label>' +
+            '<input class="form-input" id="e-company-' + n + '" type="text" placeholder="Horizon Media" />' +
+          '</div>' +
+          '<div class="form-field">' +
+            '<label class="form-label" for="e-location-' + n + '">Location</label>' +
+            '<input class="form-input" id="e-location-' + n + '" type="text" placeholder="Los Angeles, CA" />' +
+          '</div>' +
+          '<div class="form-field">' +
+            '<label class="form-label" for="e-dates-' + n + '">Date range</label>' +
+            '<input class="form-input" id="e-dates-' + n + '" type="text" placeholder="Dec 2025 — Present" />' +
+          '</div>' +
+          '<div class="form-field form-field--full">' +
+            '<label class="form-label" for="e-desc-' + n + '">Description <em>— 1–3 sentences, active voice</em></label>' +
+            '<textarea class="form-textarea" id="e-desc-' + n + '" rows="3" placeholder="Working within one of the largest independent media agencies in the US — providing integrated business solutions at the client strategy level."></textarea>' +
+          '</div>' +
+        '</div>';
+      document.getElementById('experience-container').appendChild(el);
+    }
+
+    /* ── Education entries ── */
+    function addEducation () {
+      counts.edu++;
+      var n = counts.edu;
+      var el = document.createElement('div');
+      el.className = 'entry-card';
+      el.id = 'edu-' + n;
+      el.innerHTML =
+        '<div class="entry-card-header">' +
+          '<span class="entry-card-label">Degree ' + n + '</span>' +
+          '<button class="entry-remove-btn" onclick="removeEntry(\'edu-' + n + '\')">Remove</button>' +
+        '</div>' +
+        '<div class="form-grid">' +
+          '<div class="form-field">' +
+            '<label class="form-label" for="d-degree-' + n + '">Degree / credential</label>' +
+            '<input class="form-input" id="d-degree-' + n + '" type="text" placeholder="M.S. Digital Media Management" />' +
+          '</div>' +
+          '<div class="form-field">' +
+            '<label class="form-label" for="d-school-' + n + '">Institution</label>' +
+            '<input class="form-input" id="d-school-' + n + '" type="text" placeholder="USC Annenberg · Los Angeles, CA" />' +
+          '</div>' +
+          '<div class="form-field">' +
+            '<label class="form-label" for="d-years-' + n + '">Years</label>' +
+            '<input class="form-input" id="d-years-' + n + '" type="text" placeholder="2023 – 2025" />' +
+          '</div>' +
+          '<div class="form-field form-field--full">' +
+            '<label class="form-label" for="d-desc-' + n + '">Description <em>— coursework, concentration, notable projects</em></label>' +
+            '<textarea class="form-textarea" id="d-desc-' + n + '" rows="3" placeholder="Audience research, media buying & measurement, content production, platform disruption theory..."></textarea>' +
+          '</div>' +
+        '</div>';
+      document.getElementById('education-container').appendChild(el);
+    }
+
+    /* ── Interest entries ── */
+    function addInterest () {
+      counts.interest++;
+      var n = counts.interest;
+      var el = document.createElement('div');
+      el.className = 'entry-card';
+      el.id = 'interest-' + n;
+      el.innerHTML =
+        '<div class="entry-card-header">' +
+          '<span class="entry-card-label">Interest ' + n + '</span>' +
+          '<button class="entry-remove-btn" onclick="removeEntry(\'interest-' + n + '\')">Remove</button>' +
+        '</div>' +
+        '<div class="form-grid">' +
+          '<div class="form-field">' +
+            '<label class="form-label" for="i-title-' + n + '">Title</label>' +
+            '<input class="form-input" id="i-title-' + n + '" type="text" placeholder="Live Music" />' +
+          '</div>' +
+          '<div class="form-field form-field--full">' +
+            '<label class="form-label" for="i-desc-' + n + '">Description <em>— 1–2 sentences connecting it to your work</em></label>' +
+            '<textarea class="form-textarea" id="i-desc-' + n + '" rows="2" placeholder="Concerts, club nights, local showcases — if there\'s a live set happening, I\'m probably there. Music is where a lot of my instincts about brand, emotion, and audience come from."></textarea>' +
+          '</div>' +
+        '</div>';
+      document.getElementById('interests-container').appendChild(el);
+    }
+
+    /* ── Helpers ── */
+    function val (id) {
+      var el = document.getElementById(id);
+      return el ? el.value.trim() : '';
+    }
+
+    function selectedTags (containerId) {
+      return Array.from(document.querySelectorAll('#' + containerId + ' .form-tag-chip.selected'))
+        .map(function (b) { return b.dataset.cat; });
+    }
+
+    function esc (str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function escJson (str) {
+      return String(str).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    /* ── Build export ── */
+    var exportData = null;
+
+    window.buildExport = function () {
+      var data = {
+        identity: {
+          name:           val('f-name'),
+          title:          val('f-title'),
+          location:       val('f-location'),
+          eyebrow:        val('f-eyebrow'),
+          tagline:        val('f-tagline'),
+          heroText:       val('f-hero-text'),
+          metaDescription: val('f-meta-desc'),
+          ogTagline:      val('f-og-tagline')
+        },
+        about: {
+          paragraph1:  val('f-about-1'),
+          paragraph2:  val('f-about-2'),
+          paragraph3:  val('f-about-3'),
+          closingNote: val('f-about-closer')
+        },
+        projects:   [],
+        experience: [],
+        education:  [],
+        interests:  [],
+        infrastructure: {
+          domainName:         val('f-domain-name'),
+          domainPlan:         val('f-domain-plan'),
+          domainAvailability: val('f-domain-availability'),
+          domainRegistrar:    val('f-domain-registrar'),
+          mediaDatabase:      val('f-media-database'),
+          mediaLocation:      val('f-media-location'),
+          mediaCompression:   val('f-media-compression'),
+          mediaVolume:        val('f-media-volume')
+        },
+        contact: {
+          email:        val('f-email'),
+          linkedin:     val('f-linkedin'),
+          writingUrl:   val('f-writing-url'),
+          writingName:  val('f-writing-name'),
+          writingBlurb: val('f-writing-blurb'),
+          resumeUrl:    val('f-resume-url'),
+          ogImage:      val('f-og-image')
+        }
+      };
+
+      for (var p = 1; p <= counts.project; p++) {
+        if (!document.getElementById('project-' + p)) continue;
+        data.projects.push({
+          title:           val('p-title-' + p),
+          year:            val('p-year-' + p),
+          pageType:        val('p-page-' + p),
+          categories:      selectedTags('p-tags-' + p),
+          cardDescription: val('p-card-' + p),
+          heroImage:       val('p-img-' + p)
+        });
+      }
+
+      for (var e = 1; e <= counts.exp; e++) {
+        if (!document.getElementById('exp-' + e)) continue;
+        data.experience.push({
+          title:       val('e-title-' + e),
+          company:     val('e-company-' + e),
+          location:    val('e-location-' + e),
+          dates:       val('e-dates-' + e),
+          description: val('e-desc-' + e)
+        });
+      }
+
+      for (var d = 1; d <= counts.edu; d++) {
+        if (!document.getElementById('edu-' + d)) continue;
+        data.education.push({
+          degree:      val('d-degree-' + d),
+          institution: val('d-school-' + d),
+          years:       val('d-years-' + d),
+          description: val('d-desc-' + d)
+        });
+      }
+
+      for (var i = 1; i <= counts.interest; i++) {
+        if (!document.getElementById('interest-' + i)) continue;
+        data.interests.push({
+          title:       val('i-title-' + i),
+          description: val('i-desc-' + i)
+        });
+      }
+
+      exportData = data;
+      var json = JSON.stringify(data, null, 2);
+
+      document.getElementById('export-output').innerHTML =
+        '<div class="summary-section">' +
+          '<p class="summary-section-title">Full site content — JSON</p>' +
+          '<pre class="output-code" id="json-output">' + escJson(json) + '</pre>' +
+          '<button class="copy-btn" onclick="copyExport()">Copy JSON to clipboard</button>' +
+        '</div>';
+    };
+
+    window.copyExport = function () {
+      var el = document.getElementById('json-output');
+      if (!el) return;
+      navigator.clipboard.writeText(el.textContent).then(function () {
+        var btn = document.getElementById('copy-btn');
+        var orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(function () {
+          btn.textContent = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    };
+
+    /* ── Wire up add buttons ── */
+    document.getElementById('add-project-btn').addEventListener('click', addProject);
+    document.getElementById('add-exp-btn').addEventListener('click', addExperience);
+    document.getElementById('add-edu-btn').addEventListener('click', addEducation);
+    document.getElementById('add-interest-btn').addEventListener('click', addInterest);
+
+    /* ── Seed one entry of each to start ── */
+    addProject();
+    addExperience();
+    addEducation();
+    addInterest();
+
+  })();
+  </script>
+</body>
+</html>

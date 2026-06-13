@@ -46,8 +46,8 @@ STATE_FIPS = {
 }
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DOOR_SEED = REPO_ROOT / "projects" / "fashion" / "data" / "door-tracker-seed.js"
-DEFAULT_OUTPUT_DIR = REPO_ROOT / "projects" / "fashion" / "data"
+DEFAULT_DOOR_SEED = REPO_ROOT / "projects" / "fashion" / "door-tracker" / "data" / "door-tracker-seed.js"
+DEFAULT_OUTPUT_DIR = REPO_ROOT / "projects" / "fashion" / "door-tracker" / "data"
 WEB_MERCATOR = "EPSG:3857"
 WGS84 = "EPSG:4326"
 SQM_PER_SQMI = 2_589_988.110336

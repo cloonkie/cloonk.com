@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UPC Concat | Kevin Zhang</title>
+<meta name="description" content="A local browser tool that maps product data across files into a canonical schema and resolves concatenated descriptions.">
+<meta name="author" content="Kevin Zhang">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="canonical" href="https://cloonk.com/projects/fashion/upc-concat/">
+<meta property="og:image" content="https://cloonk.com/favicon.svg">
+<meta name="twitter:image" content="https://cloonk.com/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script src="../../../js/favicon-rotator.js" defer></script>
+<script src="../../../js/cursor.js" defer></script>
+<script src="../fashion-decisions.js" defer></script>
+<script src="../fashion-nav.js" defer></script>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700,800&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../fashion.css">
+<script>
+  try {
+    document.documentElement.setAttribute(
+      'data-theme',
+      localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark'
+    );
+  } catch (e) {}
+</script>
+<style>
+:root {
+  --text-muted: #aaa59a;
+  --text-dim: #7d786f;
+  --accent-mid: rgba(57, 255, 20, 0.22);
+  --success: #39ff14;
+  --warn: #e8b931;
+}
+[data-theme="light"] {
+  --text-muted: #3f3f3a;
+  --text-dim: #676760;
+  --accent-mid: rgba(27, 9, 188, 0.20);
+  --success: #1e8a4a;
+  --warn: #b86d00;
+}
+html { font-size: 15px; }
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; }
+button { color: inherit; }
+a { color: inherit; text-decoration: none; }
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+code, .mono { font-family: var(--font-mono); }
+
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 28px;
+  background: color-mix(in oklab, var(--bg) 86%, transparent);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+}
+[data-theme="light"] .header { background: rgba(245, 242, 236, 0.88); }
+.header-left { display: flex; align-items: center; gap: 16px; min-width: 0; flex-wrap: wrap; }
+.logo {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.3rem;
+  white-space: nowrap;
+  transition: color var(--transition);
+}
+.logo:hover { color: var(--accent); }
+.logo span {
+  margin-left: 10px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.profile-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+.profile-bar select {
+  min-height: 30px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  max-width: 220px;
+}
+[data-theme="light"] .profile-bar select { background: #f4f2ee; }
+.dirty-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--warn); display: none;
+}
+.dirty-dot.show { display: inline-block; }
+.header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.btn, .theme-toggle {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background var(--transition), border-color var(--transition), color var(--transition), opacity var(--transition);
+}
+.btn:hover, .theme-toggle:hover { background: var(--surface-raised); border-color: var(--border-hover); }
+.btn:disabled { cursor: not-allowed; opacity: 0.45; }
+.btn-accent { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 700; }
+.btn-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--accent-fg); }
+.btn-danger { color: var(--danger); }
+.btn-sm { min-height: 27px; padding: 5px 10px; font-size: 0.72rem; }
+.btn-xs { min-height: 23px; padding: 2px 7px; font-size: 0.72rem; gap: 4px; }
+.header-actions .btn:not(.info-btn) { padding: 5px 10px; font-size: 0.72rem; }
+.theme-toggle { width: 32px; padding: 0; color: var(--text-muted); }
+.theme-toggle svg, .info-btn svg {
+  width: 14px; height: 14px;
+  stroke: currentColor; fill: none;
+  stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+}
+.theme-toggle .icon-moon { display: none; }
+[data-theme="light"] .theme-toggle .icon-sun { display: none; }
+[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+.info-btn { width: 32px; min-height: 32px; padding: 0; color: var(--text-muted); }
+
+/* ── Shell ── */
+.shell { padding: 22px 24px 80px; max-width: 1480px; margin: 0 auto; }
+
+/* ── Panels ── */
+.panel {
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 50px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-raised);
+  cursor: pointer;
+  user-select: none;
+}
+.panel.collapsed .panel-header { border-bottom-color: transparent; }
+.panel-htitle { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.panel-chevron {
+  width: 14px; height: 14px; flex: none;
+  transition: transform var(--transition);
+}
+.panel.collapsed .panel-chevron { transform: rotate(-90deg); }
+.panel-chevron svg { width: 14px; height: 14px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.panel-num {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--accent);
+}
+.panel-title { font-family: var(--font-display); font-weight: 700; font-size: 1.04rem; }
+.panel-sub { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.7rem; }
+.panel-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.panel-body { padding: 16px; }
+.panel.collapsed .panel-body { display: none; }
+
+/* ── Generic ── */
+.row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.muted { color: var(--text-muted); }
+.dim { color: var(--text-dim); }
+.hint { color: var(--text-muted); font-size: 0.82rem; line-height: 1.5; }
+.field { display: grid; gap: 6px; }
+.field label, .lbl {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+input[type=text], input[type=number], select, textarea {
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+[data-theme="light"] input, [data-theme="light"] select, [data-theme="light"] textarea { background: #f4f2ee; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+textarea { resize: vertical; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.45; }
+.empty-state {
+  display: grid;
+  place-items: center;
+  padding: 36px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.empty-state strong {
+  display: block; margin-bottom: 6px;
+  color: var(--text); font-family: var(--font-display); font-size: 1.1rem;
+}
+
+/* ── Sources ── */
+.dropzone {
+  position: relative;
+  min-height: 84px;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  margin-bottom: 14px;
+  border: 1px dashed var(--border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.dropzone:hover, .dropzone.dragging { border-color: var(--accent); background: var(--surface-raised); }
+.dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.dz-title { font-family: var(--font-display); font-weight: 700; }
+.dz-sub { color: var(--text-muted); font-size: 0.82rem; margin-top: 3px; }
+.slot-grid { display: grid; gap: 10px; }
+.slot {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  padding: 12px 14px;
+}
+.slot.attached { border-color: var(--accent); }
+.slot.broken { border-color: var(--danger); }
+.slot-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; flex-wrap: wrap;
+}
+.slot-name { font-weight: 700; font-size: 0.94rem; }
+.slot-pattern { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); }
+.slot-meta {
+  margin-top: 8px;
+  display: flex; gap: 8px; flex-wrap: wrap;
+  align-items: end;
+}
+.slot-meta .field { min-width: 130px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--text-muted);
+}
+.badge.ok { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.badge.warn { border-color: var(--warn); color: var(--warn); }
+.badge.err { border-color: var(--danger); color: var(--danger); }
+.badge.idn { border-color: var(--accent); color: var(--accent); }
+.keycols { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.keycol-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+.keycol-chip button { border: 0; background: none; cursor: pointer; color: var(--text-dim); padding: 0; }
+.keycol-chip button:hover { color: var(--danger); }
+.priority-list { display: grid; gap: 6px; margin-top: 6px; }
+.priority-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  cursor: grab;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+.priority-item.dragging { opacity: 0.4; }
+.priority-item .grip { color: var(--text-dim); }
+.priority-item .rank { color: var(--accent); }
+
+/* ── Schema table ── */
+.schema-table { display: grid; gap: 0; }
+.schema-row {
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  background: var(--surface-card);
+}
+.schema-row:first-child { border-radius: var(--radius-xs) var(--radius-xs) 0 0; }
+.schema-row:last-child { border-bottom: 1px solid var(--border); border-radius: 0 0 var(--radius-xs) var(--radius-xs); }
+.schema-head {
+  display: grid;
+  grid-template-columns: 22px 200px 92px 1fr 90px;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+.schema-head:hover { background: var(--surface-raised); }
+.schema-row.open .schema-head { background: var(--surface-raised); }
+.schema-fname { font-family: var(--font-mono); font-size: 0.84rem; font-weight: 500; }
+.schema-ftype {
+  font-family: var(--font-mono); font-size: 0.68rem;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.schema-fsrc {
+  font-family: var(--font-mono); font-size: 0.74rem;
+  color: var(--text-muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.schema-detail {
+  display: none;
+  padding: 14px 16px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+.schema-row.open .schema-detail { display: block; }
+.detail-grid { display: grid; gap: 12px; }
+.detail-line { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.src-table { display: grid; gap: 6px; }
+.src-row {
+  display: grid;
+  grid-template-columns: 26px 1fr 1fr 88px 64px;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+}
+.src-row.broken { border-color: var(--danger); }
+.src-rank { font-family: var(--font-mono); color: var(--accent); font-size: 0.8rem; }
+.src-row select { min-height: 28px; font-size: 0.78rem; }
+.inherit-tag { font-family: var(--font-mono); font-size: 0.64rem; }
+.inherit-tag.inherited { color: var(--text-dim); }
+.inherit-tag.override { color: var(--warn); }
+.check-inline { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 0.84rem; }
+.check-inline input { width: 15px; height: 15px; accent-color: var(--accent); }
+.formula-box { display: grid; gap: 6px; }
+.formula-box textarea { min-height: 62px; }
+.formula-preview {
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.tok-fn { color: var(--accent); }
+.tok-field { color: #6cb6ff; }
+[data-theme="light"] .tok-field { color: #1b09bc; }
+.tok-str { color: var(--warn); }
+.tok-num { color: #c98cff; }
+.formula-err { color: var(--danger); font-size: 0.78rem; font-family: var(--font-mono); }
+.formula-ok { color: var(--accent); font-size: 0.78rem; font-family: var(--font-mono); }
+.autocomplete-hint {
+  font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim);
+  line-height: 1.6;
+}
+.live-test { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.live-test input { max-width: 220px; }
+.live-result {
+  font-family: var(--font-mono); font-size: 0.78rem;
+  padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--radius-xs);
+  background: var(--surface-card);
+}
+
+/* ── Templates ── */
+.tpl-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.tpl-card .detail-grid { margin-top: 8px; }
+
+/* ── Input ── */
+.input-grid { display: grid; gap: 12px; }
+#inputKeys { min-height: 130px; }
+.detect-line { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* ── Results ── */
+.results-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.results-stats { display: flex; gap: 10px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 0.74rem; }
+.filter-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.filter-bar input[type=text] { max-width: 260px; }
+.table-shell {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: auto;
+  max-height: 70vh;
+  background: var(--bg);
+}
+table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.76rem; }
+th, td {
+  max-width: 260px;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  cursor: grab;
+  user-select: none;
+}
+th:active { cursor: grabbing; }
+th.col-dragging { opacity: 0.35; }
+th.col-drop-target { box-shadow: inset 2px 0 0 var(--accent); }
+td.blank-cell { color: var(--text-dim); font-style: italic; }
+td.tpl-cell { color: var(--accent); }
+tr.data-row:hover td { background: var(--accent-dim); }
+.trail-btn { cursor: pointer; color: var(--accent); border: 0; background: none; padding: 0; font-family: var(--font-mono); }
+.trail-row td { background: var(--surface-card); white-space: normal; max-width: none; }
+.trail-box { display: grid; gap: 3px; padding: 4px 0; }
+.trail-line { font-size: 0.74rem; line-height: 1.5; }
+.trail-line .tf { color: var(--text); }
+.trail-line .tv { color: var(--accent); }
+.trail-line .ts { color: var(--text-muted); }
+.trail-line.blank .tv { color: var(--text-dim); }
+.trail-line.derived .tv { color: #6cb6ff; }
+[data-theme="light"] .trail-line.derived .tv { color: #1b09bc; }
+
+/* ── Progress ── */
+.progress-wrap { display: none; margin-top: 10px; }
+.progress-wrap.show { display: block; }
+.progress-track {
+  height: 6px; border-radius: 3px; background: var(--surface-card);
+  overflow: hidden; border: 1px solid var(--border);
+}
+.progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.15s linear; }
+.progress-label { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); margin-top: 5px; }
+
+/* ── Warnings ── */
+.warn-list { display: grid; gap: 6px; margin-bottom: 12px; }
+.warn-item {
+  padding: 8px 11px;
+  border: 1px solid var(--warn);
+  border-radius: var(--radius-xs);
+  background: rgba(232, 185, 49, 0.08);
+  color: var(--warn);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.warn-item.err { border-color: var(--danger); background: rgba(255,91,74,0.08); color: var(--danger); }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  width: min(820px, 94vw);
+  max-height: 84vh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; }
+.modal-title span { color: var(--accent); }
+.modal-close {
+  width: 32px; height: 32px;
+  border: 1px solid var(--border); border-radius: var(--radius-xs);
+  background: transparent; color: var(--text-muted); cursor: pointer; font-size: 1.3rem;
+}
+.modal-close:hover { color: var(--text); background: var(--surface-raised); }
+.info-modal-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.info-modal-tabs::-webkit-scrollbar { display: none; }
+.info-modal-tab {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 12px 12px 12px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+.info-modal-tab:hover { color: var(--text); }
+.info-modal-tab.active {
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.modal-body { overflow: auto; padding: 18px 20px 24px; color: var(--text-muted); line-height: 1.6; }
+.info-modal-pane { display: none; }
+.info-modal-pane.active { display: block; }
+.modal-body h3 { margin: 16px 0 6px; color: var(--text); font-family: var(--font-display); }
+.modal-body h3:first-child { margin-top: 0; }
+.modal-body code { color: var(--accent); font-family: var(--font-mono); font-size: 0.86em; }
+.modal-body table { font-size: 0.78rem; margin: 8px 0; }
+.modal-body th, .modal-body td { white-space: normal; max-width: none; color: var(--text-muted); }
+.modal-body ul { margin: 6px 0 6px 20px; }
+.info-link-list { display: grid; gap: 10px; margin-top: 12px; }
+.info-link {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text);
+  text-decoration: none;
+  background: var(--bg);
+}
+.info-link:hover { border-color: var(--accent); background: var(--accent-dim); }
+.info-link-meta { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.72rem; }
+.step-list { counter-reset: step; padding-left: 0; list-style: none; margin: 4px 0 14px; }
+.step-list li {
+  position: relative;
+  padding: 9px 12px 9px 40px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  color: var(--text-muted);
+  line-height: 1.55;
+  counter-increment: step;
+}
+.step-list li::before {
+  content: counter(step);
+  position: absolute; left: 10px; top: 9px;
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent); color: var(--accent-fg);
+  border-radius: 50%;
+  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
+}
+.step-list li strong { display: block; color: var(--text); margin-bottom: 3px; font-weight: 600; }
+.chain { font-family: var(--font-mono); color: var(--accent); white-space: nowrap; }
+
+/* ── Panel info button (opens info modal at a step) ── */
+.panel-info-btn {
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700;
+  cursor: pointer; padding: 0;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+  margin-left: 4px;
+}
+.panel-info-btn:hover { color: var(--accent-fg); border-color: var(--accent); background: var(--accent); }
+
+/* ── Section visualization (collapsible, per-panel) ── */
+.section-viz {
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  overflow: hidden;
+}
+.section-viz-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+  padding: 7px 12px;
+  cursor: pointer; user-select: none;
+  font-family: var(--font-mono); font-size: 0.68rem;
+  color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em;
+}
+.section-viz-head:hover { background: var(--surface-raised); }
+.section-viz-head .chev {
+  width: 12px; height: 12px;
+  transition: transform var(--transition);
+  display: inline-block;
+}
+.section-viz.collapsed .section-viz-head .chev { transform: rotate(-90deg); }
+.section-viz-body { padding: 12px; border-top: 1px solid var(--border); background: var(--bg); }
+.section-viz.collapsed .section-viz-body { display: none; }
+
+/* ── Step viz primitives ── */
+.step-viz {
+  display: grid; gap: 8px;
+  padding: 10px 12px;
+  margin: 6px 0 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  font-family: var(--font-mono); font-size: 0.74rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+.viz-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.viz-row-tight { gap: 6px; }
+.viz-stack { display: grid; gap: 4px; }
+.viz-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  color: var(--text);
+  white-space: nowrap;
+  font-size: 0.72rem;
+}
+.viz-pill.viz-blank { color: var(--text-dim); text-decoration: line-through; opacity: 0.6; }
+.viz-pill.viz-hit { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.viz-pill.viz-tag { color: var(--accent); border-color: var(--accent-mid); background: var(--accent-dim); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.viz-arrow { color: var(--text-dim); font-size: 0.9rem; flex-shrink: 0; }
+.viz-arrow.viz-down { display: block; text-align: center; width: 100%; }
+.viz-rank { color: var(--accent); font-weight: 700; min-width: 14px; }
+.viz-field { color: var(--accent); font-weight: 600; }
+.viz-formula {
+  padding: 6px 8px;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text);
+}
+.viz-formula .fn { color: var(--accent); }
+.viz-formula .field { color: #6cb6ff; }
+[data-theme="light"] .viz-formula .field { color: #1b09bc; }
+.viz-formula .str { color: var(--warn); }
+.viz-note { color: var(--accent); font-size: 0.7rem; margin-left: 6px; }
+.viz-result-large {
+  padding: 6px 10px; border: 1px solid var(--accent); border-radius: var(--radius-xs);
+  background: var(--accent-dim); color: var(--accent); text-align: center;
+  font-weight: 600;
+}
+.viz-cluster {
+  padding: 7px 10px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xs);
+  background: var(--accent-dim);
+  display: grid; gap: 4px;
+}
+.viz-cluster-id { color: var(--accent); font-weight: 700; font-size: 0.7rem; }
+.viz-trail {
+  display: grid; gap: 3px;
+  margin-top: 4px; padding-top: 6px;
+  border-top: 1px dashed var(--border);
+  color: var(--text-muted); font-size: 0.7rem;
+}
+.viz-mapping { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.viz-line { color: var(--text); }
+.viz-line strong { color: var(--accent); font-weight: 700; }
+
+/* ── New collapsible draggable slot (replaces priority list) ── */
+.slot { padding: 0; cursor: default; }
+.slot.dragging { opacity: 0.35; }
+.slot.drag-over { border-color: var(--accent); }
+.slot-summary {
+  display: grid;
+  grid-template-columns: 18px 22px 1fr auto auto auto;
+  gap: 10px; align-items: center;
+  padding: 10px 12px;
+  cursor: grab;
+}
+.slot-summary:active { cursor: grabbing; }
+.slot .grip { color: var(--text-dim); font-family: var(--font-mono); user-select: none; font-size: 0.9rem; }
+.slot .rank { color: var(--accent); font-family: var(--font-mono); font-size: 0.78rem; }
+.slot-name { font-weight: 700; font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slot-name .slot-pattern-inline { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.7rem; font-weight: 400; margin-left: 6px; }
+.slot-toggle, .slot-remove {
+  background: transparent; border: 0; color: var(--text-muted); cursor: pointer;
+  padding: 3px 6px; border-radius: var(--radius-xs);
+  font-family: var(--font-mono); font-size: 0.78rem;
+  transition: transform var(--transition);
+}
+.slot-toggle:hover, .slot-remove:hover { background: var(--surface-raised); color: var(--text); }
+.slot.expanded .slot-toggle { transform: rotate(180deg); }
+.slot-detail {
+  display: none;
+  padding: 12px 12px 14px 50px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+.slot.expanded .slot-detail { display: block; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; right: 20px; bottom: 20px; z-index: 1100;
+  max-width: min(380px, calc(100vw - 40px));
+  padding: 11px 14px;
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  opacity: 0; transform: translateY(8px); pointer-events: none;
+  transition: opacity var(--transition), transform var(--transition);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── Run & Results split layout ── */
+.run-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.run-left { display: grid; gap: 10px; }
+.run-left #inputKeys { min-height: 220px; }
+.run-right { min-width: 0; }
+.run-right .filter-bar { flex-wrap: wrap; }
+
+@media (max-width: 860px) {
+  .run-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 860px) {
+  .schema-head { grid-template-columns: 20px 1fr 70px; }
+  .schema-head .schema-fsrc, .schema-head .schema-ftype + * { display: none; }
+  .src-row { grid-template-columns: 22px 1fr 1fr; }
+  .header { padding: 12px 16px; }
+  .shell { padding: 16px 14px 60px; }
+}
+/* ── Hamburger nav (mobile) ── */
+.nav-burger {
+  display: none;
+  width: 38px; min-height: 34px;
+  align-items: center; justify-content: center; padding: 0;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text-muted); cursor: pointer;
+}
+.nav-burger:hover { color: var(--text); border-color: var(--border-hover); }
+.nav-burger svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; fill: none; }
+.nav-burger .icon-close { display: none; }
+body.nav-open .nav-burger .icon-open { display: none; }
+body.nav-open .nav-burger .icon-close { display: block; }
+@media (max-width: 720px) {
+  .header { padding-right: 60px; }
+  .nav-burger { display: inline-flex; position: absolute; top: 14px; right: 16px; z-index: 41; }
+  .header-actions {
+    position: absolute; top: calc(100% + 6px); right: 16px;
+    display: none; flex-direction: column; align-items: stretch;
+    min-width: 210px; max-width: calc(100vw - 32px); padding: 8px; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border-hover);
+    border-radius: var(--radius-sm); box-shadow: 0 18px 42px rgba(0,0,0,0.42); z-index: 40;
+  }
+  body.nav-open .header-actions { display: flex; }
+  .header-actions > * { width: 100%; justify-content: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<script type="application/json" id="default-profile">
+{
+  "name": "Eyewear Starter",
+  "version": 1,
+  "files": [],
+  "file_priority": [],
+  "canonical_schema": [
+    { "name": "primary_upc",       "type": "direct",  "is_identity": true,  "priority_override": false, "sources": [] },
+    { "name": "secondary_upc",     "type": "direct",  "is_identity": true,  "priority_override": false, "sources": [] },
+    { "name": "cpid",              "type": "direct",  "is_identity": true,  "priority_override": false, "sources": [] },
+    { "name": "pid",               "type": "direct",  "is_identity": true,  "priority_override": false, "sources": [] },
+    { "name": "material",          "type": "direct",  "is_identity": true,  "priority_override": false, "sources": [] },
+    { "name": "grid",              "type": "derived", "is_identity": true,  "formula": "{color} & {size}" },
+    { "name": "brand",             "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "product_type",      "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "size",              "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "color",             "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "frame_color_desc",  "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "lens_color_desc",   "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "lens_features",     "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "gender",            "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "style_name",        "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "eye_size",          "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "bridge_size",       "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "temple_length",     "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "frame_material",    "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "country_of_origin", "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "msrp_us",           "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "wholesale_us",      "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "msrp_ca",           "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "nrf_code",          "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "nrf_description",   "type": "direct",  "is_identity": false, "priority_override": false, "sources": [] },
+    { "name": "desc_short",        "type": "derived", "is_identity": false, "formula": "JOIN(\" \", {brand}, {material}, {eye_size})" },
+    { "name": "desc_full",         "type": "derived", "is_identity": false, "formula": "JOIN(\" \", {brand}, {material}, {eye_size}, {frame_color_desc}, {lens_color_desc})" }
+  ],
+  "output_templates": [
+    { "name": "Standard Description", "formula": "JOIN(\" \", {brand}, {material}, {eye_size}, {frame_color_desc}, {lens_color_desc})" },
+    { "name": "NRF Tag", "formula": "{nrf_code} & \" - \" & {nrf_description}" }
+  ]
+}
+</script>
+
+<header class="header">
+  <div class="header-left">
+    <a class="logo" href="../index.html">UPC Concat <span>Fashion Toolbox</span></a>
+    <div class="profile-bar">
+      <span>Profile:</span>
+      <select id="profileSelect" aria-label="Active profile"></select>
+      <span class="dirty-dot" id="dirtyDot" title="Unsaved changes"></span>
+    </div>
+  </div>
+  <button class="nav-burger" id="navBurger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="headerActions">
+    <svg class="icon-open" viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+    <svg class="icon-close" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+  </button>
+  <div class="header-actions" id="headerActions">
+    <button class="btn btn-sm" id="discardBtn" data-cursor="clear">Discard</button>
+    <button class="btn btn-sm" id="saveBtn" data-cursor="save">Save</button>
+    <button class="btn btn-sm" id="exportProfileBtn" data-cursor="export">Export</button>
+    <button class="btn btn-sm" id="importProfileBtn" data-cursor="load">Import</button>
+    <button class="btn btn-sm" id="resetBtn" data-cursor="reset">Reset</button>
+    <input type="file" id="profileFileInput" accept=".json" style="display:none">
+    <button class="btn info-btn" id="infoBtn" aria-label="Info and reference" data-tooltip="Info and reference">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg>
+    </button>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode" data-tooltip="Toggle light/dark mode">
+      <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="shell">
+  <div class="warn-list" id="warnList"></div>
+
+  <!-- 1. SOURCES -->
+  <section class="panel" id="panel-sources">
+    <div class="panel-header" data-toggle>
+      <div class="panel-htitle">
+        <span class="panel-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+        <span class="panel-num">01</span>
+        <span class="panel-title">Sources</span>
+        <button class="panel-info-btn" data-panel-info="sources" data-tooltip="What this step does" aria-label="How sources work">i</button>
+        <span class="panel-sub" id="sourcesSub">0 files</span>
+      </div>
+      <div class="panel-tools">
+        <button class="btn btn-sm" id="addFileBtn">+ Register file</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="section-viz collapsed" data-viz-section="sources">
+        <div class="section-viz-head" data-viz-toggle>
+          <span>How this step works — register files &amp; rank priority</span>
+          <span class="chev">▾</span>
+        </div>
+        <div class="section-viz-body" data-viz-fill="sources"></div>
+      </div>
+      <label class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple>
+        <span>
+          <span class="dz-title">Drop spreadsheets here</span>
+          <span class="dz-sub">.xlsx, .xls, .csv — registered as new sources, or auto-matched to existing slots</span>
+        </span>
+      </label>
+      <div class="hint" style="margin-bottom:8px"><strong style="color:var(--text)">File priority</strong> — drag a file to reorder; the order is the default source order applied to every field.</div>
+      <div class="slot-grid" id="slotGrid"></div>
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-label" id="progressLabel"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. SCHEMA -->
+  <section class="panel" id="panel-schema">
+    <div class="panel-header" data-toggle>
+      <div class="panel-htitle">
+        <span class="panel-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+        <span class="panel-num">02</span>
+        <span class="panel-title">Canonical Schema</span>
+        <button class="panel-info-btn" data-panel-info="schema" data-tooltip="What this step does" aria-label="How schema mapping works">i</button>
+        <span class="panel-sub" id="schemaSub">0 fields</span>
+      </div>
+      <div class="panel-tools">
+        <button class="btn btn-sm" id="addDirectBtn">+ Direct field</button>
+        <button class="btn btn-sm" id="addDerivedBtn">+ Derived field</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="section-viz collapsed" data-viz-section="schema">
+        <div class="section-viz-head" data-viz-toggle>
+          <span>How this step works — map each field as file → sheet → column</span>
+          <span class="chev">▾</span>
+        </div>
+        <div class="section-viz-body" data-viz-fill="schema"></div>
+      </div>
+      <p class="hint" style="margin-bottom:10px">★ marks an identity field — used to join rows across files. Click a field to edit its sources or formula.</p>
+      <div class="schema-table" id="schemaTable"></div>
+    </div>
+  </section>
+
+  <!-- 3. TEMPLATES -->
+  <section class="panel" id="panel-templates">
+    <div class="panel-header" data-toggle>
+      <div class="panel-htitle">
+        <span class="panel-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+        <span class="panel-num">03</span>
+        <span class="panel-title">Output Templates</span>
+        <button class="panel-info-btn" data-panel-info="templates" data-tooltip="What this step does" aria-label="How templates work">i</button>
+        <span class="panel-sub" id="templatesSub">0 templates</span>
+      </div>
+      <div class="panel-tools">
+        <button class="btn btn-sm" id="addTemplateBtn">+ Add template</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="section-viz collapsed" data-viz-section="templates">
+        <div class="section-viz-head" data-viz-toggle>
+          <span>How this step works — formulas concatenate canonical fields</span>
+          <span class="chev">▾</span>
+        </div>
+        <div class="section-viz-body" data-viz-fill="templates"></div>
+      </div>
+      <div id="templateList"></div>
+    </div>
+  </section>
+
+  <!-- 4. RUN & RESULTS (input + resolved table, columns reorderable) -->
+  <section class="panel" id="panel-run">
+    <div class="panel-header" data-toggle>
+      <div class="panel-htitle">
+        <span class="panel-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+        <span class="panel-num">04</span>
+        <span class="panel-title">Run &amp; Results</span>
+        <button class="panel-info-btn" data-panel-info="input" data-tooltip="What this step does" aria-label="How input + results work">i</button>
+        <span class="panel-sub" id="resultsSub">No run yet</span>
+      </div>
+      <div class="panel-tools">
+        <button class="btn btn-sm" id="copyTsvBtn" disabled>Copy TSV</button>
+        <button class="btn btn-sm" id="dlCsvBtn" disabled>.csv</button>
+        <button class="btn btn-sm btn-accent" id="dlXlsxBtn" disabled>.xlsx</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="section-viz collapsed" data-viz-section="run">
+        <div class="section-viz-head" data-viz-toggle>
+          <span>How this step works — paste keys → detect identity → cluster lookup → resolve + trail</span>
+          <span class="chev">▾</span>
+        </div>
+        <div class="section-viz-body" data-viz-fill="run"></div>
+      </div>
+
+      <div class="run-layout">
+        <!-- Left: input -->
+        <div class="run-left">
+          <div class="field">
+            <label for="inputKeys">Keys — one per line, any identity type</label>
+            <textarea id="inputKeys" placeholder="97963819817&#10;198537000010&#10;91290164"></textarea>
+          </div>
+          <div class="detect-line" id="detectLine"><span class="badge">Paste keys to detect identity types</span></div>
+          <div class="row-actions">
+            <button class="btn btn-accent" id="runBtn">Run resolution</button>
+            <button class="btn btn-sm" id="rebuildBtn">Rebuild clusters</button>
+          </div>
+        </div>
+
+        <!-- Right: results -->
+        <div class="run-right">
+          <div class="filter-bar">
+            <input type="text" id="resultFilter" placeholder="Filter rows...">
+            <label class="check-inline"><input type="checkbox" id="filterBlanks"> Has blank fields</label>
+            <label class="check-inline"><input type="checkbox" id="filterResolved"> All fields resolved</label>
+            <label class="check-inline"><input type="checkbox" id="showClusterId"> Show cluster_id</label>
+            <button class="btn btn-sm" id="resetColsBtn" title="Reset column order">Reset columns</button>
+            <span class="hint" style="margin-left:auto">Drag a column header to reorder.</span>
+          </div>
+          <div class="table-shell" id="resultsTable">
+            <div class="empty-state"><div><strong>No results yet.</strong><span>Attach files, paste keys, and run resolution.</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Add-file modal -->
+<div class="modal-overlay" id="addFileModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Register <span>file</span></span>
+      <button class="modal-close" data-close-modal>&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="field">
+          <label>Workbook</label>
+          <input type="file" id="modalFileInput" accept=".xlsx,.xls,.csv">
+        </div>
+        <div class="field">
+          <label for="modalSheet">Sheet</label>
+          <select id="modalSheet"></select>
+        </div>
+        <div class="field">
+          <label for="modalHeaderRow">Header row (1-indexed)</label>
+          <input type="number" id="modalHeaderRow" min="1" value="1">
+        </div>
+        <div class="field">
+          <label for="modalFileId">File id</label>
+          <input type="text" id="modalFileId" placeholder="file_my_source">
+        </div>
+        <div class="field">
+          <label>Key columns — declare join keys (comma separated, header name or letter)</label>
+          <input type="text" id="modalKeyCols" placeholder="PRIMARY UPC, Grid, G">
+        </div>
+        <div id="modalColPreview" class="autocomplete-hint"></div>
+        <button class="btn btn-accent" id="modalRegisterBtn">Register</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Info modal -->
+<div class="modal-overlay" id="infoModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">UPC Concat <span>— Appendix</span></span>
+      <button class="modal-close" data-close-modal>&times;</button>
+    </div>
+    <div class="info-modal-tabs" role="tablist">
+      <button class="info-modal-tab active" data-tab="about" role="tab">About</button>
+      <button class="info-modal-tab" data-tab="schema" role="tab">Schema</button>
+      <button class="info-modal-tab" data-tab="appendix" role="tab">Appendix</button>
+      <button class="info-modal-tab" data-tab="resources" role="tab">Resources</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-modal-pane active" id="modal-tab-about" role="tabpanel">
+        <h3>What this is</h3>
+        <p>A browser-based schema-mapping engine for product data. Different source files name the same SKU differently — one workbook has it as a UPC, another as a CPID, another as a Grid or Art Base. UPC Concat lets you define one canonical field vocabulary, point each field at the columns where its value lives across every source, and resolve clean, concatenated outputs for any input key.</p>
+
+        <h3>How it works</h3>
+        <p>The tool decouples three things on purpose:</p>
+        <ul>
+          <li><strong>Sources</strong> — the workbooks you register. Each source is one sheet of one workbook with a header row.</li>
+          <li><strong>Canonical schema</strong> — your standard field vocabulary. <em>Direct</em> fields read a column; <em>derived</em> fields evaluate a formula referencing other fields.</li>
+          <li><strong>Mappings</strong> — for each canonical field, an ordered list of <span class="chain">file → sheet → column</span> sources. Resolution walks the list and takes the first non-blank value.</li>
+        </ul>
+        <p>Fields flagged ★ <strong>identity</strong> are used to join rows. On run, every row's identity values get indexed; rows that share <em>any</em> identity value collapse into one cluster, even when each file names the SKU differently. Paste any identity key and the tool finds the cluster, then walks priority across all of its rows to fill every canonical field.</p>
+
+        <h3>Steps</h3>
+        <ol class="step-list">
+          <li>
+            <strong>Register source files.</strong> Drop workbooks onto the dropzone or click <code>+ Register file</code>. For each, pick the sheet and the header row, then declare key columns (by header name, or by column letter when the header is blank).
+            <div data-viz-fill="register"></div>
+          </li>
+          <li>
+            <strong>Map each canonical field</strong> to its source as <span class="chain">file → sheet → column</span>. Open a field in the Schema panel; for direct fields, add one or more sources (a file you registered, plus the column to read from that file's sheet). Multiple sources are walked in priority order — first non-blank wins. For derived fields, write a formula referencing other fields with <code>{name}</code>.
+            <div data-viz-fill="map"></div>
+          </li>
+          <li>
+            <strong>Rank file priority</strong> (Sources panel) to set the default order applied to every field's source list. Override per-field when a specific field should prefer a different file.
+            <div data-viz-fill="priority"></div>
+          </li>
+          <li>
+            <strong>Define output templates</strong> (optional) — named formulas that concatenate canonical fields into ready-to-paste descriptions.
+            <div data-viz-fill="templates"></div>
+          </li>
+          <li>
+            <strong>Paste keys and run.</strong> Mixed identity types are fine — the tool detects each key's type and finds its cluster.
+            <div data-viz-fill="input"></div>
+          </li>
+          <li>
+            <strong>Inspect &amp; export.</strong> Expand any row's <em>trail</em> to see where every value came from (which file, sheet, column, priority). Copy TSV, or download <code>.csv</code> / <code>.xlsx</code> (with a per-cell source-trail sheet).
+            <div data-viz-fill="results"></div>
+          </li>
+        </ol>
+
+        <h3>Privacy</h3>
+        <p>Everything runs locally in your browser. Profiles save schema and mapping rules, not workbook contents — files are re-attached each session.</p>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
+        <h3>Three layers</h3>
+        <p><strong>Sources</strong> are registered files — each one is a sheet of a workbook with a header row and a set of declared key columns. <strong>Canonical schema</strong> is your standard field vocabulary, made of direct fields (read from a column) and derived fields (computed from a formula). <strong>Field mappings</strong> connect each direct canonical field to one or more <span class="chain">file → sheet → column</span> sources, walked in priority order so the first non-blank value wins.</p>
+        <h3>Identity &amp; clusters</h3>
+        <p>Fields flagged ★ identity are used to join rows. On run, every source row's identity values get indexed; rows that share any identity value collapse into one SKU cluster, even when each file names the SKU differently. Leading-zero UPCs match across raw, stripped, and zero-padded forms.</p>
+        <h3>Priority</h3>
+        <p>File-level priority (Sources panel, drag to reorder) is the default source order applied to every direct field. Tick "override file priority" inside a field to reorder that field's sources independently — each source row shows whether it is <code>inherited</code> or <code>manual</code>.</p>
+        <h3>Profiles</h3>
+        <p>A profile captures schema, mappings, file priority, and templates — not the workbook data. Save to this browser, or export / import JSON to share a workflow with teammates. The shipped "Eyewear Starter" profile defines the canonical field vocabulary but no file slots — register your own.</p>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-appendix" role="tabpanel">
+        <h3>Expression language</h3>
+        <p>Derived fields and templates use a safe Excel-like language.</p>
+        <ul>
+          <li><code>{field}</code> references another canonical field</li>
+          <li><code>&amp;</code> concat, <code>+ - * /</code> numeric, and standard comparison operators are supported</li>
+          <li>Literals include <code>"text"</code>, <code>42</code>, <code>TRUE</code>, <code>FALSE</code>, and <code>BLANK</code></li>
+        </ul>
+        <table>
+          <tr><th>Function</th><th>Meaning</th></tr>
+          <tr><td><code>CONCAT(a,b,...)</code></td><td>Join args, blanks dropped</td></tr>
+          <tr><td><code>JOIN(delim,a,b,...)</code></td><td>Join with delimiter, blanks dropped</td></tr>
+          <tr><td><code>IF(cond,then,else)</code></td><td>Conditional</td></tr>
+          <tr><td><code>IFBLANK(v,fallback)</code></td><td>Fallback if v is blank</td></tr>
+          <tr><td><code>COALESCE(a,b,...)</code></td><td>First non-blank</td></tr>
+          <tr><td><code>UPPER LOWER TRIM LEN</code></td><td>String operations</td></tr>
+          <tr><td><code>LEFT RIGHT MID</code></td><td>Substrings, 1-indexed</td></tr>
+          <tr><td><code>PAD(s,len,char)</code></td><td>Left-pad for UPC normalization</td></tr>
+        </table>
+        <h3>Edge cases handled</h3>
+        <p>Leading-zero UPCs are indexed in raw and zero-padded forms. Columns can be referenced by letter when the header is blank. Circular formula references are rejected.</p>
+      </div>
+      <div class="info-modal-pane" id="modal-tab-resources" role="tabpanel">
+        <h3>Fashion Toolbox</h3>
+        <div class="info-link-list">
+          <a class="info-link" href="../index.html"><strong>Fashion Toolbox</strong><span class="info-link-meta">Index</span></a>
+          <a class="info-link" href="../replenishment-linesheet/index.html"><strong>DIGI LINE SHEET</strong><span class="info-link-meta">Product Review</span></a>
+          <a class="info-link" href="../assortment-comparison/index.html"><strong>Assortment Comparison</strong><span class="info-link-meta">Retailer Overlap</span></a>
+          <a class="info-link" href="../door-tracker/index.html"><strong>Door Tracker</strong><span class="info-link-meta">Door Distribution</span></a>
+          <a class="info-link" href="../sellout-standardizer/index.html"><strong>Retail Data Standardizer</strong><span class="info-link-meta">Weekly Sell-Out</span></a>
+          <a class="info-link" href="../selling-analysis/index.html"><strong>Selling Analysis</strong><span class="info-link-meta">Sell-Through Diagnostic</span></a>
+          <a class="info-link" href="index.html" aria-current="page"><strong>UPC Concat</strong><span class="info-link-meta">Schema Mapping</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Generated from src/upc-concat via npm run build:upc-concat. -->
+<script src="dist/upc-concat.js"></script>
+</body>
+</html>

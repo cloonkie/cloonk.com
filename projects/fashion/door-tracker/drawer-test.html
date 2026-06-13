@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<link rel="stylesheet" href="../fashion.css">
+<link rel="stylesheet" href="door-tracker.css">
+<style>#err{position:fixed;top:0;left:0;right:0;z-index:9999;background:#400;color:#fff;font:12px monospace;padding:6px;white-space:pre-wrap}#err:empty{display:none}
+/* force the drawer visible/static for the screenshot */
+#drawer{position:static!important;transform:none!important;opacity:1!important;width:520px!important;max-width:520px!important;height:auto!important;box-shadow:none}</style>
+<script>window.mapboxgl={Map:function(){return{on:function(){},addControl:function(){}}},NavigationControl:function(){},Popup:function(){return{};},Marker:function(){return{};}};</script>
+<script>window.__errs=[];window.onerror=function(m,s,l,c){window.__errs.push(m+' @'+l+':'+c);var e=document.getElementById('err');if(e)e.textContent=window.__errs.join('\n');};</script>
+</head>
+<body>
+<div class="overlay" id="ovDraw"></div>
+<div class="drawer" id="drawer"><button class="drawer-close">✕</button><h3 id="drTitle">History</h3><div class="sub" id="drSub"></div><div id="drContent"></div></div>
+<div id="err"></div>
+<script src="dist/door-tracker.js"></script>
+<script>
+  try {
+    retailers.push('Retailer One');
+    brandCodes['CH']={name:'Chanel Beaute',ds_active:true};
+    brandCodes['DI']={name:'Dior',ds_active:true};
+    for(let i=1;i<=6;i++){ doorLocations.push({retailer:'Retailer One',doorNumber:100+i,name:'Demo Door '+(100+i),city:'City'+i,state:'NY'}); }
+    // DI already has doors 101,102,103,104; CH has only 101
+    doorAssignments[k('Retailer One','DI')]=[
+      {doorNumber:101,doorName:'Demo Door 101',status:'confirmed'},
+      {doorNumber:102,doorName:'Demo Door 102',status:'confirmed'},
+      {doorNumber:103,doorName:'Demo Door 103',status:'draft'},
+      {doorNumber:104,doorName:'Demo Door 104',status:'confirmed'}
+    ];
+    doorAssignments[k('Retailer One','CH')]=[{doorNumber:101,doorName:'Demo Door 101',status:'confirmed'}];
+    openStoreDrawer('Retailer One','CH');
+    if(location.hash==='#mimic'){
+      setDrawerDoorPanel('mimic');
+      document.getElementById('drawerMimicBrand').value='DI';
+      renderDrawerMimicPreview();
+    }
+  } catch(e){ window.__errs.push('INIT: '+e.message+'\n'+e.stack); document.getElementById('err').textContent=window.__errs.join('\n'); }
+</script>
+</body></html>

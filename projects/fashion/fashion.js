@@ -15,7 +15,7 @@
      Add a tool = add an entry. The archive rebuilds from this. */
   const TOOLS = [
     {
-      file: "replenishment-linesheet.html",
+      file: "replenishment-linesheet/index.html",
       code: "DLS 001",
       category: "PRODUCT",
       chapter: "Product Review",
@@ -29,7 +29,7 @@
       status: "Ready",
     },
     {
-      file: "assortment-comparison.html",
+      file: "assortment-comparison/index.html",
       code: "AOR 002",
       category: "ANALYTICS",
       chapter: "Retailer Overlap",
@@ -43,7 +43,7 @@
       status: "Ready",
     },
     {
-      file: "retailer-door-tracker.html",
+      file: "door-tracker/index.html",
       code: "DOOR 003",
       category: "DISTRIBUTION",
       chapter: "Door Distribution",
@@ -57,7 +57,7 @@
       status: "Ready",
     },
     {
-      file: "sellout-standardizer.html",
+      file: "sellout-standardizer/index.html",
       code: "STD 004",
       category: "OPERATIONS",
       chapter: "Report Normalization",
@@ -71,7 +71,7 @@
       status: "Ready",
     },
     {
-      file: "selling-analysis.html",
+      file: "selling-analysis/index.html",
       code: "SAR 005",
       category: "ANALYTICS",
       chapter: "Selling Analysis",
@@ -85,7 +85,7 @@
       status: "Ready",
     },
     {
-      file: "upc-concat.html",
+      file: "upc-concat/index.html",
       code: "UPC 006",
       category: "OPERATIONS",
       chapter: "Schema Mapping",
@@ -100,7 +100,7 @@
       status: "Ready",
     },
     {
-      file: "image-prep.html",
+      file: "image-prep/index.html",
       code: "IMG 007",
       category: "ASSETS",
       chapter: "Image Production",

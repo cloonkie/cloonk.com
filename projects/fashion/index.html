@@ -107,13 +107,13 @@
 
       <noscript>
         <div class="files files--fallback" aria-label="Tools">
-            <a class="file" href="replenishment-linesheet.html"><span class="file__tab file__tab--code">DLS 001</span><span class="file__tab file__tab--category">PRODUCT</span><span class="file__name">DIGI LINE SHEET<span class="file__sub">product review</span></span><span class="file__purpose">Annotate and export selected replenishment SKUs.</span></a>
-            <a class="file" href="assortment-comparison.html"><span class="file__tab file__tab--code">AOR 002</span><span class="file__tab file__tab--category">ANALYTICS</span><span class="file__name">Assortment Comparison<span class="file__sub">Retailer Overlap</span></span><span class="file__purpose">Compare retailer assortments by style, color, grid, brand, and units.</span></a>
-            <a class="file" href="retailer-door-tracker.html"><span class="file__tab file__tab--code">DOOR 003</span><span class="file__tab file__tab--category">DISTRIBUTION</span><span class="file__name">Door Tracker<span class="file__sub">Door Distribution</span></span><span class="file__purpose">Track brand x retailer door distribution with map reveal and change history.</span></a>
-            <a class="file" href="sellout-standardizer.html"><span class="file__tab file__tab--code">STD 004</span><span class="file__tab file__tab--category">OPERATIONS</span><span class="file__name">Retail Data Standardizer<span class="file__sub">Weekly Analytics</span></span><span class="file__purpose">Flatten recurring sell-out reports into one analytics-ready export.</span></a>
-            <a class="file" href="selling-analysis.html"><span class="file__tab file__tab--code">SAR 005</span><span class="file__tab file__tab--category">ANALYTICS</span><span class="file__name">Selling Analysis<span class="file__sub">Sell-Through Diagnostic</span></span><span class="file__purpose">Diagnose YTD sell-out workbooks across integrity, liquidation risk, velocity, momentum, promo, and themes.</span></a>
-            <a class="file" href="upc-concat.html"><span class="file__tab file__tab--code">UPC 006</span><span class="file__tab file__tab--category">OPERATIONS</span><span class="file__name">UPC Concat<span class="file__sub">Schema Mapping</span></span><span class="file__purpose">Map product data across files into one canonical schema and resolve concatenated descriptions.</span></a>
-            <a class="file" href="image-prep.html"><span class="file__tab file__tab--code">IMG 007</span><span class="file__tab file__tab--category">ASSETS</span><span class="file__name">Image Prep<span class="file__sub">Resize · Recolor · Reformat</span></span><span class="file__purpose">Batch-resize images, set a background color behind transparency, and reformat to PNG, JPEG, or WebP.</span></a>
+            <a class="file" href="replenishment-linesheet/index.html"><span class="file__tab file__tab--code">DLS 001</span><span class="file__tab file__tab--category">PRODUCT</span><span class="file__name">DIGI LINE SHEET<span class="file__sub">product review</span></span><span class="file__purpose">Annotate and export selected replenishment SKUs.</span></a>
+            <a class="file" href="assortment-comparison/index.html"><span class="file__tab file__tab--code">AOR 002</span><span class="file__tab file__tab--category">ANALYTICS</span><span class="file__name">Assortment Comparison<span class="file__sub">Retailer Overlap</span></span><span class="file__purpose">Compare retailer assortments by style, color, grid, brand, and units.</span></a>
+            <a class="file" href="door-tracker/index.html"><span class="file__tab file__tab--code">DOOR 003</span><span class="file__tab file__tab--category">DISTRIBUTION</span><span class="file__name">Door Tracker<span class="file__sub">Door Distribution</span></span><span class="file__purpose">Track brand x retailer door distribution with map reveal and change history.</span></a>
+            <a class="file" href="sellout-standardizer/index.html"><span class="file__tab file__tab--code">STD 004</span><span class="file__tab file__tab--category">OPERATIONS</span><span class="file__name">Retail Data Standardizer<span class="file__sub">Weekly Analytics</span></span><span class="file__purpose">Flatten recurring sell-out reports into one analytics-ready export.</span></a>
+            <a class="file" href="selling-analysis/index.html"><span class="file__tab file__tab--code">SAR 005</span><span class="file__tab file__tab--category">ANALYTICS</span><span class="file__name">Selling Analysis<span class="file__sub">Sell-Through Diagnostic</span></span><span class="file__purpose">Diagnose YTD sell-out workbooks across integrity, liquidation risk, velocity, momentum, promo, and themes.</span></a>
+            <a class="file" href="upc-concat/index.html"><span class="file__tab file__tab--code">UPC 006</span><span class="file__tab file__tab--category">OPERATIONS</span><span class="file__name">UPC Concat<span class="file__sub">Schema Mapping</span></span><span class="file__purpose">Map product data across files into one canonical schema and resolve concatenated descriptions.</span></a>
+            <a class="file" href="image-prep/index.html"><span class="file__tab file__tab--code">IMG 007</span><span class="file__tab file__tab--category">ASSETS</span><span class="file__name">Image Prep<span class="file__sub">Resize · Recolor · Reformat</span></span><span class="file__purpose">Batch-resize images, set a background color behind transparency, and reformat to PNG, JPEG, or WebP.</span></a>
         </div>
       </noscript>
     </section>
@@ -140,7 +140,7 @@
   <script>
     window.FASHION_VIZ = {
       // DLS 001 — review a line sheet and select the styles you keep
-      "replenishment-linesheet.html": `<svg viewBox="0 0 240 132">
+      "replenishment-linesheet/index.html": `<svg viewBox="0 0 240 132">
         <rect class="ac" x="20" y="26" width="58" height="82" rx="6"/>
         <rect class="fdim" x="28" y="34" width="42" height="36" rx="3"/>
         <line class="ln" x1="28" y1="82" x2="62" y2="82"/>
@@ -160,14 +160,14 @@
       </svg>`,
 
       // AOR 002 — overlap between two retailer assortments (Venn)
-      "assortment-comparison.html": `<svg viewBox="0 0 240 132">
+      "assortment-comparison/index.html": `<svg viewBox="0 0 240 132">
         <ellipse class="fwash" cx="120" cy="66" rx="22" ry="42"/>
         <circle class="ln" cx="100" cy="66" r="46"/>
         <circle class="ac" cx="140" cy="66" r="46"/>
       </svg>`,
 
       // DOOR 003 — doors plotted across a territory, one active
-      "retailer-door-tracker.html": `<svg viewBox="0 0 240 132">
+      "door-tracker/index.html": `<svg viewBox="0 0 240 132">
         <rect class="ln" x="18" y="14" width="204" height="104" rx="9" opacity=".55"/>
         <path class="ln" d="M18 66 H222" opacity=".2"/>
         <path class="ln" d="M120 14 V118" opacity=".2"/>
@@ -181,7 +181,7 @@
       </svg>`,
 
       // STD 004 — ragged weekly reports normalized into one clean table
-      "sellout-standardizer.html": `<svg viewBox="0 0 240 132">
+      "sellout-standardizer/index.html": `<svg viewBox="0 0 240 132">
         <g class="fdim">
           <rect x="14" y="28" width="34" height="9" rx="2"/>
           <rect x="14" y="43" width="52" height="9" rx="2"/>
@@ -198,7 +198,7 @@
       </svg>`,
 
       // SAR 005 — sell-through velocity bars with a momentum trend line
-      "selling-analysis.html": `<svg viewBox="0 0 240 132">
+      "selling-analysis/index.html": `<svg viewBox="0 0 240 132">
         <line class="ln" x1="24" y1="106" x2="220" y2="106" opacity=".45"/>
         <g class="fdim">
           <rect x="36" y="76" width="20" height="30" rx="2"/>
@@ -218,7 +218,7 @@
       </svg>`,
 
       // UPC 006 — fields from many files mapped into one canonical schema
-      "upc-concat.html": `<svg viewBox="0 0 240 132">
+      "upc-concat/index.html": `<svg viewBox="0 0 240 132">
         <g class="ln" opacity=".6">
           <rect x="16" y="22" width="62" height="13" rx="3"/>
           <rect x="16" y="39" width="62" height="13" rx="3"/>
@@ -235,7 +235,7 @@
       </svg>`,
 
       // IMG 007 — resize handles, color swatches, format chip
-      "image-prep.html": `<svg viewBox="0 0 240 132">
+      "image-prep/index.html": `<svg viewBox="0 0 240 132">
         <rect class="ln" x="58" y="28" width="112" height="78" rx="6"/>
         <circle class="ac" cx="86" cy="52" r="9"/>
         <path class="ln" d="M62 102 L96 66 L118 90 L140 72 L166 102"/>

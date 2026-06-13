@@ -4,14 +4,14 @@
 
 Maintained sources:
 
-- `src/selling-analysis/selling-analysis.ts`
-- `src/selling-analysis/selling-analysis-app.ts`
-- `src/selling-analysis/selling-analysis-globals.d.ts`
+- `selling-analysis/src/selling-analysis.ts`
+- `selling-analysis/src/selling-analysis-app.ts`
+- `selling-analysis/src/selling-analysis-globals.d.ts`
 
 The HTML page loads these generated browser artifacts:
 
-- `dist/selling-analysis/selling-analysis.js`
-- `dist/selling-analysis/selling-analysis-app.js`
+- `selling-analysis/dist/selling-analysis.js`
+- `selling-analysis/dist/selling-analysis-app.js`
 
 From `projects/fashion`, install dependencies and run:
 
@@ -31,18 +31,18 @@ Both Selling Analysis TypeScript files are compiler-checked. The engine has
 typed data contracts, while the DOM-heavy application uses transitional types
 at chart and third-party library boundaries that can be narrowed incrementally.
 
-Edit files under `src/selling-analysis`. Do not edit the matching files under
-`dist/selling-analysis`, because the next build replaces them.
+Edit files under `selling-analysis/src`. Do not edit the matching files under
+`selling-analysis/dist`, because the next build replaces them.
 
 ## UPC Concat
 
 Maintained source:
 
-- `src/upc-concat/upc-concat.ts`
+- `upc-concat/src/upc-concat.ts`
 
 Generated browser artifact:
 
-- `dist/upc-concat/upc-concat.js`
+- `upc-concat/dist/upc-concat.js`
 
 Run:
 
@@ -59,12 +59,12 @@ collections, IndexedDB access, build output, and browser loading are checked.
 
 Maintained sources:
 
-- `src/sellout-standardizer/sellout-standardizer.ts`
-- `src/sellout-standardizer/sellout-standardizer-globals.d.ts`
+- `sellout-standardizer/src/sellout-standardizer.ts`
+- `sellout-standardizer/src/sellout-standardizer-globals.d.ts`
 
 Generated browser artifact:
 
-- `dist/sellout-standardizer/sellout-standardizer.js`
+- `sellout-standardizer/dist/sellout-standardizer.js`
 
 Run:
 
@@ -75,8 +75,8 @@ npm run build:sellout-standardizer
 
 ## Assortment Comparison
 
-Maintained sources are under `src/assortment-comparison`; generated JavaScript
-is under `dist/assortment-comparison`.
+Maintained sources are under `assortment-comparison/src`; generated JavaScript
+is under `assortment-comparison/dist`.
 
 ```powershell
 npm run check:assortment-comparison
@@ -85,8 +85,8 @@ npm run build:assortment-comparison
 
 ## DIGI Line Sheet
 
-Maintained sources are under `src/replenishment-linesheet`; generated
-JavaScript is under `dist/replenishment-linesheet`.
+Maintained sources are under `replenishment-linesheet/src`; generated
+JavaScript is under `replenishment-linesheet/dist`.
 
 ```powershell
 npm run check:replenishment-linesheet
@@ -95,8 +95,8 @@ npm run build:replenishment-linesheet
 
 ## Image Prep
 
-Maintained sources are under `src/image-prep`; generated JavaScript is under
-`dist/image-prep`.
+Maintained sources are under `image-prep/src`; generated JavaScript is under
+`image-prep/dist`.
 
 ```powershell
 npm run check:image-prep
@@ -105,8 +105,8 @@ npm run build:image-prep
 
 ## Door Tracker
 
-Maintained sources are under `src/door-tracker`; generated JavaScript is under
-`dist/door-tracker`.
+Maintained sources are under `door-tracker/src`; generated JavaScript is under
+`door-tracker/dist`.
 
 ```powershell
 npm run check:door-tracker

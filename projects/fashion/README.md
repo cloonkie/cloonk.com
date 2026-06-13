@@ -14,13 +14,13 @@ tools share the cloonk.com theme and the same `cloonk-theme` localStorage key.
 
 | File | Purpose |
 | --- | --- |
-| [`replenishment-linesheet.html`](replenishment-linesheet.html) | Upload a replenishment line sheet, annotate SKUs, and export selected styles. |
-| [`assortment-comparison.html`](assortment-comparison.html) | Compare retailer assortments by UPC/style + color + grid; visualize overlap. |
-| [`retailer-door-tracker.html`](retailer-door-tracker.html) | Track brand × retailer door distribution. Map reveal, change history, restore points. |
-| [`sellout-standardizer.html`](sellout-standardizer.html) | Normalize retailer sell-out workbooks into a reusable canonical schema. |
-| [`selling-analysis.html`](selling-analysis.html) | Evaluate sell-through data readiness and render merchandising analyses. |
-| [`upc-concat.html`](upc-concat.html) | Resolve product data across source files into a canonical output schema. |
-| [`image-prep.html`](image-prep.html) | Prepare product imagery for downstream line-sheet and presentation use. |
+| [`replenishment-linesheet/`](replenishment-linesheet/) | Upload a replenishment line sheet, annotate SKUs, and export selected styles. |
+| [`assortment-comparison/`](assortment-comparison/) | Compare retailer assortments by UPC/style + color + grid; visualize overlap. |
+| [`door-tracker/`](door-tracker/) | Track brand × retailer door distribution. Map reveal, change history, restore points. |
+| [`sellout-standardizer/`](sellout-standardizer/) | Normalize retailer sell-out workbooks into a reusable canonical schema. |
+| [`selling-analysis/`](selling-analysis/) | Evaluate sell-through data readiness and render merchandising analyses. |
+| [`upc-concat/`](upc-concat/) | Resolve product data across source files into a canonical output schema. |
+| [`image-prep/`](image-prep/) | Prepare product imagery for downstream line-sheet and presentation use. |
 
 The header resource navigation in each tool links to its siblings.
 
@@ -30,8 +30,9 @@ The header resource navigation in each tool links to its siblings.
 
 ### TypeScript layout
 
-Maintained TypeScript lives under `src/<tool>/`. Compiled browser JavaScript
-lives under `dist/<tool>/`, and the HTML pages load those generated files.
+Each tool owns an `index.html`, `src/`, `dist/`, and `tsconfig.json`.
+Maintained TypeScript lives under `<tool>/src/`; compiled browser JavaScript
+lives under `<tool>/dist/`.
 
 Currently migrated:
 
@@ -81,9 +82,9 @@ Tool-specific commands follow the same pattern:
 See [`TYPESCRIPT.md`](TYPESCRIPT.md) for source paths and all per-tool commands.
 
 Door Tracker's maintained source is
-[`src/door-tracker/door-tracker.ts`](src/door-tracker/door-tracker.ts). Its
+[`door-tracker/src/door-tracker.ts`](door-tracker/src/door-tracker.ts). Its
 Mapbox, Supabase, IndexedDB, XLSX, authentication, and static data boundaries
-are declared in `src/door-tracker/door-tracker-globals.d.ts`.
+are declared in `door-tracker/src/door-tracker-globals.d.ts`.
 
 ---
 
@@ -95,7 +96,7 @@ Loads a replenishment-style spreadsheet (one row per SKU) and renders each row a
 The whole thing runs in the browser — nothing is uploaded anywhere.
 
 ### Quick start
-1. Open [`replenishment-linesheet.html`](replenishment-linesheet.html).
+1. Open [`replenishment-linesheet/`](replenishment-linesheet/).
 2. Click **↓ Template** to download a blank `.xlsx` with the expected columns.
 3. Fill it in and load it via **↑ Load Sheet** (or drag-and-drop onto the landing zone).
 4. Optionally click **↑ Images** to bulk-attach product photos by filename.
@@ -216,8 +217,8 @@ Each roster user has a `tenant` field. Users on the same tenant share a dataset;
 
 To add a new team:
 
-1. **Roster.** Pick a tenant slug (lowercase, no spaces — e.g. `specialty`, `luxury`, `intl`). Add the team's users to `data/door-tracker-user-roster.local.js` with `tenant: 'specialty'` and the SHA-256 password hash.
-2. **Supabase (if using shared sync).** Insert the team's emails into `door_tracker_allowed_users` with the same tenant string. The `tenant` column was added to that table in [`supabase-door-tracker.sql`](supabase-door-tracker.sql).
+1. **Roster.** Pick a tenant slug (lowercase, no spaces — e.g. `specialty`, `luxury`, `intl`). Add the team's users to `door-tracker/data/door-tracker-user-roster.local.js` with `tenant: 'specialty'` and the SHA-256 password hash.
+2. **Supabase (if using shared sync).** Insert the team's emails into `door_tracker_allowed_users` with the same tenant string. The `tenant` column was added to that table in [`door-tracker/supabase-door-tracker.sql`](door-tracker/supabase-door-tracker.sql).
 3. **Done.** First sign-in shows the empty template; the team imports their starter data via the login modal's Matrix / Door upload zones or the **Data → Import Sheets** flow.
 
 Switching a user between tenants is just editing their roster entry; the next reload reads the new tenant. History entries, restore points, and shared Supabase rows stay scoped to whichever tenant was active when they were written.
@@ -230,9 +231,9 @@ Switching a user between tenants is just editing their roster entry; the next re
 ### Census market layer
 The Door Tracker map can load a static Census-backed market layer from:
 
-- `data/hex_market_data.geojson`
-- `data/door_trade_area_metrics.geojson`
-- `data/market_metadata.json`
+- `door-tracker/data/hex_market_data.geojson`
+- `door-tracker/data/door_trade_area_metrics.geojson`
+- `door-tracker/data/market_metadata.json`
 
 Refresh it manually from the repo root:
 
@@ -271,7 +272,7 @@ Variables used:
 
 The analysis uses store geographies and hexes instead of city-level averages because city boundaries often overstate or understate a store's real customer catchment. A 5-mile fallback store geography keeps the metric anchored near each physical door, while hexes reveal sub-market variation across the active map area.
 
-Data source note: Market data: Census ACS 5-Year. Last refreshed: see `data/market_metadata.json`.
+Data source note: Market data: Census ACS 5-Year. Last refreshed: see `door-tracker/data/market_metadata.json`.
 
 ### Theme
 Same `cloonk-theme` localStorage key as the rest of the toolbox — toggling in any tool flips them all (and the main site).

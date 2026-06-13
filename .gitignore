@@ -1,7 +1,7 @@
 # Local-only data (Supabase keys, user rosters, etc.)
 *.local.js
-projects/fashion/data/door-tracker-user-roster.local.js
-projects/fashion/data/door-tracker-supabase-config.local.js
+projects/fashion/door-tracker/data/door-tracker-user-roster.local.js
+projects/fashion/door-tracker/data/door-tracker-supabase-config.local.js
 
 # OS / editor junk
 .DS_Store
