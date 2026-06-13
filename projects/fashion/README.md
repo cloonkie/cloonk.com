@@ -24,6 +24,11 @@ tools share the cloonk.com theme and the same `cloonk-theme` localStorage key.
 
 The header resource navigation in each tool links to its siblings.
 
+Search titles, descriptions, canonical URLs, categories, and keywords are also
+mapped in [`seo-metadata.json`](seo-metadata.json). Keep that manifest aligned
+with each tool's inline Open Graph, Twitter, and `SoftwareApplication` JSON-LD
+metadata when names or URLs change.
+
 ---
 
 ## Development

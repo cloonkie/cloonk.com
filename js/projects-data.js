@@ -6,6 +6,43 @@
 
 window.PROJECTS = [
   {
+      "num": "34",
+      "id": "nyc-soundhood",
+      "title": "NYC Soundhood",
+      "short": "Connect Spotify, get your top 3 NYC neighborhoods — by ear.",
+      "desc": "Connect Spotify and the tool reads your real top artists and the dozens of micro-genres behind them — \"brooklyn drill,\" \"bedroom pop,\" \"deep house\" — folds them into ten sonic families, and reads your average artist popularity as a mainstream-to-underground dial. That taste fingerprint is then scored against the hand-authored sonic profile of fourteen NYC neighborhoods, and out come your closest three, with the reasoning shown.\n\nIt runs entirely in the browser on Spotify's PKCE auth flow — no server, no client secret. The access token lives only in the open tab and is dropped when it closes; no listening data is uploaded, stored, or logged. A sample-data preview lets anyone see the matching engine run without connecting an account.",
+      "topic": "data analysis",
+      "type": "Tools",
+      "year": "2026",
+      "affiliation": null,
+      "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/projects%20no%20img.png",
+      "gallery": [],
+      "media": [],
+      "pdf": null,
+      "pdf_label": null,
+      "figma": null, "sheets": null, "canva": null,
+      "github": "https://github.com/cloonkie/cloonk.com/tree/main/projects/nyc-soundhood",
+      "live": "https://cloonk.com/projects/nyc-soundhood/",
+      "hideStatMoments": true,
+      "hideStatements": true,
+      "quotes": null, "findings": null, "statMoments": null, "impact": null, "statements": null,
+      "context": {
+        "problem": "\"What kind of music are you into?\" is a question people answer with a vibe, not a vector. Spotify already knows the real answer — it just hands it back as a Wrapped slideshow once a year. The idea here was to turn that latent taste data into something playful and place-based: if your listening were a New York neighborhood, which one would it be? The constraint was the same one every cloonk tool holds to — it had to run with no backend and never hold onto anyone's data."
+      },
+      "approach": {
+        "summary": "A single-page app on Spotify's Authorization Code + PKCE flow — fully client-side, no secret, no server to send a token to. It pulls the user's top 50 artists, classifies each artist's Spotify genres into ten sonic families via keyword rules, weights by listening rank, and reads average artist popularity as a mainstream-to-underground axis. The resulting taste vector is matched to fourteen hand-profiled neighborhoods by weighted cosine similarity, blended with axis proximity. Results show match percentages, the driving genres, and a full taste-fingerprint readout.",
+        "data": ["JavaScript (ES modules)", "Spotify Web API", "OAuth PKCE", "Web Crypto API", "Cosine similarity", "Client-side processing", "GitHub Pages"]
+      },
+      "results": {
+        "before": ["Your music taste is rich structured data locked inside one app's once-a-year recap", "No fun, shareable way to translate listening into a sense of place", "Most \"connect your Spotify\" toys route your data through someone's server"],
+        "after": ["Connect Spotify → your top 3 NYC neighborhoods with match scores and reasoning", "A taste fingerprint — ten sonic families, a mainstream-to-underground dial, and your top genres — rendered from real listening", "Auth and analysis run entirely in-tab; the token is never persisted and no listening data leaves the browser", "A sample-data preview so the engine is explorable without an account"]
+      },
+      "takeaways": [
+        { "title": "PKCE means a 'connect your account' toy needs no backend", "body": "The reflex with anything that touches a user's Spotify is to stand up a server to hold the client secret. The Authorization Code + PKCE flow removes that entirely — the browser proves it started the request with a hashed verifier, no secret required. So the honest privacy story and the architecture are the same one: there's no server to send your listening history to, because there's no server at all." }
+      ]
+    },
+
+  {
       "num": "33",
       "id": "pdf-studio",
       "title": "PDF Studio",
@@ -15,7 +52,7 @@ window.PROJECTS = [
       "type": "Tools",
       "year": "2026",
       "affiliation": null,
-      "img": "https://cloonk.com/favicon.svg",
+      "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/projects%20no%20img.png",
       "gallery": [],
       "media": [],
       "pdf": null,

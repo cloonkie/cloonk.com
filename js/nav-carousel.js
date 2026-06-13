@@ -5,7 +5,7 @@
     {
       label: 'Work',
       sub:   'Selected Projects',
-      href:  'projects.html',
+      href:  'work.html',
       color: 'var(--accent)',
       img:   'https://the-dailee.com/cdn/shop/files/2026_daily_planner_d410b736-80fa-43a0-b6c3-513f21b767e3.png?v=1757084016',
     },

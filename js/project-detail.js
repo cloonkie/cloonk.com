@@ -12,7 +12,7 @@
     root.innerHTML = `
       <div class="detail-not-found">
         <h1 class="detail-title">Project not found</h1>
-        <a href="projects.html" class="detail-back">← Back to Work</a>
+        <a href="work.html" class="detail-back">← Back to Work</a>
       </div>`;
     // Prevent indexing of empty/invalid project URLs
     var robotsMeta = document.querySelector('meta[name="robots"]');
@@ -547,7 +547,7 @@
         + '<span class="detail-breadcrumb__next-title">' + next.title + '</span>'
         + '<span> →</span>'
         + '</a>'
-    : '<a href="projects.html" class="detail-breadcrumb__next"><span>All Work →</span></a>';
+    : '<a href="work.html" class="detail-breadcrumb__next"><span>All Work →</span></a>';
 
   var furtherReadingHTML = renderFurtherReading(p);
   var hasFurtherReading  = !!furtherReadingHTML;
@@ -567,7 +567,7 @@
   root.innerHTML =
     '<div class="detail-breadcrumb fade-in">'
       + '<div class="detail-breadcrumb__left">'
-        + '<a href="projects.html" class="detail-back">← Work</a>'
+        + '<a href="work.html" class="detail-back">← Work</a>'
         + '<span class="detail-breadcrumb__sep">/</span>'
         + '<span class="detail-breadcrumb__current">' + p.title + '</span>'
       + '</div>'

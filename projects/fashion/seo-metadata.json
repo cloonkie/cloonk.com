@@ -1,0 +1,87 @@
+{
+  "collection": {
+    "name": "cloonk Fashion Toolbox",
+    "url": "https://cloonk.com/projects/fashion/",
+    "author": "Kevin Zhang",
+    "language": "en-US"
+  },
+  "tools": [
+    {
+      "id": "replenishment-linesheet",
+      "name": "DIGI LINE SHEET",
+      "alternateName": "Digital Line Sheet",
+      "title": "Digital Line Sheet and SKU Selection Tool | cloonk",
+      "description": "Review replenishment assortments, filter and annotate product SKUs, attach imagery, select styles, and export merchandising decisions to Excel.",
+      "canonical": "https://cloonk.com/projects/fashion/replenishment-linesheet/",
+      "legacyPath": "/projects/fashion/replenishment-linesheet.html",
+      "category": "Fashion Merchandising",
+      "keywords": ["digital line sheet", "SKU selection", "replenishment review", "merchandising assortment", "fashion buying"]
+    },
+    {
+      "id": "assortment-comparison",
+      "name": "Assortment Comparison",
+      "alternateName": "Retailer Overlap",
+      "title": "Assortment Comparison Tool for Retail Merchandising | cloonk",
+      "description": "Compare retailer assortments by style, color, grid, brand, units, and overlap in a private browser-based merchandising workspace.",
+      "canonical": "https://cloonk.com/projects/fashion/assortment-comparison/",
+      "legacyPath": "/projects/fashion/assortment-comparison.html",
+      "category": "Retail Merchandising Analytics",
+      "keywords": ["assortment comparison", "retail assortment analysis", "product overlap", "SKU comparison", "fashion retail"]
+    },
+    {
+      "id": "door-tracker",
+      "name": "Retail Door Tracker",
+      "alternateName": "Door Tracker",
+      "title": "Retail Door Tracker and Distribution Mapping Tool | cloonk",
+      "description": "Track brand distribution by retailer and physical door with matrix views, store maps, assignment workflows, change history, and restore points.",
+      "canonical": "https://cloonk.com/projects/fashion/door-tracker/",
+      "legacyPath": "/projects/fashion/retailer-door-tracker.html",
+      "category": "Retail Distribution Management",
+      "keywords": ["retail door tracker", "brand distribution", "store mapping", "wholesale door management", "retailer matrix"]
+    },
+    {
+      "id": "sellout-standardizer",
+      "name": "Retail Data Standardizer",
+      "alternateName": "Sell-Out Standardizer",
+      "title": "Retail Sales Data Standardizer and Spreadsheet Mapper | cloonk",
+      "description": "Map, clean, normalize, pivot, and export recurring retailer sales and inventory spreadsheets into consistent analytics-ready datasets.",
+      "canonical": "https://cloonk.com/projects/fashion/sellout-standardizer/",
+      "legacyPath": "/projects/fashion/sellout-standardizer.html",
+      "category": "Retail Data Operations",
+      "keywords": ["retail data standardizer", "spreadsheet mapping", "sell-out normalization", "POS data cleaning", "Excel transformation"]
+    },
+    {
+      "id": "selling-analysis",
+      "name": "Selling Analysis",
+      "alternateName": "Sell-Through Diagnostic",
+      "title": "Retail Selling Analysis and Sell-Through Diagnostic | cloonk",
+      "description": "Diagnose retail sell-through, inventory health, velocity, momentum, promotional dependence, liquidation risk, and collection themes from Excel data.",
+      "canonical": "https://cloonk.com/projects/fashion/selling-analysis/",
+      "legacyPath": "/projects/fashion/selling-analysis.html",
+      "category": "Retail Sales Analytics",
+      "keywords": ["selling analysis", "sell-through diagnostic", "inventory health", "sales velocity", "liquidation risk"]
+    },
+    {
+      "id": "upc-concat",
+      "name": "UPC Concat",
+      "alternateName": "UPC Product Data Mapper",
+      "title": "UPC Product Data Mapping and Schema Consolidation Tool | cloonk",
+      "description": "Join product records across Excel and CSV files, map fields into a canonical schema, resolve concatenated descriptions, and export clean product data.",
+      "canonical": "https://cloonk.com/projects/fashion/upc-concat/",
+      "legacyPath": "/projects/fashion/upc-concat.html",
+      "category": "Product Information Management",
+      "keywords": ["UPC data mapping", "product data consolidation", "SKU matching", "canonical schema", "description parsing"]
+    },
+    {
+      "id": "image-prep",
+      "name": "Image Prep",
+      "alternateName": "Product Image Prep",
+      "title": "Batch Product Image Resizer and Format Converter | cloonk",
+      "description": "Resize product images in batches, add backgrounds behind transparency, and convert files to PNG, JPEG, or WebP privately in your browser.",
+      "canonical": "https://cloonk.com/projects/fashion/image-prep/",
+      "legacyPath": "/projects/fashion/image-prep.html",
+      "category": "Product Image Processing",
+      "keywords": ["batch image resizer", "product image converter", "transparent background", "WebP converter", "ecommerce image prep"]
+    }
+  ]
+}

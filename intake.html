@@ -377,7 +377,7 @@
   <nav>
     <a class="nav__logo" id="nav-logo" href="index.html">cloonk ʕ·ᴥ·ʔ</a>
     <div class="nav__links">
-      <a href="projects.html">Work</a>
+      <a href="work.html">Work</a>
       <a href="resume.html">Resume</a>
       <a href="info.html">Info</a>
       <a href="contact.html">Contact</a>
@@ -402,7 +402,7 @@
   </nav>
 
   <div class="nav__mobile-menu" id="nav-mobile-menu">
-    <a href="projects.html">Work</a>
+    <a href="work.html">Work</a>
     <a href="resume.html">Resume</a>
     <a href="info.html">Info</a>
     <a href="contact.html">Contact</a>
@@ -417,7 +417,7 @@
       <button class="intake-step-tab" data-step="3">04&nbsp;&nbsp;Experience</button>
       <button class="intake-step-tab" data-step="4">05&nbsp;&nbsp;Education</button>
       <button class="intake-step-tab" data-step="5">06&nbsp;&nbsp;Contact</button>
-      <button class="intake-step-tab" data-step="6">07&nbsp;&nbsp;Export</button>
+      <button class="intake-step-tab" data-step="6">07&nbsp;&nbsp;Send</button>
     </div>
     <div class="intake-progress-bar">
       <div class="intake-progress-fill" id="progressFill" style="width:0%;"></div>
@@ -704,23 +704,23 @@
 
           <div class="form-nav">
             <button class="button button-secondary" onclick="goStep(4)">&larr; Back</button>
-            <button class="button button-primary" onclick="buildExport(); goStep(6);">Review &amp; export &rarr;</button>
+            <button class="button button-primary" onclick="buildExport(); goStep(6);">Review &amp; send &rarr;</button>
           </div>
         </div>
 
-        <!-- ──────────────────── Step 6: Export ──────────────────── -->
+        <!-- ──────────────────── Step 6: Send ──────────────────── -->
         <div class="form-step" id="step-6">
           <div class="form-step-header">
             <p class="form-step-number">Step 07 of 07</p>
-            <h2 class="form-step-title">Here's everything.</h2>
-            <p class="form-step-desc">Copy the JSON below and send it to your developer alongside your image assets. It contains every piece of content needed to build your site from scratch.</p>
+            <h2 class="form-step-title">Ready to send.</h2>
+            <p class="form-step-desc">Review the intake below, then email the complete submission directly to Kevin. Image assets can be shared separately using the links provided in the form.</p>
           </div>
 
           <div id="export-output"></div>
 
           <div class="form-nav">
             <button class="button button-secondary" onclick="goStep(5)">&larr; Back</button>
-            <button class="button button-primary copy-btn" id="copy-btn" onclick="copyExport()">Copy JSON to clipboard</button>
+            <button class="button button-primary copy-btn" id="send-btn" onclick="sendIntake()">Email intake to Kevin</button>
           </div>
         </div>
 
@@ -962,7 +962,7 @@
       return String(str).replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    /* ── Build export ── */
+    /* ── Build submission ── */
     var exportData = null;
 
     window.buildExport = function () {
@@ -1050,29 +1050,159 @@
       }
 
       exportData = data;
-      var json = JSON.stringify(data, null, 2);
+      var message = formatIntakeEmail(data);
 
       document.getElementById('export-output').innerHTML =
         '<div class="summary-section">' +
-          '<p class="summary-section-title">Full site content — JSON</p>' +
-          '<pre class="output-code" id="json-output">' + escJson(json) + '</pre>' +
-          '<button class="copy-btn" onclick="copyExport()">Copy JSON to clipboard</button>' +
+          '<p class="summary-section-title">Portfolio intake summary</p>' +
+          '<pre class="output-code" id="email-output">' + escJson(message) + '</pre>' +
+          '<p class="form-hint" style="margin-top:1rem;">The email is sent through FormSubmit. Your contact email will be used as the reply-to address.</p>' +
         '</div>';
     };
 
-    window.copyExport = function () {
-      var el = document.getElementById('json-output');
-      if (!el) return;
-      navigator.clipboard.writeText(el.textContent).then(function () {
-        var btn = document.getElementById('copy-btn');
-        var orig = btn.textContent;
-        btn.textContent = 'Copied!';
-        btn.classList.add('copied');
-        setTimeout(function () {
-          btn.textContent = orig;
-          btn.classList.remove('copied');
-        }, 2000);
-      });
+    function formatIntakeEmail (data) {
+      function line (label, value) {
+        return label + ': ' + (value || 'Not provided');
+      }
+
+      function listSection (title, items, fields) {
+        var output = ['','--- ' + title.toUpperCase() + ' ---'];
+        if (!items.length) {
+          output.push('None provided');
+          return output;
+        }
+        items.forEach(function (item, index) {
+          output.push('', title.replace(/s$/, '') + ' ' + (index + 1));
+          fields.forEach(function (field) {
+            var value = item[field.key];
+            if (Array.isArray(value)) value = value.join(', ');
+            output.push(line(field.label, value));
+          });
+        });
+        return output;
+      }
+
+      var lines = [
+        'PORTFOLIO INTAKE',
+        'Submitted: ' + new Date().toLocaleString(),
+        '',
+        '--- IDENTITY ---',
+        line('Name', data.identity.name),
+        line('Professional title', data.identity.title),
+        line('Location', data.identity.location),
+        line('Hero eyebrow', data.identity.eyebrow),
+        line('Hero headline', data.identity.tagline),
+        line('Hero subtext', data.identity.heroText),
+        line('Meta description', data.identity.metaDescription),
+        line('Social share blurb', data.identity.ogTagline),
+        '',
+        '--- ABOUT ---',
+        line('Paragraph 1', data.about.paragraph1),
+        line('Paragraph 2', data.about.paragraph2),
+        line('Paragraph 3', data.about.paragraph3),
+        line('Closing note', data.about.closingNote)
+      ];
+
+      lines = lines.concat(listSection('Projects', data.projects, [
+        { key: 'title', label: 'Title' },
+        { key: 'year', label: 'Year' },
+        { key: 'pageType', label: 'Page type' },
+        { key: 'categories', label: 'Categories' },
+        { key: 'cardDescription', label: 'Card description' },
+        { key: 'heroImage', label: 'Hero image' }
+      ]));
+
+      lines = lines.concat(listSection('Experience', data.experience, [
+        { key: 'title', label: 'Title' },
+        { key: 'company', label: 'Company' },
+        { key: 'location', label: 'Location' },
+        { key: 'dates', label: 'Dates' },
+        { key: 'description', label: 'Description' }
+      ]));
+
+      lines = lines.concat(listSection('Education', data.education, [
+        { key: 'degree', label: 'Degree' },
+        { key: 'institution', label: 'Institution' },
+        { key: 'years', label: 'Years' },
+        { key: 'description', label: 'Description' }
+      ]));
+
+      lines = lines.concat(listSection('Interests', data.interests, [
+        { key: 'title', label: 'Title' },
+        { key: 'description', label: 'Description' }
+      ]));
+
+      lines = lines.concat([
+        '',
+        '--- INFRASTRUCTURE ---',
+        line('Domain name', data.infrastructure.domainName),
+        line('Domain plan', data.infrastructure.domainPlan),
+        line('Domain availability', data.infrastructure.domainAvailability),
+        line('Domain registrar', data.infrastructure.domainRegistrar),
+        line('Media database', data.infrastructure.mediaDatabase),
+        line('Media location', data.infrastructure.mediaLocation),
+        line('Media compression', data.infrastructure.mediaCompression),
+        line('Media volume', data.infrastructure.mediaVolume),
+        '',
+        '--- CONTACT & ASSETS ---',
+        line('Email', data.contact.email),
+        line('LinkedIn', data.contact.linkedin),
+        line('Writing URL', data.contact.writingUrl),
+        line('Writing name', data.contact.writingName),
+        line('Writing blurb', data.contact.writingBlurb),
+        line('Resume URL', data.contact.resumeUrl),
+        line('Social preview image', data.contact.ogImage)
+      ]);
+
+      return lines.join('\n');
+    }
+
+    window.sendIntake = function () {
+      buildExport();
+      if (!exportData) return;
+
+      var btn = document.getElementById('send-btn');
+      var replyTo = exportData.contact.email;
+      var senderName = exportData.identity.name || 'Portfolio intake';
+      var form = document.createElement('form');
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(replyTo)) {
+        document.getElementById('export-output').insertAdjacentHTML(
+          'afterbegin',
+          '<p class="form-hint" style="margin-bottom:1rem;color:#c0392b;">Add a valid contact email in Step 06 before sending.</p>'
+        );
+        return;
+      }
+
+      form.method = 'POST';
+      form.action = 'https://formsubmit.co/kevinzhang813@gmail.com';
+      form.style.display = 'none';
+
+      function addField (name, value) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value || '';
+        form.appendChild(input);
+      }
+
+      addField('_subject', 'Portfolio intake — ' + senderName);
+      addField('_template', 'box');
+      addField('_captcha', 'false');
+      addField('_honey', '');
+      addField('_replyto', replyTo);
+      addField('name', senderName);
+      addField('email', replyTo);
+      addField('message', formatIntakeEmail(exportData));
+
+      if (location.protocol === 'http:' || location.protocol === 'https:') {
+        addField('_next', location.origin + location.pathname + '?sent=1');
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      document.body.appendChild(form);
+      form.submit();
     };
 
     /* ── Wire up add buttons ── */
@@ -1086,6 +1216,19 @@
     addExperience();
     addEducation();
     addInterest();
+
+    if (new URLSearchParams(window.location.search).get('sent') === '1') {
+      goStep(6);
+      document.getElementById('export-output').innerHTML =
+        '<div class="summary-section">' +
+          '<p class="summary-section-title">Submission sent</p>' +
+          '<p class="form-step-desc">Your portfolio intake was emailed to Kevin at kevinzhang813@gmail.com.</p>' +
+        '</div>';
+      var sentButton = document.getElementById('send-btn');
+      sentButton.textContent = 'Email sent';
+      sentButton.disabled = true;
+      sentButton.classList.add('copied');
+    }
 
   })();
   </script>

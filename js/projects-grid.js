@@ -343,9 +343,9 @@
   function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
   /* ── Read URL params and pre-apply filters ──
-     e.g. projects.html?affiliation=pratt
-          projects.html?affiliation=pratt&topic=design
-          projects.html?year=2024,2025
+     e.g. work.html?affiliation=pratt
+          work.html?affiliation=pratt&topic=design
+          work.html?year=2024,2025
   ───────────────────────────────────────── */
   const urlParams = new URLSearchParams(window.location.search);
   ['topic', 'year', 'affiliation', 'type'].forEach(key => {

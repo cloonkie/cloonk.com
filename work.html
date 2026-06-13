@@ -9,7 +9,7 @@
   <meta name="keywords" content="Kevin Zhang portfolio, UX research projects, data analysis projects, data visualization, usability studies, design case studies" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
   <meta name="theme-color" content="#0a0c0f" />
-  <link rel="canonical" href="https://cloonk.com/projects.html" />
+  <link rel="canonical" href="https://cloonk.com/work.html" />
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="cloonk — Kevin Zhang" />
@@ -17,7 +17,7 @@
   <meta property="og:title" content="Work — Kevin Zhang" />
   <meta property="og:description" content="Selected UX research, behavioral analytics, and data visualization projects." />
   <meta property="og:image" content="https://cloonk.com/images/hero.jpg" />
-  <meta property="og:url" content="https://cloonk.com/projects.html" />
+  <meta property="og:url" content="https://cloonk.com/work.html" />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Work — Kevin Zhang" />
@@ -36,6 +36,21 @@
     .work-page {
       position: relative;
     }
+
+    /* Subtitle under the page title — frames Work vs the playground */
+    .work-subtitle {
+      margin: 0.7rem 0 0;
+      max-width: 46ch;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+    .work-subtitle a {
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .work-subtitle a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
     /* ── Sticky top bar: project count + Refine toggle ── */
     .work-topbar {
@@ -448,7 +463,7 @@
   <nav>
     <a class="nav__logo" id="nav-logo" href="index.html">cloonk ʕ·ᴥ·ʔ</a>
     <div class="nav__links">
-      <a href="projects.html" class="active">Work</a>
+      <a href="work.html" class="active">Work</a>
       <a href="resume.html">Resume</a>
       <a href="info.html">Info</a>
       <a href="contact.html">Contact</a>
@@ -466,7 +481,7 @@
   </nav>
 
   <div class="nav__mobile-menu" id="nav-mobile-menu">
-    <a href="projects.html">Work</a>
+    <a href="work.html">Work</a>
     <a href="resume.html">Resume</a>
     <a href="info.html">Info</a>
     <a href="contact.html">Contact</a>
@@ -478,7 +493,8 @@
       <!-- Header — no "Work" label -->
       <div class="work-toolbar fade-in">
         <div class="work-toolbar__left">
-          <h1 class="work-title">Selected Projects</h1>
+          <h1 class="work-title">Work Catalog</h1>
+          <p class="work-subtitle">A collection and archive of existing projects and case studies.</p>
         </div>
       </div>
 

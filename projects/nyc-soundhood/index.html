@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NYC Soundhood | Kevin Zhang</title>
+<meta name="description" content="Connect Spotify and get your top 3 NYC neighborhoods, matched by ear and revealed on a live map. Your real top artists and genres become a taste fingerprint scored against the sonic profile of every corner of the city. Nothing is stored; everything runs in your browser.">
+<meta name="author" content="Kevin Zhang">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="canonical" href="https://cloonk.com/projects/nyc-soundhood/">
+<meta property="og:title" content="NYC Soundhood — your top 3 neighborhoods, by ear">
+<meta property="og:description" content="Connect Spotify and find the three NYC neighborhoods that sound like your music taste. Revealed on a live map. Runs entirely in your browser.">
+<meta property="og:image" content="https://cloonk.com/favicon.svg">
+<meta name="twitter:image" content="https://cloonk.com/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script src="../../js/favicon-rotator.js" defer></script>
+<script src="../../js/cursor.js" defer></script>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700,800&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.js"></script>
+<link rel="stylesheet" href="nyc-soundhood.css">
+<script>
+  try {
+    document.documentElement.setAttribute(
+      'data-theme',
+      localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark'
+    );
+  } catch (e) {}
+</script>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-left">
+    <a class="nav__logo" id="nav-logo" href="../../index.html">cloonk ʕ·ᴥ·ʔ</a>
+    <span class="header-project">NYC Soundhood</span>
+  </div>
+  <div class="header-actions">
+    <div class="how-tip">
+      <button class="how-tip-toggle" id="how-tip-btn" aria-label="How it works" title="How it works">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.6" r="0.6" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <div class="how-tip-pop">
+        <p>We read your top 50 artists, fold their Spotify genres into ten sonic families,
+        and read average artist popularity as a mainstream-to-underground dial. That vector
+        is matched to each neighborhood's hand-authored profile by weighted cosine similarity.
+        No listening data leaves this tab; the token is never stored.</p>
+        <a class="how-tip-cta" href="../../work.html">See more stuff →</a>
+      </div>
+    </div>
+    <button class="btn btn-sm btn-accent only-mobile" id="info-btn-mobile">Learn more</button>
+    <button class="nav__theme-toggle" id="nav-theme-toggle" aria-label="Toggle light/dark mode">
+      <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ── View: Connect ─────────────────────────────────────────── -->
+<section class="view active" id="view-connect">
+  <div class="connect-grid">
+    <div class="connect-intro">
+      <p class="eyebrow">Connect Spotify · runs in your browser</p>
+      <h1 class="display">Where in New York does your <em>taste</em> live?</h1>
+      <p class="lede">
+        Connect Spotify, and your real top artists become a taste fingerprint scored against
+        fourteen NYC neighborhoods — then your closest three reveal on the map, one at a time.
+      </p>
+    </div>
+
+    <div class="connect-card">
+      <p class="field-label">Listening window</p>
+      <div class="seg" id="range-seg">
+        <button data-range="short_term">Last month</button>
+        <button data-range="medium_term" class="active">Last 6 months</button>
+        <button data-range="long_term">All time</button>
+      </div>
+
+      <div class="cta-row">
+        <button class="btn btn-spotify btn-lg" id="connect-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.3a.75.75 0 0 1-1.03.25c-2.82-1.72-6.37-2.11-10.55-1.16a.75.75 0 1 1-.33-1.46c4.57-1.04 8.5-.59 11.66 1.34.35.22.46.68.25 1.03zm1.47-3.27a.94.94 0 0 1-1.29.31c-3.23-1.98-8.15-2.56-11.97-1.4a.94.94 0 1 1-.54-1.8c4.36-1.32 9.78-.68 13.49 1.6.44.27.58.85.31 1.29zm.13-3.4C15.8 8.2 8.5 7.97 4.62 9.15a1.12 1.12 0 1 1-.65-2.15c4.45-1.35 12.5-1.09 16.74 1.43a1.12 1.12 0 1 1-1.16 1.93z"/></svg>
+          Connect Spotify
+        </button>
+        <button class="btn btn-ghost btn-lg" id="demo-btn">Preview</button>
+      </div>
+      <div id="connect-notice"></div>
+      <p class="privacy-mini"><span class="dot"></span> PKCE auth · no server · your token never leaves this tab.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── View: Loading ─────────────────────────────────────────── -->
+<section class="view" id="view-loading">
+  <div class="loading">
+    <div class="eq"><span></span><span></span><span></span><span></span><span></span></div>
+    <p id="loading-msg">Reading your listening…</p>
+  </div>
+</section>
+
+<!-- ── View: Map ─────────────────────────────────────────────── -->
+<section class="view" id="view-map">
+  <div id="map"></div>
+
+  <!-- desktop: learn-more sits under the cloonk logo -->
+  <div class="map-tl only-desktop">
+    <button class="btn btn-accent seemore" id="seemore-btn">
+      <span class="seemore-dot"></span>Learn more
+    </button>
+  </div>
+
+  <!-- reveal control dock -->
+  <div class="reveal-dock" id="reveal-dock">
+    <button class="btn btn-accent btn-lg" id="reveal-btn">Tap to reveal my #3</button>
+  </div>
+
+  <!-- heatmap legend -->
+  <div class="heat-legend" id="heat-legend">
+    <span>low match</span><i class="ramp"></i><span>high match</span>
+  </div>
+
+  <!-- stats drawer (slides from left) -->
+  <aside class="stats-drawer" id="stats-drawer" aria-label="Your taste breakdown">
+    <div class="drawer-head">
+      <h2>Your taste, mapped</h2>
+      <button class="drawer-close" id="drawer-close" aria-label="Close">✕</button>
+    </div>
+    <div class="drawer-body">
+      <section class="d-section">
+        <p class="subhead">Top 3 neighborhoods</p>
+        <div id="d-matches"></div>
+      </section>
+      <section class="d-section">
+        <p class="subhead">Sonic families</p>
+        <div class="bars" id="d-bars"></div>
+        <div class="axis">
+          <div class="axis-label"><span>Mainstream</span><span>Underground</span></div>
+          <div class="axis-track"><i id="d-axis"></i></div>
+        </div>
+      </section>
+      <section class="d-section">
+        <p class="subhead">Top genres detected</p>
+        <div class="chips" id="d-genres"></div>
+      </section>
+      <section class="d-section">
+        <p class="subhead">Your top artists</p>
+        <div class="artist-list" id="d-artists"></div>
+        <p class="d-sub" id="d-sub"></p>
+      </section>
+      <div class="drawer-foot">
+        <button class="btn btn-accent btn-sm" id="copy-btn">Copy result</button>
+        <button class="btn btn-ghost btn-sm" id="restart-btn">↺ Start over</button>
+      </div>
+    </div>
+  </aside>
+</section>
+
+<script src="../../js/logo.js"></script>
+<script src="nyc-soundhood.js"></script>
+</body>
+</html>

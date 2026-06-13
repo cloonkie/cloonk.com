@@ -12,9 +12,16 @@
     {
       label:    'Work',
       sub:      'Selected projects',
-      href:     'projects.html',
+      href:     'work.html',
       img:      'images/nav-work.webp',
       fallback: '#1a1a18',
+    },
+    {
+      label:    'Playground',
+      sub:      'Experiments & tools',
+      href:     'projects/',
+      img:      'images/nav-projects.png',
+      fallback: '#12120f',
     },
     {
       label:    'Resume',
