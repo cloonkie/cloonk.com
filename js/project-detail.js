@@ -5,14 +5,14 @@
   if (!root || !window.PROJECTS) return;
 
   const params = new URLSearchParams(window.location.search);
-  const id     = params.get('id');
+  const id     = document.body.dataset.projectId || params.get('id');
   const p      = window.PROJECTS.find(x => x.id === id);
 
   if (!p) {
     root.innerHTML = `
       <div class="detail-not-found">
         <h1 class="detail-title">Project not found</h1>
-        <a href="work.html" class="detail-back">← Back to Work</a>
+        <a href="/work.html" class="detail-back">← Back to Work</a>
       </div>`;
     // Prevent indexing of empty/invalid project URLs
     var robotsMeta = document.querySelector('meta[name="robots"]');
@@ -31,12 +31,13 @@
         tags in sync with the active project so crawlers and link
         unfurlers see per-project content. ── */
   (function applySEO() {
-    var canonical = 'https://cloonk.com/project.html?id=' + encodeURIComponent(p.id);
-    var rawDesc   = (p.context && p.context.problem) ? p.context.problem : (p.desc || '');
+    var canonical = 'https://cloonk.com/work/' + encodeURIComponent(p.id) + '/';
+    var rawDesc   = p.short || ((p.context && p.context.problem) ? p.context.problem : (p.desc || ''));
     var desc      = rawDesc.replace(/\s+/g, ' ').trim();
-    if (desc.length > 300) desc = desc.slice(0, 297).replace(/\s+\S*$/, '') + '…';
+    if (desc.length > 160) desc = desc.slice(0, 157).replace(/\s+\S*$/, '') + '…';
     var image     = p.img || 'https://cloonk.com/images/hero.jpg';
     var title     = p.title + ' — Kevin Zhang';
+    var keywords  = [p.topic, p.type, p.affiliation, 'Kevin Zhang portfolio'].filter(Boolean).join(', ');
 
     function setMeta(selector, attr, key, value) {
       var el = document.head.querySelector(selector);
@@ -49,14 +50,17 @@
     }
 
     setMeta('meta[name="description"]',      'name',     'description',      desc);
+    setMeta('meta[name="keywords"]',         'name',     'keywords',         keywords);
     setMeta('meta[property="og:title"]',     'property', 'og:title',         title);
     setMeta('meta[property="og:description"]','property','og:description',   desc);
     setMeta('meta[property="og:image"]',     'property', 'og:image',         image);
+    setMeta('meta[property="og:image:alt"]', 'property', 'og:image:alt',     p.title + ' project preview');
     setMeta('meta[property="og:url"]',       'property', 'og:url',           canonical);
     setMeta('meta[property="og:type"]',      'property', 'og:type',          'article');
     setMeta('meta[name="twitter:title"]',    'name',     'twitter:title',    title);
     setMeta('meta[name="twitter:description"]','name',   'twitter:description', desc);
     setMeta('meta[name="twitter:image"]',    'name',     'twitter:image',    image);
+    setMeta('meta[name="twitter:image:alt"]','name',     'twitter:image:alt',p.title + ' project preview');
 
     var link = document.head.querySelector('link[rel="canonical"]');
     if (!link) {
@@ -74,19 +78,42 @@
     ld.id   = 'ld-project';
     ld.textContent = JSON.stringify({
       '@context': 'https://schema.org',
-      '@type': 'CreativeWork',
-      'name': p.title,
-      'headline': p.title,
-      'description': desc,
-      'image': image,
-      'url': canonical,
-      'author': {
-        '@type': 'Person',
-        'name': 'Kevin Zhang',
-        'url': 'https://cloonk.com/'
-      },
-      'datePublished': p.year || undefined,
-      'keywords': [p.topic, p.type, p.affiliation].filter(Boolean).join(', ')
+      '@graph': [
+        {
+          '@type': 'CreativeWork',
+          '@id': canonical + '#project',
+          'name': p.title,
+          'headline': p.title,
+          'description': desc,
+          'image': image,
+          'url': canonical,
+          'mainEntityOfPage': canonical,
+          'author': {
+            '@type': 'Person',
+            'name': 'Kevin Zhang',
+            'url': 'https://cloonk.com/'
+          },
+          'datePublished': p.year ? p.year + '-01-01' : undefined,
+          'keywords': keywords
+        },
+        {
+          '@type': 'BreadcrumbList',
+          'itemListElement': [
+            {
+              '@type': 'ListItem',
+              'position': 1,
+              'name': 'Work',
+              'item': 'https://cloonk.com/work.html'
+            },
+            {
+              '@type': 'ListItem',
+              'position': 2,
+              'name': p.title,
+              'item': canonical
+            }
+          ]
+        }
+      ]
     });
     document.head.appendChild(ld);
   })();
@@ -541,13 +568,13 @@
 
   /* ── Next / breadcrumb link ── */
   var nextLink = next
-    ? '<a href="project.html?id=' + next.id + '" class="detail-breadcrumb__next">'
+    ? '<a href="/work/' + next.id + '/" class="detail-breadcrumb__next">'
         + '<span>Next</span>'
         + '<span class="detail-breadcrumb__sep">/</span>'
         + '<span class="detail-breadcrumb__next-title">' + next.title + '</span>'
         + '<span> →</span>'
         + '</a>'
-    : '<a href="work.html" class="detail-breadcrumb__next"><span>All Work →</span></a>';
+    : '<a href="/work.html" class="detail-breadcrumb__next"><span>All Work →</span></a>';
 
   var furtherReadingHTML = renderFurtherReading(p);
   var hasFurtherReading  = !!furtherReadingHTML;
@@ -567,7 +594,7 @@
   root.innerHTML =
     '<div class="detail-breadcrumb fade-in">'
       + '<div class="detail-breadcrumb__left">'
-        + '<a href="work.html" class="detail-back">← Work</a>'
+        + '<a href="/work.html" class="detail-back">← Work</a>'
         + '<span class="detail-breadcrumb__sep">/</span>'
         + '<span class="detail-breadcrumb__current">' + p.title + '</span>'
       + '</div>'

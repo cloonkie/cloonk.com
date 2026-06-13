@@ -253,14 +253,35 @@ function deletePage(i) {
   refreshThumbsAndView();
 }
 
+let viewerRenderTask = null;
+let viewerRenderGen = 0;
 async function renderViewer() {
   if (!org.order.length) return;
+  // Rapid next/prev/zoom (or held arrow keys) fire many overlapping renders on
+  // the one shared canvas; pdf.js throws "Cannot use the same canvas during
+  // multiple render() operations." A generation token lets stale calls bail,
+  // and we cancel + await the prior task so the canvas is free before re-using it.
+  const gen = ++viewerRenderGen;
+  if (viewerRenderTask) {
+    viewerRenderTask.cancel();
+    try { await viewerRenderTask.promise; } catch (e) { /* cancelled */ }
+    viewerRenderTask = null;
+  }
+  if (gen !== viewerRenderGen) return;                 // superseded while we waited
   const { orig, rot } = org.order[org.current];
   const page = await org.doc.getPage(orig + 1);
+  if (gen !== viewerRenderGen) return;
   const vp = page.getViewport({ scale: org.zoom, rotation: (page.rotate + rot) % 360 });
   const canvas = $('#page-canvas');
   canvas.width = Math.ceil(vp.width); canvas.height = Math.ceil(vp.height);
-  await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+  viewerRenderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport: vp });
+  try {
+    await viewerRenderTask.promise;
+  } catch (e) {
+    if (e?.name === 'RenderingCancelledException') return; // superseded by a newer render
+    throw e;
+  }
+  viewerRenderTask = null;
   $('#page-indicator').textContent = `${org.current + 1} / ${org.order.length}`;
   $('#zoom-indicator').textContent = Math.round(org.zoom / 1.1 * 100) + '%';
 }

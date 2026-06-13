@@ -330,8 +330,20 @@ code, .mono { font-family: var(--font-mono); }
 .axis-track i { position: absolute; top: 50%; width: 15px; height: 15px; border-radius: 50%; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 4px var(--accent-dim); }
 
 .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-.chip { font-size: 0.71rem; border: 1px solid var(--border); border-radius: 100px; padding: 0.26rem 0.65rem; color: var(--text-muted); background: var(--surface-raised); }
+.chip {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  font-size: 0.72rem; border: 1px solid var(--border); border-radius: 100px;
+  padding: 0.28rem 0.7rem; color: var(--text-muted);
+  background: color-mix(in oklab, var(--accent) 8%, var(--surface-raised));
+}
 .chip b { color: var(--text); font-weight: 600; }
+.chip i { font-style: normal; font-size: 0.62rem; color: var(--text-dim); }
+.chip-top {
+  border-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 18%, var(--surface-raised));
+}
+.chip-top b { color: var(--accent); }
+.chip-top i { color: var(--accent); opacity: 0.8; }
 
 .artist-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .artist-list .row { display: flex; align-items: center; gap: 0.6rem; font-size: 0.83rem; }

@@ -256,10 +256,30 @@ function cleanUrl() { history.replaceState({}, document.title, REDIRECT_URI); }
 async function fetchArtists(range) {
   const data = await apiGet(accessToken, `/me/top/artists?limit=50&time_range=${range}`);
   const artists = (data.items || []).map(a => ({
-    name: a.name, genres: a.genres || [],
+    id: a.id, name: a.name, genres: a.genres || [],
     popularity: typeof a.popularity === 'number' ? a.popularity : 50,
   }));
   if (!artists.length) throw new Error('Spotify returned no top artists for this window. Try a different listening window, or listen a little more first.');
+
+  // Spotify often returns sparse/empty genres per artist, so the genre signal
+  // can come up thin. Widen it: pull the artists behind your top tracks and
+  // batch-fetch their genres, merging any not already in the top-artist set.
+  try {
+    const seen = new Set(artists.map(a => a.id));
+    const tracks = await apiGet(accessToken, `/me/top/tracks?limit=50&time_range=${range}`);
+    const extra = [];
+    (tracks.items || []).forEach(t => (t.artists || []).forEach(ar => {
+      if (ar.id && !seen.has(ar.id)) { seen.add(ar.id); extra.push(ar.id); }
+    }));
+    for (let i = 0; i < extra.length && i < 100; i += 50) {
+      const r = await apiGet(accessToken, `/artists?ids=${extra.slice(i, i + 50).join(',')}`);
+      (r.artists || []).forEach(ar => artists.push({
+        id: ar.id, name: ar.name, genres: ar.genres || [],
+        popularity: typeof ar.popularity === 'number' ? ar.popularity : 50,
+        secondary: true,   // from tracks — counts for genre signal, not the top-artist list
+      }));
+    }
+  } catch (e) { /* top tracks are a bonus; ignore failures */ }
   return artists;
 }
 
@@ -287,14 +307,17 @@ function syncRangeUI() {
    The engine
    ============================================================ */
 function analyze(artists) {
-  const n = artists.length;
+  const primary = artists.filter(a => !a.secondary);
+  const nPrimary = primary.length || 1;
   const vec = Object.fromEntries(BUCKETS.map(b => [b, 0]));
   const genreTally = {};
   let popSum = 0, popN = 0, classifiedW = 0;
 
   artists.forEach((a, i) => {
-    const w = 1 - (i / Math.max(n, 1)) * 0.6;  // rank decay
-    popSum += a.popularity * w; popN += w;
+    // rank decay over the primary (top) list; track-derived artists count half.
+    const rank = a.secondary ? nPrimary : i;
+    const w = (1 - Math.min(rank, nPrimary) / (nPrimary + 4) * 0.6) * (a.secondary ? 0.5 : 1);
+    if (!a.secondary) { popSum += a.popularity * w; popN += w; }
     a.genres.forEach(g => {
       genreTally[g] = (genreTally[g] || 0) + 1;
       const hits = classifyGenre(g);
@@ -328,8 +351,8 @@ function analyze(artists) {
     return { h: r.h, score, norm, blend: r.blend, contrib: r.contrib };
   }).sort((a, b) => b.score - a.score);
 
-  const topGenres = Object.entries(genreTally).sort((a, b) => b[1] - a[1]).slice(0, 9).map(([g, c]) => ({ g, c }));
-  return { artists, vec, pct, under, avgPop, matches, topGenres };
+  const topGenres = Object.entries(genreTally).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([g, c]) => ({ g, c }));
+  return { artists: primary, vec, pct, under, avgPop, matches, topGenres, primaryCount: primary.length };
 }
 
 function cosine(a, b) {
@@ -370,15 +393,11 @@ const geoReady = fetch('data/neighborhoods.geojson')
   .then(g => { GEO = g; })
   .catch(() => { GEO = null; });
 
-function isLight() { return document.documentElement.getAttribute('data-theme') === 'light'; }
-function lightPreset() { return isLight() ? 'day' : 'night'; }
-/* Standard style supports a `lightPreset` config we can swap without a style
-   reload — so the neighborhood layers never get wiped (no fade-out) on a
-   light/dark toggle; we just recolor them to the new accent. */
-function applyMapTheme() {
-  if (!map) return;
-  try { map.setConfigProperty('basemap', 'lightPreset', lightPreset()); } catch (e) {}
-  recolorLayers();
+/* darker classic basemap (dark-v11), light-v11 in light mode */
+function mapStyle() {
+  return document.documentElement.getAttribute('data-theme') === 'light'
+    ? 'mapbox://styles/mapbox/light-v11'
+    : 'mapbox://styles/mapbox/dark-v11';
 }
 function accentColor() {
   return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#39ff14';
@@ -395,18 +414,6 @@ function heatRamp(accent) {
 }
 function fillRamp(accent) {
   return ['interpolate', ['linear'], ['get', 'norm'], 0, hexToRgba(accent, 0.18), 0.5, hexToRgba(accent, 0.55), 1, accent];
-}
-
-/* recolor accent-driven layers in place (used on light/dark toggle so the
-   neighborhood glow follows the theme accent instead of staying green) */
-function recolorLayers() {
-  if (!map || !map.getLayer || !map.getLayer('hoods-zone')) return;
-  const accent = accentColor();
-  map.setPaintProperty('hoods-zone', 'line-color', accent);
-  map.setPaintProperty('hoods-fill', 'fill-color', fillRamp(accent));
-  map.setPaintProperty('hoods-active-fill', 'fill-color', accent);
-  map.setPaintProperty('hoods-active-line', 'line-color', accent);
-  map.setPaintProperty('heat', 'heatmap-color', heatRamp(accent));
 }
 
 /* merge match scores onto the real boundary polygons, by name */
@@ -528,13 +535,16 @@ function enterMap(p, instant) {
     mapboxgl.accessToken = CONFIG.MAPBOX_TOKEN;
     map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/mapbox/standard',
+      style: mapStyle(),
       bounds: allBounds(),
       fitBoundsOptions: { padding: 80 },
       attributionControl: false,
       logoPosition: 'bottom-right',
     });
-    map.on('load', () => { applyMapTheme(); addMapData(); afterData(); });
+    map.on('load', () => { addMapData(); afterData(); });
+    // theme toggle calls setStyle, which wipes layers — re-add them (DOM
+    // markers survive); colors pick up the new theme accent on re-add.
+    map.on('style.load', () => { if (profile) addMapData(); });
     map.on('click', () => { if (revealStep < 4) advanceReveal(); });
   } else {
     SOURCES_READY.ok = false;
@@ -637,8 +647,8 @@ function renderDrawer(p) {
 
   $('#d-axis').style.left = `${Math.round(p.under * 100)}%`;
   $('#d-genres').innerHTML = p.topGenres.length
-    ? p.topGenres.map(t => `<span class="chip"><b>${esc(t.g)}</b></span>`).join('')
-    : '<span class="chip">No sub-genres tagged</span>';
+    ? p.topGenres.map((t, i) => `<span class="chip${i === 0 ? ' chip-top' : ''}"><b>${esc(t.g)}</b><i>${t.c}</i></span>`).join('')
+    : '<span class="chip">Spotify tagged no sub-genres for these artists — try the “All time” window.</span>';
   $('#d-artists').innerHTML = p.artists.slice(0, 10).map((a, i) => `
     <div class="row"><span class="i">${String(i + 1).padStart(2, '0')}</span>
       <span class="nm">${esc(a.name)}</span><span class="gn">${esc(a.genres[0] || '')}</span></div>`).join('');
@@ -695,7 +705,7 @@ function runDemo() {
 $('#nav-theme-toggle').addEventListener('click', () => {
   const root = document.documentElement;
   const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-  const apply = () => { root.setAttribute('data-theme', next); applyMapTheme(); };
+  const apply = () => { root.setAttribute('data-theme', next); if (map) map.setStyle(mapStyle()); };
   if (document.startViewTransition) {
     root.classList.add('theme-switching');
     document.startViewTransition(apply).finished.finally(() => root.classList.remove('theme-switching'));

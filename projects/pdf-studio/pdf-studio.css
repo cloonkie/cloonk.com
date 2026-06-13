@@ -171,7 +171,14 @@ code, .mono { font-family: var(--font-mono); }
 }
 
 .rail {
+  /* Reset the global `nav { position:fixed; display:flex; height:var(--nav-h) }`
+     rule (css/style.css) that would otherwise yank the rail out of the grid. */
+  position: static;
+  display: block;
+  height: auto;
+  z-index: auto;
   border-right: 1px solid var(--border);
+  border-bottom: none;
   padding: 18px 12px;
   overflow-y: auto;
   background: var(--surface);
@@ -473,16 +480,58 @@ input[type="range"]::-moz-range-thumb {
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 820px) {
-  .layout { grid-template-columns: 1fr; }
+  /* Single column: rail hugs its content (one row), surface fills the rest and
+     scrolls — otherwise the grid stretches the rail into a tall empty band. */
+  .layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+
+  /* Rail collapses from a vertical sidebar into one compact, horizontally
+     scrollable tool strip — keeps tool-switching to ~one row instead of a
+     tall wrapped wall that buries the actual content. */
   .rail {
-    display: flex; flex-wrap: wrap; gap: 6px;
+    display: flex; flex-wrap: nowrap;
+    gap: 6px;
     border-right: none; border-bottom: 1px solid var(--border);
-    padding: 12px;
+    padding: 10px 12px;
+    overflow-x: auto; overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;            /* Firefox */
   }
-  .rail-group { margin-bottom: 0; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .rail::-webkit-scrollbar { display: none; }
+  .rail-group { display: contents; }  /* flatten groups into one scroll row */
   .rail-label { display: none; }
-  .rail-btn { width: auto; padding: 7px 11px; }
+  .rail-btn { flex: 0 0 auto; width: auto; padding: 8px 12px; white-space: nowrap; }
+
   .organize-stage { grid-template-columns: 1fr; height: auto; }
   .thumbs { flex-direction: row; overflow-x: auto; max-height: 140px; }
   .thumb { flex: 0 0 90px; }
+
+  /* Fit the rendered page to the viewer width so it never overflows the
+     screen; pinch-to-zoom still works for a closer look. */
+  .canvas-wrap { padding: 12px; }
+  .canvas-wrap canvas { max-width: 100%; height: auto; }
+}
+
+/* ── Phones ──────────────────────────────────────────────── */
+@media (max-width: 560px) {
+  html { font-size: 14px; }
+
+  /* Tighten the header so the logo + actions stop colliding. */
+  .header { gap: 8px; padding: 0 14px; }
+  .logo span { display: none; }       /* drop the "PDF STUDIO" subtitle */
+  .header-actions { gap: 6px; }
+  .header-actions .btn { padding: 6px 10px; font-size: 0.76rem; }
+
+  .privacy-bar { padding: 7px 14px; font-size: 0.7rem; }
+  .surface { padding: 20px 16px 48px; }
+  .config-block { padding: 16px; }
+
+  /* Roomier touch targets in the viewer toolbar. */
+  .viewer-toolbar { gap: 6px; padding: 8px; }
+  .viewer-toolbar .btn-sm { min-height: 36px; padding: 6px 12px; }
+
+  /* Stack inputs full-width instead of cramming them side by side. */
+  .field-row { flex-direction: column; align-items: stretch; gap: 12px; }
+  .field, .field.search { min-width: 0; width: 100%; }
+  .file-card { width: calc(50% - 6px); }
 }

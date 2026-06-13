@@ -41,7 +41,7 @@
     card.dataset.type        = (p.type || '').toLowerCase();
 
     card.innerHTML = `
-      <a href="project.html?id=${p.id}" class="wk-card__link">
+      <a href="/work/${p.id}/" class="wk-card__link">
         <div class="wk-card__img">
           <img src="${imgSrc}" alt="${p.title}" loading="lazy"
                onerror="this.src='${FALLBACK_IMG}'" />

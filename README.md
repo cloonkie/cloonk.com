@@ -1,13 +1,13 @@
 # cloonk ʕ·ᴥ·ʔ
 
-Personal portfolio of **Kevin Zhang** — designer and data analyst.  
+Personal portfolio of **Kevin Zhang** — designer and data analyst.
 Live at [cloonk.com](https://cloonk.com) · Deployed via GitHub Pages.
 
 ---
 
 ## Stack
 
-Vanilla HTML, CSS, and JavaScript. No frameworks, no build step, no dependencies.  
+Vanilla HTML, CSS, and JavaScript. No frameworks or runtime dependencies.
 Assets hosted on Cloudflare R2. Typefaces via [Fontshare](https://www.fontshare.com).
 
 ---
@@ -16,16 +16,26 @@ Assets hosted on Cloudflare R2. Typefaces via [Fontshare](https://www.fontshare.
 
 ```
 cloonk.com/
-├── index.html              # Entry point — all routing handled client-side
-├── project.html            # Project detail page shell
-├── projects-data.js        # All project entries (single source of truth)
-├── project-detail.js       # Renders project detail panels and GitHub cards
-├── scroll-carousel.js      # 3D scroll carousel with touch + resize support
-├── scroll-carousel.css     # Carousel styles (4 responsive breakpoints)
-├── github-card.css         # Styled source code card for GitHub-only projects
-└── assets/
-    └── images/             # Local assets (project images hosted on R2)
+├── index.html                  # Home page
+├── work.html                   # Filterable portfolio listing
+├── work/
+│   └── <project-id>/
+│       └── index.html          # Generated, indexable case-study route
+├── projects/
+│   └── <tool-id>/              # Standalone live tools and applications
+├── project.html                # Legacy noindex redirect for old ?id= URLs
+├── js/
+│   ├── projects-data.js        # Project content source of truth
+│   ├── project-detail.js       # Shared case-study renderer
+│   └── projects-grid.js        # Work listing and filters
+├── generate_work_pages.js      # Generates /work pages and sitemap entries
+├── sitemap.xml
+└── robots.txt
 ```
+
+`/work/` contains portfolio case studies. `/projects/` contains runnable tools.
+Keeping those namespaces separate avoids confusing a project write-up with the
+application itself.
 
 ---
 
@@ -55,7 +65,9 @@ The logo string `"cloonk ʕ·ᴥ·ʔ"` uses exact Unicode:
 
 ## Adding a Project
 
-All projects live in `projects-data.js` as entries in the `projects` array. Every entry must follow this schema exactly — missing fields will break the renderer.
+All projects live in `js/projects-data.js` as entries in `window.PROJECTS`.
+Every entry must follow this schema exactly; missing fields can break the
+renderer or leave incomplete SEO metadata.
 
 ```js
 {
@@ -105,6 +117,26 @@ All projects live in `projects-data.js` as entries in the `projects` array. Ever
 }
 ```
 
+After adding or editing a project, regenerate its static page and sitemap entry:
+
+```powershell
+node generate_work_pages.js
+```
+
+Commit the updated `work/<project-id>/index.html` files and `sitemap.xml`
+alongside the data change.
+
+### URLs and SEO
+
+- Case studies use `https://cloonk.com/work/<project-id>/`.
+- Live tools use `https://cloonk.com/projects/<tool-id>/`.
+- `project.html?id=<project-id>` exists only to redirect old bookmarks and is
+  marked `noindex`.
+- Generated pages include static title, description, canonical, Open Graph,
+  Twitter, `CreativeWork`, and breadcrumb metadata.
+- `robots.txt` advertises `sitemap.xml`; generated case studies are listed in
+  the sitemap.
+
 ### GitHub-only projects
 
 If a project has a `github` URL but no `pdf`, `figma`, or other artifacts, the detail panel renders a styled source code card instead of the artifact dropdown. Set all other media fields to `null`.
@@ -117,10 +149,11 @@ The language badges in the card are driven by the `approach.data` array — list
 
 ## Deployment
 
-The site deploys automatically via GitHub Pages on push to `main`.  
+The site deploys automatically via GitHub Pages on push to `main`.
 Custom domain: `cloonk.com` — configured via `CNAME` file at the repo root.
 
-No build step. What you push is what goes live.
+There is no deployment build step. Run `node generate_work_pages.js` locally
+whenever project data changes; what you push is what goes live.
 
 ---
 
