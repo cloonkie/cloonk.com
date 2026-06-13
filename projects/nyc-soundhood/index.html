@@ -54,7 +54,6 @@
         <a class="how-tip-cta" href="../../work.html">See more stuff →</a>
       </div>
     </div>
-    <button class="btn btn-sm btn-accent only-mobile" id="info-btn-mobile">Learn more</button>
     <button class="nav__theme-toggle" id="nav-theme-toggle" aria-label="Toggle light/dark mode">
       <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
@@ -114,10 +113,10 @@
 <section class="view" id="view-map">
   <div id="map"></div>
 
-  <!-- desktop: learn-more sits under the cloonk logo -->
-  <div class="map-tl only-desktop">
+  <!-- See Breakdown sits under the cloonk logo -->
+  <div class="map-tl">
     <button class="btn btn-accent seemore" id="seemore-btn">
-      <span class="seemore-dot"></span>Learn more
+      <span class="seemore-dot"></span>See Breakdown
     </button>
   </div>
 
@@ -138,6 +137,15 @@
       <button class="drawer-close" id="drawer-close" aria-label="Close">✕</button>
     </div>
     <div class="drawer-body">
+      <section class="d-section d-range">
+        <p class="subhead">Time frame · regenerate</p>
+        <div class="seg seg-sm" id="d-range-seg">
+          <button data-range="short_term">Last month</button>
+          <button data-range="medium_term" class="active">6 months</button>
+          <button data-range="long_term">All time</button>
+        </div>
+        <p class="d-range-note" id="d-range-note"></p>
+      </section>
       <section class="d-section">
         <p class="subhead">Top 3 neighborhoods</p>
         <div id="d-matches"></div>

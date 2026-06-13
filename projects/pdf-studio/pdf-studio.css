@@ -430,6 +430,10 @@ input[type="range"]::-moz-range-thumb {
 .ic-card .ic-saved { color: var(--accent); font-weight: 700; }
 
 /* ── Overlay + toast ─────────────────────────────────────── */
+[hidden] {
+  display: none !important;
+}
+
 .overlay {
   position: fixed; inset: 0; z-index: 200;
   background: color-mix(in oklab, var(--bg) 72%, transparent);

@@ -35,29 +35,32 @@ const FAMILY_LABEL = {
 
 const GENRE_RULES = [
   ['hiphop',        ['hip hop', 'hip-hop', 'rap', 'drill', 'trap', 'grime', 'crunk', 'phonk']],
-  ['rnbsoul',       ['r&b', 'rnb', 'soul', 'funk', 'motown', 'neo soul', 'gospel', 'quiet storm', 'new jack', 'doo-wop']],
-  ['indie',         ['indie', 'bedroom', 'dream pop', 'shoegaze', 'lo-fi', 'lofi', 'art pop', 'indietronica', 'slacker', 'jangle', 'twee', 'chillwave']],
-  ['rock',          ['rock', 'punk', 'metal', 'grunge', 'emo', 'hardcore', 'garage rock', 'post-punk', 'psych', 'alternative', 'screamo', 'thrash']],
-  ['electronic',    ['house', 'techno', 'edm', 'electro', 'dance', 'dnb', 'drum and bass', 'dubstep', 'trance', 'electronic', 'rave', 'breakbeat', 'disco', 'synthwave', 'big room', 'future bass']],
-  ['pop',           ['pop', 'k-pop', 'j-pop', 'boy band', 'girl group', 'europop', 'teen pop']],
-  ['jazzclassical', ['jazz', 'classical', 'blues', 'swing', 'orchestra', 'bossa', 'baroque', 'opera', 'piano', 'big band', 'bebop', 'ragtime']],
-  ['folkcountry',   ['folk', 'country', 'americana', 'singer-songwriter', 'bluegrass', 'roots', 'honky', 'western', 'cowboy']],
-  ['latinglobal',   ['latin', 'reggaeton', 'afrobeat', 'afro', 'caribbean', 'reggae', 'dancehall', 'salsa', 'cumbia', 'bachata', 'soca', 'world', 'bhangra', 'amapiano', 'highlife', 'brazilian', 'mpb', 'k-indie', 'arab', 'desi', 'bolly']],
-  ['experimental',  ['experimental', 'avant', 'noise', 'ambient', 'idm', 'drone', 'industrial', 'glitch', 'minimal', 'musique']],
+  ['rnbsoul',       ['r&b', 'rnb', 'soul', 'funk', 'motown', 'neo soul', 'neo-soul', 'gospel', 'quiet storm', 'new jack', 'doo-wop', 'contemporary r&b', 'alternative r&b', 'bedroom soul', 'go-go', 'p funk', 'p-funk']],
+  ['indie',         ['indie', 'bedroom', 'dream pop', 'shoegaze', 'lo-fi', 'lofi', 'art pop', 'indietronica', 'slacker', 'jangle', 'twee', 'chillwave', 'noise pop', 'freak folk', 'etherpop', 'escape room', 'pov:', 'alt z', 'bubblegrunge', 'pixie']],
+  ['rock',          ['rock', 'punk', 'metal', 'grunge', ' emo', 'emo ', 'hardcore', 'garage rock', 'garage punk', 'post-punk', 'psych', 'alternative', 'screamo', 'thrash', 'permanent wave', 'new wave', 'no wave', 'britpop', 'math rock', 'noise rock', 'art rock', 'glam', 'shoegaze', 'grindcore', 'metalcore', 'djent', 'stoner', 'sludge']],
+  ['electronic',    ['house', 'techno', 'edm', 'electro', 'dance', 'dnb', 'drum and bass', 'dubstep', 'trance', 'electronic', 'electronica', 'rave', 'breakbeat', 'disco', 'synthwave', 'synthpop', 'synth pop', 'big room', 'future bass', 'uk garage', 'garage house', '2-step', 'jersey club', 'jungle', 'downtempo', 'trip hop', 'nu disco', 'hardstyle', 'gabber', 'footwork', 'bass music', 'glitch hop', 'bassline', 'eurodance', 'hyperpop', 'vaporwave']],
+  ['pop',           ['pop', 'k-pop', 'j-pop', 'c-pop', 'boy band', 'girl group', 'europop', 'teen pop', 'dance pop', 'electropop', 'viral pop', 'bubblegum', 'metropopolis', 'post-teen', 'candy pop', 'pop rock']],
+  ['jazzclassical', ['jazz', 'classical', 'blues', 'swing', 'orchestra', 'bossa', 'baroque', 'opera', 'piano', 'big band', 'bebop', 'ragtime', 'fusion', 'chamber', 'symphony', 'string quartet', 'compositional', 'modern classical', 'cool jazz', 'hard bop', 'vocal jazz', 'smooth jazz', 'free jazz']],
+  ['folkcountry',   ['folk', 'country', 'americana', 'singer-songwriter', 'bluegrass', 'roots', 'honky', 'western', 'cowboy', 'alt-country', 'outlaw country', 'nashville', 'red dirt', 'stomp and holler', 'neo-traditional', 'mellow gold']],
+  ['latinglobal',   ['latin', 'reggaeton', 'afrobeat', 'afrobeats', 'afro ', 'afropop', 'afroswing', 'caribbean', 'reggae', 'dancehall', 'salsa', 'cumbia', 'bachata', 'soca', 'world', 'bhangra', 'amapiano', 'highlife', 'brazilian', 'mpb', 'arab', 'desi', 'bolly', 'merengue', 'corrido', 'regional mexican', 'sierreno', 'banda', 'flamenco', 'samba', 'baile funk', 'funk carioca', 'gqom', 'kwaito', 'dembow', 'perreo', 'azonto', 'soukous']],
+  ['experimental',  ['experimental', 'avant', 'noise', 'ambient', 'idm', 'intelligent dance', 'drone', 'industrial', 'glitch', 'minimalism', 'musique', 'sound art', 'field recording', 'plunderphonics', 'deconstructed']],
 ];
-const INDIE_POP = ['dream pop', 'bedroom pop', 'art pop', 'indie pop', 'chamber pop', 'synth pop', 'synthpop', 'jangle pop', 'noise pop', 'psych pop', 'baroque pop', 'sophisti', 'bubblegrunge'];
+/* "pop" qualifiers that read as indie texture, not mainstream pop */
+const INDIE_POP = ['dream pop', 'bedroom pop', 'art pop', 'indie pop', 'chamber pop', 'jangle pop', 'noise pop', 'psych pop', 'baroque pop', 'sophisti', 'bubblegrunge', 'pixie'];
 
+/* returns family -> accumulated weight for one genre string */
 function classifyGenre(g) {
-  const s = g.toLowerCase();
-  const hits = new Set();
+  const s = ' ' + g.toLowerCase() + ' ';
+  const hits = {};
   for (const [bucket, keys] of GENRE_RULES) {
     for (const k of keys) {
       if (!s.includes(k)) continue;
-      if (bucket === 'pop' && k === 'pop' && INDIE_POP.some(p => s.includes(p))) { hits.add('indie'); continue; }
-      hits.add(bucket);
+      if (bucket === 'pop' && k === 'pop' && INDIE_POP.some(p => s.includes(p))) { hits.indie = (hits.indie || 0) + 1; break; }
+      hits[bucket] = (hits[bucket] || 0) + 1;
+      break; // one match per family avoids double-counting synonyms
     }
   }
-  return [...hits];
+  return hits;
 }
 
 /* ── The map. vec is in BUCKETS order; under = how far toward the
@@ -152,6 +155,8 @@ const NEIGHBORHOODS = [
 
 /* ── State ── */
 let timeRange = 'medium_term';
+let accessToken = null;   // kept in memory only (never persisted), for re-fetch
+let isDemo = false;
 
 /* ============================================================
    PKCE helpers
@@ -235,14 +240,10 @@ async function handleRedirect() {
   showView('loading');
   try {
     setLoading('Trading the code for a token…');
-    const token = await exchangeToken(code);
+    accessToken = await exchangeToken(code);
+    isDemo = false;
     setLoading('Pulling your top artists…');
-    const artistsData = await apiGet(token, `/me/top/artists?limit=50&time_range=${timeRange}`);
-    const artists = (artistsData.items || []).map(a => ({
-      name: a.name, genres: a.genres || [],
-      popularity: typeof a.popularity === 'number' ? a.popularity : 50,
-    }));
-    if (!artists.length) throw new Error('Spotify returned no top artists for this window. Try a different listening window, or listen a little more first.');
+    const artists = await fetchArtists(timeRange);
     setLoading('Mapping your sound onto the city…');
     enterMap(analyze(artists));
   } catch (e) {
@@ -252,6 +253,36 @@ async function handleRedirect() {
 }
 function cleanUrl() { history.replaceState({}, document.title, REDIRECT_URI); }
 
+async function fetchArtists(range) {
+  const data = await apiGet(accessToken, `/me/top/artists?limit=50&time_range=${range}`);
+  const artists = (data.items || []).map(a => ({
+    name: a.name, genres: a.genres || [],
+    popularity: typeof a.popularity === 'number' ? a.popularity : 50,
+  }));
+  if (!artists.length) throw new Error('Spotify returned no top artists for this window. Try a different listening window, or listen a little more first.');
+  return artists;
+}
+
+/* re-run with a new time frame from inside the drawer, jumping straight to
+   the breakdown + heatmap state (no re-reveal). */
+async function regenerate(range) {
+  timeRange = range;
+  syncRangeUI();
+  const note = $('#d-range-note');
+  try {
+    if (note) note.textContent = 'Regenerating…';
+    const artists = (isDemo || !accessToken) ? SAMPLE_ARTISTS : await fetchArtists(range);
+    enterMap(analyze(artists), true);
+    openDrawer();
+    if (note) note.textContent = (isDemo || !accessToken) ? 'Sample data ignores the time frame.' : '';
+  } catch (e) {
+    if (note) note.textContent = e.message || 'Could not regenerate.';
+  }
+}
+function syncRangeUI() {
+  $$('#d-range-seg button').forEach(b => b.classList.toggle('active', b.dataset.range === timeRange));
+}
+
 /* ============================================================
    The engine
    ============================================================ */
@@ -259,28 +290,42 @@ function analyze(artists) {
   const n = artists.length;
   const vec = Object.fromEntries(BUCKETS.map(b => [b, 0]));
   const genreTally = {};
-  let popSum = 0, popN = 0;
+  let popSum = 0, popN = 0, classifiedW = 0;
 
   artists.forEach((a, i) => {
-    const w = 1 - (i / Math.max(n, 1)) * 0.6;
-    popSum += a.popularity; popN++;
+    const w = 1 - (i / Math.max(n, 1)) * 0.6;  // rank decay
+    popSum += a.popularity * w; popN += w;
     a.genres.forEach(g => {
       genreTally[g] = (genreTally[g] || 0) + 1;
-      classifyGenre(g).forEach(b => { vec[b] += w; });
+      const hits = classifyGenre(g);
+      for (const b in hits) { vec[b] += w * hits[b]; classifiedW += w * hits[b]; }
     });
   });
 
   const avgPop = popN ? popSum / popN : 50;
-  const under = clamp(1 - avgPop / 100, 0, 1);
+  // spread the mainstream→underground dial: ~80 popularity reads mainstream (0),
+  // ~38 reads underground (1), instead of everyone clustering near the middle.
+  const under = clamp((80 - avgPop) / (80 - 38), 0, 1);
+
   const uVecArr = BUCKETS.map(b => vec[b]);
   const total = uVecArr.reduce((s, x) => s + x, 0) || 1;
   const pct = Object.fromEntries(BUCKETS.map((b, i) => [b, uVecArr[i] / total]));
 
-  const matches = NEIGHBORHOODS.map(h => {
-    const cos = cosine(uVecArr, h.vec);
-    const axisFit = 1 - Math.abs(under - h.under);
-    const score = 0.78 * cos + 0.22 * axisFit;
-    return { h, score, contrib: contribution(uVecArr, h.vec) };
+  const raw = NEIGHBORHOODS.map(h => {
+    const cos = cosine(uVecArr, h.vec);             // genre-direction overlap
+    const axisFit = 1 - Math.abs(under - h.under);  // mainstream/underground proximity
+    return { h, blend: 0.82 * cos + 0.18 * axisFit, contrib: contribution(uVecArr, h.vec) };
+  });
+
+  // Rescale the blended scores across all 14 to a meaningful "% out of 100":
+  // the best fit lands high (~96), the weakest low (~38), with real spread between.
+  const blends = raw.map(r => r.blend);
+  const lo = Math.min(...blends), hi = Math.max(...blends);
+  const span = (hi - lo) || 1;
+  const matches = raw.map(r => {
+    const norm = (r.blend - lo) / span;             // 0..1 across the set
+    const score = Math.round(38 + norm * 58);       // 38..96 display percentage
+    return { h: r.h, score, norm, blend: r.blend, contrib: r.contrib };
   }).sort((a, b) => b.score - a.score);
 
   const topGenres = Object.entries(genreTally).sort((a, b) => b[1] - a[1]).slice(0, 9).map(([g, c]) => ({ g, c }));
@@ -325,21 +370,47 @@ const geoReady = fetch('data/neighborhoods.geojson')
   .then(g => { GEO = g; })
   .catch(() => { GEO = null; });
 
-function mapStyle() {
-  return document.documentElement.getAttribute('data-theme') === 'light'
-    ? 'mapbox://styles/mapbox/light-v11'
-    : 'mapbox://styles/mapbox/dark-v11';
+function isLight() { return document.documentElement.getAttribute('data-theme') === 'light'; }
+function lightPreset() { return isLight() ? 'day' : 'night'; }
+/* Standard style supports a `lightPreset` config we can swap without a style
+   reload — so the neighborhood layers never get wiped (no fade-out) on a
+   light/dark toggle; we just recolor them to the new accent. */
+function applyMapTheme() {
+  if (!map) return;
+  try { map.setConfigProperty('basemap', 'lightPreset', lightPreset()); } catch (e) {}
+  recolorLayers();
 }
 function accentColor() {
   return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#39ff14';
 }
+function hexToRgba(hex, a) {
+  const h = hex.replace('#', '');
+  const n = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+  const r = parseInt(n.slice(0, 2), 16), g = parseInt(n.slice(2, 4), 16), b = parseInt(n.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+function heatRamp(accent) {
+  return ['interpolate', ['linear'], ['heatmap-density'],
+    0, 'rgba(0,0,0,0)', 0.2, hexToRgba(accent, 0.28), 0.5, hexToRgba(accent, 0.6), 1, accent];
+}
+function fillRamp(accent) {
+  return ['interpolate', ['linear'], ['get', 'norm'], 0, hexToRgba(accent, 0.18), 0.5, hexToRgba(accent, 0.55), 1, accent];
+}
+
+/* recolor accent-driven layers in place (used on light/dark toggle so the
+   neighborhood glow follows the theme accent instead of staying green) */
+function recolorLayers() {
+  if (!map || !map.getLayer || !map.getLayer('hoods-zone')) return;
+  const accent = accentColor();
+  map.setPaintProperty('hoods-zone', 'line-color', accent);
+  map.setPaintProperty('hoods-fill', 'fill-color', fillRamp(accent));
+  map.setPaintProperty('hoods-active-fill', 'fill-color', accent);
+  map.setPaintProperty('hoods-active-line', 'line-color', accent);
+  map.setPaintProperty('heat', 'heatmap-color', heatRamp(accent));
+}
 
 /* merge match scores onto the real boundary polygons, by name */
 function buildFeatures() {
-  const scores = profile.matches.map(m => m.score);
-  const min = Math.min(...scores), max = Math.max(...scores);
-  const norm = s => (max > min ? (s - min) / (max - min) : 0.5);
-
   const recByName = {};
   profile.matches.forEach((m) => { recByName[m.h.name] = { m, rank: 0 }; });
   profile.matches.slice(0, 3).forEach((m, i) => { recByName[m.h.name].rank = i + 1; });
@@ -352,8 +423,8 @@ function buildFeatures() {
     const m = rec.m;
     const props = {
       name: m.h.name, boro: m.h.boro,
-      score: m.score, norm: norm(m.score),
-      pct: Math.round(m.score * 100), rank: rec.rank,
+      score: m.score, norm: m.norm,   // score = 0..100 display %, norm = 0..1 for heatmap
+      pct: m.score, rank: rec.rank,
     };
     polys.features.push({ type: 'Feature', properties: props, geometry: f.geometry });
     points.features.push({ type: 'Feature', properties: props, geometry: { type: 'Point', coordinates: m.h.lngLat } });
@@ -382,10 +453,7 @@ function addMapData() {
   // choropleth fill by match score — hidden until heatmap stage
   add('hoods-fill', {
     id: 'hoods-fill', type: 'fill', source: 'hoods',
-    paint: {
-      'fill-color': ['interpolate', ['linear'], ['get', 'norm'], 0, 'rgba(120,120,120,0.25)', 0.5, accent, 1, accent],
-      'fill-opacity': 0,
-    },
+    paint: { 'fill-color': fillRamp(accent), 'fill-opacity': 0 },
   });
   // revealed top-3 highlight (fill + bold outline), filtered by name
   add('hoods-active-fill', {
@@ -407,8 +475,7 @@ function addMapData() {
       'heatmap-intensity': 1.1,
       'heatmap-radius': 70,
       'heatmap-opacity': 0.85,
-      'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
-        0, 'rgba(0,0,0,0)', 0.2, 'rgba(57,255,20,0.25)', 0.5, 'rgba(57,255,20,0.55)', 1, accent],
+      'heatmap-color': heatRamp(accent),
     },
   });
 
@@ -445,35 +512,50 @@ function allBounds() {
   return b;
 }
 
-function enterMap(p) {
+function enterMap(p, instant) {
   profile = p;
-  revealStep = 0;
+  revealStep = instant ? 4 : 0;
   markers.forEach(m => m.remove()); markers = [];
   renderDrawer(p);
   showView('map');
+
+  const afterData = () => {
+    resetCamera();
+    if (instant) revealAllInstant();
+  };
 
   if (!map) {
     mapboxgl.accessToken = CONFIG.MAPBOX_TOKEN;
     map = new mapboxgl.Map({
       container: 'map',
-      style: mapStyle(),
+      style: 'mapbox://styles/mapbox/standard',
       bounds: allBounds(),
       fitBoundsOptions: { padding: 80 },
       attributionControl: false,
       logoPosition: 'bottom-right',
     });
-    map.on('load', () => { addMapData(); resetCamera(); });
-    // re-add layers whenever the base style reloads (theme swap)
-    map.on('style.load', () => { if (profile && map.isStyleLoaded()) addMapData(); });
+    map.on('load', () => { applyMapTheme(); addMapData(); afterData(); });
     map.on('click', () => { if (revealStep < 4) advanceReveal(); });
   } else {
     SOURCES_READY.ok = false;
-    if (map.isStyleLoaded()) { addMapData(); resetCamera(); }
-    else map.once('idle', () => { addMapData(); resetCamera(); });
+    if (map.isStyleLoaded()) { addMapData(); afterData(); }
+    else map.once('idle', () => { addMapData(); afterData(); });
     map.resize();
   }
   setRevealUI();
-  closeDrawer();
+  if (!instant) closeDrawer();
+}
+
+/* jump straight to the all-revealed + heatmap state (used when regenerating
+   from the drawer with a new time frame) */
+function revealAllInstant() {
+  if (!SOURCES_READY.ok) { geoReady.then(() => setTimeout(revealAllInstant, 50)); return; }
+  markers.forEach(m => m.remove()); markers = [];
+  profile.matches.slice(0, 3).forEach((m, i) => addMarker(m, i + 1));
+  revealStep = 4;
+  applyRevealState();
+  $('#heat-legend').classList.add('show');
+  setRevealUI();
 }
 
 function resetCamera() { if (map) map.fitBounds(allBounds(), { padding: 80, duration: 900 }); }
@@ -514,7 +596,7 @@ function addMarker(m, rank) {
   el.className = 'hood-marker' + (rank === 1 ? ' is-top' : '');
   el.innerHTML =
     `<span class="hm-rank">${rank}</span>` +
-    `<span class="hm-body"><b>${esc(m.h.name)}</b><i>${Math.round(m.score * 100)}% match</i></span>`;
+    `<span class="hm-body"><b>${esc(m.h.name)}</b><i>${m.score}% match</i></span>`;
   const mk = new mapboxgl.Marker({ element: el, anchor: 'bottom' }).setLngLat(m.h.lngLat).addTo(map);
   markers.push(mk);
 }
@@ -538,8 +620,8 @@ function renderDrawer(p) {
     <div class="d-match">
       <span class="d-rank">${i + 1}</span>
       <div class="d-match-body">
-        <div class="d-match-top"><b>${esc(m.h.name)}</b><span>${Math.round(m.score * 100)}%</span></div>
-        <div class="d-meter"><i style="width:${Math.round((m.score / top3[0].score) * 100)}%"></i></div>
+        <div class="d-match-top"><b>${esc(m.h.name)}</b><span>${m.score}%</span></div>
+        <div class="d-meter"><i style="width:${m.score}%"></i></div>
         <p>${esc(matchReason(m, p.under))} ${esc(m.h.blurb)}</p>
         <dl><dt>Scene</dt><dd>${esc(m.h.scene)}</dd><dt>Sound</dt><dd>${esc(m.h.sound)}</dd></dl>
       </div>
@@ -561,10 +643,11 @@ function renderDrawer(p) {
     <div class="row"><span class="i">${String(i + 1).padStart(2, '0')}</span>
       <span class="nm">${esc(a.name)}</span><span class="gn">${esc(a.genres[0] || '')}</span></div>`).join('');
   $('#d-sub').textContent = `Built from your top ${p.artists.length} artists · avg. popularity ${Math.round(p.avgPop)}/100.`;
+  syncRangeUI();
 
   renderDrawer._summary =
     `My NYC Soundhood (cloonk.com):\n` +
-    top3.map((m, i) => `${i + 1}. ${m.h.name}, ${m.h.boro} — ${Math.round(m.score * 100)}% match`).join('\n') +
+    top3.map((m, i) => `${i + 1}. ${m.h.name}, ${m.h.boro} — ${m.score}% match`).join('\n') +
     `\nTaste: ${fam.slice(0, 3).map(f => FAMILY_LABEL[f.b]).join(', ')}.`;
 }
 
@@ -601,6 +684,7 @@ const SAMPLE_ARTISTS = [
   { name: 'Bonobo', genres: ['electronica', 'downtempo', 'chillwave'], popularity: 63 },
 ];
 function runDemo() {
+  isDemo = true; accessToken = null;
   showView('loading'); setLoading('Reading the sample listener…');
   setTimeout(() => enterMap(analyze(SAMPLE_ARTISTS)), 600);
 }
@@ -611,7 +695,7 @@ function runDemo() {
 $('#nav-theme-toggle').addEventListener('click', () => {
   const root = document.documentElement;
   const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-  const apply = () => { root.setAttribute('data-theme', next); if (map) map.setStyle(mapStyle()); };
+  const apply = () => { root.setAttribute('data-theme', next); applyMapTheme(); };
   if (document.startViewTransition) {
     root.classList.add('theme-switching');
     document.startViewTransition(apply).finished.finally(() => root.classList.remove('theme-switching'));
@@ -630,8 +714,11 @@ $('#connect-btn').addEventListener('click', beginAuth);
 $('#demo-btn').addEventListener('click', runDemo);
 $('#reveal-btn').addEventListener('click', advanceReveal);
 $('#seemore-btn').addEventListener('click', toggleDrawer);
-$('#info-btn-mobile').addEventListener('click', toggleDrawer);
 $('#drawer-close').addEventListener('click', closeDrawer);
+$('#d-range-seg').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-range]');
+  if (btn && btn.dataset.range !== timeRange) regenerate(btn.dataset.range);
+});
 $('#restart-btn').addEventListener('click', () => { closeDrawer(); showView('connect'); $('#connect-notice').innerHTML = ''; });
 
 $$('.how-tip-toggle').forEach(t => t.addEventListener('click', (e) => {
