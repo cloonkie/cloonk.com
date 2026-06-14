@@ -268,16 +268,28 @@ body {
 }
 .filter-list-item:hover { background: var(--surface-raised); border-color: var(--border); }
 .filter-list-item.active { background: var(--accent-dim); border-color: var(--accent); }
-.fli-num {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  color: var(--text-dim);
-  min-width: 18px;
+.fli-icon {
+  width: 28px; height: 28px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border: 1px solid var(--border); border-radius: var(--radius-xs);
+  background: var(--surface-card); color: var(--text-muted);
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
 }
-.filter-list-item.active .fli-num { color: var(--accent); }
-.fli-name { font-size: 0.82rem; font-weight: 600; line-height: 1.2; }
-.fli-sub { font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono); }
+.fli-icon svg { width: 14px; height: 14px; }
+.filter-list-item:hover .fli-icon { color: var(--text); border-color: var(--border-hover); }
+.filter-list-item.active .fli-icon { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+.fli-text { min-width: 0; }
+.fli-name { display: block; font-size: 0.8rem; font-weight: 600; line-height: 1.2; }
+.fli-sub { display: block; font-size: 0.64rem; color: var(--text-muted); font-family: var(--font-mono); }
 .filter-list-item.active .fli-name { color: var(--accent); }
+
+/* Grid cell label with icon */
+.filter-label {
+  display: flex; align-items: center; gap: 8px;
+}
+.filter-icon { width: 14px; height: 14px; flex-shrink: 0; color: var(--text-dim); }
+.filter-label-text strong { display: block; font-size: 0.8rem; font-weight: 700; line-height: 1.2; }
+.filter-label-text em { font-style: normal; font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-muted); }
 
 /* ── Main content ──────────────────────────────────────────── */
 .content {
@@ -353,12 +365,8 @@ body {
   image-rendering: pixelated;
 }
 
-.filter-label {
-  padding: 8px 11px 9px;
-  border-top: 1px solid var(--border);
-}
-.filter-label strong { display: block; font-size: 0.82rem; font-weight: 700; line-height: 1.2; }
-.filter-label span { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-muted); }
+/* Cell label styled via .filter-label / .filter-icon / .filter-label-text in the icon section */
+.filter-label { padding: 7px 10px; border-top: 1px solid var(--border); }
 
 /* ── Settings panel ────────────────────────────────────────── */
 .settings-box {
@@ -531,8 +539,8 @@ body {
     li.className = 'filter-list-item';
     li.dataset.id = f.id;
     li.innerHTML = `
-      <span class="fli-num">${String(i+1).padStart(2,'0')}</span>
-      <span><span class="fli-name">${f.name}</span><br><span class="fli-sub">${f.sub}</span></span>
+      <span class="fli-icon">${filterIcon(f.id)}</span>
+      <span class="fli-text"><span class="fli-name">${f.name}</span><span class="fli-sub">${f.sub}</span></span>
     `;
     li.addEventListener('click', () => {
       if (!state.src) { showToast('Upload an image first.'); return; }
