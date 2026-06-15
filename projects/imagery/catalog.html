@@ -490,7 +490,7 @@ body{
     <h1 class="hero-title">28 canvas filters,<br>all in one place.</h1>
     <p class="hero-desc">
       Every filter runs entirely in your browser — no uploads, no waiting.
-      Browse live previews on the accent-color leaf, pick what fits, and jump straight into the studio.
+      Browse live previews on the 🌱 sprout, pick what fits, and jump straight into the studio.
     </p>
     <div class="hero-meta">
       <span class="meta-chip"><strong>28</strong> filters</span>
@@ -554,96 +554,22 @@ function accentRGB() {
   return t === 'light' ? { r: 27, g: 9, b: 188 } : { r: 57, g: 255, b: 20 };
 }
 
-// ── Leaf SVG → ImageData ──────────────────────────────────────
-// We draw a clean leaf shape to a source canvas, then use that
-// ImageData for every filter preview.
+// ── Sprout emoji → ImageData ───────────────────────────────────
+// Draw 🌱 centred on the source canvas; used as the filter preview image.
 
 const SRC_W = 240, SRC_H = 240;
 let appleImageData = null;
 
-function buildAppleSVG(accent) {
-  const { r, g, b } = accent;
-  const hex = `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
-  const lR = Math.min(255, r + 70), lG = Math.min(255, g + 70), lB = Math.min(255, b + 70);
-  const dR = Math.max(0, r - 55), dG = Math.max(0, g - 55), dB = Math.max(0, b - 55);
-  const light = `#${lR.toString(16).padStart(2,'0')}${lG.toString(16).padStart(2,'0')}${lB.toString(16).padStart(2,'0')}`;
-  const dark  = `#${dR.toString(16).padStart(2,'0')}${dG.toString(16).padStart(2,'0')}${dB.toString(16).padStart(2,'0')}`;
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
-  <defs>
-    <radialGradient id="leafGrad" cx="36%" cy="30%" r="68%">
-      <stop offset="0%" stop-color="${light}"/>
-      <stop offset="52%" stop-color="${hex}"/>
-      <stop offset="100%" stop-color="${dark}"/>
-    </radialGradient>
-    <radialGradient id="shineGrad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="white" stop-opacity="0.38"/>
-      <stop offset="100%" stop-color="white" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="shadowGrad" cx="50%" cy="28%" r="72%">
-      <stop offset="45%" stop-color="black" stop-opacity="0"/>
-      <stop offset="100%" stop-color="black" stop-opacity="0.22"/>
-    </radialGradient>
-  </defs>
-
-  <!-- Drop shadow -->
-  <ellipse cx="120" cy="220" rx="62" ry="10" fill="rgba(0,0,0,0.18)"/>
-
-  <!-- Leaf body: pointed tip top-right, rounded base bottom-left -->
-  <path d="
-    M120 28
-    C 158 28, 210 58, 214 110
-    C 218 158, 190 200, 150 212
-    C 136 216, 122 216, 110 210
-    C  76 196,  42 162,  36 118
-    C  28  68,  70 28, 120 28Z
-  " fill="url(#leafGrad)"/>
-
-  <!-- Highlight sheen -->
-  <ellipse cx="96" cy="90" rx="34" ry="22" transform="rotate(-30 96 90)"
-    fill="url(#shineGrad)"/>
-
-  <!-- Rim shadow overlay -->
-  <path d="
-    M120 28
-    C 158 28, 210 58, 214 110
-    C 218 158, 190 200, 150 212
-    C 136 216, 122 216, 110 210
-    C  76 196,  42 162,  36 118
-    C  28  68,  70 28, 120 28Z
-  " fill="url(#shadowGrad)"/>
-
-  <!-- Midrib vein -->
-  <path d="M120 28 C115 100, 118 160, 112 210"
-    stroke="${dark}" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.45"/>
-
-  <!-- Secondary veins -->
-  <path d="M116 80 C130 88, 150 84, 168 76"  stroke="${dark}" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.3"/>
-  <path d="M114 108 C130 118, 154 116, 176 106" stroke="${dark}" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.3"/>
-  <path d="M113 136 C126 148, 148 148, 168 138" stroke="${dark}" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.3"/>
-  <path d="M113 162 C122 172, 140 174, 156 168" stroke="${dark}" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.3"/>
-
-  <!-- Stem -->
-  <path d="M116 210 C112 220, 108 226, 104 230"
-    stroke="${dark}" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.7"/>
-</svg>`;
-}
-
-function drawAppleToCanvas(canvas, accent) {
+function drawAppleToCanvas(canvas, _accent) {
   return new Promise(resolve => {
-    const svg = buildAppleSVG(accent);
-    const blob = new Blob([svg], { type: 'image/svg+xml' });
-    const url  = URL.createObjectURL(blob);
-    const img  = new Image();
-    img.onload = () => {
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-      resolve();
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(); };
-    img.src = url;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const size = Math.round(canvas.height * 0.72);
+    ctx.font = `${size}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🌱', canvas.width / 2, canvas.height / 2);
+    resolve();
   });
 }
 
@@ -888,7 +814,7 @@ function openLightbox(id) {
   const wrap = document.getElementById('lbCanvasWrap');
 
   document.getElementById('lbTitle').textContent = f ? `${f.name} — ${f.sub}` : 'Original Source';
-  document.getElementById('lbDesc').textContent  = meta.desc || 'The unfiltered source leaf.';
+  document.getElementById('lbDesc').textContent  = meta.desc || 'The unfiltered source image.';
 
   // Render lightbox canvas
   wrap.innerHTML = '';
