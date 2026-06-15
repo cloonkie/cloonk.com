@@ -1,5 +1,5 @@
 /* ============================================================
-   imagery.js — 26 canvas-based image filters
+   darkroom.js — 28 canvas-based image filters
    All processing is local; nothing is uploaded.
    ============================================================ */
 
@@ -139,7 +139,7 @@ const FILTERS = [
     params: [
       { id: 'cellSize', label: 'Cell Size',   min: 4,  max: 20, step: 1, def: 9 },
       { id: 'contrast', label: 'Contrast',    min: 50, max: 200,step: 5, def: 110 },
-      { id: 'color',    label: 'Color (0=mono)', min: 0, max: 1, step: 1, def: 1 },
+      { id: 'color', label: 'Color mode', min: 0, max: 1, step: 1, def: 1, options: ['Monochrome', 'Source color'] },
     ],
   },
   {
@@ -147,7 +147,7 @@ const FILTERS = [
     params: [
       { id: 'levels',    label: 'Color Levels', min: 2,  max: 8,   step: 1, def: 2 },
       { id: 'strength',  label: 'Strength %',   min: 10, max: 100, step: 5, def: 100 },
-      { id: 'grayscale', label: 'Grayscale (0=color)', min: 0, max: 1, step: 1, def: 1 },
+      { id: 'grayscale', label: 'Palette', min: 0, max: 1, step: 1, def: 1, options: ['Color', 'Grayscale'] },
     ],
   },
   {
@@ -171,7 +171,7 @@ const FILTERS = [
     params: [
       { id: 'levels',    label: 'Level Count', min: 3,  max: 24, step: 1, def: 10 },
       { id: 'thickness', label: 'Line Width',  min: 1,  max: 4,  step: 1, def: 1 },
-      { id: 'color',     label: 'Color (0=white)', min: 0, max: 1, step: 1, def: 0 },
+      { id: 'color', label: 'Line color', min: 0, max: 1, step: 1, def: 0, options: ['White', 'Source color'] },
     ],
   },
   {
@@ -179,7 +179,7 @@ const FILTERS = [
     params: [
       { id: 'threshold', label: 'Luma Threshold', min: 10, max: 240, step: 5,  def: 80 },
       { id: 'upper',     label: 'Upper Bound',    min: 50, max: 255, step: 5,  def: 200 },
-      { id: 'direction', label: 'Direction (0=H)', min: 0, max: 1,  step: 1,  def: 0 },
+      { id: 'direction', label: 'Direction', min: 0, max: 1, step: 1, def: 0, options: ['Horizontal', 'Vertical'] },
     ],
   },
   {
@@ -195,15 +195,15 @@ const FILTERS = [
     params: [
       { id: 'levels',  label: 'Levels',     min: 2,  max: 8,   step: 1, def: 2 },
       { id: 'smooth',  label: 'Pre-Blur',   min: 0,  max: 6,   step: 1, def: 0 },
-      { id: 'channel', label: '0=Luma 1=RGB', min: 0, max: 1,  step: 1, def: 0 },
+      { id: 'channel', label: 'Channel mode', min: 0, max: 1, step: 1, def: 0, options: ['Luminance', 'RGB'] },
     ],
   },
   {
     id: 'edge-detect', name: 'Edge Detect', sub: 'Sobel',
     params: [
       { id: 'strength', label: 'Strength',   min: 1,  max: 6,  step: 1, def: 3 },
-      { id: 'invert',   label: 'Invert (0=white)', min: 0, max: 1, step: 1, def: 1 },
-      { id: 'color',    label: 'Colorize (0=B&W)', min: 0, max: 1, step: 1, def: 0 },
+      { id: 'invert', label: 'Background', min: 0, max: 1, step: 1, def: 1, options: ['White', 'Black'] },
+      { id: 'color', label: 'Edge color', min: 0, max: 1, step: 1, def: 0, options: ['Black and white', 'Source color'] },
     ],
   },
   {
@@ -227,14 +227,14 @@ const FILTERS = [
     params: [
       { id: 'scale',    label: 'Noise Scale',  min: 5,  max: 120, step: 5,  def: 40 },
       { id: 'strength', label: 'Strength %',   min: 10, max: 100, step: 5,  def: 60 },
-      { id: 'colorize', label: 'Colorize (0=mono)', min: 0, max: 1, step: 1, def: 0 },
+      { id: 'colorize', label: 'Noise color', min: 0, max: 1, step: 1, def: 0, options: ['Monochrome', 'Color'] },
     ],
   },
   {
     id: 'voronoi', name: 'Voronoi', sub: 'Cell Diagram',
     params: [
       { id: 'points',   label: 'Cell Count',    min: 10, max: 300, step: 10, def: 80 },
-      { id: 'edges',    label: 'Show Edges (0=off)', min: 0, max: 1, step: 1, def: 1 },
+      { id: 'edges', label: 'Cell edges', min: 0, max: 1, step: 1, def: 1, options: ['Hidden', 'Visible'] },
       { id: 'edgeW',    label: 'Edge Width',    min: 1,  max: 4,   step: 1,  def: 1 },
     ],
   },
@@ -251,7 +251,7 @@ const FILTERS = [
     params: [
       { id: 'intensity',  label: 'Intensity',   min: 5,  max: 100, step: 5, def: 50 },
       { id: 'threshold',  label: 'Threshold',   min: 10, max: 200, step: 5, def: 80 },
-      { id: 'direction',  label: 'Dir (0=H 1=V)', min: 0, max: 1, step: 1, def: 0 },
+      { id: 'direction', label: 'Direction', min: 0, max: 1, step: 1, def: 0, options: ['Horizontal', 'Vertical'] },
     ],
   },
   {
@@ -260,7 +260,7 @@ const FILTERS = [
       { id: 'threshold', label: 'Trigger Luma',  min: 10, max: 240, step: 5,  def: 60  },
       { id: 'upper',     label: 'Upper Luma',    min: 30, max: 255, step: 5,  def: 220 },
       { id: 'maxLen',    label: 'Max Stretch',   min: 4,  max: 200, step: 4,  def: 60  },
-      { id: 'direction', label: 'Dir (0=H 1=V)', min: 0,  max: 1,   step: 1,  def: 0   },
+      { id: 'direction', label: 'Direction', min: 0, max: 1, step: 1, def: 0, options: ['Horizontal', 'Vertical'] },
       { id: 'density',   label: 'Run Chance %',  min: 5,  max: 100, step: 5,  def: 50  },
     ],
   },
@@ -270,7 +270,7 @@ const FILTERS = [
       { id: 'tolerance', label: 'BG Tolerance', min: 5,  max: 120, step: 5,  def: 35 },
       { id: 'borderW',   label: 'Border Width', min: 0,  max: 24,  step: 1,  def: 8 },
       { id: 'borderHue', label: 'Border Hue°',  min: 0,  max: 360, step: 5,  def: 0 },
-      { id: 'bg',        label: 'BG (0-6)',      min: 0,  max: 6,   step: 1,  def: 1 },
+      { id: 'bg', label: 'Background', min: 0, max: 6, step: 1, def: 1, options: ['Checkerboard', 'Cream paper', 'Blueprint', 'Kraft', 'Denim', 'Dot pattern', 'Noise grid'] },
     ],
   },
 ];
@@ -323,43 +323,53 @@ const emptyState  = document.getElementById('emptyState');
 const downloadBtn = document.getElementById('downloadBtn');
 const themeToggle = document.getElementById('themeToggle');
 const toast       = document.getElementById('toast');
+const studioStatus = document.getElementById('studioStatus');
 let toastTimer;
+let renderGeneration = 0;
 
 // ── Theme ─────────────────────────────────────────────────────
 function setTheme(t) {
   document.documentElement.setAttribute('data-theme', t);
   try { localStorage.setItem('cloonk-theme', t); } catch(e) {}
 }
-if (themeToggle) themeToggle.addEventListener('click', () => {
+if (themeToggle && !window.DARKROOM_CATALOG) themeToggle.addEventListener('click', () => {
   const cur = document.documentElement.getAttribute('data-theme');
   setTheme(cur === 'light' ? 'dark' : 'light');
 });
 
 // ── Toast ─────────────────────────────────────────────────────
 function showToast(msg, dur = 2400) {
+  if (!toast) return;
   toast.textContent = msg;
   toast.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('show'), dur);
 }
 
+function setStudioStatus(message = '') {
+  if (!studioStatus) return;
+  studioStatus.textContent = message;
+  studioStatus.hidden = !message;
+}
+
 // ── Upload ────────────────────────────────────────────────────
 function handleFiles(files) {
   const file = Array.from(files).find(f => f.type.startsWith('image/'));
   if (!file) { showToast('No image found.'); return; }
+  setStudioStatus(`Reading ${file.name}...`);
   const url = URL.createObjectURL(file);
   const img = new Image();
-  const afterLoad = (bmp) => {
+  const afterLoad = async (bmp) => {
     if (state.src && state.src.close) state.src.close();
     state.src = bmp;
     URL.revokeObjectURL(url);
     emptyState.hidden = true;
     grid.hidden = false;
-    renderAll();
+    await renderAll();
     if (window._pendingFilterId) {
       const pid = window._pendingFilterId;
       window._pendingFilterId = null;
-      setTimeout(() => selectFilter(pid), 80);
+      selectFilter(pid);
     }
   };
 
@@ -374,14 +384,22 @@ function handleFiles(files) {
     bitmapFn.then(afterLoad).catch(() => {
       URL.revokeObjectURL(url);
       showToast('Could not process image.');
+      setStudioStatus('Could not process that image.');
     });
   };
-  img.onerror = () => { URL.revokeObjectURL(url); showToast('Could not load image.'); };
+  img.onerror = () => {
+    URL.revokeObjectURL(url);
+    showToast('Could not load image.');
+    setStudioStatus('Could not load that image.');
+  };
   img.src = url;
 }
 
 if (dropzone) {
-  fileInput.addEventListener('change', e => handleFiles(e.target.files));
+  fileInput.addEventListener('change', e => {
+    handleFiles(e.target.files);
+    e.target.value = '';
+  });
   dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
   dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
   dropzone.addEventListener('drop', e => {
@@ -403,7 +421,12 @@ function buildGrid() {
 }
 
 function makeCell(id, name, sub) {
-  const wrap = document.createElement('div');
+  const wrap = document.createElement(id === 'original' ? 'div' : 'button');
+  if (id !== 'original') {
+    wrap.type = 'button';
+    wrap.setAttribute('aria-pressed', 'false');
+    wrap.setAttribute('aria-label', `Use ${name}: ${sub}`);
+  }
   wrap.className = 'filter-cell';
   wrap.dataset.id = id;
   if (FILTER_DESCRIPTIONS[id]) wrap.dataset.desc = FILTER_DESCRIPTIONS[id];
@@ -426,16 +449,27 @@ function makeCell(id, name, sub) {
 }
 
 function selectFilter(id) {
-  document.querySelectorAll('.filter-cell').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.filter-cell').forEach(c => {
+    c.classList.remove('active');
+    if (c.hasAttribute('aria-pressed')) c.setAttribute('aria-pressed', 'false');
+  });
   const cell = document.querySelector(`.filter-cell[data-id="${id}"]`);
-  if (cell) cell.classList.add('active');
+  if (cell) {
+    cell.classList.add('active');
+    if (cell.hasAttribute('aria-pressed')) cell.setAttribute('aria-pressed', 'true');
+  }
   document.querySelectorAll('.filter-list-item').forEach(el => {
     el.classList.toggle('active', el.dataset.id === id);
+    el.setAttribute('aria-pressed', String(el.dataset.id === id));
   });
   state.active = id;
   downloadBtn.disabled = false;
   renderSettings(id);
   settingsBox.hidden = false;
+  setStudioStatus('');
+  if (window.matchMedia('(max-width: 1100px)').matches) {
+    settingsBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 // ── Settings panel ────────────────────────────────────────────
@@ -447,17 +481,27 @@ function renderSettings(id) {
   const descEl = document.getElementById('settingsDesc');
   if (descEl) descEl.textContent = FILTER_DESCRIPTIONS[id] || '';
 
-  settingsCnt.innerHTML = f.params.map(p => `
-    <div class="param-row">
-      <label class="param-label">${p.label}</label>
-      <div class="param-controls">
-        <input type="range" id="p-${id}-${p.id}"
+  settingsCnt.innerHTML = f.params.map(p => {
+    const control = p.options
+      ? `<select id="p-${id}-${p.id}">${p.options.map((option, value) =>
+          `<option value="${value}"${value === state.settings[id][p.id] ? ' selected' : ''}>${option}</option>`
+        ).join('')}</select>`
+      : `<input type="range" id="p-${id}-${p.id}"
           min="${p.min}" max="${p.max}" step="${p.step}"
-          value="${state.settings[id][p.id]}">
-        <span class="param-val" id="pv-${id}-${p.id}">${state.settings[id][p.id]}</span>
+          value="${state.settings[id][p.id]}">`;
+    const displayValue = p.options
+      ? p.options[state.settings[id][p.id]]
+      : state.settings[id][p.id];
+    return `
+    <div class="param-row">
+      <label class="param-label" for="p-${id}-${p.id}">${p.label}</label>
+      <div class="param-controls">
+        ${control}
+        <span class="param-val" id="pv-${id}-${p.id}">${displayValue}</span>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   f.params.forEach(p => {
     const slider = document.getElementById(`p-${id}-${p.id}`);
@@ -465,16 +509,24 @@ function renderSettings(id) {
     slider.addEventListener('input', () => {
       const v = Number(slider.value);
       state.settings[id][p.id] = v;
-      valEl.textContent = v;
+      valEl.textContent = p.options ? p.options[v] : v;
       renderOne(id);
     });
   });
 }
 
 // ── Render pipeline ───────────────────────────────────────────
-function renderAll() {
+async function renderAll() {
+  const generation = ++renderGeneration;
+  setStudioStatus(`Rendering 0 of ${FILTERS.length} filters...`);
   renderOriginal();
-  FILTERS.forEach(f => renderOne(f.id));
+  for (let i = 0; i < FILTERS.length; i++) {
+    if (generation !== renderGeneration) return;
+    renderOne(FILTERS[i].id);
+    setStudioStatus(`Rendering ${i + 1} of ${FILTERS.length} filters...`);
+    await new Promise(resolve => requestAnimationFrame(resolve));
+  }
+  setStudioStatus('All filters ready. Select one to adjust and download.');
 }
 
 function renderOriginal() {
@@ -1848,32 +1900,38 @@ function makeStickerBg(w, h, type) {
 // WIRING
 // ══════════════════════════════════════════════════════════════
 
-if (downloadBtn) downloadBtn.addEventListener('click', () => {
+if (downloadBtn) downloadBtn.addEventListener('click', async () => {
   const id = state.active;
   if (!id || !state.src) { showToast('Select a filter first.'); return; }
   const canvas = document.getElementById(`canvas-${id}`);
   if (!canvas) return;
 
-  // Re-render at full source resolution for download
-  const fw = state.src.width, fh = state.src.height;
-  const fullOff = new OffscreenCanvas(fw, fh);
-  const fullCtx = fullOff.getContext('2d');
-  fullCtx.drawImage(state.src, 0, 0, fw, fh);
-  const fullSrc = fullCtx.getImageData(0, 0, fw, fh);
-  const s = state.settings[id];
+  downloadBtn.disabled = true;
+  downloadBtn.textContent = 'Exporting...';
+  setStudioStatus('Rendering the PNG export...');
 
-  let result;
-  // Re-use thumb size for canvas-based text filters (ASCII, Matrix Rain need font sizing)
-  const isTextFilter = id === 'ascii' || id === 'matrix-rain';
-  const renderW = isTextFilter ? Math.min(fw, 1200) : fw;
-  const renderH = isTextFilter ? Math.round(fh * renderW / fw) : fh;
+  try {
+    // Re-render at source resolution for download.
+    const fw = state.src.width, fh = state.src.height;
+    if (fw * fh > 20000000) {
+      showToast('This image is too large for a reliable browser export.');
+      setStudioStatus('Export stopped: use an image under 20 megapixels.');
+      return;
+    }
+    const s = state.settings[id];
 
-  const renderOff = new OffscreenCanvas(renderW, renderH);
-  const renderCtx = renderOff.getContext('2d');
-  renderCtx.drawImage(state.src, 0, 0, renderW, renderH);
-  const renderSrc = renderCtx.getImageData(0, 0, renderW, renderH);
+    let result;
+    // Text filters are capped because their glyph rendering cost scales sharply.
+    const isTextFilter = id === 'ascii' || id === 'matrix-rain';
+    const renderW = isTextFilter ? Math.min(fw, 1200) : fw;
+    const renderH = isTextFilter ? Math.round(fh * renderW / fw) : fh;
 
-  switch (id) {
+    const renderOff = new OffscreenCanvas(renderW, renderH);
+    const renderCtx = renderOff.getContext('2d');
+    renderCtx.drawImage(state.src, 0, 0, renderW, renderH);
+    const renderSrc = renderCtx.getImageData(0, 0, renderW, renderH);
+
+    switch (id) {
     case 'color-halftone':  result = filterColorHalftone(renderSrc, renderW, renderH, s); break;
     case 'halftone-dot':    result = filterHalftoneDot(renderSrc, renderW, renderH, s); break;
     case 'halftone-circle': result = filterHalftoneCircle(renderSrc, renderW, renderH, s); break;
@@ -1902,18 +1960,27 @@ if (downloadBtn) downloadBtn.addEventListener('click', () => {
     case 'fractal-haze':    result = filterFractalHaze(renderSrc, renderW, renderH, s); break;
     case 'pixel-stretch':   result = filterPixelStretch(renderSrc, renderW, renderH, s); break;
     case 'sticker':         result = filterSticker(renderSrc, renderW, renderH, s); break;
-  }
+    }
 
-  if (result) {
-    renderOff.width = renderW; renderOff.height = renderH;
-    renderOff.getContext('2d').putImageData(result, 0, 0);
-    renderOff.convertToBlob({ type: 'image/png' }).then(blob => {
+    if (result) {
+      renderOff.width = renderW; renderOff.height = renderH;
+      renderOff.getContext('2d').putImageData(result, 0, 0);
+      const blob = await renderOff.convertToBlob({ type: 'image/png' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = `cloonk-${id}.png`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-    });
+      showToast('PNG downloaded.');
+      setStudioStatus('Export complete.');
+    }
+  } catch (error) {
+    console.error('Darkroom export failed:', error);
+    showToast('Could not export this image.');
+    setStudioStatus('Export failed. Try a smaller image.');
+  } finally {
+    downloadBtn.disabled = !state.active;
+    downloadBtn.textContent = 'Download';
   }
 });
 
@@ -1927,7 +1994,7 @@ if (_closeBtn) _closeBtn.addEventListener('click', () => {
 
 // ── Filter tooltip ────────────────────────────────────────────
 (function() {
-  if (window.IMAGERY_CATALOG) return;
+  if (window.DARKROOM_CATALOG) return;
   const tip = document.createElement('div');
   tip.id = 'filterTooltip';
   tip.className = 'filter-tooltip';
@@ -1976,6 +2043,6 @@ if (_closeBtn) _closeBtn.addEventListener('click', () => {
 })();
 
 // ── Init ──────────────────────────────────────────────────────
-// Guard: catalog.html sets window.IMAGERY_CATALOG=true to use filter
+// Guard: catalog.html sets window.DARKROOM_CATALOG=true to use filter
 // functions without any UI wiring.
-if (!window.IMAGERY_CATALOG) { buildGrid(); }
+if (!window.DARKROOM_CATALOG) { buildGrid(); }
