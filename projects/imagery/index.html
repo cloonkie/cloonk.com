@@ -155,6 +155,10 @@ body {
   flex-shrink: 0;
 }
 .header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.header-actions .btn:not(.btn-accent) { border-color: transparent; background: transparent; }
+.header-actions .btn:not(.btn-accent):hover { border-color: var(--border); background: var(--surface); }
+.header-actions .icon-btn { border-color: transparent; background: transparent; }
+.header-actions .icon-btn:hover { border-color: var(--border); background: var(--surface); }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
@@ -404,6 +408,15 @@ body {
 }
 .settings-close:hover { color: var(--text); border-color: var(--border-hover); }
 
+.settings-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-desc:empty { display: none; }
 .settings-content { display: flex; flex-direction: column; gap: 12px; }
 .param-row { display: grid; gap: 6px; }
 .param-label {
@@ -551,7 +564,7 @@ body {
     <div>
       <p class="sidebar-label">Source image</p>
       <label class="dropzone" id="dropzone">
-        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp">
+        <input type="file" id="fileInput" accept="image/*">
         <span>
           <p class="dz-title">Drop or tap to add image</p>
           <p class="dz-sub">PNG · JPEG · WebP · GIF · BMP</p>
@@ -596,6 +609,7 @@ body {
         <span class="settings-title" id="settingsTitle"></span>
         <button class="settings-close" id="closeSettings" aria-label="Close settings">&times;</button>
       </div>
+      <p class="settings-desc" id="settingsDesc"></p>
       <div id="settingsContent" class="settings-content"></div>
     </div>
   </main>

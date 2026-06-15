@@ -349,23 +349,34 @@ function handleFiles(files) {
   if (!file) { showToast('No image found.'); return; }
   const url = URL.createObjectURL(file);
   const img = new Image();
+  const afterLoad = (bmp) => {
+    if (state.src && state.src.close) state.src.close();
+    state.src = bmp;
+    URL.revokeObjectURL(url);
+    emptyState.hidden = true;
+    grid.hidden = false;
+    renderAll();
+    if (window._pendingFilterId) {
+      const pid = window._pendingFilterId;
+      window._pendingFilterId = null;
+      setTimeout(() => selectFilter(pid), 80);
+    }
+  };
+
   img.onload = () => {
-    createImageBitmap(img).then(bmp => {
-      if (state.src) state.src.close();
-      state.src = bmp;
+    const bitmapFn = typeof createImageBitmap === 'function'
+      ? createImageBitmap(img)
+      : Promise.resolve((() => {
+          const oc = new OffscreenCanvas(img.naturalWidth, img.naturalHeight);
+          oc.getContext('2d').drawImage(img, 0, 0);
+          return oc;
+        })());
+    bitmapFn.then(afterLoad).catch(() => {
       URL.revokeObjectURL(url);
-      emptyState.hidden = true;
-      grid.hidden = false;
-      renderAll();
-      // Apply filter pre-selected from catalog deeplink
-      if (window._pendingFilterId) {
-        const pid = window._pendingFilterId;
-        window._pendingFilterId = null;
-        setTimeout(() => selectFilter(pid), 80);
-      }
+      showToast('Could not process image.');
     });
   };
-  img.onerror = () => showToast('Could not load image.');
+  img.onerror = () => { URL.revokeObjectURL(url); showToast('Could not load image.'); };
   img.src = url;
 }
 
@@ -433,6 +444,8 @@ function renderSettings(id) {
   if (!f) { settingsCnt.innerHTML = ''; return; }
   const titleEl = document.getElementById('settingsTitle');
   if (titleEl) titleEl.innerHTML = `${f.name} <em>${f.sub}</em>`;
+  const descEl = document.getElementById('settingsDesc');
+  if (descEl) descEl.textContent = FILTER_DESCRIPTIONS[id] || '';
 
   settingsCnt.innerHTML = f.params.map(p => `
     <div class="param-row">
@@ -1927,9 +1940,10 @@ if (_closeBtn) _closeBtn.addEventListener('click', () => {
     const f = FILTERS.find(x => x.id === id);
     const desc = FILTER_DESCRIPTIONS[id];
     if (!f || !desc) return;
+    tip.classList.remove('visible');
     tip.innerHTML = '<span class="filter-tooltip-name">' + f.name + ' <em>' + f.sub + '</em></span>' + desc;
-    tip.classList.add('visible');
-    positionTip(el);
+    positionTip(el); // position while invisible so offsetWidth is correct
+    requestAnimationFrame(() => tip.classList.add('visible'));
   }
 
   function positionTip(el) {
