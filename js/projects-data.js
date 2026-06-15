@@ -8,7 +8,7 @@ window.PROJECTS = [
   {
     "num": "35",
     "id": "imagery",
-    "title": "Imagery",
+    "title": "Darkroom",
     "short": "28 canvas-based image filters — halftone, dither, glitch, ASCII, and more.",
     "desc": "A browser-based image filter studio with 28 Photoshop-inspired effects running entirely on the client via the Canvas API. Upload any image and every filter renders simultaneously at full resolution — no uploads, no waiting. Includes a catalog page showing each filter live on an accent-color leaf. Filters span halftone families, sketch effects, generative noise, retro VHS and Matrix Rain, pixel sorting, glitch warping, sticker cutout, and more — each with a breadth of customizable parameters.",
     "topic": "creative tools",

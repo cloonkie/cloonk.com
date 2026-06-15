@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Imagery — Image Filter Studio | cloonk</title>
-<meta name="description" content="Apply 11 Photoshop-inspired image filters entirely in your browser. Halftone, mosaic, stamp, graphic pen, and more — nothing uploaded, everything local.">
+<title>Darkroom — Image Filter Studio | cloonk</title>
+<meta name="description" content="Apply 28 canvas-based image filters entirely in your browser. Halftone, dither, glitch, ASCII, sticker, and more — nothing uploaded, everything local.">
 <meta name="author" content="Kevin Zhang">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#0a0a0a">
@@ -113,23 +113,28 @@ body {
 }
 [data-theme="light"] .header { background: rgba(245,242,236,0.88); }
 .header-left { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
-.logo {
+.nav__logo {
   display: inline-flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.22rem;
+  font-size: 1rem;
+  color: var(--text);
+  text-decoration: none;
   white-space: nowrap;
   transition: color var(--transition);
 }
-.logo:hover { color: var(--accent); }
-.logo-sub {
-  color: var(--text-muted);
-  font-size: 0.68rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
+.nav__logo:hover { color: var(--accent); }
+.header-project {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+  padding-left: 14px;
+  border-left: 1px solid var(--border);
 }
 .header-badge {
   display: inline-flex;
@@ -488,11 +493,9 @@ body {
 <!-- ── Header ───────────────────────────────────────────────── -->
 <header class="header">
   <div class="header-left">
-    <a class="logo" href="../../index.html">
-      cloonk ʕ·ᴥ·ʔ
-      <span class="logo-sub">Imagery</span>
-    </a>
-    <span class="header-badge">11 filters · local</span>
+    <a class="nav__logo" id="nav-logo" href="../../index.html">cloonk ʕ·ᴥ·ʔ</a>
+    <span class="header-project">Darkroom</span>
+    <span class="header-badge">28 filters · local</span>
   </div>
   <div class="header-actions">
     <button class="btn btn-sm btn-accent" id="downloadBtn" disabled>Download</button>
@@ -514,8 +517,8 @@ body {
       <label class="dropzone" id="dropzone">
         <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp">
         <span>
-          <p class="dz-title">Drop image here</p>
-          <p class="dz-sub">PNG · JPEG · WebP · GIF · BMP<br>or click to browse</p>
+          <p class="dz-title">Drop or tap to add image</p>
+          <p class="dz-sub">PNG · JPEG · WebP · GIF · BMP</p>
         </span>
       </label>
     </div>
@@ -544,7 +547,7 @@ body {
     <div class="empty-state" id="emptyState">
       <div class="empty-state-inner">
         <p class="empty-title">No image yet</p>
-        <p class="empty-sub">Drop an image in the sidebar — all 11 filters will render simultaneously.</p>
+        <p class="empty-sub">Drop or tap an image above — all 28 filters render simultaneously.</p>
       </div>
     </div>
 
