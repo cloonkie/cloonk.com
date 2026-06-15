@@ -623,6 +623,16 @@ body {
     list.appendChild(li);
   });
 
+  // Pre-select filter from URL hash (from catalog deeplink)
+  const hashId = location.hash.replace('#','');
+  if (hashId && FILTERS.find(f => f.id === hashId)) {
+    // Store for when image loads — selectFilter requires an image
+    window._pendingFilterId = hashId;
+    // Highlight the sidebar item immediately so user knows what's pre-selected
+    const li = document.querySelector('.filter-list-item[data-id="' + hashId + '"]');
+    if (li) li.classList.add('active');
+  }
+
   // Mobile: filter list toggle
   const toggle = document.getElementById('filterListToggle');
   const wrap   = document.getElementById('filterListWrap');
