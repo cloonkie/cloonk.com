@@ -275,6 +275,38 @@ const FILTERS = [
   },
 ];
 
+// ── Filter descriptions (used by tooltip) ─────────────────────
+const FILTER_DESCRIPTIONS = {
+  'color-halftone':  'Splits the image into CMY channels and draws rotated dot grids — the classic offset-print look.',
+  'halftone-dot':    'Converts luminance to black dot radius on a white grid. Larger dots in shadows, smaller in highlights.',
+  'halftone-circle': 'Ring-shaped halftone: dark areas show thick annular rings, light areas fade out.',
+  'halftone-line':   'Luminance drives line thickness within evenly-spaced bands. Rotatable at any angle.',
+  'graphic-pen':     'Diagonal ink strokes hatched at a chosen angle. Mimics a crosshatch sketch.',
+  'stamp':           'Heavy blur then binary threshold creates a two-tone cut-out — rubber stamp or linocut look.',
+  'bitmap':          'Pixelates to large blocks then thresholds to pure black and white. 1-bit at low resolution.',
+  'patchwork':       'Divides into solid-colour square tiles with a bevelled highlight and shadow — quilted surface.',
+  'mosaic':          'Averages colour within each block for a classic pixel-art or stained-glass effect.',
+  'row-stretch':     'Samples one horizontal row and stretches it to fill the frame — minimalist glitch abstraction.',
+  'path-blur':       'Directional motion blur along any angle, blended at a selectable dissolve rate.',
+  'ascii':           'Maps luminance to character density in a monospace grid. Toggle colour to tint each character.',
+  'dithering':       'Floyd–Steinberg error diffusion quantises to a small palette while preserving tonal range.',
+  'matrix-rain':     'Falling katakana and digit columns over a darkened source. Density driven by brightness.',
+  'dots':            'Evenly-spaced filled circles sized by inverse luminance. Bold pop-art aesthetic.',
+  'contour':         'Traces iso-luminance level-set lines like a topographic map. Control the number of levels.',
+  'pixel-sort':      'Finds luminance-banded runs and sorts them by brightness — signature glitch streaks.',
+  'blockify':        'Randomly jittered square blocks with bevel highlights — a chunky, offset mosaic.',
+  'threshold':       'Posterises to a fixed number of tonal steps, per-channel for screen-printed poster effects.',
+  'edge-detect':     'Sobel gradient magnitude isolates outlines. Invert for white lines; colourize from source.',
+  'crosshatch':      'Up to four hatch directions accumulate like hand engraving — dark areas fill densely.',
+  'wave-lines':      'Sinusoidal displacement of scan-lines, with amplitude modulated by local luminance.',
+  'noise-field':     'Fractal value noise adds organic texture — monochrome bump or colourised channel warp.',
+  'voronoi':         'Seeds random cells and fills each with the colour of its nearest point — a stained-glass mosaic.',
+  'vhs':             'Simulates VHS tape dropout: colour bleed, scanlines, noise, and chroma shift.',
+  'sticker':         'BFS flood-fills from corners to remove the background, adds a border, and places on a texture.',
+  'pixel-stretch':   'Triggers on mid-luminance pixels and streaks their colour across the frame — glitch warp.',
+  'fractal-haze':    'Fractal noise mixed with blurred source creates a dreamy, hazy atmospheric glow.',
+};
+
 // ── Default settings ──────────────────────────────────────────
 FILTERS.forEach(f => {
   state.settings[f.id] = {};
@@ -325,6 +357,12 @@ function handleFiles(files) {
       emptyState.hidden = true;
       grid.hidden = false;
       renderAll();
+      // Apply filter pre-selected from catalog deeplink
+      if (window._pendingFilterId) {
+        const pid = window._pendingFilterId;
+        window._pendingFilterId = null;
+        setTimeout(() => selectFilter(pid), 80);
+      }
     });
   };
   img.onerror = () => showToast('Could not load image.');
@@ -357,6 +395,7 @@ function makeCell(id, name, sub) {
   const wrap = document.createElement('div');
   wrap.className = 'filter-cell';
   wrap.dataset.id = id;
+  if (FILTER_DESCRIPTIONS[id]) wrap.dataset.desc = FILTER_DESCRIPTIONS[id];
 
   const cw = document.createElement('div');
   cw.className = 'filter-canvas-wrap';
@@ -1872,6 +1911,55 @@ if (_closeBtn) _closeBtn.addEventListener('click', () => {
   state.active = null;
   downloadBtn.disabled = true;
 });
+
+// ── Filter tooltip ────────────────────────────────────────────
+(function() {
+  if (window.IMAGERY_CATALOG) return;
+  const tip = document.createElement('div');
+  tip.id = 'filterTooltip';
+  tip.className = 'filter-tooltip';
+  document.body.appendChild(tip);
+
+  let hideTimer;
+
+  function showTip(el, id) {
+    clearTimeout(hideTimer);
+    const f = FILTERS.find(x => x.id === id);
+    const desc = FILTER_DESCRIPTIONS[id];
+    if (!f || !desc) return;
+    tip.innerHTML = '<span class="filter-tooltip-name">' + f.name + ' <em>' + f.sub + '</em></span>' + desc;
+    tip.classList.add('visible');
+    positionTip(el);
+  }
+
+  function positionTip(el) {
+    const r = el.getBoundingClientRect();
+    const tw = tip.offsetWidth || 240;
+    let left = r.left;
+    if (left + tw > window.innerWidth - 12) left = window.innerWidth - tw - 12;
+    if (left < 12) left = 12;
+    let top = r.bottom + 8;
+    if (top + 120 > window.innerHeight) top = r.top - 8 - (tip.offsetHeight || 80);
+    tip.style.left = left + 'px';
+    tip.style.top  = top + 'px';
+  }
+
+  function hideTip() {
+    hideTimer = setTimeout(function() { tip.classList.remove('visible'); }, 80);
+  }
+
+  document.addEventListener('mouseover', function(e) {
+    const cell = e.target.closest('.filter-cell[data-id]');
+    if (cell && cell.dataset.id !== 'original') showTip(cell, cell.dataset.id);
+    const item = e.target.closest('.filter-list-item[data-id]');
+    if (item) showTip(item, item.dataset.id);
+  });
+  document.addEventListener('mouseout', function(e) {
+    if (e.target.closest('.filter-cell') || e.target.closest('.filter-list-item')) hideTip();
+  });
+  document.addEventListener('click', function() { tip.classList.remove('visible'); });
+  document.addEventListener('scroll', function() { tip.classList.remove('visible'); }, true);
+})();
 
 // ── Init ──────────────────────────────────────────────────────
 // Guard: catalog.html sets window.IMAGERY_CATALOG=true to use filter

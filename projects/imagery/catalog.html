@@ -752,10 +752,10 @@ function makeCard(id, name, sub) {
           <svg viewBox="0 0 20 20"><line x1="3" y1="10" x2="17" y2="10"/><circle cx="7" cy="10" r="2" fill="currentColor"/><line x1="3" y1="5" x2="17" y2="5"/><circle cx="14" cy="5" r="2" fill="currentColor"/><line x1="3" y1="15" x2="17" y2="15"/><circle cx="10" cy="15" r="2" fill="currentColor"/></svg>
           ${f ? `${f.params.length} param${f.params.length !== 1 ? 's' : ''}` : 'Source'}
         </span>
-        <span class="card-cta">
-          ${id === 'original' ? 'Reference' : 'Use filter'}
+        <a class="card-cta" href="${id === 'original' ? 'index.html' : `index.html#${id}`}">
+          ${id === 'original' ? 'Reference' : 'Use filter →'}
           <svg viewBox="0 0 20 20"><line x1="4" y1="10" x2="16" y2="10"/><polyline points="11 5 16 10 11 15"/></svg>
-        </span>
+        </a>
       </div>
     </div>
   `;
@@ -837,8 +837,8 @@ function openLightbox(id) {
     });
   }
 
-  // CTA deep-link (hash for future: for now just opens the studio)
-  document.getElementById('lbCTA').href = `index.html`;
+  // CTA deep-link: open studio with this filter pre-selected
+  document.getElementById('lbCTA').href = id === 'original' ? 'index.html' : `index.html#${id}`;
 
   lb.classList.add('open');
   document.body.style.overflow = 'hidden';

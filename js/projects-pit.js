@@ -75,38 +75,54 @@
     /* Hover / focus → pause drift and expand into the blurb.
        `open` freezes integration in the tick loop; velocity is kept
        so the pill resumes its drift the moment the pointer leaves. */
+    var _touchOpened = false;
+
     function openPill()  { pl.open = true;  a.classList.add('is-open'); }
-    function closePill() { pl.open = false; a.classList.remove('is-open'); }
+    function closePill() {
+      if (_touchOpened) return; // touch-opened pills survive mouseleave
+      pl.open = false;
+      a.classList.remove('is-open');
+    }
+
     a.addEventListener('mouseenter', openPill);
     a.addEventListener('mouseleave', closePill);
-    a.addEventListener('focus', openPill);
-    a.addEventListener('blur', closePill);
+    a.addEventListener('focus',      openPill);
+    a.addEventListener('blur',       closePill);
 
     /* Touch: tap once to reveal blurb, tap again to enter the project.
        preventDefault on the first tap stops the synthesised click/mouseenter
        so hover state never fires on touch devices. */
     a.addEventListener('touchstart', function (e) {
-      if (!pl.open) {
-        // Close any pill previously opened by touch
+      if (!_touchOpened) {
+        // close the previously touch-opened pill
         if (lastTouchOpened && lastTouchOpened !== pl) {
-          lastTouchOpened.open = false;
-          lastTouchOpened.el.classList.remove('is-open');
+          lastTouchOpened._closeTouchOpen();
         }
         e.preventDefault();
+        _touchOpened = true;
         openPill();
         lastTouchOpened = pl;
       } else {
-        // Second tap on an already-open pill → navigate
+        // second tap → navigate
         e.preventDefault();
+        _touchOpened = false;
+        pl.open = false;
+        lastTouchOpened = null;
         window.location.href = a.href;
       }
     }, { passive: false });
+
+    pl._closeTouchOpen = function() {
+      _touchOpened = false;
+      pl.open = false;
+      a.classList.remove('is-open');
+    };
   });
 
   // Tap on pit background closes any touch-opened pill
   pit.addEventListener('touchstart', function (e) {
     if (e.target === pit) {
-      pills.forEach(function (pl) { pl.open = false; pl.el.classList.remove('is-open'); });
+      pills.forEach(function (pl) { if (pl._closeTouchOpen) pl._closeTouchOpen(); });
       lastTouchOpened = null;
     }
   }, { passive: true });

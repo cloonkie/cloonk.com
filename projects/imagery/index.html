@@ -471,6 +471,42 @@ body {
 .filter-list-toggle-arrow { font-size: 0.7rem; color: var(--text-muted); transition: transform 0.2s; }
 .filter-list-toggle[aria-expanded="true"] .filter-list-toggle-arrow { transform: rotate(180deg); }
 
+/* ── Filter tooltip ─────────────────────────────────────────── */
+.filter-tooltip {
+  position: fixed;
+  z-index: 200;
+  max-width: 240px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-xs);
+  background: var(--surface-raised);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.filter-tooltip.visible { opacity: 1; }
+.filter-tooltip-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.filter-tooltip-name em {
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-left: 5px;
+}
+@media (hover: none) { .filter-tooltip { display: none; } }
+
 /* ── Mobile header adjustments ─────────────────────────────── */
 @media (max-width: 860px) {
   .filter-list-toggle { display: flex; }
@@ -610,6 +646,15 @@ body {
     });
     window.addEventListener('resize', syncToggle);
     syncToggle();
+  }
+
+  // Pre-select filter from catalog deeplink (index.html#filter-id)
+  const hashId = location.hash.replace('#', '');
+  if (hashId && FILTERS.find(f => f.id === hashId)) {
+    window._pendingFilterId = hashId;
+    // Highlight the sidebar item immediately so user knows what's queued
+    const li = document.querySelector('.filter-list-item[data-id="' + hashId + '"]');
+    if (li) li.classList.add('active');
   }
 })();
 </script>
