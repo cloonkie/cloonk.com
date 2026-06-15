@@ -658,14 +658,6 @@ body {
     syncToggle();
   }
 
-  // Pre-select filter from catalog deeplink (index.html#filter-id)
-  const hashId = location.hash.replace('#', '');
-  if (hashId && FILTERS.find(f => f.id === hashId)) {
-    window._pendingFilterId = hashId;
-    // Highlight the sidebar item immediately so user knows what's queued
-    const li = document.querySelector('.filter-list-item[data-id="' + hashId + '"]');
-    if (li) li.classList.add('active');
-  }
 })();
 </script>
 </body>
