@@ -281,7 +281,7 @@ FILTERS.forEach(f => {
   f.params.forEach(p => { state.settings[f.id][p.id] = p.def; });
 });
 
-// ── DOM refs ──────────────────────────────────────────────────
+// ── DOM refs (null-safe — catalog page omits these elements) ──
 const dropzone    = document.getElementById('dropzone');
 const fileInput   = document.getElementById('fileInput');
 const grid        = document.getElementById('filterGrid');
@@ -298,7 +298,7 @@ function setTheme(t) {
   document.documentElement.setAttribute('data-theme', t);
   try { localStorage.setItem('cloonk-theme', t); } catch(e) {}
 }
-themeToggle.addEventListener('click', () => {
+if (themeToggle) themeToggle.addEventListener('click', () => {
   const cur = document.documentElement.getAttribute('data-theme');
   setTheme(cur === 'light' ? 'dark' : 'light');
 });
@@ -331,15 +331,17 @@ function handleFiles(files) {
   img.src = url;
 }
 
-dropzone.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', e => handleFiles(e.target.files));
-dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
-dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
-dropzone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropzone.classList.remove('drag');
-  handleFiles(e.dataTransfer.files);
-});
+if (dropzone) {
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', e => handleFiles(e.target.files));
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('drag');
+    handleFiles(e.dataTransfer.files);
+  });
+}
 
 // ── Grid ──────────────────────────────────────────────────────
 function buildGrid() {
@@ -1795,7 +1797,7 @@ function makeStickerBg(w, h, type) {
 // WIRING
 // ══════════════════════════════════════════════════════════════
 
-downloadBtn.addEventListener('click', () => {
+if (downloadBtn) downloadBtn.addEventListener('click', () => {
   const id = state.active;
   if (!id || !state.src) { showToast('Select a filter first.'); return; }
   const canvas = document.getElementById(`canvas-${id}`);
@@ -1864,7 +1866,8 @@ downloadBtn.addEventListener('click', () => {
   }
 });
 
-document.getElementById('closeSettings').addEventListener('click', () => {
+const _closeBtn = document.getElementById('closeSettings');
+if (_closeBtn) _closeBtn.addEventListener('click', () => {
   settingsBox.hidden = true;
   document.querySelectorAll('.filter-cell, .filter-list-item').forEach(c => c.classList.remove('active'));
   state.active = null;
@@ -1872,4 +1875,6 @@ document.getElementById('closeSettings').addEventListener('click', () => {
 });
 
 // ── Init ──────────────────────────────────────────────────────
-buildGrid();
+// Guard: catalog.html sets window.IMAGERY_CATALOG=true to use filter
+// functions without any UI wiring.
+if (!window.IMAGERY_CATALOG) { buildGrid(); }
