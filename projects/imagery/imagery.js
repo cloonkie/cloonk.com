@@ -41,6 +41,7 @@ const ICONS = {
   'vhs':             '<rect x="2" y="4" width="16" height="12" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="7" x2="18" y2="7" stroke-width="1" stroke-opacity=".5"/><line x1="2" y1="10" x2="18" y2="10" stroke-width="1"/><line x1="2" y1="13" x2="14" y2="13" stroke-width="1" stroke-opacity=".5"/><line x1="5" y1="11" x2="9" y2="9" stroke-width="1.5" stroke-linecap="round" stroke-opacity=".8"/>',
   'fractal-haze':    '<line x1="2" y1="6" x2="6" y2="6" stroke-width="1.5" stroke-linecap="round"/><line x1="2" y1="8" x2="12" y2="8" stroke-width="2.5" stroke-linecap="round"/><line x1="2" y1="10" x2="18" y2="10" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="12" x2="14" y2="12" stroke-width="2.5" stroke-linecap="round"/><line x1="2" y1="14" x2="8" y2="14" stroke-width="1.5" stroke-linecap="round"/>',
   'sticker':         '<path d="M10 2 C14 2 18 5 18 9 C18 13 15 17 10 18 C5 17 2 13 2 9 C2 5 6 2 10 2Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 5 C13 5 15 7 15 9 C15 12 13 14 10 15 C7 14 5 12 5 9 C5 7 7 5 10 5Z"/>',
+  'pixel-stretch':   '<rect x="2" y="4" width="3" height="12" rx="0.5"/><rect x="6" y="4" width="8" height="3" rx="0.5"/><rect x="6" y="9" width="12" height="2" rx="0.5"/><rect x="6" y="13" width="5" height="3" rx="0.5"/>',
   'original':        '<rect x="3" y="3" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="7" r="1.5"/><path d="M3 14 L7 10 L10 13 L13 9 L17 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
 };
 
@@ -254,6 +255,16 @@ const FILTERS = [
     ],
   },
   {
+    id: 'pixel-stretch', name: 'Pixel Stretch', sub: 'Glitch Warp',
+    params: [
+      { id: 'threshold', label: 'Trigger Luma',  min: 10, max: 240, step: 5,  def: 60  },
+      { id: 'upper',     label: 'Upper Luma',    min: 30, max: 255, step: 5,  def: 220 },
+      { id: 'maxLen',    label: 'Max Stretch',   min: 4,  max: 200, step: 4,  def: 60  },
+      { id: 'direction', label: 'Dir (0=H 1=V)', min: 0,  max: 1,   step: 1,  def: 0   },
+      { id: 'density',   label: 'Run Chance %',  min: 5,  max: 100, step: 5,  def: 50  },
+    ],
+  },
+  {
     id: 'sticker', name: 'Sticker', sub: 'Cut-out & Background',
     params: [
       { id: 'tolerance', label: 'BG Tolerance', min: 5,  max: 120, step: 5,  def: 35 },
@@ -462,6 +473,7 @@ function renderOne(id) {
     case 'voronoi':         result = filterVoronoi(src, w, h, s); break;
     case 'vhs':             result = filterVHS(src, w, h, s); break;
     case 'fractal-haze':    result = filterFractalHaze(src, w, h, s); break;
+    case 'pixel-stretch':   result = filterPixelStretch(src, w, h, s); break;
     case 'sticker':         result = filterSticker(src, w, h, s); break;
   }
   if (result) canvas.getContext('2d').putImageData(result, 0, 0);
@@ -1534,6 +1546,85 @@ function filterFractalHaze(src, w, h, s) {
   return out;
 }
 
+// ── Pixel Stretch ─────────────────────────────────────────────
+function filterPixelStretch(src, w, h, s) {
+  const lo      = s.threshold || 60;
+  const hi      = s.upper     || 220;
+  const maxLen  = s.maxLen    || 60;
+  const dir     = s.direction || 0;   // 0=horizontal, 1=vertical
+  const density = (s.density  || 50) / 100;
+
+  const data = new Uint8ClampedArray(src.data);
+
+  if (!dir) {
+    // ── Horizontal stretch ───────────────────────────────────
+    for (let y = 0; y < h; y++) {
+      let x = 0;
+      while (x < w) {
+        const i = (y * w + x) * 4;
+        const l = lum(data[i], data[i + 1], data[i + 2]);
+
+        // Enter a stretch run when pixel luma is in the trigger band
+        if (l >= lo && l <= hi && Math.random() < density) {
+          // How far this run extends — biased toward long streaks
+          const runLen = Math.min(w - x, Math.ceil(Math.random() * maxLen));
+          const sR = data[i], sG = data[i + 1], sB = data[i + 2];
+
+          // Stretch: repeat source pixel value across the run,
+          // gradually blending back toward the underlying pixel colour
+          for (let k = 0; k < runLen; k++) {
+            const t  = k / runLen;                   // 0 → 1 across run
+            const fade = Math.pow(1 - t, 0.6);        // ease-out tail
+            const px  = x + k;
+            if (px >= w) break;
+            const di  = (y * w + px) * 4;
+            const dR  = src.data[di], dG = src.data[di + 1], dB = src.data[di + 2];
+            data[di]     = lerp(dR, sR, fade) | 0;
+            data[di + 1] = lerp(dG, sG, fade) | 0;
+            data[di + 2] = lerp(dB, sB, fade) | 0;
+          }
+          x += runLen;
+        } else {
+          x++;
+        }
+      }
+    }
+  } else {
+    // ── Vertical stretch ─────────────────────────────────────
+    for (let x = 0; x < w; x++) {
+      let y = 0;
+      while (y < h) {
+        const i = (y * w + x) * 4;
+        const l = lum(data[i], data[i + 1], data[i + 2]);
+
+        if (l >= lo && l <= hi && Math.random() < density) {
+          const runLen = Math.min(h - y, Math.ceil(Math.random() * maxLen));
+          const sR = data[i], sG = data[i + 1], sB = data[i + 2];
+
+          for (let k = 0; k < runLen; k++) {
+            const t    = k / runLen;
+            const fade = Math.pow(1 - t, 0.6);
+            const py   = y + k;
+            if (py >= h) break;
+            const di   = (py * w + x) * 4;
+            const dR   = src.data[di], dG = src.data[di + 1], dB = src.data[di + 2];
+            data[di]     = lerp(dR, sR, fade) | 0;
+            data[di + 1] = lerp(dG, sG, fade) | 0;
+            data[di + 2] = lerp(dB, sB, fade) | 0;
+          }
+          y += runLen;
+        } else {
+          y++;
+        }
+      }
+    }
+  }
+
+  const out = new ImageData(w, h);
+  out.data.set(data);
+  return out;
+}
+
 // ── Sticker ───────────────────────────────────────────────────
 function filterSticker(src, w, h, s) {
   const tolerance = s.tolerance || 35;
@@ -1756,6 +1847,7 @@ downloadBtn.addEventListener('click', () => {
     case 'voronoi':         result = filterVoronoi(renderSrc, renderW, renderH, s); break;
     case 'vhs':             result = filterVHS(renderSrc, renderW, renderH, s); break;
     case 'fractal-haze':    result = filterFractalHaze(renderSrc, renderW, renderH, s); break;
+    case 'pixel-stretch':   result = filterPixelStretch(renderSrc, renderW, renderH, s); break;
     case 'sticker':         result = filterSticker(renderSrc, renderW, renderH, s); break;
   }
 
