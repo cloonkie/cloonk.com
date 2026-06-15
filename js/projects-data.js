@@ -6,6 +6,43 @@
 
 window.PROJECTS = [
   {
+    "num": "35",
+    "id": "imagery",
+    "title": "Imagery",
+    "short": "28 canvas-based image filters — halftone, dither, glitch, ASCII, and more.",
+    "desc": "A browser-based image filter studio with 28 Photoshop-inspired effects running entirely on the client via the Canvas API. Upload any image and every filter renders simultaneously at full resolution — no uploads, no waiting. Includes a catalog page showing each filter live on an accent-color leaf. Filters span halftone families, sketch effects, generative noise, retro VHS and Matrix Rain, pixel sorting, glitch warping, sticker cutout, and more — each with a breadth of customizable parameters.",
+    "topic": "creative tools",
+    "type": "Tools",
+    "year": "2026",
+    "affiliation": null,
+    "img": "https://pub-9c199549e11948eb8b255ae7436c1cb5.r2.dev/assests/images/projects%20no%20img.png",
+    "gallery": [],
+    "media": [],
+    "pdf": null,
+    "pdf_label": null,
+    "figma": null, "sheets": null, "canva": null,
+    "github": "https://github.com/cloonkie/cloonk.com/tree/main/projects/imagery",
+    "live": "https://cloonk.com/projects/imagery/",
+    "hideStatMoments": true,
+    "hideStatements": true,
+    "quotes": null, "findings": null, "statMoments": null, "impact": null, "statements": null,
+    "context": {
+      "problem": "Creative filter tools either live behind paywalls (Photoshop, Lightroom) or upload your image to a server. The goal was to build the full richness of destructive image effects — halftone families, generative noise fields, glitch warps, retro effects, sticker cutout — in a purely client-side canvas pipeline with real customization, at zero cost and zero upload."
+    },
+    "approach": {
+      "summary": "All 28 filter functions are pure ImageData transforms running in OffscreenCanvas. A registry drives both the interactive studio (upload → render grid → tweak params → download) and a catalog page that renders each filter live using an SVG leaf as the source image. Techniques include Floyd-Steinberg dithering, Sobel edge detection, BFS flood-fill for sticker background removal, seeded Voronoi, fractal value noise, and custom AABB pixel-sorting. The catalog uses a IMAGERY_CATALOG flag to reuse the filter engine without wiring DOM UI.",
+      "data": ["Canvas API", "OffscreenCanvas", "ImageData", "Floyd-Steinberg dithering", "Sobel edge detection", "BFS flood fill", "Voronoi", "Fractal noise", "Vanilla JS", "GitHub Pages"]
+    },
+    "results": {
+      "before": ["Creative canvas filters required server-side processing or paid software", "No single-page tool running 28 simultaneous effects on uploaded images"],
+      "after": ["28 filters rendering simultaneously in-browser on upload — halftone, dither, ASCII, glitch, sticker, noise, VHS, and more", "Per-filter parameter controls with live re-render", "A catalog page with live previews on each filter for discovery", "Full-resolution download, no upload, no login"]
+    },
+    "takeaways": [
+      { "title": "Canvas API is deep enough to rebuild Photoshop destructive effects", "body": "Every filter in here — Floyd-Steinberg dithering, Sobel-based edge detection, BFS sticker cutout, seeded Voronoi cells, fractal noise fields — runs entirely on ImageData manipulations in the browser. No WebGL, no server, no libraries. The constraint forced legible, composable pixel math." }
+    ]
+  },
+
+  {
       "num": "34",
       "id": "nyc-soundhood",
       "title": "NYC Soundhood",

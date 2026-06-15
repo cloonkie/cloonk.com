@@ -34,6 +34,7 @@
   }
 
   var pills = [];
+  var lastTouchOpened = null; // tracks which pill was last opened by touch
 
   data.forEach(function (p) {
     if (!p || !p.title) return;
@@ -74,13 +75,41 @@
     /* Hover / focus → pause drift and expand into the blurb.
        `open` freezes integration in the tick loop; velocity is kept
        so the pill resumes its drift the moment the pointer leaves. */
-    function open()  { pl.open = true;  a.classList.add('is-open'); }
-    function close() { pl.open = false; a.classList.remove('is-open'); }
-    a.addEventListener('mouseenter', open);
-    a.addEventListener('mouseleave', close);
-    a.addEventListener('focus', open);
-    a.addEventListener('blur', close);
+    function openPill()  { pl.open = true;  a.classList.add('is-open'); }
+    function closePill() { pl.open = false; a.classList.remove('is-open'); }
+    a.addEventListener('mouseenter', openPill);
+    a.addEventListener('mouseleave', closePill);
+    a.addEventListener('focus', openPill);
+    a.addEventListener('blur', closePill);
+
+    /* Touch: tap once to reveal blurb, tap again to enter the project.
+       preventDefault on the first tap stops the synthesised click/mouseenter
+       so hover state never fires on touch devices. */
+    a.addEventListener('touchstart', function (e) {
+      if (!pl.open) {
+        // Close any pill previously opened by touch
+        if (lastTouchOpened && lastTouchOpened !== pl) {
+          lastTouchOpened.open = false;
+          lastTouchOpened.el.classList.remove('is-open');
+        }
+        e.preventDefault();
+        openPill();
+        lastTouchOpened = pl;
+      } else {
+        // Second tap on an already-open pill → navigate
+        e.preventDefault();
+        window.location.href = a.href;
+      }
+    }, { passive: false });
   });
+
+  // Tap on pit background closes any touch-opened pill
+  pit.addEventListener('touchstart', function (e) {
+    if (e.target === pit) {
+      pills.forEach(function (pl) { pl.open = false; pl.el.classList.remove('is-open'); });
+      lastTouchOpened = null;
+    }
+  }, { passive: true });
 
   if (reduceMotion) return; // static layout — nothing else to do
 

@@ -189,6 +189,36 @@
       opacity: 1;
     }
 
+    /* Mobile: constrain expanded pill width and add tap hint */
+    @media (max-width: 600px) {
+      .float-pill.is-open {
+        max-width: calc(100vw - 28px);
+      }
+      .float-pill.is-open .float-pill__blurb {
+        width: clamp(180px, 66vw, 270px);
+      }
+    }
+
+    /* Touch hint — only shown on touch devices */
+    .pit__touch-hint {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--fg);
+      opacity: 0.3;
+      pointer-events: none;
+      user-select: none;
+      white-space: nowrap;
+      display: none;
+    }
+    @media (hover: none) and (pointer: coarse) {
+      .pit__touch-hint { display: block; }
+    }
+
     /* Reduced-motion: pills stay put, lay out as a centered wrap */
     @media (prefers-reduced-motion: reduce) {
       .pit { display: flex; align-items: center; justify-content: center; }
@@ -247,6 +277,7 @@
         <h1>playground</h1>
         <p class="pit__sub">experiments, tools &amp; loose ends &middot; serious work lives in <a href="../work.html">Work&nbsp;&rarr;</a></p>
       </div>
+      <span class="pit__touch-hint">tap to preview &middot; tap again to enter</span>
     </div>
   </main>
 

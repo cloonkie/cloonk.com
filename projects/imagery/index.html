@@ -445,12 +445,41 @@ body {
 }
 .toast.show { opacity: 1; transform: translateY(0); }
 
+/* ── Filter list toggle (mobile) ────────────────────────────── */
+.filter-list-toggle {
+  display: none;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.filter-list-toggle:hover { background: var(--surface-raised); border-color: var(--border-hover); }
+.filter-list-toggle-arrow { font-size: 0.7rem; color: var(--text-muted); transition: transform 0.2s; }
+.filter-list-toggle[aria-expanded="true"] .filter-list-toggle-arrow { transform: rotate(180deg); }
+
 /* ── Mobile header adjustments ─────────────────────────────── */
+@media (max-width: 860px) {
+  .filter-list-toggle { display: flex; }
+  .filter-list-wrap { overflow: hidden; }
+  .filter-list-wrap[hidden] { display: none; }
+}
 @media (max-width: 600px) {
   .header { padding: 11px 16px; }
   .header-badge { display: none; }
   .content { padding: 14px 14px 50px; }
   .sidebar { padding: 16px 14px; }
+  .btn-sm { min-height: 36px; padding: 6px 12px; } /* larger touch targets */
+  .filter-canvas-wrap { height: 130px; }
+  .filter-canvas { max-height: 130px; }
 }
 </style>
 </head>
@@ -497,9 +526,15 @@ body {
 
     <div>
       <p class="sidebar-label">Filters</p>
-      <ul class="filter-list" id="filterList">
-        <!-- populated by JS -->
-      </ul>
+      <button class="filter-list-toggle" id="filterListToggle" aria-expanded="false" aria-controls="filterListWrap">
+        <span id="filterListToggleLabel">Filters</span>
+        <span class="filter-list-toggle-arrow">▾</span>
+      </button>
+      <div class="filter-list-wrap" id="filterListWrap" hidden>
+        <ul class="filter-list" id="filterList">
+          <!-- populated by JS -->
+        </ul>
+      </div>
     </div>
   </aside>
 
@@ -548,6 +583,31 @@ body {
     });
     list.appendChild(li);
   });
+
+  // Mobile: filter list toggle
+  const toggle = document.getElementById('filterListToggle');
+  const wrap   = document.getElementById('filterListWrap');
+  const label  = document.getElementById('filterListToggleLabel');
+  if (toggle && wrap) {
+    const count = FILTERS.length;
+    const isMobile = () => window.innerWidth <= 860;
+    function syncToggle() {
+      if (isMobile()) {
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        label.textContent = count + ' filters';
+        wrap.hidden = !expanded;
+      } else {
+        wrap.hidden = false; // always visible on desktop
+      }
+    }
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
+      syncToggle();
+    });
+    window.addEventListener('resize', syncToggle);
+    syncToggle();
+  }
 })();
 </script>
 </body>
