@@ -335,12 +335,8 @@ FILTERS.forEach(f => {
 const dropzone    = document.getElementById('dropzone');
 const fileInput   = document.getElementById('fileInput');
 const grid        = document.getElementById('filterGrid');
-const settingsBox = document.getElementById('settingsBox');
-const settingsCnt = document.getElementById('settingsContent');
 const emptyState  = document.getElementById('emptyState');
 const downloadAllBtn = document.getElementById('downloadAllBtn');
-const settingsScrim  = document.getElementById('settingsScrim');
-const settingsDownload = document.getElementById('settingsDownload');
 const themeToggle = document.getElementById('themeToggle');
 const toast       = document.getElementById('toast');
 const studioStatus = document.getElementById('studioStatus');
@@ -394,7 +390,6 @@ function loadSourceBlob(blob, name, persist) {
         idbPut('name', name || 'image').catch(() => {});
       }
       await renderAll();
-      if (state.active) { renderSettings(state.active); syncDrawerPreview(state.active); }
       resolve(true);
     };
     img.onload = () => {
@@ -446,19 +441,17 @@ if (dropzone) {
 function buildGrid() {
   grid.innerHTML = '';
   grid.appendChild(makeCell('original', 'Original', 'Source'));
-  FILTERS.forEach(f => {
-    const cell = makeCell(f.id, f.name, f.sub);
-    cell.addEventListener('click', () => selectFilter(f.id));
-    grid.appendChild(cell);
-  });
+  FILTERS.forEach(f => grid.appendChild(makeCell(f.id, f.name, f.sub)));
 }
 
+// Each filter cell is a link to its own subpage (filter.html?f=<id>) —
+// so a filter has a real, shareable, openable-in-a-new-window URL.
 function makeCell(id, name, sub) {
-  const wrap = document.createElement(id === 'original' ? 'div' : 'button');
-  if (id !== 'original') {
-    wrap.type = 'button';
-    wrap.setAttribute('aria-pressed', 'false');
-    wrap.setAttribute('aria-label', `Use ${name}: ${sub}`);
+  const isOriginal = id === 'original';
+  const wrap = document.createElement(isOriginal ? 'div' : 'a');
+  if (!isOriginal) {
+    wrap.href = `filter.html?f=${encodeURIComponent(id)}`;
+    wrap.setAttribute('aria-label', `Open ${name} — ${sub}`);
   }
   wrap.className = 'filter-cell';
   wrap.dataset.id = id;
@@ -482,6 +475,7 @@ function makeCell(id, name, sub) {
     dl.setAttribute('aria-label', `Download ${name} PNG`);
     dl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><path d="M5 20h14"/></svg>';
     dl.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       exportFilter(id, { markCell: true });
     });
@@ -492,98 +486,6 @@ function makeCell(id, name, sub) {
   wrap.appendChild(cw);
   wrap.appendChild(label);
   return wrap;
-}
-
-function selectFilter(id) {
-  document.querySelectorAll('.filter-cell').forEach(c => {
-    c.classList.remove('active');
-    if (c.hasAttribute('aria-pressed')) c.setAttribute('aria-pressed', 'false');
-  });
-  const cell = document.querySelector(`.filter-cell[data-id="${id}"]`);
-  if (cell) {
-    cell.classList.add('active');
-    if (cell.hasAttribute('aria-pressed')) cell.setAttribute('aria-pressed', 'true');
-  }
-  state.active = id;
-  renderSettings(id);
-  openDrawer();
-  syncDrawerPreview(id);
-  setStudioStatus('');
-  writeUrlState();
-}
-
-// ── Settings drawer open/close ────────────────────────────────
-function openDrawer() {
-  if (settingsBox) settingsBox.hidden = false;
-  if (settingsScrim) settingsScrim.classList.add('open');
-}
-function closeDrawer() {
-  if (settingsBox) settingsBox.hidden = true;
-  if (settingsScrim) settingsScrim.classList.remove('open');
-  document.querySelectorAll('.filter-cell.active').forEach(c => {
-    c.classList.remove('active');
-    if (c.hasAttribute('aria-pressed')) c.setAttribute('aria-pressed', 'false');
-  });
-  state.active = null;
-  writeUrlState();
-}
-
-// Mirror the selected filter's grid render into the larger drawer preview.
-function syncDrawerPreview(id) {
-  const wrap = document.getElementById('settingsPreview');
-  const srcCanvas = document.getElementById(`canvas-${id}`);
-  if (!wrap || !srcCanvas) return;
-  let pc = wrap.querySelector('canvas');
-  if (!pc) { pc = document.createElement('canvas'); wrap.appendChild(pc); }
-  pc.width = srcCanvas.width;
-  pc.height = srcCanvas.height;
-  pc.getContext('2d').drawImage(srcCanvas, 0, 0);
-}
-
-// ── Settings panel ────────────────────────────────────────────
-function renderSettings(id) {
-  const f = FILTERS.find(f => f.id === id);
-  if (!f) { settingsCnt.innerHTML = ''; return; }
-  const titleEl = document.getElementById('settingsTitle');
-  if (titleEl) titleEl.innerHTML = `${f.name} <em>${f.sub}</em>`;
-  const descEl = document.getElementById('settingsDesc');
-  if (descEl) descEl.textContent = FILTER_DESCRIPTIONS[id] || '';
-
-  settingsCnt.innerHTML = f.params.map(p => {
-    const control = p.options
-      ? `<select id="p-${id}-${p.id}">${p.options.map((option, value) =>
-          `<option value="${value}"${value === state.settings[id][p.id] ? ' selected' : ''}>${option}</option>`
-        ).join('')}</select>`
-      : `<input type="range" id="p-${id}-${p.id}"
-          min="${p.min}" max="${p.max}" step="${p.step}"
-          value="${state.settings[id][p.id]}">`;
-    const displayValue = p.options
-      ? p.options[state.settings[id][p.id]]
-      : state.settings[id][p.id];
-    return `
-    <div class="param-row">
-      <label class="param-label" for="p-${id}-${p.id}">${p.label}</label>
-      <div class="param-controls">
-        ${control}
-        <span class="param-val" id="pv-${id}-${p.id}">${displayValue}</span>
-      </div>
-    </div>
-  `;
-  }).join('');
-
-  f.params.forEach(p => {
-    const slider = document.getElementById(`p-${id}-${p.id}`);
-    const valEl  = document.getElementById(`pv-${id}-${p.id}`);
-    slider.addEventListener('input', () => {
-      const v = Number(slider.value);
-      state.settings[id][p.id] = v;
-      valEl.textContent = p.options ? p.options[v] : v;
-      renderOne(id);
-      syncDrawerPreview(id);
-      scheduleSettingsSave();
-      writeUrlState();
-    });
-  });
 }
 
 // ── Render pipeline ───────────────────────────────────────────
@@ -2143,14 +2045,6 @@ async function downloadAll() {
 }
 
 if (downloadAllBtn) downloadAllBtn.addEventListener('click', downloadAll);
-if (settingsDownload) settingsDownload.addEventListener('click', () => exportFilter(state.active, { markCell: true }));
-
-const _closeBtn = document.getElementById('closeSettings');
-if (_closeBtn) _closeBtn.addEventListener('click', closeDrawer);
-if (settingsScrim) settingsScrim.addEventListener('click', closeDrawer);
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && settingsBox && !settingsBox.hidden) closeDrawer();
-});
 
 // ── Filter tooltip ────────────────────────────────────────────
 (function() {
@@ -2282,41 +2176,25 @@ async function idbGet(key) {
   });
 }
 
-// ── URL state: ?filter=<id>&<param>=<value> ───────────────────
-function writeUrlState() {
-  try {
-    const params = new URLSearchParams();
-    if (state.active) {
-      params.set('filter', state.active);
-      const s = state.settings[state.active] || {};
-      Object.keys(s).forEach(k => params.set(k, s[k]));
-    }
-    const qs = params.toString();
-    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
-  } catch (e) {}
-}
-function readUrlState() {
-  try {
-    const params = new URLSearchParams(location.search);
-    const id = params.get('filter') || location.hash.replace('#', '');
-    const f = FILTERS.find(x => x.id === id);
-    if (!f) return null;
-    f.params.forEach(p => {
-      if (!params.has(p.id)) return;
-      const v = Number(params.get(p.id));
-      if (!Number.isNaN(v)) state.settings[id][p.id] = clamp(v, p.min, p.max);
-    });
-    return id;
-  } catch (e) { return null; }
-}
-
 // ── Init ──────────────────────────────────────────────────────
-// Guard: catalog.html sets window.DARKROOM_CATALOG=true to use filter
-// functions without any UI wiring.
 async function init() {
+  // Back-compat: old deep-links (?filter=<id> or #<id>) now route to the
+  // dedicated filter subpage. Carry any param values across as well.
+  const params = new URLSearchParams(location.search);
+  let routeId = params.get('filter');
+  if (!routeId) {
+    const h = location.hash.replace('#', '');
+    if (FILTERS.find(f => f.id === h)) routeId = h;
+  }
+  if (routeId && FILTERS.find(f => f.id === routeId)) {
+    params.delete('filter');
+    params.set('f', routeId);
+    location.replace('filter.html?' + params.toString());
+    return;
+  }
+
   buildGrid();
   loadSettings();
-  const pendingId = readUrlState();
   try {
     const blob = await idbGet('image');
     if (blob) await loadSourceBlob(blob, (await idbGet('name')) || 'Saved image', false);
@@ -2324,7 +2202,8 @@ async function init() {
   } catch (e) {
     await loadDefaultSource();
   }
-  if (pendingId) selectFilter(pendingId);
 }
 
-if (!window.DARKROOM_CATALOG) { init(); }
+// Guard: catalog/filter subpages set their own flags to reuse the engine
+// (filter functions, IDB, export) without the grid wiring.
+if (!window.DARKROOM_CATALOG && !window.DARKROOM_FILTER_PAGE) { init(); }

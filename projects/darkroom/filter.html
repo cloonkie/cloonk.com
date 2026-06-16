@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Darkroom — Filter | cloonk</title>
+<meta name="description" content="Adjust and download a single Darkroom image filter — running entirely in your browser.">
+<meta name="author" content="Kevin Zhang">
+<meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script src="../../js/favicon-rotator.js" defer></script>
+<script src="../../js/cursor.js" defer></script>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700,800&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  try {
+    document.documentElement.setAttribute(
+      'data-theme',
+      localStorage.getItem('cloonk-theme') === 'light' ? 'light' : 'dark'
+    );
+  } catch(e) {}
+  // Reuse the Darkroom engine without the grid wiring.
+  window.DARKROOM_FILTER_PAGE = true;
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+[hidden]{display:none !important;}
+img,canvas{display:block;max-width:100%;}
+button{cursor:pointer;font:inherit;background:none;border:none;}
+a{color:inherit;text-decoration:none;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+
+:root{
+  --bg:#0a0a0a; --fg:#faf8f3; --surface:#161614; --surface-raised:#20201d; --surface-card:#252521;
+  --border:#343430; --border-hover:#4a4a44; --text:#faf8f3; --text-muted:#989890; --text-dim:#707069;
+  --accent:#39ff14; --accent-hover:#5cff44; --accent-fg:#0a0a0a; --accent-dim:rgba(57,255,20,0.1);
+  --radius:12px; --radius-sm:8px; --radius-xs:4px;
+  --font-display:'Cabinet Grotesk',sans-serif; --font-body:'Satoshi',sans-serif; --font-mono:'DM Mono','Courier New',monospace;
+  --transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"]{
+  --bg:#f5f2ec; --fg:#0a0a0a; --surface:#ede9e1; --surface-raised:#e4dfd4; --surface-card:#eae6dc;
+  --border:#d0ccc4; --border-hover:#b6b2aa; --text:#0a0a0a; --text-muted:#5a5a54; --text-dim:#8a8a82;
+  --accent:#1b09bc; --accent-hover:#2e1cd6; --accent-fg:#f5f2ec; --accent-dim:rgba(27,9,188,0.08);
+}
+html{font-size:15px;}
+body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--font-body);-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* Header */
+.header{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;padding:13px 24px;
+  background:color-mix(in oklab,var(--bg) 86%,transparent);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);}
+[data-theme="light"] .header{background:rgba(245,242,236,0.88);}
+.header-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1;}
+.nav__logo{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:700;font-size:1rem;
+  color:var(--text);white-space:nowrap;transition:color var(--transition);}
+.nav__logo:hover{color:var(--accent);}
+.crumb{display:flex;align-items:baseline;gap:8px;min-width:0;padding-left:12px;border-left:1px solid var(--border);}
+.crumb-name{font-family:var(--font-display);font-weight:700;font-size:0.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.crumb-sub{font-family:var(--font-mono);font-size:0.6rem;color:var(--text-muted);white-space:nowrap;}
+.header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:32px;padding:6px 14px;
+  border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);
+  font-size:0.78rem;font-weight:600;white-space:nowrap;transition:background var(--transition),border-color var(--transition);}
+.btn:hover{background:var(--surface-raised);border-color:var(--border-hover);}
+.btn-accent{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:700;}
+.btn-accent:hover{background:var(--accent-hover);border-color:var(--accent-hover);}
+.btn-sm{min-height:28px;padding:4px 10px;font-size:0.72rem;}
+.icon-btn{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-muted);
+  transition:background var(--transition),border-color var(--transition),color var(--transition);}
+.icon-btn:hover{background:var(--surface-raised);border-color:var(--border-hover);color:var(--text);}
+.icon-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+.icon-moon{display:none;}
+[data-theme="light"] .icon-sun{display:none;}
+[data-theme="light"] .icon-moon{display:block;}
+
+/* Layout */
+.editor{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start;
+  padding:24px clamp(16px,4vw,40px) 60px;max-width:1300px;margin:0 auto;}
+@media(max-width:880px){.editor{grid-template-columns:1fr;}}
+
+/* Preview */
+.stage{display:flex;flex-direction:column;gap:12px;}
+.preview-frame{position:relative;display:grid;place-items:center;min-height:340px;padding:20px;
+  border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+  background:
+    linear-gradient(45deg,#2a2a26 25%,transparent 25%),linear-gradient(-45deg,#2a2a26 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#2a2a26 75%),linear-gradient(-45deg,transparent 75%,#2a2a26 75%);
+  background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;background-color:#1c1c18;}
+[data-theme="light"] .preview-frame{background-color:#e0dcd4;
+  background-image:
+    linear-gradient(45deg,#ccc8c0 25%,transparent 25%),linear-gradient(-45deg,#ccc8c0 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#ccc8c0 75%),linear-gradient(-45deg,transparent 75%,#ccc8c0 75%);}
+.preview-frame canvas{max-width:100%;max-height:72vh;border-radius:var(--radius-sm);image-rendering:pixelated;
+  box-shadow:0 12px 40px rgba(0,0,0,0.35);}
+.stage-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.stage-nav a{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border:1px solid var(--border);
+  border-radius:var(--radius-sm);background:var(--surface);color:var(--text-muted);font-size:0.76rem;font-weight:600;
+  transition:background var(--transition),border-color var(--transition),color var(--transition);}
+.stage-nav a:hover{background:var(--surface-raised);border-color:var(--border-hover);color:var(--text);}
+.stage-nav svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+/* Controls panel */
+.panel{position:sticky;top:80px;display:flex;flex-direction:column;gap:16px;
+  padding:18px 20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);}
+@media(max-width:880px){.panel{position:static;}}
+.panel-title{font-family:var(--font-display);font-size:1.05rem;font-weight:700;line-height:1.1;}
+.panel-title em{font-style:normal;color:var(--text-muted);font-weight:500;font-family:var(--font-mono);font-size:0.7rem;margin-left:6px;}
+.family-tag{align-self:flex-start;font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--accent);padding:3px 9px;border:1px solid var(--accent);border-radius:999px;background:var(--accent-dim);}
+.panel-desc{font-size:0.82rem;line-height:1.6;color:var(--text-muted);padding-bottom:14px;border-bottom:1px solid var(--border);}
+
+/* Source control */
+.source-control{display:inline-flex;align-items:center;gap:10px;padding:7px 8px;border:1px solid var(--border);
+  border-radius:var(--radius-sm);background:var(--surface-card);cursor:pointer;
+  transition:border-color var(--transition),background var(--transition);}
+.source-control:hover,.source-control.drag{border-color:var(--accent);background:var(--surface-raised);}
+.source-control input{display:none;}
+.source-thumb{width:30px;height:30px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;font-size:1rem;
+  background:var(--surface);border:1px solid var(--border);overflow:hidden;}
+.source-thumb canvas{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.source-meta{display:flex;flex-direction:column;line-height:1.2;min-width:0;}
+.source-name{font-size:0.78rem;font-weight:600;max-width:18ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.source-sub{font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim);}
+
+/* Params */
+.controls{display:flex;flex-direction:column;gap:12px;}
+.param-row{display:grid;gap:6px;}
+.param-label{font-family:var(--font-mono);font-size:0.66rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);}
+.param-controls{display:flex;align-items:center;gap:10px;}
+.param-controls input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;
+  background:var(--border-hover);outline:none;accent-color:var(--accent);}
+.param-controls input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;border:0;}
+.param-controls input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;border:0;}
+.param-controls select{flex:1;min-height:34px;padding:6px 9px;border:1px solid var(--border);border-radius:var(--radius-xs);background:var(--surface-card);color:var(--text);font:inherit;}
+.param-val{min-width:38px;text-align:right;font-family:var(--font-mono);font-size:0.78rem;color:var(--text);}
+.param-controls select + .param-val{display:none;}
+.panel-foot{margin-top:4px;}
+.panel-foot .btn{width:100%;}
+
+/* Toast */
+.toast{position:fixed;right:20px;bottom:20px;z-index:1000;max-width:min(360px,calc(100vw - 40px));
+  padding:11px 14px;border:1px solid var(--border-hover);border-radius:var(--radius-sm);background:var(--surface-raised);
+  color:var(--text);box-shadow:0 12px 36px rgba(0,0,0,0.35);font-size:0.84rem;opacity:0;transform:translateY(8px);
+  pointer-events:none;transition:opacity var(--transition),transform var(--transition);}
+.toast.show{opacity:1;transform:translateY(0);}
+
+@media(max-width:600px){
+  .header{padding:11px 16px;}
+  .crumb-sub{display:none;}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}
+}
+</style>
+<link rel="stylesheet" href="../../css/cursor.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <a class="nav__logo" id="nav-logo" href="../../index.html">cloonk ʕ·ᴥ·ʔ</a>
+    <span class="crumb">
+      <span class="crumb-name" id="filterName">Filter</span>
+      <span class="crumb-sub" id="filterSub"></span>
+    </span>
+  </div>
+  <div class="header-actions">
+    <a class="btn btn-sm" href="index.html">← All filters</a>
+    <button class="btn btn-sm btn-accent" id="downloadBtn">Download PNG</button>
+    <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
+      <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="editor">
+  <section class="stage">
+    <div class="preview-frame">
+      <canvas id="previewCanvas" width="320" height="320"></canvas>
+    </div>
+    <nav class="stage-nav">
+      <a id="prevLink" href="#"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Prev</a>
+      <a id="nextLink" href="#">Next <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></a>
+    </nav>
+  </section>
+
+  <aside class="panel">
+    <span class="family-tag" id="familyTag"></span>
+    <div class="panel-title" id="panelTitle"></div>
+    <p class="panel-desc" id="filterDesc"></p>
+
+    <label class="source-control" id="srcCtl" title="Drop or tap to replace the source image">
+      <input type="file" id="srcInput" accept="image/*">
+      <span class="source-thumb" id="srcThumb" aria-hidden="true">🌱</span>
+      <span class="source-meta">
+        <span class="source-name" id="srcName">Sample sprout</span>
+        <span class="source-sub" id="srcSub">Drop or tap to use yours</span>
+      </span>
+    </label>
+
+    <div class="controls" id="controls"></div>
+
+    <div class="panel-foot">
+      <button class="btn btn-accent" id="downloadBtn2">Download PNG</button>
+    </div>
+  </aside>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="darkroom.js"></script>
+<script>
+/* ============================================================
+   filter.html — single-filter editor subpage. Reuses the
+   Darkroom engine (FILTERS, filter functions, IDB, export).
+   ============================================================ */
+(function() {
+  const params = new URLSearchParams(location.search);
+  const id = params.get('f') || params.get('filter') || '';
+  const f  = FILTERS.find(x => x.id === id);
+  if (!f) { location.replace('index.html'); return; }
+
+  loadSettings();
+  // URL param values override saved settings for this filter.
+  f.params.forEach(p => {
+    if (!params.has(p.id)) return;
+    const v = Number(params.get(p.id));
+    if (!Number.isNaN(v)) state.settings[id][p.id] = clamp(v, p.min, p.max);
+  });
+
+  // ── Header / meta ──
+  document.title = `${f.name} — Darkroom | cloonk`;
+  document.getElementById('filterName').textContent = f.name;
+  document.getElementById('filterSub').textContent  = f.sub;
+  document.getElementById('panelTitle').innerHTML   = `${f.name} <em>${f.sub}</em>`;
+  document.getElementById('filterDesc').textContent = FILTER_DESCRIPTIONS[id] || '';
+  document.getElementById('familyTag').textContent  = FILTER_FAMILIES[id] || 'Filter';
+
+  // ── Prev / next routing (wraps around the catalogue) ──
+  const idx  = FILTERS.findIndex(x => x.id === id);
+  const prev = FILTERS[(idx - 1 + FILTERS.length) % FILTERS.length];
+  const next = FILTERS[(idx + 1) % FILTERS.length];
+  const prevLink = document.getElementById('prevLink');
+  const nextLink = document.getElementById('nextLink');
+  prevLink.href = `filter.html?f=${prev.id}`; prevLink.title = `Previous: ${prev.name}`;
+  nextLink.href = `filter.html?f=${next.id}`; nextLink.title = `Next: ${next.name}`;
+
+  // ── Render preview at a generous resolution ──
+  function renderPreview() {
+    const pc = document.getElementById('previewCanvas');
+    if (!state.src || !pc) return;
+    const MAX = 760;
+    const sw = state.src.width, sh = state.src.height;
+    const r = Math.min(MAX / sw, MAX / sh, 1);
+    const w = Math.max(1, Math.round(sw * r)), h = Math.max(1, Math.round(sh * r));
+    const off = new OffscreenCanvas(w, h);
+    const octx = off.getContext('2d');
+    octx.drawImage(state.src, 0, 0, w, h);
+    const result = applyFilterById(id, octx.getImageData(0, 0, w, h), w, h, state.settings[id]);
+    pc.width = w; pc.height = h;
+    const ctx = pc.getContext('2d');
+    if (result) ctx.putImageData(result, 0, 0); else ctx.drawImage(off, 0, 0);
+  }
+
+  // ── Build the parameter controls ──
+  function buildControls() {
+    const cnt = document.getElementById('controls');
+    cnt.innerHTML = f.params.map(p => {
+      const control = p.options
+        ? `<select id="p-${p.id}">${p.options.map((o, v) =>
+            `<option value="${v}"${v === state.settings[id][p.id] ? ' selected' : ''}>${o}</option>`).join('')}</select>`
+        : `<input type="range" id="p-${p.id}" min="${p.min}" max="${p.max}" step="${p.step}" value="${state.settings[id][p.id]}">`;
+      const dv = p.options ? p.options[state.settings[id][p.id]] : state.settings[id][p.id];
+      return `<div class="param-row">
+        <label class="param-label" for="p-${p.id}">${p.label}</label>
+        <div class="param-controls">${control}<span class="param-val" id="pv-${p.id}">${dv}</span></div>
+      </div>`;
+    }).join('');
+    f.params.forEach(p => {
+      const el  = document.getElementById(`p-${p.id}`);
+      const val = document.getElementById(`pv-${p.id}`);
+      el.addEventListener('input', () => {
+        const v = Number(el.value);
+        state.settings[id][p.id] = v;
+        val.textContent = p.options ? p.options[v] : v;
+        renderPreview();
+        scheduleSettingsSave();
+        writeUrl();
+      });
+    });
+  }
+
+  // ── URL state for this filter (shareable / bookmarkable) ──
+  function writeUrl() {
+    try {
+      const ps = new URLSearchParams();
+      ps.set('f', id);
+      const s = state.settings[id] || {};
+      Object.keys(s).forEach(k => ps.set(k, s[k]));
+      history.replaceState(null, '', location.pathname + '?' + ps.toString());
+    } catch (e) {}
+  }
+
+  // ── Source: same image as the grid (IndexedDB) or the sprout ──
+  function setSourceLabel(name, w, h, isDefault) {
+    const thumb = document.getElementById('srcThumb');
+    const nm = document.getElementById('srcName');
+    const sb = document.getElementById('srcSub');
+    if (thumb) {
+      if (isDefault) { thumb.textContent = '🌱'; }
+      else if (state.src) {
+        thumb.textContent = '';
+        const c = document.createElement('canvas');
+        c.width = 30; c.height = 30;
+        c.getContext('2d').drawImage(state.src, 0, 0, 30, 30);
+        thumb.appendChild(c);
+      }
+    }
+    nm.textContent = isDefault ? 'Sample sprout' : (name || 'Your image');
+    sb.textContent = isDefault ? 'Drop or tap to use yours' : ((w && h) ? `${w}×${h} · tap to replace` : 'tap to replace');
+  }
+
+  function useSprout() {
+    state.src = makeSproutSource();
+    state.isDefaultSource = true;
+    setSourceLabel('Sample sprout', 0, 0, true);
+    renderPreview();
+  }
+
+  function setSource(blob, name, persist) {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = async () => {
+      let bmp;
+      try {
+        bmp = (typeof createImageBitmap === 'function')
+          ? await createImageBitmap(img)
+          : (() => { const oc = new OffscreenCanvas(img.naturalWidth, img.naturalHeight); oc.getContext('2d').drawImage(img, 0, 0); return oc; })();
+      } catch (e) { URL.revokeObjectURL(url); showToast('Could not process image.'); return; }
+      if (state.src && state.src.close) state.src.close();
+      state.src = bmp; state.isDefaultSource = false;
+      URL.revokeObjectURL(url);
+      if (persist) { idbPut('image', blob).catch(() => {}); idbPut('name', name || 'image').catch(() => {}); }
+      setSourceLabel(name, bmp.width, bmp.height, false);
+      renderPreview();
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); showToast('Could not load image.'); };
+    img.src = url;
+  }
+
+  // Upload wiring (custom ids so the engine's grid dropzone stays inert here)
+  const srcInput = document.getElementById('srcInput');
+  const srcCtl   = document.getElementById('srcCtl');
+  srcInput.addEventListener('change', e => {
+    const file = Array.from(e.target.files).find(x => x.type.startsWith('image/'));
+    if (file) setSource(file, file.name, true);
+    e.target.value = '';
+  });
+  srcCtl.addEventListener('dragover', e => { e.preventDefault(); srcCtl.classList.add('drag'); });
+  srcCtl.addEventListener('dragleave', () => srcCtl.classList.remove('drag'));
+  srcCtl.addEventListener('drop', e => {
+    e.preventDefault(); srcCtl.classList.remove('drag');
+    const file = Array.from(e.dataTransfer.files).find(x => x.type.startsWith('image/'));
+    if (file) setSource(file, file.name, true);
+  });
+
+  // Download (engine exports at full source resolution)
+  const dl = () => exportFilter(id);
+  document.getElementById('downloadBtn').addEventListener('click', dl);
+  document.getElementById('downloadBtn2').addEventListener('click', dl);
+
+  // Arrow-key navigation between filters
+  document.addEventListener('keydown', e => {
+    if (e.target.matches('input, select, textarea')) return;
+    if (e.key === 'ArrowLeft')  location.href = prevLink.href;
+    if (e.key === 'ArrowRight') location.href = nextLink.href;
+  });
+
+  // ── Boot ──
+  buildControls();
+  writeUrl();
+  (async () => {
+    try {
+      const blob = await idbGet('image');
+      if (blob) setSource(blob, (await idbGet('name')) || 'Saved image', false);
+      else useSprout();
+    } catch (e) { useSprout(); }
+  })();
+})();
+</script>
+</body>
+</html>
