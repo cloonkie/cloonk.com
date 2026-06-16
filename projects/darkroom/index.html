@@ -192,12 +192,84 @@ body {
 [data-theme="light"] .icon-moon { display: block; }
 
 /* ── Shell layout ──────────────────────────────────────────── */
-.shell {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  min-height: calc(100vh - 57px);
+.shell { min-height: calc(100vh - 57px); }
+
+/* ── Discovery toolbar ─────────────────────────────────────── */
+.toolbar {
+  position: sticky;
+  top: 57px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 22px;
+  background: color-mix(in oklab, var(--bg) 90%, transparent);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(16px);
 }
-@media (max-width: 860px) { .shell { grid-template-columns: 1fr; } }
+[data-theme="light"] .toolbar { background: rgba(245,242,236,0.90); }
+.source-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 6px 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color var(--transition), background var(--transition);
+}
+.source-control:hover, .source-control.drag { border-color: var(--accent); background: var(--surface-raised); }
+.source-control input { display: none; }
+.source-thumb {
+  width: 26px; height: 26px; flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--surface-card);
+  display: grid; place-items: center;
+  font-size: 0.9rem;
+  border: 1px solid var(--border);
+}
+.source-thumb canvas, .source-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.source-meta { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.source-name {
+  font-size: 0.74rem; font-weight: 600; max-width: 14ch;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.source-sub { font-family: var(--font-mono); font-size: 0.58rem; color: var(--text-dim); }
+.search-wrap { position: relative; flex: 1; min-width: 130px; max-width: 280px; }
+.search-wrap svg {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  width: 13px; height: 13px; stroke: var(--text-dim); fill: none;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none;
+}
+.search-input {
+  width: 100%; min-height: 32px; padding: 6px 10px 6px 30px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text);
+  font-family: var(--font-body); font-size: 0.8rem; outline: none;
+  transition: border-color var(--transition);
+}
+.search-input:focus { border-color: var(--accent); }
+.family-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.family-btn {
+  padding: 4px 10px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: transparent; color: var(--text-muted);
+  font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.06em;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.family-btn:hover { background: var(--surface-raised); border-color: var(--border-hover); color: var(--text); }
+.family-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.filter-count { margin-left: auto; font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-dim); white-space: nowrap; }
+.filter-cell[data-hidden] { display: none; }
+@media (max-width: 720px) {
+  .toolbar { padding: 8px 14px; }
+  .family-filters { order: 3; width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+  .filter-count { display: none; }
+}
 
 /* ── Sidebar ───────────────────────────────────────────────── */
 .sidebar {
@@ -322,16 +394,7 @@ body {
   font-family: var(--font-mono);
   font-size: 0.68rem;
 }
-.workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 18px;
-  align-items: start;
-}
-@media (max-width: 1100px) {
-  .workspace { grid-template-columns: 1fr; }
-  .settings-box { grid-row: 1; }
-}
+.workspace { min-width: 0; }
 
 /* Empty state */
 .empty-state {
@@ -405,17 +468,77 @@ body {
 }
 
 /* Cell label styled via .filter-label / .filter-icon / .filter-label-text in the icon section */
-.filter-label { padding: 7px 10px; border-top: 1px solid var(--border); }
+.filter-label { padding: 7px 10px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.filter-label-text { flex: 1; min-width: 0; }
 
-/* ── Settings panel ────────────────────────────────────────── */
-.settings-box {
-  padding: 16px 18px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  position: sticky;
-  top: 76px;
+/* Per-card download button (revealed on hover / when downloaded) */
+.cell-download {
+  width: 26px; height: 26px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border: 1px solid var(--border); border-radius: var(--radius-xs);
+  background: var(--surface); color: var(--text-muted);
+  opacity: 0;
+  transition: opacity var(--transition), color var(--transition), border-color var(--transition), background var(--transition);
 }
+.cell-download svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.filter-cell:hover .cell-download, .cell-download:focus-visible { opacity: 1; }
+.cell-download:hover { color: var(--accent); border-color: var(--accent); }
+.filter-cell.downloaded .cell-download {
+  opacity: 1; color: var(--accent); border-color: var(--accent); background: var(--accent-dim);
+}
+@media (hover: none) { .cell-download { opacity: 1; } }
+.filter-cell[data-id="original"] .cell-download { display: none; }
+
+/* ── Settings drawer ───────────────────────────────────────── */
+.settings-scrim {
+  position: fixed; inset: 0; z-index: 90;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(3px);
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--transition);
+}
+.settings-scrim.open { opacity: 1; pointer-events: auto; }
+.settings-box {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  z-index: 95;
+  width: min(420px, 92vw);
+  padding: 18px 20px 28px;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: -16px 0 48px rgba(0,0,0,0.4);
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform var(--transition);
+}
+.settings-box:not([hidden]) { transform: translateX(0); }
+.settings-preview-wrap {
+  height: 240px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: grid; place-items: center;
+  background:
+    linear-gradient(45deg,#2a2a26 25%,transparent 25%),
+    linear-gradient(-45deg,#2a2a26 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#2a2a26 75%),
+    linear-gradient(-45deg,transparent 75%,#2a2a26 75%);
+  background-size: 12px 12px;
+  background-position: 0 0,0 6px,6px -6px,-6px 0;
+  background-color: #1c1c18;
+}
+[data-theme="light"] .settings-preview-wrap {
+  background-color: #e0dcd4;
+  background-image:
+    linear-gradient(45deg,#ccc8c0 25%,transparent 25%),
+    linear-gradient(-45deg,#ccc8c0 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#ccc8c0 75%),
+    linear-gradient(-45deg,transparent 75%,#ccc8c0 75%);
+}
+.settings-preview-wrap canvas { max-width: 100%; max-height: 240px; image-rendering: pixelated; }
+.settings-foot { margin-top: 18px; display: flex; gap: 10px; }
+.settings-foot .btn { flex: 1; }
 .settings-header {
   display: flex;
   align-items: center;
@@ -601,8 +724,7 @@ body {
     <span class="header-badge">28 filters · local</span>
   </div>
   <div class="header-actions">
-    <button class="btn btn-sm btn-accent" id="downloadBtn" disabled>Download</button>
-    <a class="btn btn-sm" href="catalog.html">Catalog</a>
+    <button class="btn btn-sm btn-accent" id="downloadAllBtn">Download all</button>
     <a class="btn btn-sm all-tools-btn" href="../">All tools</a>
     <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
       <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -611,136 +733,133 @@ body {
   </div>
 </header>
 
+<!-- ── Discovery toolbar ─────────────────────────────────────── -->
+<div class="toolbar">
+  <label class="source-control" id="dropzone" title="Drop or tap to replace the source image">
+    <input type="file" id="fileInput" accept="image/*">
+    <span class="source-thumb" id="sourceThumb" aria-hidden="true">🌱</span>
+    <span class="source-meta">
+      <span class="source-name" id="sourceName">Sample sprout</span>
+      <span class="source-sub" id="sourceSub">Drop or tap to use yours</span>
+    </span>
+  </label>
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input class="search-input" id="searchInput" type="search" aria-label="Search filters" placeholder="Search filters…" autocomplete="off" spellcheck="false">
+  </div>
+  <div class="family-filters" id="familyFilters"></div>
+  <span class="filter-count" id="filterCount"></span>
+</div>
+
 <!-- ── Layout ────────────────────────────────────────────────── -->
 <div class="shell">
-
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div>
-      <p class="sidebar-label">Source image</p>
-      <label class="dropzone" id="dropzone">
-        <input type="file" id="fileInput" accept="image/*">
-        <span>
-          <p class="dz-title">Drop or tap to add image</p>
-          <p class="dz-sub">PNG · JPEG · WebP · GIF · BMP</p>
-        </span>
-      </label>
-    </div>
-
-    <div class="privacy-note">
-      All processing runs locally. Nothing is uploaded.
-    </div>
-
-    <div>
-      <p class="sidebar-label">Filters</p>
-      <button class="filter-list-toggle" id="filterListToggle" aria-expanded="false" aria-controls="filterListWrap">
-        <span id="filterListToggleLabel">Filters</span>
-        <span class="filter-list-toggle-arrow">▾</span>
-      </button>
-      <div class="filter-list-wrap" id="filterListWrap" hidden>
-        <ul class="filter-list" id="filterList">
-          <!-- populated by JS -->
-        </ul>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Main content -->
   <main class="content">
     <div class="studio-status" id="studioStatus" role="status" aria-live="polite" hidden></div>
-
-    <!-- Empty state -->
-    <div class="empty-state" id="emptyState">
-      <div class="empty-state-inner">
-        <p class="empty-title">No image yet</p>
-        <p class="empty-sub">Drop or tap an image above — all 28 filters render simultaneously.</p>
-      </div>
-    </div>
-
     <div class="workspace">
-      <!-- Filter grid (hidden until image loaded) -->
-      <div id="filterGrid" class="filter-grid" hidden></div>
-
-      <!-- Settings panel (hidden until filter selected) -->
-      <aside class="settings-box" id="settingsBox" aria-labelledby="settingsTitle" hidden>
-        <div class="settings-header">
-          <span class="settings-title" id="settingsTitle"></span>
-          <button class="settings-close" id="closeSettings" aria-label="Close settings">&times;</button>
-        </div>
-        <p class="settings-desc" id="settingsDesc"></p>
-        <div id="settingsContent" class="settings-content"></div>
-      </aside>
+      <div id="filterGrid" class="filter-grid"></div>
     </div>
   </main>
-
 </div>
+
+<!-- ── Settings drawer ───────────────────────────────────────── -->
+<div class="settings-scrim" id="settingsScrim"></div>
+<aside class="settings-box" id="settingsBox" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" hidden>
+  <div class="settings-header">
+    <span class="settings-title" id="settingsTitle"></span>
+    <button class="settings-close" id="closeSettings" aria-label="Close settings">&times;</button>
+  </div>
+  <div class="settings-preview-wrap" id="settingsPreview"></div>
+  <p class="settings-desc" id="settingsDesc"></p>
+  <div id="settingsContent" class="settings-content"></div>
+  <div class="settings-foot">
+    <button class="btn btn-accent" id="settingsDownload">Download PNG</button>
+  </div>
+</aside>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="darkroom.js"></script>
 <script>
 (function() {
-  const list = document.getElementById('filterList');
-  FILTERS.forEach((f, i) => {
-    const li = document.createElement('li');
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'filter-list-item';
-    button.dataset.id = f.id;
-    button.setAttribute('aria-pressed', 'false');
-    button.innerHTML = `
-      <span class="fli-icon" aria-hidden="true">${filterIcon(f.id)}</span>
-      <span class="fli-text"><span class="fli-name">${f.name}</span><span class="fli-sub">${f.sub}</span></span>
-    `;
-    button.addEventListener('click', () => {
-      if (!state.src) { showToast('Upload an image first.'); return; }
-      selectFilter(f.id);
-    });
-    li.appendChild(button);
-    list.appendChild(li);
+  // ── Discovery toolbar: family chips + search over the grid ──
+  let activeFamily = null;
+  let searchTerm   = '';
+
+  const familyWrap = document.getElementById('familyFilters');
+  const allBtn = document.createElement('button');
+  allBtn.className = 'family-btn active';
+  allBtn.textContent = 'All';
+  allBtn.setAttribute('aria-pressed', 'true');
+  allBtn.addEventListener('click', () => setFamily(null));
+  familyWrap.appendChild(allBtn);
+  ALL_FAMILIES.forEach(fam => {
+    const btn = document.createElement('button');
+    btn.className = 'family-btn';
+    btn.textContent = fam;
+    btn.setAttribute('aria-pressed', 'false');
+    btn.addEventListener('click', () => setFamily(fam));
+    familyWrap.appendChild(btn);
   });
 
-  // Pre-select filter from URL hash (from catalog deeplink)
-  const hashId = location.hash.replace('#','');
-  if (hashId && FILTERS.find(f => f.id === hashId)) {
-    // Store for when image loads — selectFilter requires an image
-    window._pendingFilterId = hashId;
-    const pending = FILTERS.find(f => f.id === hashId);
-    const status = document.getElementById('studioStatus');
-    if (pending && status) {
-      status.textContent = `Upload an image to use ${pending.name}.`;
-      status.hidden = false;
-    }
-    // Highlight the sidebar item immediately so user knows what's pre-selected
-    const li = document.querySelector('.filter-list-item[data-id="' + hashId + '"]');
-    if (li) li.classList.add('active');
+  function setFamily(fam) {
+    activeFamily = fam;
+    document.querySelectorAll('.family-btn').forEach(b => {
+      const on = fam ? b.textContent === fam : b.textContent === 'All';
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    applyFilters();
   }
 
-  // Mobile: filter list toggle
-  const toggle = document.getElementById('filterListToggle');
-  const wrap   = document.getElementById('filterListWrap');
-  const label  = document.getElementById('filterListToggleLabel');
-  if (toggle && wrap) {
-    const count = FILTERS.length;
-    const isMobile = () => window.innerWidth <= 860;
-    function syncToggle() {
-      if (isMobile()) {
-        const expanded = toggle.getAttribute('aria-expanded') === 'true';
-        label.textContent = count + ' filters';
-        wrap.hidden = !expanded;
-      } else {
-        wrap.hidden = false; // always visible on desktop
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', e => {
+    searchTerm = e.target.value.trim().toLowerCase();
+    applyFilters();
+  });
+
+  function applyFilters() {
+    let count = 0;
+    document.querySelectorAll('.filter-cell[data-id]').forEach(cell => {
+      const id = cell.dataset.id;
+      if (id === 'original') { cell.removeAttribute('data-hidden'); return; }
+      const f    = FILTERS.find(x => x.id === id) || {};
+      const fam  = FILTER_FAMILIES[id] || '';
+      const desc = FILTER_DESCRIPTIONS[id] || '';
+      const hay  = `${f.name || ''} ${f.sub || ''} ${fam} ${desc}`.toLowerCase();
+      const matchSearch = !searchTerm || hay.includes(searchTerm);
+      const matchFamily = !activeFamily || fam === activeFamily;
+      const hidden = !(matchSearch && matchFamily);
+      cell.toggleAttribute('data-hidden', hidden);
+      if (!hidden) count++;
+    });
+    const cnt = document.getElementById('filterCount');
+    if (cnt) cnt.textContent = `${count} shown`;
+  }
+
+  // ── Source label / thumbnail (called by darkroom.js) ──
+  window.refreshSourceLabel = function(name, w, h, isDefault) {
+    const thumb  = document.getElementById('sourceThumb');
+    const nameEl = document.getElementById('sourceName');
+    const subEl  = document.getElementById('sourceSub');
+    if (thumb) {
+      if (isDefault) {
+        thumb.textContent = '🌱';
+      } else if (state.src) {
+        thumb.textContent = '';
+        const c = document.createElement('canvas');
+        c.width = 26; c.height = 26;
+        c.getContext('2d').drawImage(state.src, 0, 0, 26, 26);
+        thumb.appendChild(c);
       }
     }
-    toggle.addEventListener('click', () => {
-      const expanded = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!expanded));
-      syncToggle();
-    });
-    window.addEventListener('resize', syncToggle);
-    syncToggle();
-  }
+    if (nameEl) nameEl.textContent = isDefault ? 'Sample sprout' : (name || 'Your image');
+    if (subEl)  subEl.textContent  = isDefault
+      ? 'Drop or tap to use yours'
+      : ((w && h) ? `${w}×${h} · tap to replace` : 'tap to replace');
+  };
 
+  // Filter pre-selection from ?filter=/hash is handled in darkroom.js init().
+  applyFilters();
 })();
 </script>
 </body>

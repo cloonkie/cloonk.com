@@ -307,6 +307,24 @@ const FILTER_DESCRIPTIONS = {
   'fractal-haze':    'Fractal noise mixed with blurred source creates a dreamy, hazy atmospheric glow.',
 };
 
+// ── Filter families (used by the discovery toolbar) ───────────
+const FILTER_FAMILIES = {
+  'color-halftone': 'Halftone', 'halftone-dot': 'Halftone', 'halftone-circle': 'Halftone',
+  'halftone-line': 'Halftone', 'dots': 'Halftone',
+  'graphic-pen': 'Sketch', 'stamp': 'Sketch', 'contour': 'Sketch',
+  'edge-detect': 'Sketch', 'crosshatch': 'Sketch',
+  'bitmap': 'Pixel', 'mosaic': 'Pixel', 'blockify': 'Pixel',
+  'patchwork': 'Texture', 'noise-field': 'Texture',
+  'row-stretch': 'Glitch', 'pixel-sort': 'Glitch', 'vhs': 'Glitch',
+  'fractal-haze': 'Glitch', 'pixel-stretch': 'Glitch',
+  'path-blur': 'Blur',
+  'ascii': 'Generative', 'matrix-rain': 'Generative', 'voronoi': 'Generative',
+  'dithering': 'Retro', 'threshold': 'Retro',
+  'wave-lines': 'Distort',
+  'sticker': 'Cutout',
+};
+const ALL_FAMILIES = [...new Set(Object.values(FILTER_FAMILIES))].sort();
+
 // ── Default settings ──────────────────────────────────────────
 FILTERS.forEach(f => {
   state.settings[f.id] = {};
@@ -320,7 +338,9 @@ const grid        = document.getElementById('filterGrid');
 const settingsBox = document.getElementById('settingsBox');
 const settingsCnt = document.getElementById('settingsContent');
 const emptyState  = document.getElementById('emptyState');
-const downloadBtn = document.getElementById('downloadBtn');
+const downloadAllBtn = document.getElementById('downloadAllBtn');
+const settingsScrim  = document.getElementById('settingsScrim');
+const settingsDownload = document.getElementById('settingsDownload');
 const themeToggle = document.getElementById('themeToggle');
 const toast       = document.getElementById('toast');
 const studioStatus = document.getElementById('studioStatus');
@@ -353,46 +373,59 @@ function setStudioStatus(message = '') {
 }
 
 // ── Upload ────────────────────────────────────────────────────
+// Decode an image Blob, set it as the source, render, and (optionally)
+// persist it to IndexedDB so it survives a refresh.
+function loadSourceBlob(blob, name, persist) {
+  setStudioStatus(`Reading ${name || 'image'}...`);
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  return new Promise(resolve => {
+    const afterLoad = async (bmp) => {
+      if (state.src && state.src.close) state.src.close();
+      state.src = bmp;
+      state.isDefaultSource = false;
+      URL.revokeObjectURL(url);
+      if (emptyState) emptyState.hidden = true;
+      grid.hidden = false;
+      document.querySelectorAll('.filter-cell.downloaded').forEach(c => c.classList.remove('downloaded'));
+      if (window.refreshSourceLabel) window.refreshSourceLabel(name, bmp.width, bmp.height);
+      if (persist) {
+        idbPut('image', blob).catch(() => {});
+        idbPut('name', name || 'image').catch(() => {});
+      }
+      await renderAll();
+      if (state.active) { renderSettings(state.active); syncDrawerPreview(state.active); }
+      resolve(true);
+    };
+    img.onload = () => {
+      const bitmapFn = typeof createImageBitmap === 'function'
+        ? createImageBitmap(img)
+        : Promise.resolve((() => {
+            const oc = new OffscreenCanvas(img.naturalWidth, img.naturalHeight);
+            oc.getContext('2d').drawImage(img, 0, 0);
+            return oc;
+          })());
+      bitmapFn.then(afterLoad).catch(() => {
+        URL.revokeObjectURL(url);
+        showToast('Could not process image.');
+        setStudioStatus('Could not process that image.');
+        resolve(false);
+      });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      showToast('Could not load image.');
+      setStudioStatus('Could not load that image.');
+      resolve(false);
+    };
+    img.src = url;
+  });
+}
+
 function handleFiles(files) {
   const file = Array.from(files).find(f => f.type.startsWith('image/'));
   if (!file) { showToast('No image found.'); return; }
-  setStudioStatus(`Reading ${file.name}...`);
-  const url = URL.createObjectURL(file);
-  const img = new Image();
-  const afterLoad = async (bmp) => {
-    if (state.src && state.src.close) state.src.close();
-    state.src = bmp;
-    URL.revokeObjectURL(url);
-    emptyState.hidden = true;
-    grid.hidden = false;
-    await renderAll();
-    if (window._pendingFilterId) {
-      const pid = window._pendingFilterId;
-      window._pendingFilterId = null;
-      selectFilter(pid);
-    }
-  };
-
-  img.onload = () => {
-    const bitmapFn = typeof createImageBitmap === 'function'
-      ? createImageBitmap(img)
-      : Promise.resolve((() => {
-          const oc = new OffscreenCanvas(img.naturalWidth, img.naturalHeight);
-          oc.getContext('2d').drawImage(img, 0, 0);
-          return oc;
-        })());
-    bitmapFn.then(afterLoad).catch(() => {
-      URL.revokeObjectURL(url);
-      showToast('Could not process image.');
-      setStudioStatus('Could not process that image.');
-    });
-  };
-  img.onerror = () => {
-    URL.revokeObjectURL(url);
-    showToast('Could not load image.');
-    setStudioStatus('Could not load that image.');
-  };
-  img.src = url;
+  loadSourceBlob(file, file.name, true);
 }
 
 if (dropzone) {
@@ -442,6 +475,19 @@ function makeCell(id, name, sub) {
   label.className = 'filter-label';
   label.innerHTML = `${filterIcon(id)}<span class="filter-label-text"><strong>${name}</strong><em>${sub}</em></span>`;
 
+  if (id !== 'original') {
+    const dl = document.createElement('button');
+    dl.type = 'button';
+    dl.className = 'cell-download';
+    dl.setAttribute('aria-label', `Download ${name} PNG`);
+    dl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><path d="M5 20h14"/></svg>';
+    dl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      exportFilter(id, { markCell: true });
+    });
+    label.appendChild(dl);
+  }
+
   cw.appendChild(canvas);
   wrap.appendChild(cw);
   wrap.appendChild(label);
@@ -458,18 +504,40 @@ function selectFilter(id) {
     cell.classList.add('active');
     if (cell.hasAttribute('aria-pressed')) cell.setAttribute('aria-pressed', 'true');
   }
-  document.querySelectorAll('.filter-list-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.id === id);
-    el.setAttribute('aria-pressed', String(el.dataset.id === id));
-  });
   state.active = id;
-  downloadBtn.disabled = false;
   renderSettings(id);
-  settingsBox.hidden = false;
+  openDrawer();
+  syncDrawerPreview(id);
   setStudioStatus('');
-  if (window.matchMedia('(max-width: 1100px)').matches) {
-    settingsBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  writeUrlState();
+}
+
+// ── Settings drawer open/close ────────────────────────────────
+function openDrawer() {
+  if (settingsBox) settingsBox.hidden = false;
+  if (settingsScrim) settingsScrim.classList.add('open');
+}
+function closeDrawer() {
+  if (settingsBox) settingsBox.hidden = true;
+  if (settingsScrim) settingsScrim.classList.remove('open');
+  document.querySelectorAll('.filter-cell.active').forEach(c => {
+    c.classList.remove('active');
+    if (c.hasAttribute('aria-pressed')) c.setAttribute('aria-pressed', 'false');
+  });
+  state.active = null;
+  writeUrlState();
+}
+
+// Mirror the selected filter's grid render into the larger drawer preview.
+function syncDrawerPreview(id) {
+  const wrap = document.getElementById('settingsPreview');
+  const srcCanvas = document.getElementById(`canvas-${id}`);
+  if (!wrap || !srcCanvas) return;
+  let pc = wrap.querySelector('canvas');
+  if (!pc) { pc = document.createElement('canvas'); wrap.appendChild(pc); }
+  pc.width = srcCanvas.width;
+  pc.height = srcCanvas.height;
+  pc.getContext('2d').drawImage(srcCanvas, 0, 0);
 }
 
 // ── Settings panel ────────────────────────────────────────────
@@ -511,6 +579,9 @@ function renderSettings(id) {
       state.settings[id][p.id] = v;
       valEl.textContent = p.options ? p.options[v] : v;
       renderOne(id);
+      syncDrawerPreview(id);
+      scheduleSettingsSave();
+      writeUrlState();
     });
   });
 }
@@ -1900,96 +1971,185 @@ function makeStickerBg(w, h, type) {
 // WIRING
 // ══════════════════════════════════════════════════════════════
 
-if (downloadBtn) downloadBtn.addEventListener('click', async () => {
-  const id = state.active;
+// Map an id to its filter function (shared by export + batch export).
+function applyFilterById(id, src, w, h, s) {
+  switch (id) {
+    case 'color-halftone':  return filterColorHalftone(src, w, h, s);
+    case 'halftone-dot':    return filterHalftoneDot(src, w, h, s);
+    case 'halftone-circle': return filterHalftoneCircle(src, w, h, s);
+    case 'halftone-line':   return filterHalftoneLine(src, w, h, s);
+    case 'graphic-pen':     return filterGraphicPen(src, w, h, s);
+    case 'stamp':           return filterStamp(src, w, h, s);
+    case 'bitmap':          return filterBitmap(src, w, h, s);
+    case 'patchwork':       return filterPatchwork(src, w, h, s);
+    case 'mosaic':          return filterMosaic(src, w, h, s);
+    case 'row-stretch':     return filterRowStretch(src, w, h, s);
+    case 'path-blur':       return filterPathBlur(src, w, h, s);
+    case 'ascii':           return filterASCII(src, w, h, s);
+    case 'dithering':       return filterDithering(src, w, h, s);
+    case 'matrix-rain':     return filterMatrixRain(src, w, h, s);
+    case 'dots':            return filterDots(src, w, h, s);
+    case 'contour':         return filterContour(src, w, h, s);
+    case 'pixel-sort':      return filterPixelSort(src, w, h, s);
+    case 'blockify':        return filterBlockify(src, w, h, s);
+    case 'threshold':       return filterThreshold(src, w, h, s);
+    case 'edge-detect':     return filterEdgeDetect(src, w, h, s);
+    case 'crosshatch':      return filterCrosshatch(src, w, h, s);
+    case 'wave-lines':      return filterWaveLines(src, w, h, s);
+    case 'noise-field':     return filterNoiseField(src, w, h, s);
+    case 'voronoi':         return filterVoronoi(src, w, h, s);
+    case 'vhs':             return filterVHS(src, w, h, s);
+    case 'fractal-haze':    return filterFractalHaze(src, w, h, s);
+    case 'pixel-stretch':   return filterPixelStretch(src, w, h, s);
+    case 'sticker':         return filterSticker(src, w, h, s);
+    default: return null;
+  }
+}
+
+// Re-render a filter near source resolution. `maxDim` caps the longest edge;
+// text filters are always capped because glyph cost scales sharply.
+function renderFilterAtSourceRes(id, maxDim) {
+  const fw0 = state.src.width, fh0 = state.src.height;
+  const isTextFilter = id === 'ascii' || id === 'matrix-rain';
+  const cap = isTextFilter ? Math.min(1200, maxDim || Infinity) : (maxDim || Infinity);
+  const longest = Math.max(fw0, fh0);
+  const scale = longest > cap ? cap / longest : 1;
+  const w = Math.max(1, Math.round(fw0 * scale));
+  const h = Math.max(1, Math.round(fh0 * scale));
+  const off = new OffscreenCanvas(w, h);
+  const ctx = off.getContext('2d');
+  ctx.drawImage(state.src, 0, 0, w, h);
+  const result = applyFilterById(id, ctx.getImageData(0, 0, w, h), w, h, state.settings[id]);
+  if (!result) return null;
+  ctx.putImageData(result, 0, 0);
+  return off;
+}
+
+function saveBlob(blob, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+async function exportFilter(id, opts = {}) {
   if (!id || !state.src) { showToast('Select a filter first.'); return; }
-  const canvas = document.getElementById(`canvas-${id}`);
-  if (!canvas) return;
-
-  downloadBtn.disabled = true;
-  downloadBtn.textContent = 'Exporting...';
-  setStudioStatus('Rendering the PNG export...');
-
+  if (state.src.width * state.src.height > 20000000) {
+    showToast('This image is too large for a reliable browser export.');
+    setStudioStatus('Export stopped: use an image under 20 megapixels.');
+    return;
+  }
   try {
-    // Re-render at source resolution for download.
-    const fw = state.src.width, fh = state.src.height;
-    if (fw * fh > 20000000) {
-      showToast('This image is too large for a reliable browser export.');
-      setStudioStatus('Export stopped: use an image under 20 megapixels.');
-      return;
-    }
-    const s = state.settings[id];
-
-    let result;
-    // Text filters are capped because their glyph rendering cost scales sharply.
-    const isTextFilter = id === 'ascii' || id === 'matrix-rain';
-    const renderW = isTextFilter ? Math.min(fw, 1200) : fw;
-    const renderH = isTextFilter ? Math.round(fh * renderW / fw) : fh;
-
-    const renderOff = new OffscreenCanvas(renderW, renderH);
-    const renderCtx = renderOff.getContext('2d');
-    renderCtx.drawImage(state.src, 0, 0, renderW, renderH);
-    const renderSrc = renderCtx.getImageData(0, 0, renderW, renderH);
-
-    switch (id) {
-    case 'color-halftone':  result = filterColorHalftone(renderSrc, renderW, renderH, s); break;
-    case 'halftone-dot':    result = filterHalftoneDot(renderSrc, renderW, renderH, s); break;
-    case 'halftone-circle': result = filterHalftoneCircle(renderSrc, renderW, renderH, s); break;
-    case 'halftone-line':   result = filterHalftoneLine(renderSrc, renderW, renderH, s); break;
-    case 'graphic-pen':     result = filterGraphicPen(renderSrc, renderW, renderH, s); break;
-    case 'stamp':           result = filterStamp(renderSrc, renderW, renderH, s); break;
-    case 'bitmap':          result = filterBitmap(renderSrc, renderW, renderH, s); break;
-    case 'patchwork':       result = filterPatchwork(renderSrc, renderW, renderH, s); break;
-    case 'mosaic':          result = filterMosaic(renderSrc, renderW, renderH, s); break;
-    case 'row-stretch':     result = filterRowStretch(renderSrc, renderW, renderH, s); break;
-    case 'path-blur':       result = filterPathBlur(renderSrc, renderW, renderH, s); break;
-    case 'ascii':           result = filterASCII(renderSrc, renderW, renderH, s); break;
-    case 'dithering':       result = filterDithering(renderSrc, renderW, renderH, s); break;
-    case 'matrix-rain':     result = filterMatrixRain(renderSrc, renderW, renderH, s); break;
-    case 'dots':            result = filterDots(renderSrc, renderW, renderH, s); break;
-    case 'contour':         result = filterContour(renderSrc, renderW, renderH, s); break;
-    case 'pixel-sort':      result = filterPixelSort(renderSrc, renderW, renderH, s); break;
-    case 'blockify':        result = filterBlockify(renderSrc, renderW, renderH, s); break;
-    case 'threshold':       result = filterThreshold(renderSrc, renderW, renderH, s); break;
-    case 'edge-detect':     result = filterEdgeDetect(renderSrc, renderW, renderH, s); break;
-    case 'crosshatch':      result = filterCrosshatch(renderSrc, renderW, renderH, s); break;
-    case 'wave-lines':      result = filterWaveLines(renderSrc, renderW, renderH, s); break;
-    case 'noise-field':     result = filterNoiseField(renderSrc, renderW, renderH, s); break;
-    case 'voronoi':         result = filterVoronoi(renderSrc, renderW, renderH, s); break;
-    case 'vhs':             result = filterVHS(renderSrc, renderW, renderH, s); break;
-    case 'fractal-haze':    result = filterFractalHaze(renderSrc, renderW, renderH, s); break;
-    case 'pixel-stretch':   result = filterPixelStretch(renderSrc, renderW, renderH, s); break;
-    case 'sticker':         result = filterSticker(renderSrc, renderW, renderH, s); break;
-    }
-
-    if (result) {
-      renderOff.width = renderW; renderOff.height = renderH;
-      renderOff.getContext('2d').putImageData(result, 0, 0);
-      const blob = await renderOff.convertToBlob({ type: 'image/png' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `cloonk-${id}.png`;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-      showToast('PNG downloaded.');
-      setStudioStatus('Export complete.');
+    setStudioStatus('Rendering the PNG export...');
+    const off = renderFilterAtSourceRes(id);
+    if (!off) return;
+    const blob = await off.convertToBlob({ type: 'image/png' });
+    saveBlob(blob, `cloonk-${id}.png`);
+    showToast('PNG downloaded.');
+    setStudioStatus('Export complete.');
+    if (opts.markCell) {
+      const cell = document.querySelector(`.filter-cell[data-id="${id}"]`);
+      if (cell) cell.classList.add('downloaded');
     }
   } catch (error) {
     console.error('Darkroom export failed:', error);
     showToast('Could not export this image.');
     setStudioStatus('Export failed. Try a smaller image.');
-  } finally {
-    downloadBtn.disabled = !state.active;
-    downloadBtn.textContent = 'Download';
   }
-});
+}
+
+// ── Batch export: every filter into one ZIP (store-only) ──────
+function crc32(bytes) {
+  let crc = ~0;
+  for (let i = 0; i < bytes.length; i++) {
+    crc ^= bytes[i];
+    for (let j = 0; j < 8; j++) crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1));
+  }
+  return ~crc >>> 0;
+}
+function buildZip(files) {
+  const enc = new TextEncoder();
+  const u16 = n => [n & 255, (n >> 8) & 255];
+  const u32 = n => [n & 255, (n >> 8) & 255, (n >> 16) & 255, (n >>> 24) & 255];
+  const parts = [];
+  const central = [];
+  let offset = 0;
+  for (const f of files) {
+    const nameBytes = enc.encode(f.name);
+    const crc = crc32(f.data);
+    const size = f.data.length;
+    const header = new Uint8Array([
+      ...u32(0x04034b50), ...u16(20), ...u16(0), ...u16(0), ...u16(0), ...u16(0),
+      ...u32(crc), ...u32(size), ...u32(size),
+      ...u16(nameBytes.length), ...u16(0),
+    ]);
+    parts.push(header, nameBytes, f.data);
+    central.push({ nameBytes, crc, size, offset });
+    offset += header.length + nameBytes.length + size;
+  }
+  let centralSize = 0;
+  for (const c of central) {
+    const cd = new Uint8Array([
+      ...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0), ...u16(0), ...u16(0), ...u16(0),
+      ...u32(c.crc), ...u32(c.size), ...u32(c.size),
+      ...u16(c.nameBytes.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0),
+      ...u32(0), ...u32(c.offset),
+    ]);
+    parts.push(cd, c.nameBytes);
+    centralSize += cd.length + c.nameBytes.length;
+  }
+  parts.push(new Uint8Array([
+    ...u32(0x06054b50), ...u16(0), ...u16(0),
+    ...u16(files.length), ...u16(files.length),
+    ...u32(centralSize), ...u32(offset), ...u16(0),
+  ]));
+  return new Blob(parts, { type: 'application/zip' });
+}
+
+async function downloadAll() {
+  if (!state.src) return;
+  if (state.src.width * state.src.height > 20000000) {
+    showToast('This image is too large to batch-export.');
+    return;
+  }
+  const orig = downloadAllBtn.textContent;
+  downloadAllBtn.disabled = true;
+  const files = [];
+  try {
+    for (let i = 0; i < FILTERS.length; i++) {
+      const id = FILTERS[i].id;
+      downloadAllBtn.textContent = `Exporting ${i + 1}/${FILTERS.length}…`;
+      setStudioStatus(`Exporting ${i + 1} of ${FILTERS.length}: ${FILTERS[i].name}…`);
+      const off = renderFilterAtSourceRes(id, 1280);
+      if (!off) continue;
+      const blob = await off.convertToBlob({ type: 'image/png' });
+      files.push({ name: `cloonk-${id}.png`, data: new Uint8Array(await blob.arrayBuffer()) });
+      const cell = document.querySelector(`.filter-cell[data-id="${id}"]`);
+      if (cell) cell.classList.add('downloaded');
+      await new Promise(r => requestAnimationFrame(r));
+    }
+    saveBlob(buildZip(files), 'cloonk-darkroom.zip');
+    showToast(`${files.length} filters exported.`);
+    setStudioStatus(`Exported all ${files.length} filters as a ZIP.`);
+  } catch (error) {
+    console.error('Darkroom batch export failed:', error);
+    showToast('Batch export failed.');
+    setStudioStatus('Batch export failed. Try a smaller image.');
+  } finally {
+    downloadAllBtn.disabled = false;
+    downloadAllBtn.textContent = orig;
+  }
+}
+
+if (downloadAllBtn) downloadAllBtn.addEventListener('click', downloadAll);
+if (settingsDownload) settingsDownload.addEventListener('click', () => exportFilter(state.active, { markCell: true }));
 
 const _closeBtn = document.getElementById('closeSettings');
-if (_closeBtn) _closeBtn.addEventListener('click', () => {
-  settingsBox.hidden = true;
-  document.querySelectorAll('.filter-cell, .filter-list-item').forEach(c => c.classList.remove('active'));
-  state.active = null;
-  downloadBtn.disabled = true;
+if (_closeBtn) _closeBtn.addEventListener('click', closeDrawer);
+if (settingsScrim) settingsScrim.addEventListener('click', closeDrawer);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && settingsBox && !settingsBox.hidden) closeDrawer();
 });
 
 // ── Filter tooltip ────────────────────────────────────────────
@@ -2042,7 +2202,129 @@ if (_closeBtn) _closeBtn.addEventListener('click', () => {
   document.addEventListener('scroll', function() { tip.classList.remove('visible'); }, true);
 })();
 
+// ── Default source: the 🌱 sprout ─────────────────────────────
+// Until the user uploads, the grid previews every filter on a sprout —
+// the studio doubles as the live catalog. Upload replaces state.src.
+function makeSproutSource(size = 320) {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, size, size);
+  ctx.font = `${Math.round(size * 0.72)}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🌱', size / 2, size / 2);
+  return canvas;
+}
+
+async function loadDefaultSource() {
+  state.src = makeSproutSource();
+  state.isDefaultSource = true;
+  if (emptyState) emptyState.hidden = true;
+  if (grid) grid.hidden = false;
+  if (window.refreshSourceLabel) window.refreshSourceLabel('Sample sprout', 0, 0, true);
+  await renderAll();
+  if (state.isDefaultSource) {
+    setStudioStatus('Previewing every filter on 🌱 — drop or tap an image to run them on your own.');
+  }
+}
+
+// ── Persistence: settings (localStorage) + source image (IndexedDB) ──
+const SETTINGS_KEY = 'cloonk-darkroom-settings';
+let settingsSaveTimer;
+function scheduleSettingsSave() {
+  clearTimeout(settingsSaveTimer);
+  settingsSaveTimer = setTimeout(() => {
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); } catch (e) {}
+  }, 400);
+}
+function loadSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null');
+    if (!saved) return;
+    FILTERS.forEach(f => {
+      if (!saved[f.id]) return;
+      f.params.forEach(p => {
+        const v = saved[f.id][p.id];
+        if (typeof v === 'number') state.settings[f.id][p.id] = clamp(v, p.min, p.max);
+      });
+    });
+  } catch (e) {}
+}
+
+const IDB_NAME = 'cloonk-darkroom', IDB_STORE = 'source';
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    if (!('indexedDB' in window)) { reject(new Error('no idb')); return; }
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbPut(key, val) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(val, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function idbGet(key) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// ── URL state: ?filter=<id>&<param>=<value> ───────────────────
+function writeUrlState() {
+  try {
+    const params = new URLSearchParams();
+    if (state.active) {
+      params.set('filter', state.active);
+      const s = state.settings[state.active] || {};
+      Object.keys(s).forEach(k => params.set(k, s[k]));
+    }
+    const qs = params.toString();
+    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+  } catch (e) {}
+}
+function readUrlState() {
+  try {
+    const params = new URLSearchParams(location.search);
+    const id = params.get('filter') || location.hash.replace('#', '');
+    const f = FILTERS.find(x => x.id === id);
+    if (!f) return null;
+    f.params.forEach(p => {
+      if (!params.has(p.id)) return;
+      const v = Number(params.get(p.id));
+      if (!Number.isNaN(v)) state.settings[id][p.id] = clamp(v, p.min, p.max);
+    });
+    return id;
+  } catch (e) { return null; }
+}
+
 // ── Init ──────────────────────────────────────────────────────
 // Guard: catalog.html sets window.DARKROOM_CATALOG=true to use filter
 // functions without any UI wiring.
-if (!window.DARKROOM_CATALOG) { buildGrid(); }
+async function init() {
+  buildGrid();
+  loadSettings();
+  const pendingId = readUrlState();
+  try {
+    const blob = await idbGet('image');
+    if (blob) await loadSourceBlob(blob, (await idbGet('name')) || 'Saved image', false);
+    else await loadDefaultSource();
+  } catch (e) {
+    await loadDefaultSource();
+  }
+  if (pendingId) selectFilter(pendingId);
+}
+
+if (!window.DARKROOM_CATALOG) { init(); }
