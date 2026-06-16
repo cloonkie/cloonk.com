@@ -71,6 +71,81 @@
 
   <main>
     <div class="page detail-page" id="detail-root">
+
+        <article class="detail-static-summary" aria-label="Darkroom project summary">
+          <div class="detail-breadcrumb">
+            <div class="detail-breadcrumb__left">
+              <a href="/work.html" class="detail-back">← Work</a>
+              <span class="detail-breadcrumb__sep">/</span>
+              <span class="detail-breadcrumb__current">Darkroom</span>
+            </div>
+          </div>
+          <div class="detail-hero">
+            <div>
+              <p class="detail-hero__num">35</p>
+              <h1 class="detail-title">Darkroom</h1>
+              <p class="detail-short">28 canvas-based image filters — halftone, dither, glitch, ASCII, and more.</p>
+            </div>
+            <div class="detail-meta">
+              <div class="detail-meta__item"><span class="detail-meta__label">Topic</span><span class="detail-meta__value">creative tools</span></div>
+              <div class="detail-meta__item"><span class="detail-meta__label">Type</span><span class="detail-meta__value">Tools</span></div>
+              <div class="detail-meta__item"><span class="detail-meta__label">Year</span><span class="detail-meta__value">2026</span></div>
+            </div>
+          </div>
+          <hr class="divider" />
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Context</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><div class="detail-prose"><p>Creative filter tools either live behind paywalls (Photoshop, Lightroom) or upload your image to a server. The goal was to build the full richness of destructive image effects — halftone families, generative noise fields, glitch warps, retro effects, sticker cutout — in a purely client-side canvas pipeline with real customization, at zero cost and zero upload.</p></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Approach</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><div class="detail-prose"><p>All 28 filter functions are pure ImageData transforms running in OffscreenCanvas. A registry drives both the interactive studio (upload → render previews → tweak parameters → download) and a catalog page that renders each filter live using a sprout reference image. Techniques include Floyd-Steinberg dithering, Sobel edge detection, BFS flood-fill for sticker background removal, seeded Voronoi, fractal value noise, and custom AABB pixel-sorting. The catalog uses a DARKROOM_CATALOG flag to reuse the filter engine without wiring studio UI.</p></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Results</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><ul><li>28 filters rendering progressively in-browser on upload — halftone, dither, ASCII, glitch, sticker, noise, VHS, and more</li><li>Per-filter parameter controls with live re-render</li><li>A catalog page with live previews on each filter for discovery</li><li>Local PNG export, no upload, no login</li></ul></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Takeaways</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><div><h4>Canvas API is deep enough to rebuild Photoshop destructive effects</h4><p>Every filter in here — Floyd-Steinberg dithering, Sobel-based edge detection, BFS sticker cutout, seeded Voronoi cells, fractal noise fields — runs entirely on ImageData manipulations in the browser. No WebGL, no server, no libraries. The constraint forced legible, composable pixel math.</p></div></div>
+            </div>
+          </div>
+        </section>
+        </article>
       <noscript>
         <article class="detail-not-found">
           <h1 class="detail-title">Darkroom</h1>

@@ -30,6 +30,69 @@ function descriptionFor(project) {
   return compact.slice(0, 157).replace(/\s+\S*$/, '') + '...';
 }
 
+function listItems(items) {
+  if (!Array.isArray(items) || !items.length) return '';
+  return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+}
+
+function staticSection(label, content) {
+  if (!content) return '';
+  return `
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">${escapeHtml(label)}</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content">${content}</div>
+            </div>
+          </div>
+        </section>`;
+}
+
+function staticProjectSummary(project, description) {
+  const problem = project.context?.problem || project.desc || description;
+  const approach = project.approach?.summary || '';
+  const results = project.results?.after ? listItems(project.results.after) : '';
+  const takeaways = Array.isArray(project.takeaways)
+    ? project.takeaways.map((item) => {
+        const title = item?.title ? `<h4>${escapeHtml(item.title)}</h4>` : '';
+        const body = item?.body ? `<p>${escapeHtml(item.body)}</p>` : '';
+        return `<div>${title}${body}</div>`;
+      }).join('')
+    : '';
+
+  return `
+        <article class="detail-static-summary" aria-label="${escapeHtml(project.title)} project summary">
+          <div class="detail-breadcrumb">
+            <div class="detail-breadcrumb__left">
+              <a href="/work.html" class="detail-back">← Work</a>
+              <span class="detail-breadcrumb__sep">/</span>
+              <span class="detail-breadcrumb__current">${escapeHtml(project.title)}</span>
+            </div>
+          </div>
+          <div class="detail-hero">
+            <div>
+              <p class="detail-hero__num">${escapeHtml(project.num || '')}</p>
+              <h1 class="detail-title">${escapeHtml(project.title)}</h1>
+              <p class="detail-short">${escapeHtml(project.short || description)}</p>
+            </div>
+            <div class="detail-meta">
+              ${project.topic ? `<div class="detail-meta__item"><span class="detail-meta__label">Topic</span><span class="detail-meta__value">${escapeHtml(project.topic)}</span></div>` : ''}
+              ${project.type ? `<div class="detail-meta__item"><span class="detail-meta__label">Type</span><span class="detail-meta__value">${escapeHtml(project.type)}</span></div>` : ''}
+              ${project.year ? `<div class="detail-meta__item"><span class="detail-meta__label">Year</span><span class="detail-meta__value">${escapeHtml(project.year)}</span></div>` : ''}
+            </div>
+          </div>
+          <hr class="divider" />
+          ${staticSection('Context', `<div class="detail-prose"><p>${escapeHtml(problem)}</p></div>`)}
+          ${staticSection('Approach', approach ? `<div class="detail-prose"><p>${escapeHtml(approach)}</p></div>` : '')}
+          ${staticSection('Results', results)}
+          ${staticSection('Takeaways', takeaways)}
+        </article>`;
+}
+
 function pageFor(project) {
   const title = `${project.title} | Kevin Zhang`;
   const description = descriptionFor(project);
@@ -151,6 +214,7 @@ function pageFor(project) {
 
   <main>
     <div class="page detail-page" id="detail-root">
+      ${staticProjectSummary(project, description)}
       <noscript>
         <article class="detail-not-found">
           <h1 class="detail-title">${escapeHtml(project.title)}</h1>
@@ -182,7 +246,7 @@ function pageFor(project) {
   <script src="../../js/cursor.js"></script>
 </body>
 </html>
-`;
+`.replace(/[ \t]+$/gm, '');
 }
 
 const workDir = path.join(root, 'work');

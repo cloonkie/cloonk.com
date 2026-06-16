@@ -71,6 +71,81 @@
 
   <main>
     <div class="page detail-page" id="detail-root">
+
+        <article class="detail-static-summary" aria-label="Eyewear Database System project summary">
+          <div class="detail-breadcrumb">
+            <div class="detail-breadcrumb__left">
+              <a href="/work.html" class="detail-back">← Work</a>
+              <span class="detail-breadcrumb__sep">/</span>
+              <span class="detail-breadcrumb__current">Eyewear Database System</span>
+            </div>
+          </div>
+          <div class="detail-hero">
+            <div>
+              <p class="detail-hero__num">24</p>
+              <h1 class="detail-title">Eyewear Database System</h1>
+              <p class="detail-short">Normalizing 15 Tables of Sales Reality</p>
+            </div>
+            <div class="detail-meta">
+              <div class="detail-meta__item"><span class="detail-meta__label">Topic</span><span class="detail-meta__value">data analysis</span></div>
+              <div class="detail-meta__item"><span class="detail-meta__label">Type</span><span class="detail-meta__value">Data Engineering</span></div>
+              <div class="detail-meta__item"><span class="detail-meta__label">Year</span><span class="detail-meta__value">2025</span></div>
+            </div>
+          </div>
+          <hr class="divider" />
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Context</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><div class="detail-prose"><p>The source data was structured for export, not analysis. The same product could appear under three different naming conventions depending on which account it came from. Retailer codes weren&#39;t normalized across brands. Time dimensions were split across columns requiring transformation before any trend analysis was possible. The database design challenge: build the schema that makes this data reliably queryable without those transformations every time.</p></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Approach</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><div class="detail-prose"><p>Designed a normalized relational schema across 15 tables covering product hierarchy, retailer and account structure, sales transactions, inventory state, and time dimensions. Built in check constraints and referential integrity rules to prevent the data quality failures that had made the original flat files unreliable. Wrote 13 parameterized query templates covering the most common reporting use cases from actual team workflows.</p></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Results</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><ul><li>15-table normalized schema with full referential integrity across product, retailer, and time dimensions</li><li>Automated inventory triggers flagging reorder thresholds before stock-out events occur</li><li>13 parameterized query templates reducing ad-hoc analysis setup from hours to minutes</li><li>Schema designed for extensibility — new brands and accounts can be added without structural changes to existing tables</li></ul></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Takeaways</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><div><h4>A good schema is a decision you make once that pays off every time you run a query</h4><p>The cost of a poorly designed database compounds over time. Every query written against a bad schema is harder than it needs to be. Getting the structure right at the beginning is the highest-leverage decision in any data project — more important than the analysis tools, more important than the visualization layer. The foundation is the work.</p></div></div>
+            </div>
+          </div>
+        </section>
+        </article>
       <noscript>
         <article class="detail-not-found">
           <h1 class="detail-title">Eyewear Database System</h1>

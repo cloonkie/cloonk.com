@@ -71,6 +71,81 @@
 
   <main>
     <div class="page detail-page" id="detail-root">
+
+        <article class="detail-static-summary" aria-label="NYC Soundhood project summary">
+          <div class="detail-breadcrumb">
+            <div class="detail-breadcrumb__left">
+              <a href="/work.html" class="detail-back">← Work</a>
+              <span class="detail-breadcrumb__sep">/</span>
+              <span class="detail-breadcrumb__current">NYC Soundhood</span>
+            </div>
+          </div>
+          <div class="detail-hero">
+            <div>
+              <p class="detail-hero__num">34</p>
+              <h1 class="detail-title">NYC Soundhood</h1>
+              <p class="detail-short">Connect Spotify, get your top 3 NYC neighborhoods — by ear.</p>
+            </div>
+            <div class="detail-meta">
+              <div class="detail-meta__item"><span class="detail-meta__label">Topic</span><span class="detail-meta__value">data analysis</span></div>
+              <div class="detail-meta__item"><span class="detail-meta__label">Type</span><span class="detail-meta__value">Tools</span></div>
+              <div class="detail-meta__item"><span class="detail-meta__label">Year</span><span class="detail-meta__value">2026</span></div>
+            </div>
+          </div>
+          <hr class="divider" />
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Context</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><div class="detail-prose"><p>&quot;What kind of music are you into?&quot; is a question people answer with a vibe, not a vector. Spotify already knows the real answer — it just hands it back as a Wrapped slideshow once a year. The idea here was to turn that latent taste data into something playful and place-based: if your listening were a New York neighborhood, which one would it be? The constraint was the same one every cloonk tool holds to — it had to run with no backend and never hold onto anyone&#39;s data.</p></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Approach</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><div class="detail-prose"><p>A single-page app on Spotify&#39;s Authorization Code + PKCE flow — fully client-side, no secret, no server to send a token to. It pulls the user&#39;s top 50 artists, classifies each artist&#39;s Spotify genres into ten sonic families via keyword rules, weights by listening rank, and reads average artist popularity as a mainstream-to-underground axis. The resulting taste vector is matched to fourteen hand-profiled neighborhoods by weighted cosine similarity, blended with axis proximity. Results show match percentages, the driving genres, and a full taste-fingerprint readout.</p></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Results</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><ul><li>Connect Spotify → your top 3 NYC neighborhoods with match scores and reasoning</li><li>A taste fingerprint — ten sonic families, a mainstream-to-underground dial, and your top genres — rendered from real listening</li><li>Auth and analysis run entirely in-tab; the token is never persisted and no listening data leaves the browser</li><li>A sample-data preview so the engine is explorable without an account</li></ul></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Takeaways</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><div><h4>PKCE means a &#39;connect your account&#39; toy needs no backend</h4><p>The reflex with anything that touches a user&#39;s Spotify is to stand up a server to hold the client secret. The Authorization Code + PKCE flow removes that entirely — the browser proves it started the request with a hashed verifier, no secret required. So the honest privacy story and the architecture are the same one: there&#39;s no server to send your listening history to, because there&#39;s no server at all.</p></div></div>
+            </div>
+          </div>
+        </section>
+        </article>
       <noscript>
         <article class="detail-not-found">
           <h1 class="detail-title">NYC Soundhood</h1>

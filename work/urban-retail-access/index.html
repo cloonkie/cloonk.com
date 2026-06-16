@@ -71,6 +71,81 @@
 
   <main>
     <div class="page detail-page" id="detail-root">
+
+        <article class="detail-static-summary" aria-label="Urban Access project summary">
+          <div class="detail-breadcrumb">
+            <div class="detail-breadcrumb__left">
+              <a href="/work.html" class="detail-back">← Work</a>
+              <span class="detail-breadcrumb__sep">/</span>
+              <span class="detail-breadcrumb__current">Urban Access</span>
+            </div>
+          </div>
+          <div class="detail-hero">
+            <div>
+              <p class="detail-hero__num">31</p>
+              <h1 class="detail-title">Urban Access</h1>
+              <p class="detail-short">Walking access is twice as unequal as income.</p>
+            </div>
+            <div class="detail-meta">
+              <div class="detail-meta__item"><span class="detail-meta__label">Topic</span><span class="detail-meta__value">data analysis</span></div>
+              <div class="detail-meta__item"><span class="detail-meta__label">Type</span><span class="detail-meta__value">Data Engineering</span></div>
+              <div class="detail-meta__item"><span class="detail-meta__label">Year</span><span class="detail-meta__value">2026</span></div>
+            </div>
+          </div>
+          <hr class="divider" />
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Context</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><div class="detail-prose"><p>Walking access in the average US city is roughly twice as unequally distributed as income itself. The median Gini coefficient for 20-minute pedestrian destination counts across the ten cities measured here is 0.897 — against a US household-income Gini of about 0.41. That gap is the access problem this project surfaces. Existing tools measure walkability or income but rarely both at the same scale. Walk Score gives you a number without a breakdown. Census data gives you demographics without destinations. The pipeline this project builds is the layer that joins them — at neighborhood resolution, across ten cities, reproducibly.</p></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Approach</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><div class="detail-prose"><p>Built the data pipeline from scratch: cleaned and normalized POI data from Foursquare OS Places across 10 cities, generated census tract-level pedestrian isochrones through Valhalla at 5/10/20-minute intervals, joined isochrone coverage to POI counts using DuckDB spatial queries, and aggregated to H3 resolution 9 hexagons for the front-end layer. Mapbox GL JS handles all rendering. The dashboard frames three reader-facing questions — **how are you getting there** (walk, bike, drive), **what are you looking for** (pharmacy, grocery, park, transit, and more), and **how long are you willing to travel** (5, 10, or 20 minutes) — and repaints the city for every combination. Equity analytics are computed city-by-city and surfaced in an in-dashboard analytics panel with Spearman correlation, Gini coefficients, and quartile breakdowns.</p></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Results</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><ul><li>End-to-end GIS pipeline processing 259K+ POIs across 454,000 hexagons in 10 cities, fully reproducible</li><li>Statistically significant income–walk-access correlation in all 10 cities — but the direction reverses: in 7 metros, lower-income tracts have more walk access; in 3 (NYC, LA, San Diego) it runs the other way</li><li>Median Gini coefficient for 20-minute walk access across the dataset: 0.897 — roughly twice the US household-income Gini</li><li>Interactive dashboard deployed with city switching plus the three reader-facing questions (mode, category, time-band), and in-dashboard equity analytics including Spearman r, Gini, and quartile breakdown</li><li>Framework documented for extension to additional cities, transit modes, or updated Census vintages</li></ul></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section-block is-open">
+          <div class="detail-section-header">
+            <div class="detail-section-header__left">
+              <span class="detail-section-header__label">Takeaways</span>
+            </div>
+          </div>
+          <div class="detail-section-body">
+            <div class="detail-section-body__inner">
+              <div class="detail-section-content"><div><h4>Infrastructure is the analysis</h4><p>The hardest part of this project wasn&#39;t the map — it was the pipeline that makes the map trustworthy. Projection alignment, DuckDB spatial query optimization, tile generation performance, Valhalla routing configuration: none of these are glamorous, but all of them determine whether the analysis is valid. You can&#39;t separate the infrastructure from the insight. Building it correctly is the research.</p></div><div><h4>The story wasn&#39;t the gap. It was the direction.</h4><p>An income–walkability gap shows up in every city in the dataset. The interesting finding was which way it ran. In dense metros (NYC, LA, San Diego), richer tracts walk to more. In sprawl-pattern metros (Phoenix, Fort Worth, Houston, Dallas), the relationship reverses — poorer, denser, older neighborhoods reach more on foot than the wealthier exurbs that surround them. A single-city study would have called this an artifact. Ten cities, same pipeline, makes it structural.</p></div></div>
+            </div>
+          </div>
+        </section>
+        </article>
       <noscript>
         <article class="detail-not-found">
           <h1 class="detail-title">Urban Access</h1>
