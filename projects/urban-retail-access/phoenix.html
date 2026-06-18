@@ -295,18 +295,20 @@ body.mode-public .loader-bar{background:var(--accent-public)}
   #side-panel{width:160px;top:80px;right:8px}
   #side-panel .section-body{padding:0 8px 8px}
   /* legend: compact, bottom-left */
-  #legend{width:104px;bottom:26px;left:6px;padding:4px 7px}
+  #legend{width:124px;bottom:26px;left:6px;padding:4px 7px}
   #legend > div{margin-bottom:4px!important}
   #legend > div:last-child{margin-bottom:0!important}
   .legend-gradient-wrap{height:5px;margin-bottom:2px}
   .legend-marker{height:8px;width:1.5px}
   .legend-marker-label{font-size:6px;top:-13px;padding:1px 3px}
   /* hex detail: compact panel beside the legend (bottom-left), clear of the bottom-right zoom control */
-  #hex-detail{left:116px;right:48px;top:auto;bottom:26px;width:auto;max-height:48vh;max-height:min(48dvh,calc(100dvh - 200px));padding:7px 9px;box-shadow:0 6px 24px rgba(0,0,0,.55);z-index:120}
+  #hex-detail{left:136px;right:48px;top:auto;bottom:26px;width:auto;max-height:48vh;max-height:min(48dvh,calc(100dvh - 200px));padding:7px 9px;box-shadow:0 6px 24px rgba(0,0,0,.55);z-index:120}
   #hex-detail-title{font-size:8px;margin-bottom:3px}
   #hex-detail-close{top:6px;right:8px;font-size:11px}
   #hex-detail-count{font-size:16px}
   #hex-detail-meta{font-size:7px;margin-bottom:6px}
+  /* show ~3 categories at first; scroll within the list for the rest */
+  #hex-detail-body{max-height:54px;overflow-y:auto}
   .detail-cat-name{font-size:7px}
   .detail-cat-count{font-size:8px}
   .detail-poi-item{font-size:7px;padding:1px 3px}
