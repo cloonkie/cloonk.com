@@ -163,6 +163,7 @@ body.mode-public .detail-count-bar-fill{background:var(--accent-public)}
 .tt-label{font-size:8px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--muted);margin-bottom:3px}
 .tt-value{font-size:14px;font-weight:500;color:var(--accent)}
 body.mode-public .tt-value{color:var(--accent-public)}
+.tt-value-mhi{font-size:12px;font-weight:500;color:var(--accent-mhi)}
 .tt-sub{font-size:8px;color:var(--muted);margin-top:2px}
 .tt-pop{font-size:8px;color:var(--muted);margin-top:2px;opacity:.85}
 .tt-cat{font-size:8px;color:var(--accent2);margin-top:1px}
@@ -300,8 +301,8 @@ body.mode-public .loader-bar{background:var(--accent-public)}
   .legend-gradient-wrap{height:5px;margin-bottom:2px}
   .legend-marker{height:8px;width:1.5px}
   .legend-marker-label{font-size:6px;top:-13px;padding:1px 3px}
-  /* hex detail: full width, anchored above legend */
-  #hex-detail{left:8px;right:8px;top:auto;bottom:136px;width:auto;max-height:36vh;max-height:min(36dvh,calc(100dvh - 222px));padding:7px 10px;box-shadow:0 -8px 24px rgba(0,0,0,.55);z-index:120}
+  /* hex detail: compact panel beside the legend (bottom-left), clear of the bottom-right zoom control */
+  #hex-detail{left:116px;right:48px;top:auto;bottom:26px;width:auto;max-height:48vh;max-height:min(48dvh,calc(100dvh - 200px));padding:7px 9px;box-shadow:0 6px 24px rgba(0,0,0,.55);z-index:120}
   #hex-detail-title{font-size:8px;margin-bottom:3px}
   #hex-detail-close{top:6px;right:8px;font-size:11px}
   #hex-detail-count{font-size:16px}
@@ -312,6 +313,12 @@ body.mode-public .loader-bar{background:var(--accent-public)}
   .detail-count-bar-label,.detail-count-bar-num{font-size:7px}
   .detail-count-bar-track{width:48px;height:3px}
   .detail-zoom-hint{font-size:7px;margin-top:4px}
+  /* walk access / MHI tooltip: more compact */
+  #tooltip{max-width:148px;padding:5px 8px;font-size:9px}
+  #tooltip .tt-label{font-size:7px;margin-bottom:2px}
+  #tooltip .tt-value{font-size:11px}
+  #tooltip .tt-value-mhi{font-size:10px}
+  #tooltip .tt-sub,#tooltip .tt-pop,#tooltip .tt-cat{font-size:7px}
   #coords-bar{padding:0 10px;font-size:8px}
   .legend-label{font-size:6px;margin-bottom:2px}
   .legend-labels{font-size:6px;margin-bottom:0}
@@ -1195,7 +1202,7 @@ map.on('mousemove',e=>{
     const ml=activeMode==='pedestrian'?'Walk':activeMode==='bicycle'?'Bike':'Drive';
     html+='<div style="margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border)">';
     html+='<div class="tt-label">'+ml+' Access · '+activeMinutes+' min</div>';
-    html+='<div style="font-size:14px;font-weight:500;color:var(--accent)">'+ttScore+' destinations</div>';
+    html+='<div class="tt-value">'+ttScore+' destinations</div>';
     html+='<div class="tt-sub">'+(activeCats.has('all')?'All categories':[...activeCats].join(', '))+'</div>';
     html+='<div style="font-size:8px;color:var(--dim);margin-top:3px">Click for breakdown</div>';
     html+='</div>';
@@ -1209,10 +1216,10 @@ map.on('mousemove',e=>{
     html+='<div>';
     html+='<div class="tt-label">Median Household Income</div>';
     if(!v||v<=0){
-      html+='<div style="font-size:12px;font-weight:500;color:var(--muted)">N/A</div>';
+      html+='<div class="tt-value-mhi" style="color:var(--muted)">N/A</div>';
       if(p.GEOID)html+='<div class="tt-sub">Tract '+String(p.GEOID).slice(-6)+'</div>';
     } else {
-      html+='<div style="font-size:12px;font-weight:500;color:var(--accent-mhi)">$'+Math.round(v).toLocaleString()+'</div>';
+      html+='<div class="tt-value-mhi">$'+Math.round(v).toLocaleString()+'</div>';
       if(p.GEOID)html+='<div class="tt-sub">Tract '+String(p.GEOID).slice(-6)+'</div>';
       let popStr='';
       if(p.pop&&p.pop>0){popStr='Pop '+Math.round(p.pop).toLocaleString();if(p.pop_density&&p.pop_density>0)popStr+=' · '+Math.round(p.pop_density).toLocaleString()+'/mi²';html+='<div class="tt-pop">'+popStr+'</div>';}
