@@ -908,11 +908,13 @@ body.light header.header .theme-toggle .icon-moon { opacity: 1; position: static
   --archive-accent-wash: color-mix(in srgb, var(--accent) 12%, transparent);
   --archive-accent-line: color-mix(in srgb, var(--accent) 72%, var(--archive-line));
   height: 100vh;
+  height: 100dvh; /* track the visible viewport so cards aren't hidden behind mobile browser chrome */
   overflow: hidden;
 }
 
 .fashion--cabinet main {
   height: calc(100vh - var(--nav-h));
+  height: calc(100dvh - var(--nav-h));
   min-height: 0;
   padding-top: var(--nav-h);
   overflow: hidden;
@@ -1280,12 +1282,14 @@ body.light header.header .theme-toggle .icon-moon { opacity: 1; position: static
   --archive-accent-wash: color-mix(in srgb, var(--accent) 12%, transparent);
   --archive-accent-line: color-mix(in srgb, var(--accent) 72%, var(--archive-line));
   height: 100vh;
+  height: 100dvh; /* track the visible viewport so cards aren't hidden behind mobile browser chrome */
   overflow: hidden;
   overscroll-behavior: none;
 }
 
 .fashion--files main {
   height: 100vh;
+  height: 100dvh;
   min-height: 0;
   padding-top: var(--nav-h);
   padding-bottom: var(--nav-h);
@@ -1563,6 +1567,17 @@ body.light header.header .theme-toggle .icon-moon { opacity: 1; position: static
 }
 
 @media (max-width: 780px) {
+  /* Reclaim vertical space above the rail so each card's full content
+     (name → io → withdraw) fits within the card instead of clipping. */
+  .fashion--files .file-stage {
+    padding: 14px 16px 14px;
+  }
+
+  .fashion--files .file-note {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+  }
+
   .fashion--files .files {
     grid-auto-columns: minmax(248px, 82vw);
     padding: 8px 0 18px;

@@ -838,6 +838,19 @@ body.nav-open .nav-burger .icon-close { display: block; }
   }
   body.nav-open .header-actions { display: flex; }
   .header-actions > * { width: 100%; justify-content: flex-start; }
+
+  /* ── Config panels: collapsible & uncluttered on phones ──────────────
+     Each panel header becomes a clean, tappable title row. The "+ Add"
+     style action tools only appear once the panel is open, so a collapsed
+     panel reads as a single title line instead of a crowded, wrapping bar.
+     Heavy panels (Schema, Templates) start collapsed via the inline script
+     below so configuration doesn't bury the Run & Results output. */
+  .panel-header { flex-wrap: wrap; row-gap: 10px; padding: 12px 14px; }
+  .panel-htitle { flex: 1 1 100%; min-width: 0; gap: 8px; flex-wrap: wrap; }
+  .panel-tools { flex: 1 1 100%; }
+  .panel.collapsed .panel-tools { display: none; }
+  /* The per-panel "i" duplicates the global Info reference — drop it here. */
+  .panel-info-btn { display: none; }
 }
 </style>
 </head>
@@ -1215,5 +1228,25 @@ body.nav-open .nav-burger .icon-close { display: block; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <!-- Generated from src/upc-concat via npm run build:upc-concat. -->
 <script src="dist/upc-concat.js"></script>
+
+<!-- Mobile: open with the bulky configuration panels collapsed so they don't
+     bury the Run & Results output. Panels stay one tap away (the dist toggle
+     handler still drives them); this only sets the initial state, once. -->
+<script>
+  (function () {
+    if (!(window.matchMedia && window.matchMedia('(max-width: 720px)').matches)) return;
+    function collapseConfig() {
+      ['panel-schema', 'panel-templates'].forEach(function (id) {
+        var p = document.getElementById(id);
+        if (p) p.classList.add('collapsed');
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', collapseConfig);
+    } else {
+      collapseConfig();
+    }
+  })();
+</script>
 </body>
 </html>

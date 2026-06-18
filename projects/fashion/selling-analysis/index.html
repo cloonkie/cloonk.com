@@ -334,8 +334,30 @@ body:not(.has-data) .project-chip .chip-status { display: none; }
   border-top: 1px dashed var(--border);
 }
 .project-chip:hover .chip-preview,
-.project-chip:focus-within .chip-preview {
+.project-chip:focus-within .chip-preview,
+.project-chip.is-previewing .chip-preview {
   display: grid;
+}
+/* Touch / no-hover: a first tap "arms" the chip (reveals this preview);
+   a second tap on the same chip opens the read. Mirror the hover wash so
+   the armed state reads clearly. */
+.project-chip.is-previewing {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+/* "Tap again to open" cue — only meaningful on no-hover devices, where the
+   two-tap flow is active. Spans the full preview width under the viz/example. */
+.chip-cta {
+  display: none;
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+@media (hover: none) {
+  .project-chip.is-previewing .chip-cta { display: block; }
 }
 .chip-viz {
   width: 132px;
@@ -2232,6 +2254,9 @@ body.nav-open .nav-burger .icon-close { display: block; }
     }
     function backToCover() {
       body.dataset.view = 'cover';
+      // Drop any armed preview so re-entering a read needs two taps again.
+      document.querySelectorAll('.project-chip.is-previewing')
+        .forEach(c => c.classList.remove('is-previewing'));
       window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     }
     $('backToCover').addEventListener('click', backToCover);
@@ -2241,9 +2266,26 @@ body.nav-open .nav-burger .icon-close { display: block; }
        chip click handler still fires — it calls selectAnalysis, which toggles
        the active lens. We piggy-back via event delegation. */
     let selectedStoryId = 'integrity';
+    // On no-hover devices there's no hover to surface a chip's preview, so the
+    // first tap reveals it and the second tap (same chip) opens the read.
+    const noHover = !!(window.matchMedia && window.matchMedia('(hover: none)').matches);
     document.addEventListener('click', e => {
       const chip = e.target.closest('.project-chip');
-      if (!chip) return;
+      if (!chip) {
+        // Tapping outside the chips dismisses an armed preview.
+        if (noHover) document.querySelectorAll('.project-chip.is-previewing')
+          .forEach(c => c.classList.remove('is-previewing'));
+        return;
+      }
+      // First tap on a touch device: just reveal this chip's preview.
+      if (noHover && body.dataset.view === 'cover' && !chip.classList.contains('is-previewing')) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        document.querySelectorAll('.project-chip.is-previewing')
+          .forEach(c => c.classList.remove('is-previewing'));
+        chip.classList.add('is-previewing');
+        return;
+      }
       if (chip.dataset.storyId) selectedStoryId = chip.dataset.storyId;
       if (body.dataset.view === 'cover') enterStory();
     }, true);
@@ -2529,6 +2571,7 @@ body.nav-open .nav-burger .icon-close { display: block; }
           `<span class="chip-preview" aria-hidden="true">` +
             `<span class="chip-viz">${viz}</span>` +
             `<span class="chip-example">${example}</span>` +
+            `<span class="chip-cta">Tap again to open →</span>` +
           `</span>`;
       });
     }

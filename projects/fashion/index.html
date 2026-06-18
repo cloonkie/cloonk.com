@@ -98,6 +98,13 @@
     [data-theme="dark"] .file__viz .ln  { stroke: #c2bdb2; }
     [data-theme="dark"] .file__viz .flm { fill: #c2bdb2; }
     [data-theme="dark"] .file__viz .fdim { fill: #cfcabf; opacity: 0.26; }
+
+    /* On phones the card height is tight — cap the diagram so the foot
+       (Source/Output + Withdraw) always stays inside the card. */
+    @media (max-width: 780px) {
+      .file__viz { margin: 8px 0 2px; }
+      .file__viz svg { max-height: 92px; }
+    }
   </style>
 </head>
 <body class="fashion fashion--files">
