@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Darkroom — Image Filter Studio | cloonk</title>
-<meta name="description" content="Apply 28 canvas-based image filters entirely in your browser. Halftone, dither, glitch, ASCII, sticker, and more — nothing uploaded, everything local.">
+<meta name="description" content="Apply 23 canvas-based image filters entirely in your browser. Halftone, dither, glitch, ASCII, sticker, and more — transparency-aware, nothing uploaded, everything local.">
 <meta name="author" content="Kevin Zhang">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#0a0a0a">
 <link rel="canonical" href="https://cloonk.com/projects/darkroom/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Darkroom — Image Filter Studio">
-<meta property="og:description" content="28 canvas-based image filters running locally in your browser.">
+<meta property="og:description" content="23 canvas-based image filters running locally in your browser.">
 <meta property="og:url" content="https://cloonk.com/projects/darkroom/">
 <meta property="og:image" content="https://cloonk.com/favicon.svg">
 <meta name="twitter:card" content="summary">
@@ -25,6 +25,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700,800&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/style.css">
 <script>
   try {
     document.documentElement.setAttribute(
@@ -45,45 +46,25 @@ a { color: inherit; text-decoration: none; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 :root {
-  --bg:             #0a0a0a;
-  --fg:             #faf8f3;
-  --surface:        #161614;
-  --surface-raised: #20201d;
-  --surface-card:   #252521;
-  --border:         #343430;
-  --border-hover:   #4a4a44;
-  --text:           #faf8f3;
-  --text-muted:     #989890;
-  --text-dim:       #707069;
-  --accent:         #39ff14;
-  --accent-hover:   #5cff44;
-  --accent-fg:      #0a0a0a;
-  --accent-dim:     rgba(57,255,20,0.1);
+  --surface:        color-mix(in oklab, var(--bg) 91%, var(--fg));
+  --surface-raised: color-mix(in oklab, var(--bg) 86%, var(--fg));
+  --surface-card:   color-mix(in oklab, var(--bg) 82%, var(--fg));
+  --border-hover:   color-mix(in oklab, var(--border) 70%, var(--fg));
+  --text:           var(--fg);
+  --text-muted:     var(--muted);
+  --text-dim:       color-mix(in oklab, var(--muted) 72%, var(--bg));
+  --accent-hover:   color-mix(in oklab, var(--accent) 82%, var(--fg));
+  --accent-fg:      var(--bg);
+  --accent-dim:     color-mix(in oklab, var(--accent) 14%, transparent);
   --danger:         #ff5b4a;
   --warn:           #e8b931;
-  --radius:    12px;
+  --radius:    8px;
   --radius-sm:  8px;
   --radius-xs:  4px;
-  --font-display: 'Cabinet Grotesk', sans-serif;
-  --font-body:    'Satoshi', sans-serif;
   --font-mono:    'DM Mono', 'Courier New', monospace;
   --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
 }
 [data-theme="light"] {
-  --bg:             #f5f2ec;
-  --fg:             #0a0a0a;
-  --surface:        #ede9e1;
-  --surface-raised: #e4dfd4;
-  --surface-card:   #eae6dc;
-  --border:         #d0ccc4;
-  --border-hover:   #b6b2aa;
-  --text:           #0a0a0a;
-  --text-muted:     #5a5a54;
-  --text-dim:       #8a8a82;
-  --accent:         #1b09bc;
-  --accent-hover:   #2e1cd6;
-  --accent-fg:      #f5f2ec;
-  --accent-dim:     rgba(27,9,188,0.08);
   --danger:         #b03020;
   --warn:           #b86d00;
 }
@@ -239,6 +220,32 @@ body {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .source-sub { font-family: var(--font-mono); font-size: 0.58rem; color: var(--text-dim); }
+.bg-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 11px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface); color: var(--text-muted);
+  font-size: 0.72rem; font-weight: 600; white-space: nowrap;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.bg-toggle svg { width: 14px; height: 14px; fill: currentColor; }
+.bg-toggle:hover { background: var(--surface-raised); border-color: var(--border-hover); color: var(--text); }
+.bg-toggle[aria-checked="true"] { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.crop-select {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 8px 4px 10px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface); color: var(--text-muted);
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.crop-select svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.crop-select:hover { border-color: var(--border-hover); color: var(--text); }
+.crop-select.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.crop-select select {
+  border: none; background: none; color: inherit; font: inherit;
+  font-size: 0.72rem; font-weight: 600; padding: 2px 0; outline: none; cursor: pointer;
+}
+.crop-select select option { background: var(--surface); color: var(--text); }
 .search-wrap { position: relative; flex: 1; min-width: 130px; max-width: 280px; }
 .search-wrap svg {
   position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
@@ -381,20 +388,109 @@ body {
 
 /* ── Main content ──────────────────────────────────────────── */
 .content {
-  padding: 20px 22px 60px;
+  padding: 18px clamp(16px, 4vw, 46px) 60px;
   min-width: 0;
 }
 .studio-status {
-  margin-bottom: 14px;
-  padding: 9px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xs);
-  background: var(--surface);
+  margin: 0 0 12px;
   color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 0.68rem;
 }
-.workspace { min-width: 0; }
+.workspace {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.56fr) minmax(320px, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.preview-panel {
+  position: sticky;
+  top: 126px;
+  min-height: calc(100vh - 150px);
+  display: grid;
+  grid-template-rows: minmax(280px, 1fr) auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.preview-media {
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  padding: clamp(18px, 3vw, 36px);
+  background:
+    linear-gradient(45deg,#242420 25%,transparent 25%),
+    linear-gradient(-45deg,#242420 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#242420 75%),
+    linear-gradient(-45deg,transparent 75%,#242420 75%);
+  background-size: 16px 16px;
+  background-position: 0 0,0 8px,8px -8px,-8px 0;
+  background-color: #171714;
+}
+[data-theme="light"] .preview-media {
+  background-color: #e5e1d8;
+  background-image:
+    linear-gradient(45deg,#d2cec5 25%,transparent 25%),
+    linear-gradient(-45deg,#d2cec5 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#d2cec5 75%),
+    linear-gradient(-45deg,transparent 75%,#d2cec5 75%);
+}
+.preview-media canvas {
+  max-width: 100%;
+  max-height: min(64vh, 620px);
+  width: auto;
+  height: auto;
+  image-rendering: pixelated;
+}
+.preview-info {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+  padding: 16px;
+  border-top: 1px solid var(--border);
+}
+.preview-kicker,
+.filter-meta,
+.filter-action-text {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.preview-title {
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 3.1rem);
+  font-weight: 800;
+  line-height: 0.96;
+  letter-spacing: 0;
+}
+.preview-sub {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+.preview-desc {
+  max-width: 62ch;
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+.preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.preview-actions .btn[hidden] {
+  display: none !important;
+}
 
 /* Empty state */
 .empty-state {
@@ -414,71 +510,82 @@ body {
 }
 .empty-sub { font-size: 0.86rem; line-height: 1.6; }
 
-/* Filter grid */
+/* Filter list */
 .filter-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 14px;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
 }
-@media (max-width: 600px) { .filter-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
 
 .filter-cell {
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
   width: 100%;
   color: var(--text);
   text-align: left;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface-card);
-  overflow: hidden;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  padding: 13px 0;
   cursor: pointer;
-  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+  transition: color var(--transition), background var(--transition), padding var(--transition);
 }
-.filter-cell:hover { border-color: var(--border-hover); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
-.filter-cell.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+.filter-cell:hover,
+.filter-cell:focus-visible,
+.filter-cell.active {
+  background: var(--surface);
+  color: var(--accent);
+  padding-inline: 12px;
+}
 .filter-cell[data-id="original"] { cursor: default; }
-.filter-cell[data-id="original"]:hover { transform: none; box-shadow: none; border-color: var(--border); }
+.filter-cell[data-id="original"]:hover { color: var(--text); }
 
 .filter-canvas-wrap {
-  height: 160px;
-  display: grid;
-  place-items: center;
+  position: absolute;
+  width: 1px;
+  height: 1px;
   overflow: hidden;
-  background:
-    linear-gradient(45deg,#2a2a26 25%,transparent 25%),
-    linear-gradient(-45deg,#2a2a26 25%,transparent 25%),
-    linear-gradient(45deg,transparent 75%,#2a2a26 75%),
-    linear-gradient(-45deg,transparent 75%,#2a2a26 75%);
-  background-size: 12px 12px;
-  background-position: 0 0,0 6px,6px -6px,-6px 0;
-  background-color: #1c1c18;
-}
-[data-theme="light"] .filter-canvas-wrap {
-  background-color: #e0dcd4;
-  background-image:
-    linear-gradient(45deg,#ccc8c0 25%,transparent 25%),
-    linear-gradient(-45deg,#ccc8c0 25%,transparent 25%),
-    linear-gradient(45deg,transparent 75%,#ccc8c0 75%),
-    linear-gradient(-45deg,transparent 75%,#ccc8c0 75%);
+  opacity: 0;
+  pointer-events: none;
 }
 .filter-canvas {
-  max-width: 100%;
-  max-height: 160px;
-  display: block;
-  image-rendering: pixelated;
+  width: 1px;
+  height: 1px;
 }
 
 /* Cell label styled via .filter-label / .filter-icon / .filter-label-text in the icon section */
-.filter-label { padding: 7px 10px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.filter-label { display: flex; align-items: center; gap: 11px; min-width: 0; }
 .filter-label-text { flex: 1; min-width: 0; }
+.filter-label-text strong { font-size: clamp(1.05rem, 2vw, 1.6rem); font-weight: 760; line-height: 1; }
+.filter-label-text em { margin-top: 5px; }
+.filter-desc-inline {
+  display: block;
+  max-width: 54ch;
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+.filter-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.filter-cell:hover .filter-action-text,
+.filter-cell.active .filter-action-text {
+  color: var(--accent);
+}
 
 /* Per-card download button (revealed on hover / when downloaded) */
 .cell-download {
-  width: 26px; height: 26px; flex-shrink: 0;
+  width: 30px; height: 30px; flex-shrink: 0;
   display: grid; place-items: center;
   border: 1px solid var(--border); border-radius: var(--radius-xs);
   background: var(--surface); color: var(--text-muted);
-  opacity: 0;
+  opacity: 1;
   transition: opacity var(--transition), color var(--transition), border-color var(--transition), background var(--transition);
 }
 .cell-download svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
@@ -487,7 +594,6 @@ body {
 .filter-cell.downloaded .cell-download {
   opacity: 1; color: var(--accent); border-color: var(--accent); background: var(--accent-dim);
 }
-@media (hover: none) { .cell-download { opacity: 1; } }
 .filter-cell[data-id="original"] .cell-download { display: none; }
 
 /* ── Settings drawer ───────────────────────────────────────── */
@@ -688,6 +794,22 @@ body {
 
 /* ── Mobile header adjustments ─────────────────────────────── */
 @media (max-width: 860px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+  .preview-panel {
+    position: static;
+    min-height: 0;
+  }
+  .preview-media {
+    min-height: 260px;
+  }
+  .preview-info {
+    grid-template-columns: 1fr;
+  }
+  .preview-actions {
+    justify-content: flex-start;
+  }
   .filter-list-toggle { display: flex; }
   .filter-list-wrap { overflow: hidden; }
   .filter-list-wrap[hidden] { display: none; }
@@ -698,8 +820,13 @@ body {
   .content { padding: 14px 14px 50px; }
   .sidebar { padding: 16px 14px; }
   .btn-sm { min-height: 36px; padding: 6px 12px; } /* larger touch targets */
-  .filter-canvas-wrap { height: 130px; }
-  .filter-canvas { max-height: 130px; }
+  .filter-cell {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .filter-row-actions {
+    justify-content: space-between;
+  }
   .settings-box { top: 64px; }
   .all-tools-btn { display: none; }
 }
@@ -722,7 +849,7 @@ body {
   <div class="header-left">
     <a class="nav__logo" id="nav-logo" href="../../index.html">cloonk ʕ·ᴥ·ʔ</a>
     <span class="header-project">Darkroom</span>
-    <span class="header-badge">28 filters · local</span>
+    <span class="header-badge">23 filters · local</span>
   </div>
   <div class="header-actions">
     <button class="btn btn-sm btn-accent" id="downloadAllBtn">Download all</button>
@@ -744,6 +871,15 @@ body {
       <span class="source-sub" id="sourceSub">Drop or tap to use yours</span>
     </span>
   </label>
+  <button class="bg-toggle" id="bgToggle" type="button" role="switch" aria-checked="false"
+          title="Flood-fill the background to transparent so filters skip it">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 14h6v6h-6z"/><path d="M14 4h6v6h-6zM4 14h6v6H4z" opacity=".35"/></svg>
+    <span>Cut out BG</span>
+  </button>
+  <label class="crop-select" title="Clip the image to a shape — everything outside becomes transparent">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><path d="M9 6h6a4 4 0 0 1 4 4v8"/><circle cx="6" cy="18" r="3"/><path d="M9 18h6a4 4 0 0 0 4-4V6"/></svg>
+    <select id="cropShape" aria-label="Crop to shape"></select>
+  </label>
   <div class="search-wrap">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <input class="search-input" id="searchInput" type="search" aria-label="Search filters" placeholder="Search filters…" autocomplete="off" spellcheck="false">
@@ -757,7 +893,24 @@ body {
   <main class="content">
     <div class="studio-status" id="studioStatus" role="status" aria-live="polite" hidden></div>
     <div class="workspace">
-      <div id="filterGrid" class="filter-grid"></div>
+      <section class="filter-grid" id="filterGrid" aria-label="Darkroom filters"></section>
+      <aside class="preview-panel" aria-label="Filter preview">
+        <div class="preview-media">
+          <canvas id="featuredPreview" width="320" height="320"></canvas>
+        </div>
+        <div class="preview-info">
+          <div>
+            <div class="preview-kicker" id="featuredFamily">Source</div>
+            <h1 class="preview-title" id="featuredTitle">Original</h1>
+            <div class="preview-sub" id="featuredSub">Source</div>
+            <p class="preview-desc" id="featuredDesc">Hover a filter to preview it against the current source image.</p>
+          </div>
+          <div class="preview-actions">
+            <a class="btn btn-sm" id="featuredOpen" href="#" hidden>Open editor</a>
+            <button class="btn btn-sm btn-accent" id="featuredDownload" type="button" hidden>Download PNG</button>
+          </div>
+        </div>
+      </aside>
     </div>
   </main>
 </div>
@@ -820,29 +973,62 @@ body {
     });
     const cnt = document.getElementById('filterCount');
     if (cnt) cnt.textContent = `${count} shown`;
+    const active = document.querySelector('.filter-cell.active[data-hidden]');
+    if (active) {
+      const firstVisible = document.querySelector('.filter-cell[data-id]:not([data-hidden])');
+      if (firstVisible && window.syncFeaturedPreview) window.syncFeaturedPreview(firstVisible.dataset.id);
+    }
   }
 
   // ── Source label / thumbnail (called by darkroom.js) ──
+  let lastSourceMeta = { name: 'Sample sprout', w: 0, h: 0, isDefault: true };
+  function drawThumb(isDefault) {
+    const thumb = document.getElementById('sourceThumb');
+    if (!thumb) return;
+    if (isDefault && !state.removeBg) { thumb.textContent = '🌱'; return; }
+    if (!state.src) return;
+    thumb.textContent = '';
+    const c = document.createElement('canvas');
+    c.width = 26; c.height = 26;
+    c.getContext('2d').drawImage(state.src, 0, 0, 26, 26);
+    thumb.appendChild(c);
+  }
   window.refreshSourceLabel = function(name, w, h, isDefault) {
-    const thumb  = document.getElementById('sourceThumb');
+    lastSourceMeta = { name, w, h, isDefault: !!isDefault };
+    drawThumb(isDefault);
     const nameEl = document.getElementById('sourceName');
     const subEl  = document.getElementById('sourceSub');
-    if (thumb) {
-      if (isDefault) {
-        thumb.textContent = '🌱';
-      } else if (state.src) {
-        thumb.textContent = '';
-        const c = document.createElement('canvas');
-        c.width = 26; c.height = 26;
-        c.getContext('2d').drawImage(state.src, 0, 0, 26, 26);
-        thumb.appendChild(c);
-      }
-    }
     if (nameEl) nameEl.textContent = isDefault ? 'Sample sprout' : (name || 'Your image');
     if (subEl)  subEl.textContent  = isDefault
       ? 'Drop or tap to use yours'
       : ((w && h) ? `${w}×${h} · tap to replace` : 'tap to replace');
   };
+  // darkroom.js calls this after the working source changes (bg removal).
+  window.refreshSourceThumb = function() { drawThumb(lastSourceMeta.isDefault); };
+
+  // ── "Cut out BG" toggle ──
+  const bgToggle = document.getElementById('bgToggle');
+  if (bgToggle) {
+    const syncBg = () => bgToggle.setAttribute('aria-checked', String(!!state.removeBg));
+    syncBg();
+    bgToggle.addEventListener('click', () => {
+      window.setRemoveBg(!state.removeBg);
+      syncBg();
+    });
+  }
+
+  // ── Shape-crop picker ──
+  const cropSel = document.getElementById('cropShape');
+  if (cropSel) {
+    cropSel.innerHTML = CROP_SHAPES.map((n, i) => `<option value="${i}">${n}</option>`).join('');
+    cropSel.value = String(state.cropShape || 0);
+    cropSel.parentElement.classList.toggle('active', (state.cropShape || 0) > 0);
+    cropSel.addEventListener('change', () => {
+      const v = Number(cropSel.value);
+      window.setCropShape(v);
+      cropSel.parentElement.classList.toggle('active', v > 0);
+    });
+  }
 
   // Filter pre-selection from ?filter=/hash is handled in darkroom.js init().
   applyFilters();

@@ -88,6 +88,12 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--f
 
 /* Preview */
 .stage{display:flex;flex-direction:column;gap:12px;}
+.stage-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.stage-tip{font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+@media(max-width:600px){.stage-tip{display:none;}}
+.group-head{margin-top:6px;font-family:var(--font-mono);font-size:0.62rem;font-weight:600;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--accent);}
+.group-head em{font-style:normal;color:var(--text-dim);font-weight:400;letter-spacing:0.02em;text-transform:none;margin-left:6px;}
 .preview-frame{position:relative;display:grid;place-items:center;min-height:340px;padding:20px;
   border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
   background:
@@ -129,6 +135,22 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--f
 .source-meta{display:flex;flex-direction:column;line-height:1.2;min-width:0;}
 .source-name{font-size:0.78rem;font-weight:600;max-width:18ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .source-sub{font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim);}
+
+/* Background-removal toggle */
+.bg-toggle{display:inline-flex;align-items:center;gap:7px;align-self:flex-start;padding:7px 12px;
+  border:1px solid var(--border);border-radius:999px;background:var(--surface-card);color:var(--text-muted);
+  font-size:0.74rem;font-weight:600;transition:background var(--transition),border-color var(--transition),color var(--transition);}
+.bg-toggle svg{width:15px;height:15px;fill:currentColor;}
+.bg-toggle:hover{background:var(--surface-raised);border-color:var(--border-hover);color:var(--text);}
+.bg-toggle[aria-checked="true"]{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.crop-select{display:inline-flex;align-items:center;gap:7px;align-self:flex-start;padding:6px 10px 6px 12px;
+  border:1px solid var(--border);border-radius:999px;background:var(--surface-card);color:var(--text-muted);
+  font-size:0.74rem;font-weight:600;transition:background var(--transition),border-color var(--transition),color var(--transition);}
+.crop-select svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.crop-select:hover{border-color:var(--border-hover);color:var(--text);}
+.crop-select.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.crop-select select{border:none;background:none;color:inherit;font:inherit;font-size:0.74rem;font-weight:600;padding:2px 0;outline:none;cursor:pointer;}
+.crop-select select option{background:var(--surface);color:var(--text);}
 
 /* Params */
 .controls{display:flex;flex-direction:column;gap:12px;}
@@ -184,6 +206,14 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--f
 
 <main class="editor">
   <section class="stage">
+    <div class="stage-top">
+      <span class="stage-tip">Ctrl+O open · Ctrl+S export · E before/after</span>
+      <button class="bg-toggle" id="effectToggle" type="button" role="switch" aria-checked="true"
+              title="Toggle the effect for a quick before/after (E)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span>Show effect</span>
+      </button>
+    </div>
     <div class="preview-frame">
       <canvas id="previewCanvas" width="320" height="320"></canvas>
     </div>
@@ -207,6 +237,21 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--f
       </span>
     </label>
 
+    <button class="bg-toggle" id="bgToggle" type="button" role="switch" aria-checked="false"
+            title="Flood-fill the background to transparent so the filter skips it">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 14h6v6h-6z"/><path d="M14 4h6v6h-6zM4 14h6v6H4z" opacity=".35"/></svg>
+      <span>Cut out background</span>
+    </button>
+
+    <label class="crop-select" id="cropCtl" title="Clip the image to a shape — everything outside becomes transparent">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><path d="M9 6h6a4 4 0 0 1 4 4v8"/><circle cx="6" cy="18" r="3"/><path d="M9 18h6a4 4 0 0 0 4-4V6"/></svg>
+      <select id="cropShape" aria-label="Crop to shape"></select>
+    </label>
+
+    <div class="group-head">Adjust <em>applies to every filter</em></div>
+    <div class="controls" id="adjustControls"></div>
+
+    <div class="group-head">Effect</div>
     <div class="controls" id="controls"></div>
 
     <div class="panel-foot">
@@ -265,10 +310,13 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--f
     const off = new OffscreenCanvas(w, h);
     const octx = off.getContext('2d');
     octx.drawImage(state.src, 0, 0, w, h);
-    const result = applyFilterById(id, octx.getImageData(0, 0, w, h), w, h, state.settings[id]);
     pc.width = w; pc.height = h;
     const ctx = pc.getContext('2d');
-    if (result) ctx.putImageData(result, 0, 0); else ctx.drawImage(off, 0, 0);
+    if (!state.showEffect) { ctx.drawImage(off, 0, 0); return; }   // before/after: raw source
+    const srcData = octx.getImageData(0, 0, w, h);
+    applyAdjustments(srcData, w, h);
+    const result = applyFilterById(id, srcData, w, h, state.settings[id]);
+    if (result) ctx.putImageData(result, 0, 0); else ctx.putImageData(srcData, 0, 0);
   }
 
   // ── Build the parameter controls ──
@@ -299,6 +347,28 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--f
     });
   }
 
+  // ── Build the global Adjust controls (Blur / Grain / Gamma / Levels) ──
+  function buildAdjustControls() {
+    const cnt = document.getElementById('adjustControls');
+    cnt.innerHTML = ADJUSTMENTS.map(p =>
+      `<div class="param-row">
+        <label class="param-label" for="a-${p.id}">${p.label}</label>
+        <div class="param-controls">
+          <input type="range" id="a-${p.id}" min="${p.min}" max="${p.max}" step="${p.step}" value="${state.adjust[p.id]}">
+          <span class="param-val" id="av-${p.id}">${state.adjust[p.id]}</span>
+        </div>
+      </div>`).join('');
+    ADJUSTMENTS.forEach(p => {
+      const el = document.getElementById(`a-${p.id}`);
+      const val = document.getElementById(`av-${p.id}`);
+      el.addEventListener('input', () => {
+        const v = Number(el.value);
+        val.textContent = v;
+        window.setAdjust(p.id, v);   // persists + re-renders via onSourceChanged
+      });
+    });
+  }
+
   // ── URL state for this filter (shareable / bookmarkable) ──
   function writeUrl() {
     try {
@@ -311,26 +381,32 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--f
   }
 
   // ── Source: same image as the grid (IndexedDB) or the sprout ──
-  function setSourceLabel(name, w, h, isDefault) {
+  let lastSourceMeta = { isDefault: true };
+  function drawSrcThumb(isDefault) {
     const thumb = document.getElementById('srcThumb');
-    const nm = document.getElementById('srcName');
-    const sb = document.getElementById('srcSub');
-    if (thumb) {
-      if (isDefault) { thumb.textContent = '🌱'; }
-      else if (state.src) {
-        thumb.textContent = '';
-        const c = document.createElement('canvas');
-        c.width = 30; c.height = 30;
-        c.getContext('2d').drawImage(state.src, 0, 0, 30, 30);
-        thumb.appendChild(c);
-      }
-    }
-    nm.textContent = isDefault ? 'Sample sprout' : (name || 'Your image');
-    sb.textContent = isDefault ? 'Drop or tap to use yours' : ((w && h) ? `${w}×${h} · tap to replace` : 'tap to replace');
+    if (!thumb) return;
+    if (isDefault && !state.removeBg) { thumb.textContent = '🌱'; return; }
+    if (!state.src) return;
+    thumb.textContent = '';
+    const c = document.createElement('canvas');
+    c.width = 30; c.height = 30;
+    c.getContext('2d').drawImage(state.src, 0, 0, 30, 30);
+    thumb.appendChild(c);
   }
+  function setSourceLabel(name, w, h, isDefault) {
+    lastSourceMeta = { isDefault: !!isDefault };
+    drawSrcThumb(isDefault);
+    document.getElementById('srcName').textContent = isDefault ? 'Sample sprout' : (name || 'Your image');
+    document.getElementById('srcSub').textContent  = isDefault ? 'Drop or tap to use yours'
+      : ((w && h) ? `${w}×${h} · tap to replace` : 'tap to replace');
+  }
+  // Re-render + re-thumb after the working source changes (bg removal).
+  window.onSourceChanged   = () => renderPreview();
+  window.refreshSourceThumb = () => drawSrcThumb(lastSourceMeta.isDefault);
 
   function useSprout() {
-    state.src = makeSproutSource();
+    state.srcOriginal = makeSproutSource();
+    deriveWorkingSource();
     state.isDefaultSource = true;
     setSourceLabel('Sample sprout', 0, 0, true);
     renderPreview();
@@ -346,8 +422,9 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--f
           ? await createImageBitmap(img)
           : (() => { const oc = new OffscreenCanvas(img.naturalWidth, img.naturalHeight); oc.getContext('2d').drawImage(img, 0, 0); return oc; })();
       } catch (e) { URL.revokeObjectURL(url); showToast('Could not process image.'); return; }
-      if (state.src && state.src.close) state.src.close();
-      state.src = bmp; state.isDefaultSource = false;
+      if (state.srcOriginal && state.srcOriginal.close) state.srcOriginal.close();
+      state.srcOriginal = bmp; state.isDefaultSource = false;
+      deriveWorkingSource();
       URL.revokeObjectURL(url);
       if (persist) { idbPut('image', blob).catch(() => {}); idbPut('name', name || 'image').catch(() => {}); }
       setSourceLabel(name, bmp.width, bmp.height, false);
@@ -372,6 +449,27 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--f
     const file = Array.from(e.dataTransfer.files).find(x => x.type.startsWith('image/'));
     if (file) setSource(file, file.name, true);
   });
+
+  // "Cut out background" toggle
+  const bgToggle = document.getElementById('bgToggle');
+  if (bgToggle) {
+    const syncBg = () => bgToggle.setAttribute('aria-checked', String(!!state.removeBg));
+    syncBg();
+    bgToggle.addEventListener('click', () => { window.setRemoveBg(!state.removeBg); syncBg(); });
+  }
+
+  // Shape-crop picker
+  const cropSel = document.getElementById('cropShape');
+  if (cropSel) {
+    cropSel.innerHTML = CROP_SHAPES.map((n, i) => `<option value="${i}">${n}</option>`).join('');
+    cropSel.value = String(state.cropShape || 0);
+    document.getElementById('cropCtl').classList.toggle('active', (state.cropShape || 0) > 0);
+    cropSel.addEventListener('change', () => {
+      const v = Number(cropSel.value);
+      window.setCropShape(v);
+      document.getElementById('cropCtl').classList.toggle('active', v > 0);
+    });
+  }
 
   // Download (engine exports at full source resolution)
   const dl = () => exportFilter(id);

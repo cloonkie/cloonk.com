@@ -1,23 +1,52 @@
 /* ============================================================
-   darkroom.js — 28 canvas-based image filters
+   darkroom.js — 23 canvas-based image filters
    All processing is local; nothing is uploaded.
+   Filters preserve source transparency: a background-free image
+   (PNG with alpha, or the "Remove background" cut-out) stays
+   background-free — no filter paints a solid backdrop over it.
    ============================================================ */
 
 'use strict';
 
 // ── State ─────────────────────────────────────────────────────
 const state = {
-  src:       null,
-  active:    null,
-  settings:  {},
+  src:         null,   // working source (may be a background-removed cut-out)
+  srcOriginal: null,   // the raw loaded bitmap, before background removal
+  srcHasAlpha: false,  // true when the working source has transparency
+  removeBg:    false,  // user toggle: flood-fill the background to transparent
+  cropShape:   0,      // 0 = off, else index into CROP_SHAPES
+  showEffect:  true,   // false = preview the unprocessed source (before/after)
+  adjust:      {},     // global pre-filter tone adjustments
+  active:      null,
+  settings:    {},
 };
+
+// Global image adjustments applied to the source before any filter runs.
+const ADJUSTMENTS = [
+  { id: 'blur',  label: 'Blur',        min: 0,   max: 12,  step: 0.5,  def: 0 },
+  { id: 'grain', label: 'Grain',       min: 0,   max: 100, step: 5,    def: 0 },
+  { id: 'gamma', label: 'Gamma',       min: 0.2, max: 3,   step: 0.05, def: 1 },
+  { id: 'black', label: 'Black Point', min: 0,   max: 254, step: 1,    def: 0 },
+  { id: 'white', label: 'White Point', min: 1,   max: 255, step: 1,    def: 255 },
+];
+ADJUSTMENTS.forEach(a => { state.adjust[a.id] = a.def; });
+
+const REMOVEBG_KEY  = 'cloonk-darkroom-removebg';
+const CROPSHAPE_KEY = 'cloonk-darkroom-cropshape';
+const ADJUST_KEY    = 'cloonk-darkroom-adjust';
+try { state.removeBg = localStorage.getItem(REMOVEBG_KEY) === '1'; } catch (e) {}
+try { state.cropShape = parseInt(localStorage.getItem(CROPSHAPE_KEY), 10) || 0; } catch (e) {}
+try {
+  const saved = JSON.parse(localStorage.getItem(ADJUST_KEY) || 'null');
+  if (saved) ADJUSTMENTS.forEach(a => {
+    const v = saved[a.id];
+    if (typeof v === 'number') state.adjust[a.id] = clamp(v, a.min, a.max);
+  });
+} catch (e) {}
 
 // ── Filter icons (SVG path data, 20×20 viewBox) ─────────────
 const ICONS = {
-  'color-halftone':  '<circle cx="5" cy="5" r="2.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="5" cy="15" r="1.5"/><circle cx="15" cy="15" r="2.5"/><circle cx="10" cy="10" r="2"/>',
-  'halftone-dot':    '<circle cx="4" cy="4" r="2.5" fill-opacity=".9"/><circle cx="10" cy="4" r="1.8"/><circle cx="16" cy="4" r="3"/><circle cx="4" cy="10" r="1.5"/><circle cx="10" cy="10" r="2.5"/><circle cx="16" cy="10" r="1.2"/><circle cx="4" cy="16" r="2.8"/><circle cx="10" cy="16" r="2"/><circle cx="16" cy="16" r="1.6"/>',
-  'halftone-circle': '<circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="10" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="1.5"/>',
-  'halftone-line':   '<line x1="2" y1="5" x2="18" y2="5" stroke-width="1.5"/><line x1="2" y1="9" x2="18" y2="9" stroke-width="2.5"/><line x1="2" y1="13" x2="18" y2="13" stroke-width="1.5"/><line x1="2" y1="17" x2="18" y2="17" stroke-width="3"/>',
+  'halftone':        '<circle cx="4" cy="4" r="2.6"/><circle cx="10" cy="4" r="1.8"/><circle cx="16" cy="4" r="1"/><circle cx="4" cy="10" r="1.8"/><circle cx="10" cy="10" r="2.6"/><circle cx="16" cy="10" r="1.8"/><circle cx="4" cy="16" r="1"/><circle cx="10" cy="16" r="1.8"/><circle cx="16" cy="16" r="2.6"/>',
   'graphic-pen':     '<line x1="3" y1="17" x2="17" y2="3" stroke-width="1.5" stroke-linecap="round"/><line x1="6" y1="17" x2="17" y2="6" stroke-width="1" stroke-linecap="round"/><line x1="3" y1="14" x2="14" y2="3" stroke-width="1" stroke-linecap="round"/><line x1="9" y1="17" x2="17" y2="9" stroke-width="1.5" stroke-linecap="round"/>',
   'stamp':           '<rect x="4" y="3" width="12" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="7" y="13" width="6" height="4" rx="0.5"/>',
   'bitmap':          '<rect x="2" y="2" width="6" height="6" rx="0.5"/><rect x="12" y="2" width="6" height="6" rx="0.5" fill-opacity=".4"/><rect x="2" y="12" width="6" height="6" rx="0.5" fill-opacity=".4"/><rect x="12" y="12" width="6" height="6" rx="0.5"/>',
@@ -28,10 +57,8 @@ const ICONS = {
   'ascii':           '<text x="2" y="9" font-size="6" font-family="monospace" fill="currentColor">A</text><text x="8" y="9" font-size="6" font-family="monospace" fill="currentColor">S</text><text x="14" y="9" font-size="6" font-family="monospace" fill="currentColor">C</text><text x="2" y="17" font-size="6" font-family="monospace" fill="currentColor">I</text><text x="8" y="17" font-size="6" font-family="monospace" fill="currentColor">I</text><text x="14" y="17" font-size="6" font-family="monospace" fill="currentColor">·</text>',
   'dithering':       '<rect x="2" y="2" width="4" height="4"/><rect x="8" y="2" width="4" height="4" fill-opacity=".5"/><rect x="14" y="2" width="4" height="4"/><rect x="5" y="5" width="4" height="4" fill-opacity=".3"/><rect x="11" y="5" width="4" height="4"/><rect x="2" y="8" width="4" height="4" fill-opacity=".7"/><rect x="8" y="8" width="4" height="4"/><rect x="14" y="8" width="4" height="4" fill-opacity=".4"/><rect x="5" y="11" width="4" height="4"/><rect x="11" y="11" width="4" height="4" fill-opacity=".6"/><rect x="2" y="14" width="4" height="4"/><rect x="8" y="14" width="4" height="4" fill-opacity=".2"/><rect x="14" y="14" width="4" height="4"/>',
   'matrix-rain':     '<line x1="4" y1="2" x2="4" y2="18" stroke-width="1.5" stroke-linecap="round" stroke-opacity=".3"/><line x1="10" y1="2" x2="10" y2="18" stroke-width="1.5" stroke-linecap="round" stroke-opacity=".7"/><line x1="16" y1="2" x2="16" y2="18" stroke-width="1.5" stroke-linecap="round" stroke-opacity=".5"/><circle cx="4" cy="6" r="1.5"/><circle cx="10" cy="3" r="1.5"/><circle cx="16" cy="9" r="1.5"/>',
-  'dots':            '<circle cx="5" cy="5" r="3"/><circle cx="15" cy="5" r="1.5"/><circle cx="10" cy="10" r="2.5"/><circle cx="5" cy="15" r="1.5"/><circle cx="15" cy="15" r="2.8"/>',
   'contour':         '<path d="M10 3 C16 3 18 7 18 10 C18 15 14 17 10 17 C6 17 2 15 2 10 C2 7 4 3 10 3Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 6 C14 6 15 8 15 10 C15 13 12 14 10 14 C8 14 5 13 5 10 C5 8 6 6 10 6Z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/>',
   'pixel-sort':      '<rect x="2" y="2" width="16" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><line x1="2" y1="5" x2="11" y2="5" stroke-width="2" stroke-linecap="round"/><line x1="11" y1="5" x2="18" y2="5" stroke-width="0.5" stroke-linecap="round" stroke-opacity=".3"/><line x1="2" y1="9" x2="7" y2="9" stroke-width="2" stroke-linecap="round"/><line x1="7" y1="9" x2="18" y2="9" stroke-width="0.5" stroke-linecap="round" stroke-opacity=".3"/><line x1="2" y1="13" x2="15" y2="13" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="17" x2="9" y2="17" stroke-width="2" stroke-linecap="round"/>',
-  'blockify':        '<rect x="1" y="1" width="8" height="8" rx="1"/><rect x="11" y="2" width="7" height="7" rx="1" fill-opacity=".8"/><rect x="2" y="11" width="7" height="6" rx="1" fill-opacity=".9"/><rect x="10" y="10" width="8" height="8" rx="1" fill-opacity=".7"/>',
   'threshold':       '<path d="M2 14 L8 14 L8 8 L14 8 L14 4 L18 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="2" y1="18" x2="18" y2="18" stroke-width="1" stroke-opacity=".4"/>',
   'edge-detect':     '<rect x="3" y="3" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 10 L10 7 L13 10 L10 13Z" fill="none" stroke="currentColor" stroke-width="1.5"/>',
   'crosshatch':      '<line x1="2" y1="18" x2="18" y2="2" stroke-width="1.5" stroke-linecap="round"/><line x1="2" y1="14" x2="14" y2="2" stroke-width="1" stroke-linecap="round" stroke-opacity=".7"/><line x1="6" y1="18" x2="18" y2="6" stroke-width="1" stroke-linecap="round" stroke-opacity=".7"/><line x1="2" y1="6" x2="6" y2="2" stroke-width="1" stroke-linecap="round" stroke-opacity=".5"/><line x1="14" y1="18" x2="18" y2="14" stroke-width="1" stroke-linecap="round" stroke-opacity=".5"/>',
@@ -53,33 +80,23 @@ function filterIcon(id) {
 // ── Filter registry ──────────────────────────────────────────
 const FILTERS = [
 
-  // ── Original 11 ──────────────────────────────────────────
+  // ── Halftone (one screen, many shapes, full dot controls) ─
   {
-    id: 'color-halftone', name: 'Color Halftone', sub: 'CMY Pixelate',
+    id: 'halftone', name: 'Halftone', sub: 'Print Screen',
     params: [
-      { id: 'size',   label: 'Max Radius',  min: 2,  max: 24,  step: 1, def: 6 },
-      { id: 'spread', label: 'Angle Spread',min: 10, max: 60,  step: 1, def: 36 },
-    ],
-  },
-  {
-    id: 'halftone-dot', name: 'Halftone', sub: 'Pattern · Dot',
-    params: [
-      { id: 'size',  label: 'Cell Size', min: 4,  max: 40, step: 2, def: 10 },
-      { id: 'angle', label: 'Angle°',    min: 0,  max: 90, step: 1, def: 45 },
-    ],
-  },
-  {
-    id: 'halftone-circle', name: 'Halftone', sub: 'Pattern · Circle',
-    params: [
-      { id: 'size',      label: 'Cell Size',   min: 4,  max: 40,  step: 2,   def: 12 },
-      { id: 'thickness', label: 'Ring Width %', min: 10, max: 80,  step: 5,   def: 45 },
-    ],
-  },
-  {
-    id: 'halftone-line', name: 'Halftone', sub: 'Pattern · Line',
-    params: [
-      { id: 'size',  label: 'Band Height', min: 2,  max: 24, step: 1, def: 6 },
-      { id: 'angle', label: 'Angle°',      min: 0,  max: 90, step: 1, def: 0 },
+      { id: 'shape',    label: 'Shape', min: 0, max: 5, step: 1, def: 0,
+        options: ['Dot', 'Square', 'Diamond', 'Line', 'Ring', 'CMYK'] },
+      { id: 'gridType', label: 'Grid Type', min: 0, max: 1, step: 1, def: 0,
+        options: ['Regular', 'Benday'] },
+      { id: 'size',     label: 'Step Size',  min: 3,  max: 40,  step: 1, def: 8 },
+      { id: 'angle',    label: 'Grid Angle°', min: 0, max: 90, step: 1, def: 45 },
+      { id: 'threshold',label: 'Threshold',  min: 0,  max: 255, step: 5, def: 128 },
+      { id: 'minDot',   label: 'Min Dot %',  min: 0,  max: 100, step: 5, def: 0 },
+      { id: 'maxDot',   label: 'Max Dot %',  min: 10, max: 100, step: 5, def: 100 },
+      { id: 'corner',   label: 'Corner Radius %', min: 0, max: 100, step: 5, def: 0 },
+      { id: 'noise',    label: 'Noise %',    min: 0,  max: 100, step: 5, def: 0 },
+      { id: 'color',    label: 'Ink', min: 0, max: 2, step: 1, def: 0,
+        options: ['Black on white', 'White on black', 'Source colour'] },
     ],
   },
   {
@@ -159,14 +176,6 @@ const FILTERS = [
     ],
   },
   {
-    id: 'dots', name: 'Dots', sub: 'Color Field',
-    params: [
-      { id: 'spacing', label: 'Spacing',   min: 4,  max: 30, step: 1, def: 10 },
-      { id: 'minSize', label: 'Min Size',  min: 1,  max: 8,  step: 1, def: 1 },
-      { id: 'maxSize', label: 'Max Size',  min: 3,  max: 20, step: 1, def: 7 },
-    ],
-  },
-  {
     id: 'contour', name: 'Contour', sub: 'Iso Lines',
     params: [
       { id: 'levels',    label: 'Level Count', min: 3,  max: 24, step: 1, def: 10 },
@@ -180,14 +189,6 @@ const FILTERS = [
       { id: 'threshold', label: 'Luma Threshold', min: 10, max: 240, step: 5,  def: 80 },
       { id: 'upper',     label: 'Upper Bound',    min: 50, max: 255, step: 5,  def: 200 },
       { id: 'direction', label: 'Direction', min: 0, max: 1, step: 1, def: 0, options: ['Horizontal', 'Vertical'] },
-    ],
-  },
-  {
-    id: 'blockify', name: 'Blockify', sub: 'Chunked Blocks',
-    params: [
-      { id: 'size',     label: 'Block Size',  min: 8,  max: 80, step: 4, def: 24 },
-      { id: 'variance', label: 'Jitter',      min: 0,  max: 20, step: 1, def: 6 },
-      { id: 'gap',      label: 'Gap',         min: 0,  max: 6,  step: 1, def: 2 },
     ],
   },
   {
@@ -215,11 +216,11 @@ const FILTERS = [
     ],
   },
   {
-    id: 'wave-lines', name: 'Wave Lines', sub: 'Distortion',
+    id: 'wave-lines', name: 'Wave Lines', sub: 'Ripple Warp',
     params: [
-      { id: 'amplitude', label: 'Amplitude',    min: 2,  max: 40, step: 1, def: 12 },
-      { id: 'frequency', label: 'Frequency',    min: 1,  max: 16, step: 1, def: 5 },
-      { id: 'spacing',   label: 'Line Spacing', min: 2,  max: 20, step: 1, def: 6 },
+      { id: 'amplitude', label: 'Amplitude',  min: 2,  max: 40,  step: 1, def: 12 },
+      { id: 'frequency', label: 'Frequency',  min: 1,  max: 16,  step: 1, def: 5 },
+      { id: 'vertical',  label: 'Vertical %', min: 0,  max: 100, step: 5, def: 40 },
     ],
   },
   {
@@ -247,11 +248,11 @@ const FILTERS = [
     ],
   },
   {
-    id: 'fractal-haze', name: 'Fractal Haze', sub: 'Warp Distortion',
+    id: 'fractal-haze', name: 'Fractal Haze', sub: 'Bloom & Glow',
     params: [
-      { id: 'intensity',  label: 'Intensity',   min: 5,  max: 100, step: 5, def: 50 },
-      { id: 'threshold',  label: 'Threshold',   min: 10, max: 200, step: 5, def: 80 },
-      { id: 'direction', label: 'Direction', min: 0, max: 1, step: 1, def: 0, options: ['Horizontal', 'Vertical'] },
+      { id: 'intensity', label: 'Glow %',      min: 10, max: 100, step: 5, def: 55 },
+      { id: 'radius',    label: 'Bloom Radius', min: 2,  max: 40,  step: 1, def: 14 },
+      { id: 'haze',      label: 'Haze %',       min: 0,  max: 100, step: 5, def: 40 },
     ],
   },
   {
@@ -277,10 +278,7 @@ const FILTERS = [
 
 // ── Filter descriptions (used by tooltip) ─────────────────────
 const FILTER_DESCRIPTIONS = {
-  'color-halftone':  'Splits the image into CMY channels and draws rotated dot grids — the classic offset-print look.',
-  'halftone-dot':    'Converts luminance to black dot radius on a white grid. Larger dots in shadows, smaller in highlights.',
-  'halftone-circle': 'Ring-shaped halftone: dark areas show thick annular rings, light areas fade out.',
-  'halftone-line':   'Luminance drives line thickness within evenly-spaced bands. Rotatable at any angle.',
+  'halftone':        'One halftone screen, many shapes — dot, square, diamond, line, ring, or full CMYK. Full dot controls: threshold, regular/Benday grid, angle, min/max dot, corner radius, step size and noise.',
   'graphic-pen':     'Diagonal ink strokes hatched at a chosen angle. Mimics a crosshatch sketch.',
   'stamp':           'Heavy blur then binary threshold creates a two-tone cut-out — rubber stamp or linocut look.',
   'bitmap':          'Pixelates to large blocks then thresholds to pure black and white. 1-bit at low resolution.',
@@ -291,29 +289,26 @@ const FILTER_DESCRIPTIONS = {
   'ascii':           'Maps luminance to character density in a monospace grid. Toggle colour to tint each character.',
   'dithering':       'Floyd–Steinberg error diffusion quantises to a small palette while preserving tonal range.',
   'matrix-rain':     'Falling katakana and digit columns over a darkened source. Density driven by brightness.',
-  'dots':            'Evenly-spaced filled circles sized by inverse luminance. Bold pop-art aesthetic.',
   'contour':         'Traces iso-luminance level-set lines like a topographic map. Control the number of levels.',
   'pixel-sort':      'Finds luminance-banded runs and sorts them by brightness — signature glitch streaks.',
-  'blockify':        'Randomly jittered square blocks with bevel highlights — a chunky, offset mosaic.',
   'threshold':       'Posterises to a fixed number of tonal steps, per-channel for screen-printed poster effects.',
   'edge-detect':     'Sobel gradient magnitude isolates outlines. Invert for white lines; colourize from source.',
   'crosshatch':      'Up to four hatch directions accumulate like hand engraving — dark areas fill densely.',
-  'wave-lines':      'Sinusoidal displacement of scan-lines, with amplitude modulated by local luminance.',
+  'wave-lines':      'Sinusoidal displacement warp — pixels ripple along a wave whose strength follows local luminance.',
   'noise-field':     'Fractal value noise adds organic texture — monochrome bump or colourised channel warp.',
   'voronoi':         'Seeds random cells and fills each with the colour of its nearest point — a stained-glass mosaic.',
   'vhs':             'Simulates VHS tape dropout: colour bleed, scanlines, noise, and chroma shift.',
   'sticker':         'BFS flood-fills from corners to remove the background, adds a border, and places on a texture.',
   'pixel-stretch':   'Triggers on mid-luminance pixels and streaks their colour across the frame — glitch warp.',
-  'fractal-haze':    'Fractal noise mixed with blurred source creates a dreamy, hazy atmospheric glow.',
+  'fractal-haze':    'Layers a soft directional bloom and drifting fractal noise over the image for a dreamy, hazy glow.',
 };
 
 // ── Filter families (used by the discovery toolbar) ───────────
 const FILTER_FAMILIES = {
-  'color-halftone': 'Halftone', 'halftone-dot': 'Halftone', 'halftone-circle': 'Halftone',
-  'halftone-line': 'Halftone', 'dots': 'Halftone',
+  'halftone': 'Halftone',
   'graphic-pen': 'Sketch', 'stamp': 'Sketch', 'contour': 'Sketch',
   'edge-detect': 'Sketch', 'crosshatch': 'Sketch',
-  'bitmap': 'Pixel', 'mosaic': 'Pixel', 'blockify': 'Pixel',
+  'bitmap': 'Pixel', 'mosaic': 'Pixel',
   'patchwork': 'Texture', 'noise-field': 'Texture',
   'row-stretch': 'Glitch', 'pixel-sort': 'Glitch', 'vhs': 'Glitch',
   'fractal-haze': 'Glitch', 'pixel-stretch': 'Glitch',
@@ -340,8 +335,16 @@ const downloadAllBtn = document.getElementById('downloadAllBtn');
 const themeToggle = document.getElementById('themeToggle');
 const toast       = document.getElementById('toast');
 const studioStatus = document.getElementById('studioStatus');
+const featuredPreview = document.getElementById('featuredPreview');
+const featuredTitle = document.getElementById('featuredTitle');
+const featuredSub = document.getElementById('featuredSub');
+const featuredFamily = document.getElementById('featuredFamily');
+const featuredDesc = document.getElementById('featuredDesc');
+const featuredOpen = document.getElementById('featuredOpen');
+const featuredDownload = document.getElementById('featuredDownload');
 let toastTimer;
 let renderGeneration = 0;
+let featuredId = 'original';
 
 // ── Theme ─────────────────────────────────────────────────────
 function setTheme(t) {
@@ -377,9 +380,10 @@ function loadSourceBlob(blob, name, persist) {
   const img = new Image();
   return new Promise(resolve => {
     const afterLoad = async (bmp) => {
-      if (state.src && state.src.close) state.src.close();
-      state.src = bmp;
+      if (state.srcOriginal && state.srcOriginal.close) state.srcOriginal.close();
+      state.srcOriginal = bmp;
       state.isDefaultSource = false;
+      deriveWorkingSource();
       URL.revokeObjectURL(url);
       if (emptyState) emptyState.hidden = true;
       grid.hidden = false;
@@ -442,6 +446,7 @@ function buildGrid() {
   grid.innerHTML = '';
   grid.appendChild(makeCell('original', 'Original', 'Source'));
   FILTERS.forEach(f => grid.appendChild(makeCell(f.id, f.name, f.sub)));
+  syncFeaturedPreview(featuredId);
 }
 
 // Each filter cell is a link to its own subpage (filter.html?f=<id>) —
@@ -456,9 +461,13 @@ function makeCell(id, name, sub) {
   wrap.className = 'filter-cell';
   wrap.dataset.id = id;
   if (FILTER_DESCRIPTIONS[id]) wrap.dataset.desc = FILTER_DESCRIPTIONS[id];
+  wrap.tabIndex = 0;
+  wrap.addEventListener('mouseenter', () => syncFeaturedPreview(id));
+  wrap.addEventListener('focus', () => syncFeaturedPreview(id));
 
   const cw = document.createElement('div');
   cw.className = 'filter-canvas-wrap';
+  cw.setAttribute('aria-hidden', 'true');
 
   const canvas = document.createElement('canvas');
   canvas.className = 'filter-canvas';
@@ -466,7 +475,17 @@ function makeCell(id, name, sub) {
 
   const label = document.createElement('div');
   label.className = 'filter-label';
-  label.innerHTML = `${filterIcon(id)}<span class="filter-label-text"><strong>${name}</strong><em>${sub}</em></span>`;
+  const desc = FILTER_DESCRIPTIONS[id] || (isOriginal ? 'The unfiltered source image currently loaded in the studio.' : '');
+  label.innerHTML = `${filterIcon(id)}<span class="filter-label-text"><strong>${name}</strong><em>${sub}</em><span class="filter-desc-inline">${desc}</span></span>`;
+
+  const actions = document.createElement('div');
+  actions.className = 'filter-row-actions';
+  if (!isOriginal) {
+    const actionText = document.createElement('span');
+    actionText.className = 'filter-action-text';
+    actionText.textContent = 'Open';
+    actions.appendChild(actionText);
+  }
 
   if (id !== 'original') {
     const dl = document.createElement('button');
@@ -479,14 +498,50 @@ function makeCell(id, name, sub) {
       e.stopPropagation();
       exportFilter(id, { markCell: true });
     });
-    label.appendChild(dl);
+    actions.appendChild(dl);
   }
 
   cw.appendChild(canvas);
   wrap.appendChild(cw);
   wrap.appendChild(label);
+  if (actions.childNodes.length) wrap.appendChild(actions);
   return wrap;
 }
+
+function syncFeaturedPreview(id) {
+  if (!featuredPreview) return;
+  featuredId = id || 'original';
+  document.querySelectorAll('.filter-cell.active').forEach(c => c.classList.remove('active'));
+  const cell = document.querySelector(`.filter-cell[data-id="${featuredId}"]`);
+  if (cell) cell.classList.add('active');
+
+  const sourceCanvas = document.getElementById(`canvas-${featuredId}`);
+  if (sourceCanvas && sourceCanvas.width && sourceCanvas.height) {
+    featuredPreview.width = sourceCanvas.width;
+    featuredPreview.height = sourceCanvas.height;
+    const ctx = featuredPreview.getContext('2d');
+    ctx.clearRect(0, 0, featuredPreview.width, featuredPreview.height);
+    ctx.drawImage(sourceCanvas, 0, 0);
+  }
+
+  const f = featuredId === 'original'
+    ? { name: 'Original', sub: 'Source' }
+    : FILTERS.find(x => x.id === featuredId);
+  if (!f) return;
+  if (featuredTitle) featuredTitle.textContent = f.name;
+  if (featuredSub) featuredSub.textContent = f.sub || '';
+  if (featuredFamily) featuredFamily.textContent = featuredId === 'original' ? 'Source' : (FILTER_FAMILIES[featuredId] || 'Filter');
+  if (featuredDesc) featuredDesc.textContent = FILTER_DESCRIPTIONS[featuredId] || 'The unfiltered source image currently loaded in the studio.';
+  if (featuredOpen) {
+    featuredOpen.hidden = featuredId === 'original';
+    featuredOpen.href = `filter.html?f=${encodeURIComponent(featuredId)}`;
+  }
+  if (featuredDownload) {
+    featuredDownload.hidden = featuredId === 'original';
+    featuredDownload.onclick = () => exportFilter(featuredId, { markCell: true });
+  }
+}
+window.syncFeaturedPreview = syncFeaturedPreview;
 
 // ── Render pipeline ───────────────────────────────────────────
 async function renderAll() {
@@ -508,6 +563,7 @@ function renderOriginal() {
   const { w, h } = thumbSize(state.src.width, state.src.height);
   canvas.width = w; canvas.height = h;
   canvas.getContext('2d').drawImage(state.src, 0, 0, w, h);
+  if (featuredId === 'original') syncFeaturedPreview('original');
 }
 
 function renderOne(id) {
@@ -521,40 +577,10 @@ function renderOne(id) {
   const offCtx = off.getContext('2d');
   offCtx.drawImage(state.src, 0, 0, w, h);
   const src = offCtx.getImageData(0, 0, w, h);
-  const s   = state.settings[id];
-
-  let result;
-  switch (id) {
-    case 'color-halftone':  result = filterColorHalftone(src, w, h, s); break;
-    case 'halftone-dot':    result = filterHalftoneDot(src, w, h, s); break;
-    case 'halftone-circle': result = filterHalftoneCircle(src, w, h, s); break;
-    case 'halftone-line':   result = filterHalftoneLine(src, w, h, s); break;
-    case 'graphic-pen':     result = filterGraphicPen(src, w, h, s); break;
-    case 'stamp':           result = filterStamp(src, w, h, s); break;
-    case 'bitmap':          result = filterBitmap(src, w, h, s); break;
-    case 'patchwork':       result = filterPatchwork(src, w, h, s); break;
-    case 'mosaic':          result = filterMosaic(src, w, h, s); break;
-    case 'row-stretch':     result = filterRowStretch(src, w, h, s); break;
-    case 'path-blur':       result = filterPathBlur(src, w, h, s); break;
-    case 'ascii':           result = filterASCII(src, w, h, s); break;
-    case 'dithering':       result = filterDithering(src, w, h, s); break;
-    case 'matrix-rain':     result = filterMatrixRain(src, w, h, s); break;
-    case 'dots':            result = filterDots(src, w, h, s); break;
-    case 'contour':         result = filterContour(src, w, h, s); break;
-    case 'pixel-sort':      result = filterPixelSort(src, w, h, s); break;
-    case 'blockify':        result = filterBlockify(src, w, h, s); break;
-    case 'threshold':       result = filterThreshold(src, w, h, s); break;
-    case 'edge-detect':     result = filterEdgeDetect(src, w, h, s); break;
-    case 'crosshatch':      result = filterCrosshatch(src, w, h, s); break;
-    case 'wave-lines':      result = filterWaveLines(src, w, h, s); break;
-    case 'noise-field':     result = filterNoiseField(src, w, h, s); break;
-    case 'voronoi':         result = filterVoronoi(src, w, h, s); break;
-    case 'vhs':             result = filterVHS(src, w, h, s); break;
-    case 'fractal-haze':    result = filterFractalHaze(src, w, h, s); break;
-    case 'pixel-stretch':   result = filterPixelStretch(src, w, h, s); break;
-    case 'sticker':         result = filterSticker(src, w, h, s); break;
-  }
+  applyAdjustments(src, w, h);
+  const result = applyFilterById(id, src, w, h, state.settings[id]);
   if (result) canvas.getContext('2d').putImageData(result, 0, 0);
+  if (featuredId === id) syncFeaturedPreview(id);
 }
 
 function thumbSize(sw, sh) {
@@ -628,150 +654,457 @@ function fractalNoise(x, y, octaves, scale, seed) {
   return v / max;
 }
 
-// ══════════════════════════════════════════════════════════════
-// ORIGINAL 11 FILTERS (refined)
-// ══════════════════════════════════════════════════════════════
-
-function filterColorHalftone(src, w, h, s) {
-  const size   = s.size   || 6;
-  const spread = s.spread || 36;
-  const out = new ImageData(w, h);
-  const d = out.data;
-  for (let i = 0; i < d.length; i+=4) { d[i]=255;d[i+1]=255;d[i+2]=255;d[i+3]=255; }
-
-  // CMY channels at spread-apart angles
-  const baseAngles = [0, spread, spread * 2].map(a => (a + 15) * Math.PI / 180);
-  const colors = [[0,255,255],[255,0,255],[255,255,0]];
-
-  baseAngles.forEach((ang, ci) => {
-    const cos = Math.cos(ang), sin = Math.sin(ang);
-    for (let gy = -size*2; gy < h + size*2; gy += size) {
-      for (let gx = -size*2; gx < w + size*2; gx += size) {
-        const ix = Math.round(gx * cos - gy * sin);
-        const iy = Math.round(gx * sin + gy * cos);
-        let sum = 0, cnt = 0;
-        for (let dy = -size; dy <= size; dy++) {
-          for (let dx = -size; dx <= size; dx++) {
-            const px = clamp(ix+dx,0,w-1), py = clamp(iy+dy,0,h-1);
-            sum += src.data[(py*w+px)*4 + ci]; cnt++;
-          }
-        }
-        const ink = 1 - (cnt ? sum/cnt : 0) / 255;
-        const radius = Math.sqrt(clamp(ink,0,1)) * size * 0.88;
-        if (radius < 0.5) continue;
-        const [cr,cg,cb] = colors[ci];
-        const cx2 = Math.round(gx * cos - gy * sin);
-        const cy2 = Math.round(gx * sin + gy * cos);
-        for (let dy = -Math.ceil(radius); dy <= Math.ceil(radius); dy++) {
-          for (let dx = -Math.ceil(radius); dx <= Math.ceil(radius); dx++) {
-            const px = cx2+dx, py = cy2+dy;
-            if (px<0||py<0||px>=w||py>=h) continue;
-            if (dx*dx+dy*dy > radius*radius) continue;
-            const idx=(py*w+px)*4;
-            d[idx]  =Math.round(d[idx]  *cr/255);
-            d[idx+1]=Math.round(d[idx+1]*cg/255);
-            d[idx+2]=Math.round(d[idx+2]*cb/255);
-          }
-        }
-      }
-    }
-  });
-  return out;
+// Seeded PRNG — filters that need randomness use this so the preview
+// matches the export and successive re-renders don't flicker.
+function mulberry32(a){
+  return()=>{
+    a|=0;a=a+0x6D2B79F5|0;
+    let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;
+    return((t^t>>>14)>>>0)/0x100000000;
+  };
 }
 
-function filterHalftoneDot(src, w, h, s) {
-  const size = s.size  || 10;
-  const ang  = (s.angle || 45) * Math.PI / 180;
-  const out = new ImageData(w, h);
-  const d = out.data;
-  for (let i=0;i<d.length;i+=4){d[i]=255;d[i+1]=255;d[i+2]=255;d[i+3]=255;}
+// ══════════════════════════════════════════════════════════════
+// TRANSPARENCY + SOURCE PIPELINE
+// ══════════════════════════════════════════════════════════════
+// Tolerance for the corner flood-fill background cut-out.
+const CUTOUT_TOLERANCE = 38;
+
+// Copy the source's alpha onto a filter result so background-free
+// (transparent) regions stay transparent — filters never paint a solid
+// background over a cut-out or a PNG that already has an alpha channel.
+function maskAlpha(result, src) {
+  const r = result.data, a = src.data;
+  for (let i = 3; i < r.length; i += 4) {
+    if (a[i] < 255) r[i] = Math.min(r[i], a[i]);
+  }
+  return result;
+}
+
+// Global pre-filter tone adjustments, applied to the source ImageData in
+// place before any filter runs: black/white point + gamma (levels), then
+// blur, then grain. Alpha is preserved so cut-outs stay crisp.
+function applyAdjustments(img, w, h) {
+  const a = state.adjust; if (!a) return img;
+  const d = img.data;
+  const bp = a.black || 0, wp = a.white != null ? a.white : 255, g = a.gamma || 1;
+
+  if (bp > 0 || wp < 255 || g !== 1) {
+    const span = Math.max(1, wp - bp), invG = 1 / Math.max(0.01, g);
+    const lut = new Uint8ClampedArray(256);
+    for (let i = 0; i < 256; i++) lut[i] = Math.pow(clamp((i - bp) / span, 0, 1), invG) * 255;
+    for (let i = 0; i < d.length; i += 4) { d[i] = lut[d[i]]; d[i + 1] = lut[d[i + 1]]; d[i + 2] = lut[d[i + 2]]; }
+  }
+
+  if (a.blur > 0) {
+    const alpha = new Uint8ClampedArray(w * h);
+    for (let i = 0, p = 3; i < w * h; i++, p += 4) alpha[i] = d[p];
+    blurData(d, w, h, a.blur);
+    for (let i = 0, p = 3; i < w * h; i++, p += 4) d[p] = alpha[i];  // keep original alpha
+  }
+
+  if (a.grain > 0) {
+    const rng = mulberry32(0x6a11 ^ (w * 2246822519) ^ h);
+    const amt = a.grain / 100 * 90;
+    for (let i = 0; i < d.length; i += 4) {
+      const n = (rng() - 0.5) * amt;
+      d[i] = clamp(d[i] + n, 0, 255); d[i + 1] = clamp(d[i + 1] + n, 0, 255); d[i + 2] = clamp(d[i + 2] + n, 0, 255);
+    }
+  }
+  return img;
+}
+
+// Public: pages call this from the Adjust sliders. Persists + re-renders.
+let adjustSaveTimer;
+window.setAdjust = function(id, value) {
+  state.adjust[id] = value;
+  clearTimeout(adjustSaveTimer);
+  adjustSaveTimer = setTimeout(() => {
+    try { localStorage.setItem(ADJUST_KEY, JSON.stringify(state.adjust)); } catch (e) {}
+  }, 400);
+  if (window.onSourceChanged) window.onSourceChanged();
+};
+
+// Public: before/after toggle (filter editor).
+window.setShowEffect = function(on) {
+  state.showEffect = !!on;
+  if (window.onSourceChanged) window.onSourceChanged();
+};
+
+// True when the drawable has any meaningfully non-opaque pixels.
+function detectAlpha(drawable) {
+  const dw = drawable.width, dh = drawable.height;
+  if (!dw || !dh) return false;
+  const s = Math.min(1, 200 / Math.max(dw, dh));
+  const w = Math.max(1, Math.round(dw * s)), h = Math.max(1, Math.round(dh * s));
+  const oc = new OffscreenCanvas(w, h);
+  const ctx = oc.getContext('2d');
+  ctx.drawImage(drawable, 0, 0, w, h);
+  const d = ctx.getImageData(0, 0, w, h).data;
+  for (let i = 3; i < d.length; i += 4) if (d[i] < 250) return true;
+  return false;
+}
+
+// Remove the background by flood-filling inward from every edge, clearing
+// pixels that match the corner colour within a tolerance. Returns a new
+// canvas whose background pixels have been made transparent.
+function cutoutBackground(drawable) {
+  const w = drawable.width, h = drawable.height;
+  const oc = new OffscreenCanvas(w, h);
+  const ctx = oc.getContext('2d');
+  ctx.drawImage(drawable, 0, 0);
+  const img = ctx.getImageData(0, 0, w, h);
+  const d = img.data;
+
+  const corners = [0, w - 1, (h - 1) * w, (h - 1) * w + (w - 1)];
+  let bgR = 0, bgG = 0, bgB = 0;
+  for (const c of corners) { bgR += d[c*4]; bgG += d[c*4+1]; bgB += d[c*4+2]; }
+  bgR /= 4; bgG /= 4; bgB /= 4;
+  const tol2 = (CUTOUT_TOLERANCE * 2.5) ** 2;
+  const near = (i) => {
+    const r = d[i] - bgR, g = d[i+1] - bgG, b = d[i+2] - bgB;
+    return r*r + g*g + b*b < tol2;
+  };
+
+  const inBg = new Uint8Array(w * h);
+  const queue = [];
+  const enq = (x, y) => {
+    const idx = y * w + x;
+    if (inBg[idx] || !near(idx * 4)) return;
+    inBg[idx] = 1; queue.push(idx);
+  };
+  for (let x = 0; x < w; x++) { enq(x, 0); enq(x, h - 1); }
+  for (let y = 1; y < h - 1; y++) { enq(0, y); enq(w - 1, y); }
+  let qi = 0;
+  while (qi < queue.length) {
+    const idx = queue[qi++];
+    const x = idx % w, y = (idx / w) | 0;
+    if (x > 0)     enq(x - 1, y);
+    if (x < w - 1) enq(x + 1, y);
+    if (y > 0)     enq(x, y - 1);
+    if (y < h - 1) enq(x, y + 1);
+  }
+  for (let i = 0; i < w * h; i++) if (inBg[i]) d[i * 4 + 3] = 0;
+  ctx.putImageData(img, 0, 0);
+  return oc;
+}
+
+// Shape-crop options (index 0 = off). Pages build their picker from this.
+const CROP_SHAPES = ['No crop', 'Circle', 'Rounded', 'Square', 'Hexagon', 'Star', 'Heart'];
+
+function cropRegularPolygon(ctx, cx, cy, r, n, rot) {
+  for (let i = 0; i < n; i++) {
+    const a = rot + i * 2 * Math.PI / n;
+    const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+}
+function cropStar(ctx, cx, cy, R, r, points, rot) {
+  for (let i = 0; i < points * 2; i++) {
+    const rad = i % 2 ? r : R, a = rot + i * Math.PI / points;
+    const x = cx + Math.cos(a) * rad, y = cy + Math.sin(a) * rad;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+}
+
+// Trace the chosen crop shape, fitted to the frame and centred.
+function drawCropPath(ctx, type, w, h) {
+  const cx = w / 2, cy = h / 2, m = Math.min(w, h);
+  ctx.beginPath();
+  switch (type) {
+    case 1: // Circle / oval — fills the frame
+      ctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2);
+      break;
+    case 2: { // Rounded rectangle
+      const r = m * 0.18;
+      ctx.moveTo(r, 0);
+      ctx.arcTo(w, 0, w, h, r); ctx.arcTo(w, h, 0, h, r);
+      ctx.arcTo(0, h, 0, 0, r); ctx.arcTo(0, 0, w, 0, r);
+      break;
+    }
+    case 3: // Centred square
+      ctx.rect(cx - m / 2, cy - m / 2, m, m);
+      break;
+    case 4: // Hexagon
+      cropRegularPolygon(ctx, cx, cy, m / 2, 6, -Math.PI / 2);
+      break;
+    case 5: // Star
+      cropStar(ctx, cx, cy, m / 2, m / 4.2, 5, -Math.PI / 2);
+      break;
+    case 6: { // Heart
+      const d = m * 0.92;
+      ctx.moveTo(cx, cy + d * 0.34);
+      ctx.bezierCurveTo(cx - d * 0.5, cy + d * 0.05, cx - d * 0.5, cy - d * 0.35, cx, cy - d * 0.10);
+      ctx.bezierCurveTo(cx + d * 0.5, cy - d * 0.35, cx + d * 0.5, cy + d * 0.05, cx, cy + d * 0.34);
+      break;
+    }
+  }
+  ctx.closePath();
+}
+
+// Clip the drawable to a shape, making everything outside it transparent.
+function cropToShape(drawable, type) {
+  const w = drawable.width, h = drawable.height;
+  const oc = new OffscreenCanvas(w, h);
+  const ctx = oc.getContext('2d');
+  ctx.drawImage(drawable, 0, 0);
+  ctx.globalCompositeOperation = 'destination-in';
+  ctx.fillStyle = '#000';
+  drawCropPath(ctx, type, w, h);
+  ctx.fill();
+  return oc;
+}
+
+// Derive the working source from the loaded original: optional background
+// removal, then optional shape crop, then flag whether it has transparency.
+function deriveWorkingSource() {
+  if (!state.srcOriginal) return;
+  let work = state.removeBg ? cutoutBackground(state.srcOriginal) : state.srcOriginal;
+  if (state.cropShape > 0) work = cropToShape(work, state.cropShape);
+  state.src = work;
+  state.srcHasAlpha = detectAlpha(state.src);
+}
+
+// Public: pages call this from their "Remove background" toggle. Re-renders
+// through the page-supplied hook (grid renderAll, or the subpage preview).
+window.setRemoveBg = function(on) {
+  state.removeBg = !!on;
+  try { localStorage.setItem(REMOVEBG_KEY, on ? '1' : '0'); } catch (e) {}
+  deriveWorkingSource();
+  if (window.refreshSourceThumb) window.refreshSourceThumb();
+  if (window.onSourceChanged) window.onSourceChanged();
+};
+
+// Public: pages call this from the shape-crop picker (0 = off).
+window.setCropShape = function(idx) {
+  state.cropShape = clamp(idx | 0, 0, CROP_SHAPES.length - 1);
+  try { localStorage.setItem(CROPSHAPE_KEY, String(state.cropShape)); } catch (e) {}
+  deriveWorkingSource();
+  if (window.refreshSourceThumb) window.refreshSourceThumb();
+  if (window.onSourceChanged) window.onSourceChanged();
+};
+
+// ══════════════════════════════════════════════════════════════
+// ORIGINAL FILTERS (refined)
+// ══════════════════════════════════════════════════════════════
+
+// ── Halftone — one screen, many shapes ───────────────────────
+// Samples luminance on a rotated grid and stamps a shape sized by ink
+// coverage. Shapes: dot / square / diamond / line / ring, plus a CMYK
+// mode that overprints four colour screens for the offset-print look.
+// Cells are sampled alpha-weighted, so a cut-out's transparent surround
+// never darkens edge cells.
+
+function htSampleCell(sd, w, h, ix, iy, sr) {
+  let L = 0, R = 0, G = 0, B = 0, wsum = 0;
+  for (let dy = -sr; dy <= sr; dy++) {
+    const yy = iy + dy; if (yy < 0 || yy >= h) continue;
+    for (let dx = -sr; dx <= sr; dx++) {
+      const xx = ix + dx; if (xx < 0 || xx >= w) continue;
+      const i = (yy * w + xx) * 4;
+      const a = sd[i + 3] / 255;
+      if (a === 0) continue;
+      R += sd[i] * a; G += sd[i + 1] * a; B += sd[i + 2] * a;
+      L += lum(sd[i], sd[i + 1], sd[i + 2]) * a; wsum += a;
+    }
+  }
+  if (wsum === 0) return null;
+  return { R: R / wsum, G: G / wsum, B: B / wsum, L: L / wsum };
+}
+
+// Rounded rectangle path centred for use as fill (used by square/diamond
+// dots when a Corner Radius is set).
+function htRoundRect(ctx, x, y, ww, hh, r) {
+  r = Math.max(0, Math.min(r, Math.min(ww, hh) / 2));
+  ctx.beginPath();
+  if (typeof ctx.roundRect === 'function') { ctx.roundRect(x, y, ww, hh, r); return; }
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + ww, y, x + ww, y + hh, r);
+  ctx.arcTo(x + ww, y + hh, x, y + hh, r);
+  ctx.arcTo(x, y + hh, x, y, r);
+  ctx.arcTo(x, y, x + ww, y, r);
+  ctx.closePath();
+}
+
+// Shared dot-control reader. Returns a coverage(L) → 0..1 fraction that
+// folds in Threshold (bias), Min/Max Dot range, and Noise (seeded jitter).
+function htControls(s, w, h) {
+  const dark = (s.color | 0) === 1;
+  const bias = (128 - (s.threshold != null ? s.threshold : 128)) / 128;
+  const minF = (s.minDot || 0) / 100;
+  const maxF = (s.maxDot != null ? s.maxDot : 100) / 100;
+  const noise = (s.noise || 0) / 100;
+  const rng = mulberry32(0x4a17 ^ (w * 2654435761) ^ h);
+  return {
+    dark, noise, rng,
+    frac(L) {
+      let ink = dark ? L / 255 : 1 - L / 255;
+      ink = clamp(ink + bias, 0, 1);
+      if (noise > 0) ink = clamp(ink + (rng() - 0.5) * noise, 0, 1);
+      return lerp(minF, maxF, ink);
+    },
+  };
+}
+
+function filterHalftone(src, w, h, s) {
+  const shape = s.shape | 0;
+  if (shape === 5) return halftoneCMYK(src, w, h, s);
+  if (shape === 3) return halftoneLines(src, w, h, s);
+
+  const cell   = Math.max(3, s.size || 8);
+  const ang    = (s.angle != null ? s.angle : 45) * Math.PI / 180;
+  const colorMode = s.color | 0;            // 0 ink/paper, 1 inverted, 2 source colour
+  const corner = (s.corner || 0) / 100;
+  const benday = (s.gridType | 0) === 1;
+  const c = htControls(s, w, h);
+  const dark = c.dark;
+
+  const off = new OffscreenCanvas(w, h);
+  const ctx = off.getContext('2d');
+  ctx.fillStyle = dark ? '#000' : '#fff';
+  ctx.fillRect(0, 0, w, h);
+
+  const sd = src.data;
   const cos = Math.cos(ang), sin = Math.sin(ang);
-  for (let gy = -size*2; gy < h+size*2; gy += size) {
-    for (let gx = -size*2; gx < w+size*2; gx += size) {
-      const cx = gx*cos - gy*sin, cy = gx*sin + gy*cos;
-      const sx = clamp(Math.round(cx),0,w-1), sy = clamp(Math.round(cy),0,h-1);
-      let sum=0,cnt=0;
-      const sr=Math.max(1,Math.floor(size/2));
-      for (let dy=-sr;dy<=sr;dy++) for (let dx=-sr;dx<=sr;dx++) {
-        const i=((clamp(sy+dy,0,h-1))*w+clamp(sx+dx,0,w-1))*4;
-        sum+=lum(src.data[i],src.data[i+1],src.data[i+2]);cnt++;
-      }
-      const radius=(1-(cnt?sum/cnt:0)/255)*size*0.74;
-      if (radius<0.5) continue;
-      const r2=radius*radius;
-      for (let dy=-Math.ceil(radius);dy<=Math.ceil(radius);dy++) {
-        for (let dx=-Math.ceil(radius);dx<=Math.ceil(radius);dx++) {
-          const px=Math.round(cx)+dx,py=Math.round(cy)+dy;
-          if(px<0||py<0||px>=w||py>=h||dx*dx+dy*dy>r2) continue;
-          const idx=(py*w+px)*4; d[idx]=0;d[idx+1]=0;d[idx+2]=0;d[idx+3]=255;
-        }
+  const sr = Math.max(1, Math.floor(cell / 2));
+  const cx0 = w / 2, cy0 = h / 2;
+  const diag = Math.ceil(Math.hypot(w, h) / cell) + 2;
+  const maxR = cell * 0.5 * Math.SQRT2;
+
+  for (let gj = -diag; gj <= diag; gj++) {
+    const rowOff = (benday && (gj & 1)) ? cell * 0.5 : 0;   // Benday: stagger rows
+    for (let gi = -diag; gi <= diag; gi++) {
+      const gx = gi * cell + rowOff, gy = gj * cell;
+      let px = gx * cos - gy * sin + cx0;
+      let py = gx * sin + gy * cos + cy0;
+      if (px < -cell || py < -cell || px > w + cell || py > h + cell) continue;
+      const smp = htSampleCell(sd, w, h, Math.round(px), Math.round(py), sr);
+      if (!smp) continue;
+      const frac = c.frac(smp.L);
+      if (c.noise > 0) { px += (c.rng() - 0.5) * cell * c.noise * 0.5; py += (c.rng() - 0.5) * cell * c.noise * 0.5; }
+      if (frac <= 0.001) continue;
+
+      if (colorMode === 2) ctx.fillStyle = `rgb(${smp.R | 0},${smp.G | 0},${smp.B | 0})`;
+      else                 ctx.fillStyle = dark ? '#fff' : '#000';
+      ctx.strokeStyle = ctx.fillStyle;
+
+      if (shape === 0) {                       // Dot
+        ctx.beginPath(); ctx.arc(px, py, frac * maxR, 0, Math.PI * 2); ctx.fill();
+      } else if (shape === 1 || shape === 2) { // Square / Diamond
+        const e = frac * cell;
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(ang + (shape === 2 ? Math.PI / 4 : 0));
+        if (corner > 0) { htRoundRect(ctx, -e / 2, -e / 2, e, e, corner * e / 2); ctx.fill(); }
+        else ctx.fillRect(-e / 2, -e / 2, e, e);
+        ctx.restore();
+      } else if (shape === 4) {                // Ring
+        const lw = clamp(frac * maxR * 0.6, 0.5, maxR);
+        ctx.lineWidth = lw;
+        ctx.beginPath(); ctx.arc(px, py, Math.max(lw / 2, maxR * 0.7 - lw / 2), 0, Math.PI * 2); ctx.stroke();
       }
     }
   }
-  return out;
+  return ctx.getImageData(0, 0, w, h);
 }
 
-function filterHalftoneCircle(src, w, h, s) {
-  const size  = s.size      || 12;
-  const thick = (s.thickness|| 45) / 100;
-  const out = new ImageData(w, h);
-  const d = out.data;
-  for (let i=0;i<d.length;i+=4){d[i]=255;d[i+1]=255;d[i+2]=255;d[i+3]=255;}
-  for (let gy = 0; gy < h+size; gy += size) {
-    for (let gx = 0; gx < w+size; gx += size) {
-      const sx=clamp(gx,0,w-1),sy=clamp(gy,0,h-1);
-      let sum=0,cnt=0;
-      const sr=Math.max(1,Math.floor(size/2));
-      for(let dy=-sr;dy<=sr;dy++) for(let dx=-sr;dx<=sr;dx++){
-        const i=((clamp(sy+dy,0,h-1))*w+clamp(sx+dx,0,w-1))*4;
-        sum+=lum(src.data[i],src.data[i+1],src.data[i+2]);cnt++;
-      }
-      const luma = cnt?sum/cnt:0;
-      const outerR = (1-luma/255)*size*0.74;
-      const innerR = outerR*(1-thick);
-      if(outerR<0.8) continue;
-      for(let dy=-Math.ceil(outerR);dy<=Math.ceil(outerR);dy++){
-        for(let dx=-Math.ceil(outerR);dx<=Math.ceil(outerR);dx++){
-          const px=gx+dx,py=gy+dy;
-          if(px<0||py<0||px>=w||py>=h) continue;
-          const dist=Math.sqrt(dx*dx+dy*dy);
-          if(dist>outerR||dist<innerR) continue;
-          const idx=(py*w+px)*4;d[idx]=0;d[idx+1]=0;d[idx+2]=0;d[idx+3]=255;
-        }
-      }
+// Variable-width ribbons running along the grid angle — thickness tracks
+// ink coverage (Threshold / Min·Max Dot / Noise), giving engraving lines.
+function halftoneLines(src, w, h, s) {
+  const cell = Math.max(2, s.size || 8);
+  const ang  = (s.angle != null ? s.angle : 0) * Math.PI / 180;
+  const c = htControls(s, w, h);
+  const dark = c.dark;
+
+  const off = new OffscreenCanvas(w, h);
+  const ctx = off.getContext('2d');
+  ctx.fillStyle = dark ? '#000' : '#fff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = dark ? '#fff' : '#000';
+
+  const sd = src.data;
+  const dirX = Math.cos(ang), dirY = Math.sin(ang);
+  const nx = -dirY, ny = dirX;
+  const cx0 = w / 2, cy0 = h / 2;
+  const span = Math.hypot(w, h) / 2 + cell;
+  const halfMax = cell * 0.5;
+
+  for (let b = -span; b <= span; b += cell) {
+    const top = [], bot = [];
+    for (let t = -span; t <= span; t += 2) {
+      const x = cx0 + dirX * t + nx * b, y = cy0 + dirY * t + ny * b;
+      const smp = htSampleCell(sd, w, h, Math.round(x), Math.round(y), 1);
+      const hh = (smp ? c.frac(smp.L) : 0) * halfMax;
+      top.push([x + nx * hh, y + ny * hh]);
+      bot.push([x - nx * hh, y - ny * hh]);
     }
+    ctx.beginPath();
+    ctx.moveTo(top[0][0], top[0][1]);
+    for (let i = 1; i < top.length; i++) ctx.lineTo(top[i][0], top[i][1]);
+    for (let i = bot.length - 1; i >= 0; i--) ctx.lineTo(bot[i][0], bot[i][1]);
+    ctx.closePath();
+    ctx.fill();
   }
-  return out;
+  return ctx.getImageData(0, 0, w, h);
 }
 
-function filterHalftoneLine(src, w, h, s) {
-  const lineH = Math.max(2, s.size  || 6);
-  const ang   = (s.angle || 0) * Math.PI / 180;
-  const out = new ImageData(w, h);
-  const d = out.data;
-  for(let i=0;i<d.length;i+=4){d[i]=255;d[i+1]=255;d[i+2]=255;d[i+3]=255;}
-  const cos=Math.cos(ang),sin=Math.sin(ang);
-  const maxT = Math.max(w,h)+lineH*2;
-  for(let band=-lineH; band<maxT+lineH; band+=lineH){
-    let sum=0,cnt=0;
-    for(let t=0;t<maxT;t+=3){
-      const px=clamp(Math.round(t*cos-band*sin),0,w-1);
-      const py=clamp(Math.round(t*sin+band*cos),0,h-1);
-      const i=(py*w+px)*4; sum+=lum(src.data[i],src.data[i+1],src.data[i+2]); cnt++;
-    }
-    const luma=cnt?sum/cnt:0;
-    const thick=Math.round((1-luma/255)*lineH*0.96);
-    if(thick<1) continue;
-    for(let t=0;t<maxT;t++){
-      for(let dt=-Math.floor(thick/2);dt<=Math.ceil(thick/2);dt++){
-        const px=Math.round(t*cos-(band+dt)*sin);
-        const py=Math.round(t*sin+(band+dt)*cos);
-        if(px<0||py<0||px>=w||py>=h) continue;
-        const idx=(py*w+px)*4;d[idx]=0;d[idx+1]=0;d[idx+2]=0;d[idx+3]=255;
+// Classic four-colour process screen — C/M/Y/K dot grids at their
+// traditional angles, overprinted with multiply for true rosettes.
+// Threshold biases all inks; Min/Max Dot, Noise and Benday apply too.
+function halftoneCMYK(src, w, h, s) {
+  const cell    = Math.max(3, s.size || 8);
+  const baseAng = (s.angle != null ? s.angle : 45);
+  const bias    = (128 - (s.threshold != null ? s.threshold : 128)) / 128;
+  const minF    = (s.minDot || 0) / 100;
+  const maxF    = (s.maxDot != null ? s.maxDot : 100) / 100;
+  const noise   = (s.noise || 0) / 100;
+  const benday  = (s.gridType | 0) === 1;
+  const rng     = mulberry32(0x4a17 ^ (w * 2654435761) ^ h);
+
+  const off = new OffscreenCanvas(w, h);
+  const ctx = off.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.globalCompositeOperation = 'multiply';
+
+  const sd = src.data;
+  const sr = Math.max(1, Math.floor(cell / 2));
+  const cx0 = w / 2, cy0 = h / 2;
+  const diag = Math.ceil(Math.hypot(w, h) / cell) + 2;
+  const maxR = cell * 0.5 * Math.SQRT2;
+
+  const channels = [
+    [15, 'rgb(0,255,255)', 0],   // Cyan
+    [75, 'rgb(255,0,255)', 1],   // Magenta
+    [0,  'rgb(255,255,0)', 2],   // Yellow
+    [45, 'rgb(0,0,0)',     3],   // Key (black)
+  ];
+
+  for (const [off2, color, ch] of channels) {
+    const ang = (baseAng + off2) * Math.PI / 180;
+    const cos = Math.cos(ang), sin = Math.sin(ang);
+    ctx.fillStyle = color;
+    for (let gj = -diag; gj <= diag; gj++) {
+      const rowOff = (benday && (gj & 1)) ? cell * 0.5 : 0;
+      for (let gi = -diag; gi <= diag; gi++) {
+        const gx = gi * cell + rowOff, gy = gj * cell;
+        let px = gx * cos - gy * sin + cx0;
+        let py = gx * sin + gy * cos + cy0;
+        if (px < -cell || py < -cell || px > w + cell || py > h + cell) continue;
+        const smp = htSampleCell(sd, w, h, Math.round(px), Math.round(py), sr);
+        if (!smp) continue;
+        const K = 1 - Math.max(smp.R, smp.G, smp.B) / 255;
+        let v = ch === 3 ? K : (K < 1 ? (1 - [smp.R, smp.G, smp.B][ch] / 255 - K) / (1 - K) : 0);
+        v = clamp(v + bias, 0, 1);
+        let frac = lerp(minF, maxF, Math.sqrt(v));
+        if (noise > 0) { frac = clamp(frac + (rng() - 0.5) * noise, 0, 1); px += (rng() - 0.5) * cell * noise * 0.5; py += (rng() - 0.5) * cell * noise * 0.5; }
+        if (frac <= 0.01) continue;
+        ctx.beginPath(); ctx.arc(px, py, frac * maxR, 0, Math.PI * 2); ctx.fill();
       }
     }
   }
-  return out;
+  return ctx.getImageData(0, 0, w, h);
 }
 
 function filterGraphicPen(src, w, h, s) {
@@ -779,25 +1112,35 @@ function filterGraphicPen(src, w, h, s) {
   const density = (s.density || 50) / 100;
   const angle   = (s.angle   || 45) * Math.PI / 180;
   const cos = Math.cos(angle), sin = Math.sin(angle);
-  const out = new ImageData(w, h);
-  const d = out.data;
-  for(let i=0;i<d.length;i+=4){d[i]=255;d[i+1]=255;d[i+2]=255;d[i+3]=255;}
-  const spacing = Math.max(1, Math.round(len*(1-density*0.5)));
-  for(let y=-len;y<h+len;y+=spacing){
-    for(let x=-len;x<w+len;x+=spacing){
-      const sx=clamp(x,0,w-1),sy=clamp(y,0,h-1);
-      const i=(sy*w+sx)*4;
-      const luma=lum(src.data[i],src.data[i+1],src.data[i+2]);
-      if(luma > 255*(1-density)) continue;
-      const sLen=Math.round(len*(1-luma/255)*0.9+2);
-      for(let t=0;t<sLen;t++){
-        const px=Math.round(x+t*cos),py=Math.round(y+t*sin);
-        if(px<0||py<0||px>=w||py>=h) continue;
-        const idx=(py*w+px)*4;d[idx]=0;d[idx+1]=0;d[idx+2]=0;d[idx+3]=255;
-      }
+  const sd = src.data;
+
+  const off = new OffscreenCanvas(w, h);
+  const ctx = off.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = '#000'; ctx.lineCap = 'round'; ctx.lineWidth = 1;
+
+  const rng = mulberry32(0x9ed1 ^ (w * 668265263) ^ h);
+  const spacing = Math.max(1, Math.round(len * (1 - density * 0.5)));
+  const minDark = (1 - density) * 0.85;
+
+  for (let y = -len; y < h + len; y += spacing) {
+    for (let x = -len; x < w + len; x += spacing) {
+      const sx = clamp(x, 0, w - 1), sy = clamp(y, 0, h - 1);
+      const i = (sy * w + sx) * 4;
+      if (sd[i + 3] === 0) continue;
+      const dark = 1 - lum(sd[i], sd[i + 1], sd[i + 2]) / 255;
+      if (dark < minDark) continue;
+      const sLen = len * dark * 0.9 + 2;
+      const jx = (rng() - 0.5) * spacing * 0.5, jy = (rng() - 0.5) * spacing * 0.5;
+      ctx.globalAlpha = clamp(dark * 1.25, 0.25, 1);
+      ctx.beginPath();
+      ctx.moveTo(x + jx, y + jy);
+      ctx.lineTo(x + jx + cos * sLen, y + jy + sin * sLen);
+      ctx.stroke();
     }
   }
-  return out;
+  ctx.globalAlpha = 1;
+  return ctx.getImageData(0, 0, w, h);
 }
 
 function filterStamp(src, w, h, s) {
@@ -918,9 +1261,10 @@ function filterPathBlur(src, w, h, s) {
   }
   const out = new ImageData(w, h);
   const d = out.data;
+  const rng = mulberry32(0x70a7 ^ (w * 374761393) ^ h);
   for(let i=0;i<w*h;i++){
     const idx=i*4;
-    const useOrig=Math.random()>grain;
+    const useOrig=rng()>grain;
     d[idx]  =useOrig?src.data[idx]  :blurred[idx];
     d[idx+1]=useOrig?src.data[idx+1]:blurred[idx+1];
     d[idx+2]=useOrig?src.data[idx+2]:blurred[idx+2];
@@ -930,37 +1274,47 @@ function filterPathBlur(src, w, h, s) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// NEW 15 FILTERS
+// GENERATIVE / STYLISE / GLITCH FILTERS
 // ══════════════════════════════════════════════════════════════
 
 // ── ASCII ─────────────────────────────────────────────────────
+// Monospace glyphs are ~0.55 as wide as tall, so cells are rectangular —
+// this keeps the rendered characters un-stretched. Sampling is
+// alpha-weighted and transparent cells are skipped.
 function filterASCII(src, w, h, s) {
-  const cellSize = Math.max(4, s.cellSize || 9);
+  const cellH = Math.max(4, s.cellSize || 9);
+  const cellW = Math.max(3, Math.round(cellH * 0.55));
   const contrast = (s.contrast || 110) / 100;
   const color    = s.color     || 0;
   const chars = ' .\'`^",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$'.split('');
   const nChars = chars.length;
+  const sd = src.data;
 
   const off = new OffscreenCanvas(w, h);
   const ctx = off.getContext('2d');
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, w, h);
-  ctx.font = `bold ${cellSize}px monospace`;
+  ctx.font = `bold ${cellH}px monospace`;
   ctx.textBaseline = 'top';
 
-  for (let y = 0; y < h; y += cellSize) {
-    for (let x = 0; x < w; x += cellSize) {
-      let R=0,G=0,B=0,cnt=0;
-      for(let dy=0;dy<cellSize&&y+dy<h;dy++) for(let dx=0;dx<cellSize&&x+dx<w;dx++){
-        const i=((y+dy)*w+(x+dx))*4;
-        R+=src.data[i];G+=src.data[i+1];B+=src.data[i+2];cnt++;
+  for (let y = 0; y < h; y += cellH) {
+    for (let x = 0; x < w; x += cellW) {
+      let R = 0, G = 0, B = 0, L = 0, wsum = 0;
+      for (let dy = 0; dy < cellH && y + dy < h; dy++) {
+        for (let dx = 0; dx < cellW && x + dx < w; dx++) {
+          const i = ((y + dy) * w + (x + dx)) * 4;
+          const a = sd[i + 3] / 255; if (a === 0) continue;
+          R += sd[i] * a; G += sd[i + 1] * a; B += sd[i + 2] * a;
+          L += lum(sd[i], sd[i + 1], sd[i + 2]) * a; wsum += a;
+        }
       }
-      const ar=cnt?R/cnt:0,ag=cnt?G/cnt:0,ab=cnt?B/cnt:0;
-      const l = clamp(lum(ar,ag,ab)*contrast,0,255);
-      const charIdx = Math.floor((l/255)*(nChars-1));
-      const ch = chars[charIdx];
-      if(color) ctx.fillStyle=`rgb(${Math.round(ar)},${Math.round(ag)},${Math.round(ab)})`;
-      else ctx.fillStyle=`rgb(${Math.round(l)},${Math.round(l)},${Math.round(l)})`;
+      if (wsum === 0) continue;
+      const ar = R / wsum, ag = G / wsum, ab = B / wsum;
+      const l = clamp((L / wsum) * contrast, 0, 255);
+      const ch = chars[Math.floor((l / 255) * (nChars - 1))];
+      ctx.fillStyle = color
+        ? `rgb(${ar | 0},${ag | 0},${ab | 0})`
+        : `rgb(${l | 0},${l | 0},${l | 0})`;
       ctx.fillText(ch, x, y);
     }
   }
@@ -1038,7 +1392,8 @@ function filterMatrixRain(src, w, h, s) {
   ctx.font = `${colW - 1}px monospace`;
   ctx.textBaseline = 'top';
 
-  const seed = 42;
+  // Seeded so the rain is stable between preview and export.
+  const rng = mulberry32(0x4d52 ^ (w * 2246822519) ^ h);
   for (let col = 0; col < w; col += colW) {
     // Sample average brightness of this column
     let sum = 0, cnt = 0;
@@ -1051,53 +1406,23 @@ function filterMatrixRain(src, w, h, s) {
     const colDensity = density * (avgL/255 * 0.7 + 0.3);
 
     // Draw glyphs downward with fade
-    const startY = ((col * 137 + seed) % h) - h/2;
+    const startY = ((col * 137 + 42) % h) - h/2;
     for(let row=0;row<h;row+=colW){
-      if(Math.random()>colDensity) continue;
+      if(rng()>colDensity) continue;
       const y2 = startY + row;
       if(y2<0||y2>=h) continue;
       // Brightness falls off with depth
       const t = row/h;
       const bright = Math.round(255 * Math.pow(1-t, fade * 0.2));
-      const isHead = row===0||Math.random()<0.05;
+      const isHead = row===0||rng()<0.05;
       if(isHead) ctx.fillStyle=`rgba(180,255,180,${bright/255})`;
       else ctx.fillStyle=`rgba(0,${bright},0,${bright/255})`;
-      const g = glyphs[Math.floor(Math.random()*glyphs.length)];
+      const g = glyphs[Math.floor(rng()*glyphs.length)];
       ctx.fillText(g, col, y2);
     }
   }
 
   return ctx.getImageData(0, 0, w, h);
-}
-
-// ── Dots ──────────────────────────────────────────────────────
-function filterDots(src, w, h, s) {
-  const spacing = s.spacing || 10;
-  const minSize = s.minSize || 1;
-  const maxSize = s.maxSize || 7;
-  const out = new ImageData(w, h);
-  const d = out.data;
-  // White bg
-  for(let i=0;i<d.length;i+=4){d[i]=255;d[i+1]=255;d[i+2]=255;d[i+3]=255;}
-
-  for(let y=spacing/2|0;y<h;y+=spacing){
-    for(let x=spacing/2|0;x<w;x+=spacing){
-      const i=(clamp(y,0,h-1)*w+clamp(x,0,w-1))*4;
-      const R=src.data[i],G=src.data[i+1],B=src.data[i+2];
-      const l=lum(R,G,B);
-      const radius=lerp(maxSize,minSize,l/255);
-      const r2=radius*radius;
-      for(let dy=-Math.ceil(radius);dy<=Math.ceil(radius);dy++){
-        for(let dx=-Math.ceil(radius);dx<=Math.ceil(radius);dx++){
-          const px=x+dx,py=y+dy;
-          if(px<0||py<0||px>=w||py>=h||dx*dx+dy*dy>r2) continue;
-          const idx=(py*w+px)*4;
-          d[idx]=R;d[idx+1]=G;d[idx+2]=B;d[idx+3]=255;
-        }
-      }
-    }
-  }
-  return out;
 }
 
 // ── Contour ───────────────────────────────────────────────────
@@ -1219,53 +1544,6 @@ function filterPixelSort(src, w, h, s) {
   return out;
 }
 
-// ── Blockify ──────────────────────────────────────────────────
-function filterBlockify(src, w, h, s) {
-  const size = s.size    || 24;
-  const jitter= s.variance|| 6;
-  const gap   = s.gap    || 2;
-  const out = new ImageData(w, h);
-  const d = out.data;
-  // Background from blurred source
-  const bg = new Uint8ClampedArray(src.data);
-  blurData(bg, w, h, size * 0.4);
-  out.data.set(bg);
-
-  // Draw jittered blocks
-  const cols = Math.ceil(w / size) + 2;
-  const rows = Math.ceil(h / size) + 2;
-  for(let row=0;row<rows;row++){
-    for(let col=0;col<cols;col++){
-      const bx = (col - 1) * size + (Math.random()-0.5)*jitter*2|0;
-      const by = (row - 1) * size + (Math.random()-0.5)*jitter*2|0;
-      const bw = size - gap;
-      const bh = size - gap;
-      // Sample center
-      const sx=clamp(bx+bw/2|0,0,w-1),sy=clamp(by+bh/2|0,0,h-1);
-      const i=(sy*w+sx)*4;
-      let R=src.data[i],G=src.data[i+1],B=src.data[i+2];
-      // Average 3x3 region
-      let R2=0,G2=0,B2=0,cnt2=0;
-      for(let dy=-size/2|0;dy<=size/2;dy+=4) for(let dx=-size/2|0;dx<=size/2;dx+=4){
-        const px2=clamp(sx+dx,0,w-1),py2=clamp(sy+dy,0,h-1);
-        const i2=(py2*w+px2)*4;R2+=src.data[i2];G2+=src.data[i2+1];B2+=src.data[i2+2];cnt2++;
-      }
-      if(cnt2){R=R2/cnt2|0;G=G2/cnt2|0;B=B2/cnt2|0;}
-      for(let dy=0;dy<bh;dy++){
-        for(let dx=0;dx<bw;dx++){
-          const px=bx+dx,py=by+dy;
-          if(px<0||py<0||px>=w||py>=h) continue;
-          const idx=(py*w+px)*4;
-          // Subtle top-left highlight
-          const hl=(dx<2||dy<2)?18:(dx>=bw-2||dy>=bh-2)?-12:0;
-          d[idx]=clamp(R+hl,0,255);d[idx+1]=clamp(G+hl,0,255);d[idx+2]=clamp(B+hl,0,255);d[idx+3]=255;
-        }
-      }
-    }
-  }
-  return out;
-}
-
 // ── Threshold / Posterize ─────────────────────────────────────
 function filterThreshold(src, w, h, s) {
   const levels  = Math.max(2, s.levels  || 2);
@@ -1336,64 +1614,75 @@ function filterEdgeDetect(src, w, h, s) {
 }
 
 // ── Crosshatch ────────────────────────────────────────────────
+// Each direction is a layer of anti-aliased lines that only ink where
+// the image is dark enough; deeper layers kick in only in the shadows,
+// so tone builds up like hand engraving.
 function filterCrosshatch(src, w, h, s) {
-  const spacing   = s.spacing   || 7;
+  const spacing   = Math.max(2, s.spacing   || 7);
   const lineWidth = s.lineWidth || 1;
-  const passes    = s.passes    || 3;
-  const out = new ImageData(w, h);
-  const d = out.data;
-  for(let i=0;i<d.length;i+=4){d[i]=255;d[i+1]=255;d[i+2]=255;d[i+3]=255;}
+  const passes    = clamp(s.passes || 3, 1, 4);
+  const sd = src.data;
 
-  const hatchAngles = [45, -45, 90, 0].slice(0, passes);
+  const off = new OffscreenCanvas(w, h);
+  const ctx = off.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = '#000'; ctx.lineWidth = lineWidth; ctx.lineCap = 'round';
 
-  for(const angleDeg of hatchAngles){
-    const ang = angleDeg * Math.PI / 180;
-    const cos = Math.cos(ang), sin = Math.sin(ang);
-    const maxT = Math.max(w,h)*2;
-    for(let band=-maxT;band<maxT;band+=spacing){
-      for(let t=-maxT;t<maxT;t++){
-        for(let lw=0;lw<lineWidth;lw++){
-          const b=band+lw;
-          const px=Math.round(t*cos-b*sin);
-          const py=Math.round(t*sin+b*cos);
-          if(px<0||py<0||px>=w||py>=h) continue;
-          // Only draw if luminance is dark enough
-          const si=(clamp(py,0,h-1)*w+clamp(px,0,w-1))*4;
-          const l=lum(src.data[si],src.data[si+1],src.data[si+2]);
-          // Threshold: darker areas get more hatch passes
-          const passThreshold=255*(1-(hatchAngles.indexOf(angleDeg)+1)/passes);
-          if(l>passThreshold) continue;
-          const idx=(py*w+px)*4;
-          d[idx]=0;d[idx+1]=0;d[idx+2]=0;d[idx+3]=255;
+  const angles = [45, -45, 90, 0].slice(0, passes).map(a => a * Math.PI / 180);
+  const span = Math.hypot(w, h);
+  const cx0 = w / 2, cy0 = h / 2;
+
+  angles.forEach((ang, pi) => {
+    const cos = Math.cos(ang), sin = Math.sin(ang);   // along the line
+    const nx = -sin, ny = cos;                         // band normal
+    const thresh = 255 * (1 - (pi + 1) / (passes + 1)); // later layers = darker only
+    for (let b = -span; b <= span; b += spacing) {
+      let drawing = false, x0 = 0, y0 = 0, px = 0, py = 0;
+      const flush = () => { if (drawing) { ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(px, py); ctx.stroke(); drawing = false; } };
+      for (let t = -span; t <= span; t += 1.5) {
+        const x = cx0 + cos * t + nx * b, y = cy0 + sin * t + ny * b;
+        const ix = Math.round(x), iy = Math.round(y);
+        let dark = false;
+        if (ix >= 0 && iy >= 0 && ix < w && iy < h) {
+          const i = (iy * w + ix) * 4;
+          if (sd[i + 3] > 0 && lum(sd[i], sd[i + 1], sd[i + 2]) < thresh) dark = true;
         }
+        if (dark) { if (!drawing) { drawing = true; x0 = x; y0 = y; } px = x; py = y; }
+        else flush();
       }
+      flush();
     }
-  }
-  return out;
+  });
+  return ctx.getImageData(0, 0, w, h);
 }
 
 // ── Wave Lines ────────────────────────────────────────────────
+// Smooth sinusoidal displacement warp — every pixel is pulled along a
+// wave whose strength is modulated by local luminance, so detail ripples
+// while flat areas stay calm.
 function filterWaveLines(src, w, h, s) {
-  const amp     = s.amplitude || 12;
-  const freq    = s.frequency || 5;
-  const spacing = s.spacing   || 6;
+  const amp  = s.amplitude || 12;
+  const freq = s.frequency || 5;
+  const vert = (s.vertical != null ? s.vertical : 40) / 100;
+  const sd = src.data;
   const out = new ImageData(w, h);
   const d = out.data;
-  for(let i=0;i<d.length;i+=4){d[i]=0;d[i+1]=0;d[i+2]=0;d[i+3]=255;}
+  const k = Math.PI * 2 * freq;
 
-  for(let lineY=0;lineY<h;lineY+=spacing){
-    for(let x=0;x<w;x++){
-      const si=(clamp(lineY,0,h-1)*w+clamp(x,0,w-1))*4;
-      const l=lum(src.data[si],src.data[si+1],src.data[si+2]);
-      const wave=Math.sin((x/w)*Math.PI*2*freq + lineY*0.05)*(l/255)*amp;
-      const py=Math.round(lineY+wave);
-      if(py<0||py>=h) continue;
-      const idx=(py*w+x)*4;
-      const srcIdx=(clamp(lineY,0,h-1)*w+x)*4;
-      d[idx]=src.data[srcIdx];
-      d[idx+1]=src.data[srcIdx+1];
-      d[idx+2]=src.data[srcIdx+2];
-      d[idx+3]=255;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const li = (y * w + x) * 4;
+      const l = lum(sd[li], sd[li + 1], sd[li + 2]) / 255;
+      const m = amp * (0.35 + 0.65 * l);
+      const dx = Math.sin((y / h) * k + x * 0.012) * m;
+      const dy = Math.cos((x / w) * k + y * 0.012) * m * vert;
+      const sx = clamp(Math.round(x + dx), 0, w - 1);
+      const sy = clamp(Math.round(y + dy), 0, h - 1);
+      const si = (sy * w + sx) * 4;
+      d[li]     = sd[si];
+      d[li + 1] = sd[si + 1];
+      d[li + 2] = sd[si + 2];
+      d[li + 3] = sd[si + 3];
     }
   }
   return out;
@@ -1498,129 +1787,87 @@ function filterVoronoi(src, w, h, s) {
   return out;
 }
 
-function mulberry32(a){
-  return()=>{
-    a|=0;a=a+0x6D2B79F5|0;
-    let t=Math.imul(a^a>>>15,1|a);
-    t=t+Math.imul(t^t>>>7,61|t)^t;
-    return((t^t>>>14)>>>0)/0x100000000;
-  };
-}
-
 // ── VHS ───────────────────────────────────────────────────────
+// Deterministic (seeded) so the preview matches the export and the
+// effect doesn't reshuffle on every re-render.
 function filterVHS(src, w, h, s) {
   const chroma    = s.chroma    || 8;
   const scanlines = s.scanlines || 3;
   const noiseAmt  = (s.noise    || 18) / 100;
+  const rng = mulberry32(0x5651 ^ (w * 73856093) ^ (h * 19349663));
   const out = new ImageData(w, h);
-  const d = out.data;
+  const d = out.data, sd = src.data;
 
-  for(let y=0;y<h;y++){
-    // Horizontal jitter per row (tape tracking glitch)
-    const jitter = Math.random()<0.04 ? (Math.random()-0.5)*chroma*3|0 : 0;
-    for(let x=0;x<w;x++){
-      const rx=clamp(x+chroma+jitter,0,w-1);
-      const bx=clamp(x-chroma+jitter,0,w-1);
-      const gx=clamp(x+jitter,0,w-1);
-      const ri=(y*w+rx)*4, gi=(y*w+gx)*4, bi=(y*w+bx)*4;
-      const idx=(y*w+x)*4;
+  // Per-row tape-tracking jitter, decided once up front.
+  const rowJit = new Int16Array(h);
+  for (let y = 0; y < h; y++) rowJit[y] = rng() < 0.05 ? ((rng() - 0.5) * chroma * 3) | 0 : 0;
 
-      let r=src.data[ri],g=src.data[gi+1],b=src.data[bi+2];
-
-      // Scan line dimming
-      if(scanlines>0 && y%Math.max(2,scanlines)===0){
-        r=r*0.72|0; g=g*0.72|0; b=b*0.72|0;
+  for (let y = 0; y < h; y++) {
+    const jitter = rowJit[y];
+    const dim = (scanlines > 0 && y % Math.max(2, scanlines) === 0) ? 0.72 : 1;
+    for (let x = 0; x < w; x++) {
+      const rx = clamp(x + chroma + jitter, 0, w - 1);
+      const bx = clamp(x - chroma + jitter, 0, w - 1);
+      const gx = clamp(x + jitter, 0, w - 1);
+      const idx = (y * w + x) * 4;
+      let r = sd[(y * w + rx) * 4], g = sd[(y * w + gx) * 4 + 1], b = sd[(y * w + bx) * 4 + 2];
+      if (dim !== 1) { r *= dim; g *= dim; b *= dim; }
+      if (noiseAmt > 0) {
+        const n = (rng() - 0.5) * 255 * noiseAmt;
+        r = clamp(r + n, 0, 255); g = clamp(g + n, 0, 255); b = clamp(b + n, 0, 255);
       }
-
-      // Luminance noise
-      if(noiseAmt>0){
-        const n=(Math.random()-0.5)*255*noiseAmt;
-        r=clamp(r+n,0,255); g=clamp(g+n,0,255); b=clamp(b+n,0,255);
-      }
-
-      d[idx]=r; d[idx+1]=g; d[idx+2]=b; d[idx+3]=255;
+      d[idx] = r; d[idx + 1] = g; d[idx + 2] = b; d[idx + 3] = 255;
     }
   }
 
-  // Add a couple of horizontal tracking glitch bands
-  const nBands=Math.floor(Math.random()*3)+1;
-  for(let b=0;b<nBands;b++){
-    const bandY=Math.random()*h|0;
-    const bandH=Math.random()*6+2|0;
-    const shift=((Math.random()-0.5)*chroma*4)|0;
-    for(let y2=bandY;y2<Math.min(h,bandY+bandH);y2++){
-      for(let x2=0;x2<w;x2++){
-        const srcX=clamp(x2+shift,0,w-1);
-        const di=(y2*w+x2)*4, si=(y2*w+srcX)*4;
-        d[di]=d[si];d[di+1]=d[si+1];d[di+2]=d[si+2];
+  // A few horizontal tracking-glitch bands.
+  const nBands = (rng() * 3 | 0) + 1;
+  for (let bnd = 0; bnd < nBands; bnd++) {
+    const bandY = rng() * h | 0;
+    const bandH = (rng() * 6 + 2) | 0;
+    const shift = ((rng() - 0.5) * chroma * 4) | 0;
+    for (let y2 = bandY; y2 < Math.min(h, bandY + bandH); y2++) {
+      for (let x2 = 0; x2 < w; x2++) {
+        const srcX = clamp(x2 + shift, 0, w - 1);
+        const di = (y2 * w + x2) * 4, si = (y2 * w + srcX) * 4;
+        d[di] = d[si]; d[di + 1] = d[si + 1]; d[di + 2] = d[si + 2];
       }
     }
   }
-
   return out;
 }
 
 // ── Fractal Haze ─────────────────────────────────────────────
+// A soft directional bloom screened over the image, plus a drifting
+// fractal-noise veil — a dreamy, hazy glow (matches its description).
 function filterFractalHaze(src, w, h, s) {
-  const intensity  = s.intensity  || 50;
-  const threshold  = s.threshold  || 80;
-  const direction  = s.direction  || 0; // 0=horizontal,1=vertical
+  const intensity = (s.intensity || 55) / 100;     // glow strength
+  const radius    = Math.max(1, s.radius || 14);    // bloom radius
+  const haze      = (s.haze != null ? s.haze : 40) / 100; // veil amount
+  const sd = src.data;
 
-  const data = new Uint8ClampedArray(src.data);
+  // Isolate the brighter tones and blur them into a bloom layer.
+  const bloom = new Uint8ClampedArray(sd.length);
+  for (let i = 0; i < w * h; i++) {
+    const j = i * 4;
+    const k = clamp((lum(sd[j], sd[j + 1], sd[j + 2]) - 110) / 145, 0, 1);
+    bloom[j] = sd[j] * k; bloom[j + 1] = sd[j + 1] * k; bloom[j + 2] = sd[j + 2] * k; bloom[j + 3] = 255;
+  }
+  blurData(bloom, w, h, radius);
 
-  if (!direction) {
-    // Sort horizontal runs by luminance with wave displacement
-    for(let y=0;y<h;y++){
-      const row = new Array(w);
-      for(let x=0;x<w;x++){
-        const i=(y*w+x)*4;
-        row[x]=[lum(data[i],data[i+1],data[i+2]),data[i],data[i+1],data[i+2]];
-      }
-      // Only sort pixels above threshold
-      const bright=row.filter(p=>p[0]>=threshold);
-      const dark=row.filter(p=>p[0]<threshold);
-      bright.sort((a,b)=>a[0]-b[0]);
-      // Interleave with intensity
-      const sortedRow=[];
-      let bi=0,di=0;
-      for(let x=0;x<w;x++){
-        if(row[x][0]>=threshold) sortedRow.push(bright[bi++]);
-        else sortedRow.push(dark[di++]);
-      }
-      // Blend sorted with original based on intensity
-      const t=intensity/100;
-      for(let x=0;x<w;x++){
-        const i=(y*w+x)*4;
-        data[i]  =lerp(row[x][1],sortedRow[x][1],t)|0;
-        data[i+1]=lerp(row[x][2],sortedRow[x][2],t)|0;
-        data[i+2]=lerp(row[x][3],sortedRow[x][3],t)|0;
-      }
-    }
-  } else {
-    // Sort vertical runs
-    for(let x=0;x<w;x++){
-      const col=new Array(h);
-      for(let y=0;y<h;y++){
-        const i=(y*w+x)*4;
-        col[y]=[lum(data[i],data[i+1],data[i+2]),data[i],data[i+1],data[i+2]];
-      }
-      const bright=col.filter(p=>p[0]>=threshold);
-      const dark=col.filter(p=>p[0]<threshold);
-      bright.sort((a,b)=>a[0]-b[0]);
-      let bi=0,di=0;
-      const sortedCol=col.map(p=>p[0]>=threshold?bright[bi++]:dark[di++]);
-      const t=intensity/100;
-      for(let y=0;y<h;y++){
-        const i=(y*w+x)*4;
-        data[i]  =lerp(col[y][1],sortedCol[y][1],t)|0;
-        data[i+1]=lerp(col[y][2],sortedCol[y][2],t)|0;
-        data[i+2]=lerp(col[y][3],sortedCol[y][3],t)|0;
-      }
+  const screen = (a, b) => 255 - (255 - a) * (255 - b) / 255;
+  const out = new ImageData(w, h);
+  const d = out.data;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const j = (y * w + x) * 4;
+      const veil = haze * 90 * (fractalNoise(x, y, 4, 60, 909) - 0.35);
+      d[j]     = clamp(screen(sd[j],     bloom[j]     * intensity) + veil, 0, 255);
+      d[j + 1] = clamp(screen(sd[j + 1], bloom[j + 1] * intensity) + veil, 0, 255);
+      d[j + 2] = clamp(screen(sd[j + 2], bloom[j + 2] * intensity) + veil, 0, 255);
+      d[j + 3] = 255;
     }
   }
-
-  const out = new ImageData(w, h);
-  out.data.set(data);
   return out;
 }
 
@@ -1631,6 +1878,7 @@ function filterPixelStretch(src, w, h, s) {
   const maxLen  = s.maxLen    || 60;
   const dir     = s.direction || 0;   // 0=horizontal, 1=vertical
   const density = (s.density  || 50) / 100;
+  const rng = mulberry32(0x9e37 ^ (w * 2654435761) ^ h); // deterministic streaks
 
   const data = new Uint8ClampedArray(src.data);
 
@@ -1643,9 +1891,9 @@ function filterPixelStretch(src, w, h, s) {
         const l = lum(data[i], data[i + 1], data[i + 2]);
 
         // Enter a stretch run when pixel luma is in the trigger band
-        if (l >= lo && l <= hi && Math.random() < density) {
+        if (l >= lo && l <= hi && rng() < density) {
           // How far this run extends — biased toward long streaks
-          const runLen = Math.min(w - x, Math.ceil(Math.random() * maxLen));
+          const runLen = Math.min(w - x, Math.ceil(rng() * maxLen));
           const sR = data[i], sG = data[i + 1], sB = data[i + 2];
 
           // Stretch: repeat source pixel value across the run,
@@ -1675,8 +1923,8 @@ function filterPixelStretch(src, w, h, s) {
         const i = (y * w + x) * 4;
         const l = lum(data[i], data[i + 1], data[i + 2]);
 
-        if (l >= lo && l <= hi && Math.random() < density) {
-          const runLen = Math.min(h - y, Math.ceil(Math.random() * maxLen));
+        if (l >= lo && l <= hi && rng() < density) {
+          const runLen = Math.min(h - y, Math.ceil(rng() * maxLen));
           const sR = data[i], sG = data[i + 1], sB = data[i + 2];
 
           for (let k = 0; k < runLen; k++) {
@@ -1875,37 +2123,36 @@ function makeStickerBg(w, h, type) {
 
 // Map an id to its filter function (shared by export + batch export).
 function applyFilterById(id, src, w, h, s) {
+  let result;
   switch (id) {
-    case 'color-halftone':  return filterColorHalftone(src, w, h, s);
-    case 'halftone-dot':    return filterHalftoneDot(src, w, h, s);
-    case 'halftone-circle': return filterHalftoneCircle(src, w, h, s);
-    case 'halftone-line':   return filterHalftoneLine(src, w, h, s);
-    case 'graphic-pen':     return filterGraphicPen(src, w, h, s);
-    case 'stamp':           return filterStamp(src, w, h, s);
-    case 'bitmap':          return filterBitmap(src, w, h, s);
-    case 'patchwork':       return filterPatchwork(src, w, h, s);
-    case 'mosaic':          return filterMosaic(src, w, h, s);
-    case 'row-stretch':     return filterRowStretch(src, w, h, s);
-    case 'path-blur':       return filterPathBlur(src, w, h, s);
-    case 'ascii':           return filterASCII(src, w, h, s);
-    case 'dithering':       return filterDithering(src, w, h, s);
-    case 'matrix-rain':     return filterMatrixRain(src, w, h, s);
-    case 'dots':            return filterDots(src, w, h, s);
-    case 'contour':         return filterContour(src, w, h, s);
-    case 'pixel-sort':      return filterPixelSort(src, w, h, s);
-    case 'blockify':        return filterBlockify(src, w, h, s);
-    case 'threshold':       return filterThreshold(src, w, h, s);
-    case 'edge-detect':     return filterEdgeDetect(src, w, h, s);
-    case 'crosshatch':      return filterCrosshatch(src, w, h, s);
-    case 'wave-lines':      return filterWaveLines(src, w, h, s);
-    case 'noise-field':     return filterNoiseField(src, w, h, s);
-    case 'voronoi':         return filterVoronoi(src, w, h, s);
-    case 'vhs':             return filterVHS(src, w, h, s);
-    case 'fractal-haze':    return filterFractalHaze(src, w, h, s);
-    case 'pixel-stretch':   return filterPixelStretch(src, w, h, s);
-    case 'sticker':         return filterSticker(src, w, h, s);
+    case 'halftone':        result = filterHalftone(src, w, h, s); break;
+    case 'graphic-pen':     result = filterGraphicPen(src, w, h, s); break;
+    case 'stamp':           result = filterStamp(src, w, h, s); break;
+    case 'bitmap':          result = filterBitmap(src, w, h, s); break;
+    case 'patchwork':       result = filterPatchwork(src, w, h, s); break;
+    case 'mosaic':          result = filterMosaic(src, w, h, s); break;
+    case 'row-stretch':     result = filterRowStretch(src, w, h, s); break;
+    case 'path-blur':       result = filterPathBlur(src, w, h, s); break;
+    case 'ascii':           result = filterASCII(src, w, h, s); break;
+    case 'dithering':       result = filterDithering(src, w, h, s); break;
+    case 'matrix-rain':     result = filterMatrixRain(src, w, h, s); break;
+    case 'contour':         result = filterContour(src, w, h, s); break;
+    case 'pixel-sort':      result = filterPixelSort(src, w, h, s); break;
+    case 'threshold':       result = filterThreshold(src, w, h, s); break;
+    case 'edge-detect':     result = filterEdgeDetect(src, w, h, s); break;
+    case 'crosshatch':      result = filterCrosshatch(src, w, h, s); break;
+    case 'wave-lines':      result = filterWaveLines(src, w, h, s); break;
+    case 'noise-field':     result = filterNoiseField(src, w, h, s); break;
+    case 'voronoi':         result = filterVoronoi(src, w, h, s); break;
+    case 'vhs':             result = filterVHS(src, w, h, s); break;
+    case 'fractal-haze':    result = filterFractalHaze(src, w, h, s); break;
+    case 'pixel-stretch':   result = filterPixelStretch(src, w, h, s); break;
+    case 'sticker':         result = filterSticker(src, w, h, s); break;
     default: return null;
   }
+  // Preserve transparency: a background-free source stays background-free.
+  if (result && state.srcHasAlpha) maskAlpha(result, src);
+  return result;
 }
 
 // Re-render a filter near source resolution. `maxDim` caps the longest edge;
@@ -1921,7 +2168,9 @@ function renderFilterAtSourceRes(id, maxDim) {
   const off = new OffscreenCanvas(w, h);
   const ctx = off.getContext('2d');
   ctx.drawImage(state.src, 0, 0, w, h);
-  const result = applyFilterById(id, ctx.getImageData(0, 0, w, h), w, h, state.settings[id]);
+  const src = ctx.getImageData(0, 0, w, h);
+  applyAdjustments(src, w, h);
+  const result = applyFilterById(id, src, w, h, state.settings[id]);
   if (!result) return null;
   ctx.putImageData(result, 0, 0);
   return off;
@@ -2113,7 +2362,8 @@ function makeSproutSource(size = 320) {
 }
 
 async function loadDefaultSource() {
-  state.src = makeSproutSource();
+  state.srcOriginal = makeSproutSource();
+  deriveWorkingSource();
   state.isDefaultSource = true;
   if (emptyState) emptyState.hidden = true;
   if (grid) grid.hidden = false;
@@ -2195,6 +2445,9 @@ async function init() {
 
   buildGrid();
   loadSettings();
+  // The studio re-renders the whole grid whenever the source changes
+  // (e.g. the "Remove background" toggle).
+  window.onSourceChanged = () => renderAll();
   try {
     const blob = await idbGet('image');
     if (blob) await loadSourceBlob(blob, (await idbGet('name')) || 'Saved image', false);
