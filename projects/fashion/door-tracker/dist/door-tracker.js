@@ -2220,7 +2220,7 @@ function renderUnpivoted(items, visR) {
                     category,
                     location: `${door.city || '-'}, ${door.state || '-'}`,
                     status: normalizeStatus(state.status || 'na'),
-                    grade: state.grade || door.tier || '-',
+                    grade: door.tier || '-',
                     gender: normalizeGender(state.gender),
                     note: state.note || '',
                     metric_1: state.metric_1 ?? '',
@@ -2279,11 +2279,7 @@ function renderUnpivoted(items, visR) {
         </select>
       </td>
       <td><span class="cat-badge">${esc(r.category)}</span></td>
-      <td>
-        <select class="data-pill-select gradeSel ${gradePillCls}" onchange='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"grade",this.value,this);refreshDataPillDropdowns(this.closest("tr"))'>
-          ${['-', 'A', 'B', 'C'].map(v => `<option value="${v}" ${String(r.grade) === v ? 'selected' : ''}>${v}</option>`).join('')}
-        </select>
-      </td>
+      <td><span class="data-pill-static ${gradePillCls}" title="Grade is assigned in the Store tab">${esc(String(r.grade || '-'))}</span></td>
       <td>${genderSegHtml(r)}</td>
       <td><input class="data-cell-note" type="number" step="any" value="${esc(r.metric_1)}" oninput='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"metric_1",this.value,this)' title="metric_1: first selling metric for this retailer-door-brand row"></td>
       <td><input class="data-cell-note" type="number" step="any" value="${esc(r.metric_2)}" oninput='updateDataKeyField(${jsq(r.retailer)},${jsq(r.doorNumber)},${jsq(r.brand)},"metric_2",this.value,this)' title="metric_2: second selling metric for this retailer-door-brand row"></td>
@@ -3939,12 +3935,14 @@ function updateDataKeyField(ret, doorNumber, brand, field, value, el) {
         render();
         return;
     }
+    if (field === 'grade') {
+        toast('Grade is assigned in the Store tab.');
+        return;
+    }
     const state = ensureDataKeyState(ret, doorNumber, brand);
     const oldVal = (state[field] ?? '');
     if (field === 'status')
         state.status = normalizeStatus(value);
-    else if (field === 'grade')
-        state.grade = value || '-';
     else if (field === 'gender')
         state.gender = normalizeGender(value);
     else if (field === 'note')
@@ -3954,7 +3952,7 @@ function updateDataKeyField(ret, doorNumber, brand, field, value, el) {
     else
         state[field] = value;
     syncAssignmentFromDataKey(ret, doorNumber, brand);
-    if (el && (field === 'status' || field === 'grade'))
+    if (el && field === 'status')
         syncDataCellClass(el, field);
     recordHistory(ret, brand, { scope: 'data', action: `${field} updated`, oldVal: oldVal, newVal: state[field], doorNumber: doorNumber });
     queueAutosave();
@@ -5710,8 +5708,6 @@ function importMatrixRows(rows) {
             const status = row.Status || row.status;
             if (status)
                 state.status = normalizeStatus(status);
-            if (row.Grade || row.grade)
-                state.grade = row.Grade || row.grade;
             if (row.Gender !== undefined || row.gender !== undefined)
                 state.gender = normalizeGender(row.Gender ?? row.gender);
             if (row.Note || row.Notes || row.note)
@@ -6086,7 +6082,7 @@ function _exportFullDataNow() {
                     'Brand Name': bName,
                     Category: category,
                     Status: status || '',
-                    Grade: state.grade || '',
+                    Grade: door.tier || '',
                     Gender: normalizeGender(state.gender),
                     metric_1: state.metric_1 || '',
                     metric_2: state.metric_2 || '',

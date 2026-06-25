@@ -1501,7 +1501,28 @@ body.light .search-box { background: #f4f2ee; }
   background-repeat: no-repeat;
 }
 .data-pill-select:focus { outline: none; border-color: var(--accent); }
+.data-pill-static {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  min-width: 44px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--border);
+  background-color: var(--surface-raised);
+  color: var(--text);
+}
 .data-pill-select.status-confirmed, .data-pill-select.grade-a {
+  background-color: rgba(39,174,96,0.14);
+  border-color: rgba(39,174,96,0.35);
+  color: #2ecc71;
+}
+.data-pill-static.grade-a {
   background-color: rgba(39,174,96,0.14);
   border-color: rgba(39,174,96,0.35);
   color: #2ecc71;
@@ -1511,7 +1532,17 @@ body.light .search-box { background: #f4f2ee; }
   border-color: rgba(232,185,49,0.35);
   color: #e8b931;
 }
+.data-pill-static.grade-b {
+  background-color: rgba(232,185,49,0.14);
+  border-color: rgba(232,185,49,0.35);
+  color: #e8b931;
+}
 .data-pill-select.status-na, .data-pill-select.status-closed, .data-pill-select.grade-c, .data-pill-select.grade-none {
+  background-color: rgba(192,57,43,0.14);
+  border-color: rgba(192,57,43,0.35);
+  color: #e05a47;
+}
+.data-pill-static.grade-c, .data-pill-static.grade-none {
   background-color: rgba(192,57,43,0.14);
   border-color: rgba(192,57,43,0.35);
   color: #e05a47;
