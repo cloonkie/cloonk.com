@@ -328,7 +328,10 @@
   <div class="helper-text" id="modifyDoorStepHint">Choose an intent and type, pick a retailer, then fill in the details.</div>
 
   <label for="aRet" id="aRetLabel">Retailer <span class="req" aria-hidden="true">*</span></label>
-  <select id="aRet" onchange="populateAddDoors();renderAddSelectionPanels()"></select>
+  <div class="select-with-pill">
+    <select id="aRet" onchange="populateAddDoors();renderAddSelectionPanels()"></select>
+    <button class="btn btn-sm select-pill" type="button" onclick="openNewRetailerPrompt()">＋ Add New Retailer</button>
+  </div>
   <label class="delete-scope-option" id="deleteBrandScopeOption" for="deleteBrandAllRetailers" style="display:none">
     <input type="checkbox" id="deleteBrandAllRetailers" onchange="renderAddSelectionPanels()">
     <span>

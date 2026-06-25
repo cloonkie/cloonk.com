@@ -628,14 +628,9 @@ function removeInvalidDoorRecords(){
     if(!doorAssignments[ak].length) delete doorAssignments[ak];
   });
 
-  const hasMatrixColumn=ret=>matrixData.some(row=>
-    Object.keys(row||{}).some(key=>normalizeRetailer(key)===ret && (parseInt(row[key]||0,10)||0)>0)
-  );
   const retailerSet=new Set((retailers||[]).map(normalizeRetailer).filter(Boolean));
   doorLocations.forEach(d=>retailerSet.add(normalizeRetailer(d.retailer)));
-  retailers=[...retailerSet].filter(ret=>
-    doorLocations.some(d=>normalizeRetailer(d.retailer)===ret) || hasMatrixColumn(ret)
-  );
+  retailers=[...retailerSet];
   const allowedRetailers=new Set(retailers);
   Object.keys(dataKeyState||{}).forEach(key=>{
     const st=dataKeyState[key];
@@ -1871,10 +1866,7 @@ function renderStore(items,visR){
     }).join('');
     const issAttr=callAttr('updateStoreDoorField',ret,String(d.doorNumber),'iss');
     const threeCAttr=callAttr('updateStoreDoorField',ret,String(d.doorNumber),'three_c');
-    const unretireBtn=d.retired
-      ? `<button class="btn btn-sm btn-accent" type="button" onclick="${callAttr('unretireStoreDoor',ret,String(d.doorNumber))}" title="Restore this retired door to active Store views">Unretire</button>`
-      : '';
-    h+=`<tr class="${d.retired?'store-row-retired':''}" data-store-key="${esc(ret+'|'+d.doorNumber)}"><th class="rh">${esc(ret)}</th>${row}<td class="data-checkbox-cell"><input type="checkbox" ${normalizeBoolean(d.iss)?'checked':''} aria-label="ISS for ${esc(ret)} door ${esc(d.doorNumber)}" onchange="${issAttr}"></td><td class="data-checkbox-cell"><input type="checkbox" ${normalizeBoolean(d.three_c)?'checked':''} aria-label="3C for ${esc(ret)} door ${esc(d.doorNumber)}" onchange="${threeCAttr}"></td><td><div class="store-row-actions"><button class="btn btn-sm" type="button" onclick="${callAttr('openEditDoorModal',ret,String(d.doorNumber))}" title="Open detail editor">Edit</button>${unretireBtn}</div></td></tr>`;
+    h+=`<tr class="${d.retired?'store-row-retired':''}" data-store-key="${esc(ret+'|'+d.doorNumber)}"><th class="rh">${esc(ret)}</th>${row}<td class="data-checkbox-cell"><input type="checkbox" ${normalizeBoolean(d.iss)?'checked':''} aria-label="ISS for ${esc(ret)} door ${esc(d.doorNumber)}" onchange="${issAttr}"></td><td class="data-checkbox-cell"><input type="checkbox" ${normalizeBoolean(d.three_c)?'checked':''} aria-label="3C for ${esc(ret)} door ${esc(d.doorNumber)}" onchange="${threeCAttr}"></td><td><div class="store-row-actions"><button class="btn btn-sm" type="button" onclick="${callAttr('openEditDoorModal',ret,String(d.doorNumber))}" title="Open detail editor">Edit</button></div></td></tr>`;
   });
   h+='</tbody></table></div>';
   wrap.innerHTML=h;
@@ -4453,6 +4445,32 @@ async function openNewBrandPrompt(){
   openAddModal();
 }
 
+function refreshModifyRetailerSelect(selected?){
+  const el:any=document.getElementById('aRet');
+  if(!el) return;
+  const current=selected || el.value || '';
+  el.innerHTML='<option value="">— Select retailer —</option>';
+  const allRet=[...new Set([...retailers.map(normalizeRetailer),...doorLocations.map(d=>normalizeRetailer(d.retailer))])].filter(Boolean).sort();
+  allRet.forEach(r=>{el.innerHTML+=`<option value="${esc(r)}">${esc(r)}</option>`;});
+  if(current && allRet.includes(normalizeRetailer(current))) el.value=normalizeRetailer(current);
+  if(el._combo) el._combo.refresh();
+}
+
+async function openNewRetailerPrompt(){
+  const raw=window.fashionPrompt
+    ? await window.fashionPrompt('Enter retailer name.', { title:'New Retailer', confirmLabel:'Add' })
+    : prompt('Enter retailer name:');
+  const ret=normalizeRetailer((raw||'').trim());
+  if(!ret) return;
+  if(!retailers.map(normalizeRetailer).includes(ret)) retailers.push(ret);
+  refreshModifyRetailerSelect(ret);
+  populateFilters();
+  populateAddDoors();
+  renderAddSelectionPanels();
+  queueAutosave();
+  toast(`Retailer ${ret} added. Add a door next to make it active in Store and Matrix.`);
+}
+
 async function openNewDoorPrompt(){
   const ret=document.getElementById('aRet').value;
   if(!ret){ toast('Select a retailer first.'); return; }
@@ -4990,10 +5008,7 @@ function makeSearchable(select){
 }
 
 function openAddModal(){
-  const el=document.getElementById('aRet');
-  el.innerHTML='<option value="">— Select retailer —</option>';
-  const allRet=[...new Set([...retailers,...doorLocations.map(d=>normalizeRetailer(d.retailer))])].sort();
-  allRet.forEach(r=>{el.innerHTML+=`<option value="${esc(r)}">${esc(r)}</option>`;});
+  refreshModifyRetailerSelect();
   const bel=document.getElementById('aBrand');
   bel.innerHTML='<option value="">— Select brand —</option>';
   const dsB=Object.entries<any>(brandCodes).filter(([c,v])=>v.ds_active).sort((a,b)=>a[0].localeCompare(b[0]));
