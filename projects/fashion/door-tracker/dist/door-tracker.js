@@ -946,7 +946,7 @@ function getMatrixVal(ret, brand) {
         _renderCache.matrixVal.set(ck, val);
     return val;
 }
-/* Max doors per retailer is now derived: count unique door numbers in
+/* Max doors per retailer is now derived: count unique active door numbers in
    doorLocations for that retailer. retailerInfo.bm is ignored — it was a
    static seed value that drifted whenever doors were added/imported. */
 function getMaxDoorsForRetailer(ret) {
@@ -959,6 +959,8 @@ function getMaxDoorsForRetailer(ret) {
     const seen = new Set();
     for (const d of doorLocations) {
         if (normalizeRetailer(d.retailer) !== norm)
+            continue;
+        if (d.retired || !isPhysicalDoorNumber(d.doorNumber))
             continue;
         seen.add(String(d.doorNumber));
     }
@@ -973,6 +975,8 @@ function getBMDoorsForRetailer(ret) {
     for (const d of doorLocations) {
         if (normalizeRetailer(d.retailer) !== norm)
             continue;
+        if (d.retired || !isPhysicalDoorNumber(d.doorNumber))
+            continue;
         if (isEcommerceDoor(d))
             continue;
         seen.add(String(d.doorNumber));
@@ -984,6 +988,8 @@ function getBMConfirmedCount(ret, brand) {
     let n = 0;
     for (const d of doorLocations) {
         if (normalizeRetailer(d.retailer) !== norm)
+            continue;
+        if (d.retired || !isPhysicalDoorNumber(d.doorNumber))
             continue;
         if (isEcommerceDoor(d))
             continue;
