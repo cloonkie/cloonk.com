@@ -1845,11 +1845,46 @@ function renderStore(items,visR){
     }).join('');
     const issAttr=callAttr('updateStoreDoorField',ret,String(d.doorNumber),'iss');
     const threeCAttr=callAttr('updateStoreDoorField',ret,String(d.doorNumber),'three_c');
-    h+=`<tr class="${d.retired?'store-row-retired':''}" data-store-key="${esc(ret+'|'+d.doorNumber)}"><th class="rh">${esc(ret)}</th>${row}<td class="data-checkbox-cell"><input type="checkbox" ${normalizeBoolean(d.iss)?'checked':''} aria-label="ISS for ${esc(ret)} door ${esc(d.doorNumber)}" onchange="${issAttr}"></td><td class="data-checkbox-cell"><input type="checkbox" ${normalizeBoolean(d.three_c)?'checked':''} aria-label="3C for ${esc(ret)} door ${esc(d.doorNumber)}" onchange="${threeCAttr}"></td><td style="text-align:right"><button class="btn btn-sm" type="button" onclick="${callAttr('openEditDoorModal',ret,String(d.doorNumber))}" title="Open detail editor">Edit</button></td></tr>`;
+    const unretireBtn=d.retired
+      ? `<button class="btn btn-sm btn-accent" type="button" onclick="${callAttr('unretireStoreDoor',ret,String(d.doorNumber))}" title="Restore this retired door to active Store views">Unretire</button>`
+      : '';
+    h+=`<tr class="${d.retired?'store-row-retired':''}" data-store-key="${esc(ret+'|'+d.doorNumber)}"><th class="rh">${esc(ret)}</th>${row}<td class="data-checkbox-cell"><input type="checkbox" ${normalizeBoolean(d.iss)?'checked':''} aria-label="ISS for ${esc(ret)} door ${esc(d.doorNumber)}" onchange="${issAttr}"></td><td class="data-checkbox-cell"><input type="checkbox" ${normalizeBoolean(d.three_c)?'checked':''} aria-label="3C for ${esc(ret)} door ${esc(d.doorNumber)}" onchange="${threeCAttr}"></td><td><div class="store-row-actions"><button class="btn btn-sm" type="button" onclick="${callAttr('openEditDoorModal',ret,String(d.doorNumber))}" title="Open detail editor">Edit</button>${unretireBtn}</div></td></tr>`;
   });
   h+='</tbody></table></div>';
   wrap.innerHTML=h;
   restorePaneSearchFocus();
+}
+
+async function unretireStoreDoor(ret,doorNumber){
+  const norm=normalizeRetailer(ret);
+  const door=doorLocations.find(d=>normalizeRetailer(d.retailer)===norm && String(d.doorNumber)===String(doorNumber));
+  if(!door){ toast('Door not found.'); return; }
+  if(!door.retired){ toast('Door is already active.'); return; }
+  const label=`#${door.doorNumber} — ${door.name || '(no name)'}`;
+  const msg=`Unretire ${label} at ${norm}? This restores the store row to active views. Brand assignments that were removed when it was retired will still need to be re-added.`;
+  const confirmed=window.fashionConfirm
+    ? await window.fashionConfirm(msg,{title:'Unretire Door',confirmLabel:'Unretire'})
+    : confirm(msg);
+  if(!confirmed) return;
+  const oldReason=door.retiredReason || '';
+  door.retired=false;
+  delete door.retiredAt;
+  delete door.retiredReason;
+  recordHistory(norm,'__door__',{
+    scope:'door',
+    action:'store unretired',
+    oldVal:'RETIRED',
+    newVal:'ACTIVE',
+    doorNumber:String(door.doorNumber),
+    user:currentUserName(),
+    note:oldReason ? `Cleared retired flag: ${oldReason}` : 'Cleared retired flag'
+  });
+  populateFilters();
+  populateAddDoors();
+  render();
+  renderAddSelectionPanels();
+  queueAutosave();
+  toast(`Unretired ${label} at ${norm}.`);
 }
 
 function updateStoreDoorField(ret,doorNumber,field,el){

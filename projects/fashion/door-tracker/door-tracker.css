@@ -137,6 +137,7 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
 .store-table tr.store-row-retired:hover th { opacity:0.72; }
 .store-grade-field { display:flex; align-items:center; gap:4px; min-width:0; }
 .store-grade-field input { min-width:40px; }
+.store-row-actions { display:flex; justify-content:flex-end; gap:6px; flex-wrap:wrap; min-width:120px; }
 .store-exit-marker {
   flex:0 0 auto;
   font-size:0.9rem;
