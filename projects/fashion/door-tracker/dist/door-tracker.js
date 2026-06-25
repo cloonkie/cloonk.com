@@ -180,9 +180,39 @@ function withStore(storeName, mode, cb) {
 function reqAsPromise(req) {
     return new Promise((resolve, reject) => { req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error); });
 }
+function isBlankSnapshotValue(v) {
+    return v === undefined || v === null || String(v).trim() === '';
+}
+function hasMeaningfulDataKeyState(st) {
+    if (!st)
+        return false;
+    if (normalizeStatus(st.status) !== 'na')
+        return true;
+    if (normalizeGender(st.gender) !== 'ALL')
+        return true;
+    if (!isBlankSnapshotValue(st.note))
+        return true;
+    if (!isBlankSnapshotValue(st.metric_1))
+        return true;
+    if (!isBlankSnapshotValue(st.metric_2))
+        return true;
+    const known = new Set(['retailer', 'doorNumber', 'brand', 'status', 'gender', 'note', 'metric_1', 'metric_2', 'grade']);
+    return Object.keys(st).some(key => !known.has(key) && !isBlankSnapshotValue(st[key]));
+}
+function compactDataKeyStateForSnapshot() {
+    const compact = {};
+    Object.entries(dataKeyState || {}).forEach(([key, st]) => {
+        if (!hasMeaningfulDataKeyState(st))
+            return;
+        const row = Object.assign({}, st);
+        delete row.grade;
+        compact[key] = row;
+    });
+    return compact;
+}
 function snapshotPayload() {
     removeInvalidDoorRecords();
-    return { brandCodes, doorLocations, matrixData, retailers, history: trackerHistory, doorAssignments, dataKeyState, tabularGoals, storeNotes: window._storeNotes || {} };
+    return { brandCodes, doorLocations, matrixData, retailers, history: trackerHistory, doorAssignments, dataKeyState: compactDataKeyStateForSnapshot(), tabularGoals, storeNotes: window._storeNotes || {} };
 }
 function applyPayload(p) {
     if (!p)
@@ -5899,7 +5929,7 @@ function processDoorImp(file) {
 // EXPORT / PERSISTENCE
 // ═══════════════════════════════════════════════════════
 function downloadJSON() {
-    const payload = { brandCodes, doorLocations, matrixData, retailers, history: trackerHistory, doorAssignments, dataKeyState, tabularGoals, storeNotes: window._storeNotes || {}, exportDate: new Date().toISOString() };
+    const payload = Object.assign(snapshotPayload(), { exportDate: new Date().toISOString() });
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
