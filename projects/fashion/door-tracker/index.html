@@ -425,7 +425,7 @@
   </label>
 
   <label for="impDoorFile">Door locations</label>
-  <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Tier</code>, <code>Store Rep</code>, <code>Visit Cadence</code>, <code>Check 1</code>, <code>Check 2</code>.</div>
+  <div style="font-size:0.7rem;color:var(--text-dim);margin:-2px 0 6px;line-height:1.45">Columns: <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Grade</code>, <code>Store Rep</code>, <code>Visit Cadence</code>, <code>Check 1</code>, <code>Check 2</code>.</div>
   <label class="import-zone" for="impDoorFile" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDoorDrop(event)">
     <span class="import-zone-text">Drop door-location file or click to browse</span>
     <input type="file" id="impDoorFile" accept=".xlsx,.xls,.csv" onchange="handleImpDoorFile(event)">
@@ -506,7 +506,7 @@
   <div class="info-modal-pane" id="modal-tab-qa" role="tabpanel">
     <div class="info-section">
       <h4>How do I add a new door?</h4>
-      <p>Open <strong>Modify Door</strong>, choose <strong>New Door</strong>, select a retailer, then use <strong>Add New Door</strong>. Fill in store name, location, optional latitude/longitude, and tier. Pick brands to add, then save as draft.</p>
+      <p>Open <strong>Modify Door</strong>, choose <strong>New Door</strong>, select a retailer, then use <strong>Add New Door</strong>. Fill in store name, location, optional latitude/longitude, and grade. Pick brands to add, then save as draft.</p>
     </div>
     <div class="info-section">
       <h4>How do I add a new brand?</h4>
@@ -544,11 +544,11 @@
   <div class="info-modal-pane" id="modal-tab-schema" role="tabpanel">
     <div class="info-section">
       <h4>Matrix data</h4>
-      <p>Matrix columns include <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>, and optional per door-brand selling fields. Store reps, cadence, <code>Check 1</code> (ISS), and <code>Check 2</code> (3C) belong on Door Locations / Store.</p>
+      <p>Matrix columns include <code>Retailer</code>, <code>Brand</code>, <code>Category</code>, <code>Doors</code>, and optional per door-brand selling fields. Grade, store reps, cadence, <code>Check 1</code> (ISS), and <code>Check 2</code> (3C) belong on Door Locations / Store.</p>
     </div>
     <div class="info-section">
       <h4>Door locations</h4>
-      <p>Columns: <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Tier</code>, <code>Store Rep</code>, <code>Visit Cadence</code>. Matching retailer and door number updates the existing record; new pairs are appended.</p>
+      <p>Columns: <code>Retailer</code>, <code>Door Number</code>, <code>Name</code>, <code>Address</code>, <code>City</code>, <code>State</code>, <code>ZIP</code>, <code>Lat</code>, <code>Lng</code>, <code>Grade</code>, <code>Store Rep</code>, <code>Visit Cadence</code>. Matching retailer and door number updates the existing record; new pairs are appended. Legacy <code>Tier</code> columns still import as grade.</p>
     </div>
     <div class="info-section">
       <h4>Entity relations</h4>
@@ -611,7 +611,7 @@
               <text x="60" y="18" text-anchor="middle" class="schema-title">DoorLocation</text>
               <text x="6" y="34">retailer+# PK</text>
               <text x="6" y="46">name · lat/lng</text>
-              <text x="6" y="58">tier · address</text>
+              <text x="6" y="58">grade · address</text>
               <text x="6" y="70">city · state · zip</text>
             </g>
             <g transform="translate(200,248)">
@@ -639,7 +639,7 @@
               <rect width="154" height="80" rx="6"/>
               <text x="77" y="18" text-anchor="middle" class="schema-title">AssignmentState</text>
               <text x="6" y="34">ret+door+brand PK</text>
-              <text x="6" y="46">status · grade · gender</text>
+              <text x="6" y="46">status · gender</text>
               <text x="6" y="58">metric_1/2 · note</text>
               <text x="6" y="70">confirmed drives counts</text>
             </g>
@@ -693,7 +693,7 @@
       <tr><td>Tabular</td><td>Flat retailer x brand rows with bulk gender assignment, Retailer B&amp;M, B&amp;M doors, saved goals, maintained penetration, and progress to goal.</td></tr>
       <tr><td>Details</td><td>Retailer, door, brand, status, grade, gender, metric_1, metric_2, notes, and key rows.</td></tr>
       <tr><td>Research</td><td>Doors-first location list with placement detail and map reveal.</td></tr>
-      <tr><td>Store</td><td>Editable door locations: name, number, address, lat/lng, tier, ISS, and 3C.</td></tr>
+      <tr><td>Store</td><td>Editable door locations: name, number, address, lat/lng, grade, ISS, and 3C.</td></tr>
     </table>
     <div class="info-section">
       <h4>Assignment state</h4>
@@ -703,7 +703,8 @@
       <tr><th>Field</th><th>Meaning</th></tr>
       <tr><td><code>retailer</code>, <code>doorNumber</code>, <code>brand</code></td><td>Identity fields for a single placement row.</td></tr>
       <tr><td><code>status</code></td><td>Confirmed, TBD, N/A, or Exit. Confirmed is the only status included in verified counts.</td></tr>
-      <tr><td><code>grade</code>, <code>gender</code></td><td>Optional merchandising dimensions used for filtering and handoff context.</td></tr>
+      <tr><td><code>grade</code></td><td>Store-level grade from Door Locations / Store, shared by every brand row for the retailer door number.</td></tr>
+      <tr><td><code>gender</code></td><td>Optional brand-door merchandising dimension used for filtering and handoff context.</td></tr>
       <tr><td><code>metric_1</code>, <code>metric_2</code></td><td>Optional numeric fields for recent sales, door rank, velocity, or retailer-specific KPIs.</td></tr>
       <tr><td><code>Check 1</code> / ISS, <code>Check 2</code> / 3C</td><td>Optional retailer-door flags displayed once per location in Store.</td></tr>
       <tr><td><code>note</code>, <code>history</code></td><td>Human-readable review trail attached to the placement key.</td></tr>
@@ -753,7 +754,7 @@
       <h4>Map and data quality</h4>
       <ul>
         <li>Map reveal depends on valid latitude and longitude, not address text.</li>
-        <li>Door tiers are descriptive and do not change count logic.</li>
+        <li>Door grades are descriptive and do not change count logic.</li>
         <li>Use Store view for location cleanup before relying on geographic coverage.</li>
         <li>Use History and Snapshots before batch edits so an import can be reviewed or rolled back.</li>
       </ul>
@@ -795,7 +796,7 @@
     <div><label for="edCity">City</label><input type="text" id="edCity"></div>
     <div><label for="edState">State</label><input type="text" id="edState" maxlength="3" placeholder="e.g. NY"></div>
     <div><label for="edZip">ZIP</label><input type="text" id="edZip"></div>
-    <div><label for="edTier">Tier</label><input type="text" id="edTier" maxlength="2" placeholder="A / B / C / D"></div>
+    <div><label for="edTier">Grade</label><input type="text" id="edTier" maxlength="2" placeholder="A / B / C / D"></div>
     <div><label for="edLat">Latitude</label><input type="number" step="any" id="edLat" placeholder="40.7589"></div>
     <div><label for="edLng">Longitude</label><input type="number" step="any" id="edLng" placeholder="-73.9851"></div>
   </div>
@@ -829,7 +830,7 @@
         <h4 style="margin-bottom:0">Matrix Data</h4>
         <button class="btn btn-sm" type="button" onclick="downloadTemplate()">Template</button>
       </div>
-      <p>Retailer, Brand, Category, Doors. Add Door Number, Status, Grade, Gender, metric_1, metric_2, and Notes for per door-brand analysis. Put Check 1 (ISS) and Check 2 (3C) on Door Locations.</p>
+      <p>Retailer, Brand, Category, Doors. Add Door Number, Status, Gender, metric_1, metric_2, and Notes for per door-brand analysis. Put Grade, Check 1 (ISS), and Check 2 (3C) on Door Locations.</p>
       <label class="login-upload-zone" for="loginMatrixFile" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleLoginMatrixDrop(event)">
         <input type="file" id="loginMatrixFile" accept=".xlsx,.xls,.csv" onchange="handleLoginMatrixFile(event)">
         <span class="login-upload-title">Drop matrix file or browse</span>
@@ -841,7 +842,7 @@
         <h4 style="margin-bottom:0">Door Locations</h4>
         <button class="btn btn-sm" type="button" onclick="downloadTemplate()">Template</button>
       </div>
-      <p>Retailer, Door Number, Name, Address, City, State, ZIP, Lat, Lng, Tier.</p>
+      <p>Retailer, Door Number, Name, Address, City, State, ZIP, Lat, Lng, Grade.</p>
       <label class="login-upload-zone" for="loginDoorFile" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleLoginDoorDrop(event)">
         <input type="file" id="loginDoorFile" accept=".xlsx,.xls,.csv" onchange="handleLoginDoorFile(event)">
         <span class="login-upload-title">Drop locations file or browse</span>

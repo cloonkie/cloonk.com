@@ -135,8 +135,8 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
 .store-table tr.store-row-retired th { opacity:0.5; background:color-mix(in oklab, var(--surface-raised) 86%, var(--text-dim)); }
 .store-table tr.store-row-retired:hover td,
 .store-table tr.store-row-retired:hover th { opacity:0.72; }
-.store-tier-field { display:flex; align-items:center; gap:4px; min-width:0; }
-.store-tier-field input { min-width:40px; }
+.store-grade-field { display:flex; align-items:center; gap:4px; min-width:0; }
+.store-grade-field input { min-width:40px; }
 .store-exit-marker {
   flex:0 0 auto;
   font-size:0.9rem;

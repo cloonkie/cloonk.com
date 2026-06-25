@@ -676,14 +676,14 @@ const EXTERNAL_BLANK_SEED={
   retailers:[]
 };
 const GUEST_DOOR_KEY_SEED=[
-  ['Retailer One','BR-A',101,'New York','confirmed','Core A-tier placement','ALL',128,0.62],
+  ['Retailer One','BR-A',101,'New York','confirmed','Core A-grade placement','ALL',128,0.62],
   ['Retailer One','BR-A',102,'Los Angeles','confirmed','West region mirror door','Mens Only',74,0.48],
   ['Retailer One','BR-B',102,'Los Angeles','confirmed','Lifestyle capsule','ALL',43,0.34],
   ['Retailer One','BR-C',103,'San Diego','tbd','Under review for seasonal add','Ladies Only',22,0.19],
   ['Retailer Two','BR-A',201,'Chicago','confirmed','High-priority replenishment door','Ladies Only',92,0.55],
   ['Retailer Two','BR-C',202,'Austin','confirmed','Premium test','ALL',67,0.41],
   ['Retailer Two','BR-D',203,'Houston','closed','Exited after low velocity','ALL',8,0.07],
-  ['Retailer Three','BR-C',301,'Miami','confirmed','A-tier resort market','ALL',156,0.71],
+  ['Retailer Three','BR-C',301,'Miami','confirmed','A-grade resort market','ALL',156,0.71],
   ['Retailer Three','BR-E',302,'Atlanta','tbd','Fast-turn test door','Mens Only',88,0.53],
   ['Retailer Three','BR-B',303,'Nashville','confirmed','Regional lifestyle read','ALL',43,0.34],
   ['Retailer Four','BR-A',401,'Seattle','confirmed','Northwest flagship','ALL',111,0.58],
@@ -712,7 +712,7 @@ function initFromSeed(){
     if(!isPhysicalDoorNumber(doorNumber)) return;
     const normalizedDoor=normalizeDoorNumberValue(doorNumber);
     const doorInfo=getDoorInfo(ret,normalizedDoor);
-    dataKeyState[buildDataKey(ret,normalizedDoor,brand)]={status:normalizeStatus(status),grade:(doorInfo&&doorInfo.tier)||'-',gender:normalizeGender(gender),note:note||'',metric_1:metric1 ?? '',metric_2:metric2 ?? '',retailer:ret,doorNumber:normalizedDoor,brand:brand};
+    dataKeyState[buildDataKey(ret,normalizedDoor,brand)]={status:normalizeStatus(status),gender:normalizeGender(gender),note:note||'',metric_1:metric1 ?? '',metric_2:metric2 ?? '',retailer:ret,doorNumber:normalizedDoor,brand:brand};
     syncAssignmentFromDataKey(ret,normalizedDoor,brand);
     if(!brandCodes[brand]) brandCodes[brand]={name:brand,ds_active:true};
   });
@@ -729,7 +729,7 @@ function ensureAllSlots(){
       brands.forEach(brand=>{
         const key=buildDataKey(ret,door.doorNumber,brand);
         if(!dataKeyState[key]){
-          dataKeyState[key]={status:'na',grade:door.tier||'-',gender:'ALL',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:door.doorNumber,brand:brand};
+          dataKeyState[key]={status:'na',gender:'ALL',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:door.doorNumber,brand:brand};
         }
       });
     });
@@ -755,7 +755,7 @@ function reconcileDataKeyFromAssignments(){
       const st=dataKeyState[key];
       if(!st){
         const door=getDoorInfo(norm,a.doorNumber);
-        dataKeyState[key]={status:wanted,grade:(door&&door.tier)||'-',gender:'ALL',note:a.note||'',metric_1:'',metric_2:'',retailer:norm,doorNumber:a.doorNumber,brand};
+        dataKeyState[key]={status:wanted,gender:'ALL',note:a.note||'',metric_1:'',metric_2:'',retailer:norm,doorNumber:a.doorNumber,brand};
         return;
       }
       if(wanted==='confirmed' && normalizeStatus(st.status)!=='confirmed'){
@@ -1808,7 +1808,7 @@ function renderStore(items,visR){
     {key:'city',w:'120px',type:'text',ph:'City'},
     {key:'state',w:'70px',type:'text',ph:'State'},
     {key:'zip',w:'90px',type:'text',ph:'ZIP'},
-    {key:'tier',w:'70px',type:'text',ph:'Tier'},
+    {key:'tier',label:'Grade',w:'70px',type:'text',ph:'Grade'},
     {key:'storeRep',label:'Rep',w:'120px',type:'text',ph:'Store rep'},
     {key:'visitCadence',label:'Cadence',w:'120px',type:'select',ph:'Cadence'},
     {key:'lat',w:'100px',type:'number',ph:'Lat'},
@@ -1835,7 +1835,7 @@ function renderStore(items,visR){
         const exitMarker=d.retired || !brandSummary.present.length
           ? `<span class="store-exit-marker" title="${esc(markerLabel)}" aria-label="${esc(markerLabel)}">🪦</span>`
           : '';
-        return `<td><div class="store-tier-field">${exitMarker}<input type="text" value="${esc(String(val))}" placeholder="${esc(f.ph)}" data-store-field="${esc(f.key)}" onchange="${attr}" oninput="this.dataset.dirty=1"></div></td>`;
+        return `<td><div class="store-grade-field">${exitMarker}<input type="text" value="${esc(String(val))}" placeholder="${esc(f.ph)}" data-store-field="${esc(f.key)}" onchange="${attr}" oninput="this.dataset.dirty=1"></div></td>`;
       }
       if(f.type==='select' && f.key==='visitCadence'){
         const norm=normalizeCadence(val);
@@ -3583,12 +3583,12 @@ function getDataKeyState(ret,doorNumber,brand){
 }
 function ensureDataKeyState(ret,doorNumber,brand){
   if(!isPhysicalDoorNumber(doorNumber)){
-    return {status:'na',grade:'-',gender:'ALL',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:'',brand:brand};
+    return {status:'na',gender:'ALL',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:'',brand:brand};
   }
   const key=buildDataKey(ret,doorNumber,brand);
   if(!dataKeyState[key]){
     const doorInfo=getDoorInfo(ret,doorNumber);
-    dataKeyState[key]={status:'na',grade:(doorInfo&&doorInfo.tier)||'-',gender:'ALL',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:doorNumber,brand:brand};
+    dataKeyState[key]={status:'na',gender:'ALL',note:'',metric_1:'',metric_2:'',retailer:ret,doorNumber:doorNumber,brand:brand};
   }
   return dataKeyState[key];
 }
@@ -4409,7 +4409,7 @@ async function openNewDoorPrompt(){
   const zip=((window.fashionPrompt ? await window.fashionPrompt('Enter ZIP / postal code, optional.', { title:'Door ZIP', confirmLabel:'Next' }) : prompt('Enter ZIP / postal code (optional):'))||'').trim();
   const latStr=((window.fashionPrompt ? await window.fashionPrompt('Enter latitude for the map, optional.', { title:'Door Latitude', confirmLabel:'Next' }) : prompt('Enter latitude for the map (optional):'))||'').trim();
   const lngStr=((window.fashionPrompt ? await window.fashionPrompt('Enter longitude for the map, optional.', { title:'Door Longitude', confirmLabel:'Next' }) : prompt('Enter longitude for the map (optional):'))||'').trim();
-  const tier=((window.fashionPrompt ? await window.fashionPrompt('Enter tier, optional, e.g. A/B/C.', { title:'Door Tier', confirmLabel:'Add' }) : prompt('Enter tier (optional, e.g. A/B/C):'))||'').trim().toUpperCase();
+  const tier=((window.fashionPrompt ? await window.fashionPrompt('Enter grade, optional, e.g. A/B/C.', { title:'Door Grade', confirmLabel:'Add' }) : prompt('Enter grade (optional, e.g. A/B/C):'))||'').trim().toUpperCase();
   const norm=normalizeRetailer(ret);
   const doorNumber = normalizeDoorNumberValue(doorRaw);
   if(doorLocations.some(d=>normalizeRetailer(d.retailer)===norm && String(d.doorNumber)===String(doorNumber))){ toast('That door already exists for this retailer.'); return; }
@@ -5073,30 +5073,30 @@ function isSheetJsReady(){
 function getTemplateDemoRows(){
   return {
     matrixRows:[
-      {Retailer:'Retailer One',Brand:'BR-A',Category:'LUXURY',Doors:3,'Door Number':101,Status:'confirmed',Grade:'A',Gender:'ALL',metric_1:128,metric_2:0.62,Notes:'Synthetic units and sell-through'},
-      {Retailer:'Retailer One',Brand:'BR-A',Category:'LUXURY',Doors:3,'Door Number':102,Status:'confirmed',Grade:'A',Gender:'Mens Only',metric_1:74,metric_2:0.48,Notes:'Synthetic units and sell-through'},
-      {Retailer:'Retailer One',Brand:'BR-C',Category:'PREMIUM',Doors:1,'Door Number':103,Status:'tbd',Grade:'B',Gender:'Ladies Only',metric_1:22,metric_2:0.19,Notes:'Under review'},
-      {Retailer:'Retailer Two',Brand:'BR-A',Category:'LUXURY',Doors:1,'Door Number':201,Status:'confirmed',Grade:'A',Gender:'Ladies Only',metric_1:92,metric_2:0.55,Notes:'Synthetic units and sell-through'},
-      {Retailer:'Retailer Two',Brand:'BR-C',Category:'PREMIUM',Doors:1,'Door Number':202,Status:'confirmed',Grade:'B',Gender:'ALL',metric_1:67,metric_2:0.41,Notes:'Synthetic units and sell-through'},
-      {Retailer:'Retailer Two',Brand:'BR-D',Category:'SPORT',Doors:0,'Door Number':203,Status:'closed',Grade:'C',Gender:'ALL',metric_1:8,metric_2:0.07,Notes:'Exited after low velocity'},
-      {Retailer:'Retailer Three',Brand:'BR-C',Category:'PREMIUM',Doors:1,'Door Number':301,Status:'confirmed',Grade:'A',Gender:'ALL',metric_1:156,metric_2:0.71,Notes:'Synthetic units and sell-through'},
-      {Retailer:'Retailer Three',Brand:'BR-E',Category:'FAST',Doors:1,'Door Number':302,Status:'tbd',Grade:'B',Gender:'Mens Only',metric_1:88,metric_2:0.53,Notes:'New concept test'},
-      {Retailer:'Retailer Three',Brand:'BR-B',Category:'LIFESTYLE',Doors:1,'Door Number':303,Status:'confirmed',Grade:'C',Gender:'ALL',metric_1:43,metric_2:0.34,Notes:'Regional lifestyle read'},
-      {Retailer:'Retailer Four',Brand:'BR-A',Category:'LUXURY',Doors:1,'Door Number':401,Status:'confirmed',Grade:'A',Gender:'ALL',metric_1:111,metric_2:0.58,Notes:'Northwest flagship'},
-      {Retailer:'Retailer Four',Brand:'BR-E',Category:'FAST',Doors:1,'Door Number':402,Status:'confirmed',Grade:'B',Gender:'Ladies Only',metric_1:54,metric_2:0.36,Notes:'New concept placement'}
+      {Retailer:'Retailer One',Brand:'BR-A',Category:'LUXURY',Doors:3,'Door Number':101,Status:'confirmed',Gender:'ALL',metric_1:128,metric_2:0.62,Notes:'Synthetic units and sell-through'},
+      {Retailer:'Retailer One',Brand:'BR-A',Category:'LUXURY',Doors:3,'Door Number':102,Status:'confirmed',Gender:'Mens Only',metric_1:74,metric_2:0.48,Notes:'Synthetic units and sell-through'},
+      {Retailer:'Retailer One',Brand:'BR-C',Category:'PREMIUM',Doors:1,'Door Number':103,Status:'tbd',Gender:'Ladies Only',metric_1:22,metric_2:0.19,Notes:'Under review'},
+      {Retailer:'Retailer Two',Brand:'BR-A',Category:'LUXURY',Doors:1,'Door Number':201,Status:'confirmed',Gender:'Ladies Only',metric_1:92,metric_2:0.55,Notes:'Synthetic units and sell-through'},
+      {Retailer:'Retailer Two',Brand:'BR-C',Category:'PREMIUM',Doors:1,'Door Number':202,Status:'confirmed',Gender:'ALL',metric_1:67,metric_2:0.41,Notes:'Synthetic units and sell-through'},
+      {Retailer:'Retailer Two',Brand:'BR-D',Category:'SPORT',Doors:0,'Door Number':203,Status:'closed',Gender:'ALL',metric_1:8,metric_2:0.07,Notes:'Exited after low velocity'},
+      {Retailer:'Retailer Three',Brand:'BR-C',Category:'PREMIUM',Doors:1,'Door Number':301,Status:'confirmed',Gender:'ALL',metric_1:156,metric_2:0.71,Notes:'Synthetic units and sell-through'},
+      {Retailer:'Retailer Three',Brand:'BR-E',Category:'FAST',Doors:1,'Door Number':302,Status:'tbd',Gender:'Mens Only',metric_1:88,metric_2:0.53,Notes:'New concept test'},
+      {Retailer:'Retailer Three',Brand:'BR-B',Category:'LIFESTYLE',Doors:1,'Door Number':303,Status:'confirmed',Gender:'ALL',metric_1:43,metric_2:0.34,Notes:'Regional lifestyle read'},
+      {Retailer:'Retailer Four',Brand:'BR-A',Category:'LUXURY',Doors:1,'Door Number':401,Status:'confirmed',Gender:'ALL',metric_1:111,metric_2:0.58,Notes:'Northwest flagship'},
+      {Retailer:'Retailer Four',Brand:'BR-E',Category:'FAST',Doors:1,'Door Number':402,Status:'confirmed',Gender:'Ladies Only',metric_1:54,metric_2:0.36,Notes:'New concept placement'}
     ],
     doorRows:[
-      {Retailer:'Retailer One','Door Number':101,Name:'Demo Door 101',Address:'100 Market Walk',City:'New York',State:'NY',ZIP:'10001',Lat:40.7505,Lng:-73.9965,Tier:'A','Check 1':true,'Check 2':true},
-      {Retailer:'Retailer One','Door Number':102,Name:'Demo Door 102',Address:'200 Canyon Ave',City:'Los Angeles',State:'CA',ZIP:'90015',Lat:34.0407,Lng:-118.2468,Tier:'A','Check 1':true,'Check 2':false},
-      {Retailer:'Retailer One','Door Number':103,Name:'Demo Door 103',Address:'300 Harbor Dr',City:'San Diego',State:'CA',ZIP:'92101',Lat:32.7157,Lng:-117.1611,Tier:'B'},
-      {Retailer:'Retailer Two','Door Number':201,Name:'Demo Door 201',Address:'400 Lake St',City:'Chicago',State:'IL',ZIP:'60601',Lat:41.8853,Lng:-87.6216,Tier:'A'},
-      {Retailer:'Retailer Two','Door Number':202,Name:'Demo Door 202',Address:'500 Congress Ave',City:'Austin',State:'TX',ZIP:'78701',Lat:30.2672,Lng:-97.7431,Tier:'B','Check 1':false,'Check 2':true},
-      {Retailer:'Retailer Two','Door Number':203,Name:'Demo Door 203',Address:'600 Main Plaza',City:'Houston',State:'TX',ZIP:'77002',Lat:29.7604,Lng:-95.3698,Tier:'C'},
-      {Retailer:'Retailer Three','Door Number':301,Name:'Demo Door 301',Address:'700 Biscayne Blvd',City:'Miami',State:'FL',ZIP:'33132',Lat:25.7781,Lng:-80.1868,Tier:'A','Check 1':true,'Check 2':true},
-      {Retailer:'Retailer Three','Door Number':302,Name:'Demo Door 302',Address:'800 Peachtree St',City:'Atlanta',State:'GA',ZIP:'30308',Lat:33.7711,Lng:-84.3877,Tier:'B'},
-      {Retailer:'Retailer Three','Door Number':303,Name:'Demo Door 303',Address:'900 River Rd',City:'Nashville',State:'TN',ZIP:'37203',Lat:36.1527,Lng:-86.7891,Tier:'C'},
-      {Retailer:'Retailer Four','Door Number':401,Name:'Demo Door 401',Address:'1000 Pine St',City:'Seattle',State:'WA',ZIP:'98101',Lat:47.6114,Lng:-122.3351,Tier:'A'},
-      {Retailer:'Retailer Four','Door Number':402,Name:'Demo Door 402',Address:'1100 Pearl St',City:'Denver',State:'CO',ZIP:'80202',Lat:39.7392,Lng:-104.9903,Tier:'B'}
+      {Retailer:'Retailer One','Door Number':101,Name:'Demo Door 101',Address:'100 Market Walk',City:'New York',State:'NY',ZIP:'10001',Lat:40.7505,Lng:-73.9965,Grade:'A','Check 1':true,'Check 2':true},
+      {Retailer:'Retailer One','Door Number':102,Name:'Demo Door 102',Address:'200 Canyon Ave',City:'Los Angeles',State:'CA',ZIP:'90015',Lat:34.0407,Lng:-118.2468,Grade:'A','Check 1':true,'Check 2':false},
+      {Retailer:'Retailer One','Door Number':103,Name:'Demo Door 103',Address:'300 Harbor Dr',City:'San Diego',State:'CA',ZIP:'92101',Lat:32.7157,Lng:-117.1611,Grade:'B'},
+      {Retailer:'Retailer Two','Door Number':201,Name:'Demo Door 201',Address:'400 Lake St',City:'Chicago',State:'IL',ZIP:'60601',Lat:41.8853,Lng:-87.6216,Grade:'A'},
+      {Retailer:'Retailer Two','Door Number':202,Name:'Demo Door 202',Address:'500 Congress Ave',City:'Austin',State:'TX',ZIP:'78701',Lat:30.2672,Lng:-97.7431,Grade:'B','Check 1':false,'Check 2':true},
+      {Retailer:'Retailer Two','Door Number':203,Name:'Demo Door 203',Address:'600 Main Plaza',City:'Houston',State:'TX',ZIP:'77002',Lat:29.7604,Lng:-95.3698,Grade:'C'},
+      {Retailer:'Retailer Three','Door Number':301,Name:'Demo Door 301',Address:'700 Biscayne Blvd',City:'Miami',State:'FL',ZIP:'33132',Lat:25.7781,Lng:-80.1868,Grade:'A','Check 1':true,'Check 2':true},
+      {Retailer:'Retailer Three','Door Number':302,Name:'Demo Door 302',Address:'800 Peachtree St',City:'Atlanta',State:'GA',ZIP:'30308',Lat:33.7711,Lng:-84.3877,Grade:'B'},
+      {Retailer:'Retailer Three','Door Number':303,Name:'Demo Door 303',Address:'900 River Rd',City:'Nashville',State:'TN',ZIP:'37203',Lat:36.1527,Lng:-86.7891,Grade:'C'},
+      {Retailer:'Retailer Four','Door Number':401,Name:'Demo Door 401',Address:'1000 Pine St',City:'Seattle',State:'WA',ZIP:'98101',Lat:47.6114,Lng:-122.3351,Grade:'A'},
+      {Retailer:'Retailer Four','Door Number':402,Name:'Demo Door 402',Address:'1100 Pearl St',City:'Denver',State:'CO',ZIP:'80202',Lat:39.7392,Lng:-104.9903,Grade:'B'}
     ]
   };
 }
@@ -5119,7 +5119,6 @@ function reconcileMatrixTotalsFromDoors(){
         const state=ensureDataKeyState(ret,door.doorNumber,brand);
         if(normalizeStatus(state.status)==='na'){
           state.status='confirmed';
-          state.grade=state.grade || door.tier || '-';
           state.note=state.note || 'Created from matrix import total';
           syncAssignmentFromDataKey(ret,door.doorNumber,brand);
           confirmed++;
@@ -5205,7 +5204,7 @@ function importDoorRows(rows){
     const lngRaw=pick(row,['Lng','lng','Lon','Longitude','longitude']);
     const lat=latRaw===''?undefined:parseFloat(latRaw);
     const lng=lngRaw===''?undefined:parseFloat(lngRaw);
-    const tier=String(pick(row,['Tier','tier','Grade','grade'])||'').trim().toUpperCase();
+    const tier=String(pick(row,['Grade','grade','Tier','tier'])||'').trim().toUpperCase();
     const storeRep=String(pick(row,['Store Rep','storeRep','Rep','rep','Owner','owner'])||'').trim();
     const visitCadence=normalizeCadence(pick(row,['Visit Cadence','visitCadence','Cadence','cadence']));
     const issProvided=['Check 1','Check1','ISS','iss'].some(key=>Object.prototype.hasOwnProperty.call(row,key));
@@ -5311,11 +5310,11 @@ function downloadTemplate(){
   if(!isSheetJsReady()) return;
   const demo=getTemplateDemoRows();
   const matrixRows=[
-    {Retailer:'',Brand:'',Category:'',Doors:'','Door Number':'',Status:'',Grade:'',Gender:'ALL',metric_1:'',metric_2:'',Notes:''},
+    {Retailer:'',Brand:'',Category:'',Doors:'','Door Number':'',Status:'',Gender:'ALL',metric_1:'',metric_2:'',Notes:''},
     ...demo.matrixRows
   ];
   const doorRows=[
-    {Retailer:'','Door Number':'',Name:'',Address:'',City:'',State:'',ZIP:'',Lat:'',Lng:'',Tier:'','Store Rep':'','Visit Cadence':'','Check 1':'','Check 2':'',Retired:''},
+    {Retailer:'','Door Number':'',Name:'',Address:'',City:'',State:'',ZIP:'',Lat:'',Lng:'',Grade:'','Store Rep':'','Visit Cadence':'','Check 1':'','Check 2':'',Retired:''},
     ...demo.doorRows
   ];
   const matrixWs=XLSX.utils.json_to_sheet(matrixRows);
@@ -5357,7 +5356,7 @@ function loadDemoData(){
     if(!isPhysicalDoorNumber(doorNumber)) return;
     const normalizedDoor=normalizeDoorNumberValue(doorNumber);
     const doorInfo=getDoorInfo(ret,normalizedDoor);
-    dataKeyState[buildDataKey(ret,normalizedDoor,brand)]={status:normalizeStatus(status),grade:(doorInfo&&doorInfo.tier)||'-',gender:normalizeGender(gender),note:note||'',metric_1:metric1 ?? '',metric_2:metric2 ?? '',retailer:ret,doorNumber:normalizedDoor,brand:brand};
+    dataKeyState[buildDataKey(ret,normalizedDoor,brand)]={status:normalizeStatus(status),gender:normalizeGender(gender),note:note||'',metric_1:metric1 ?? '',metric_2:metric2 ?? '',retailer:ret,doorNumber:normalizedDoor,brand:brand};
     syncAssignmentFromDataKey(ret,normalizedDoor,brand);
     if(!brandCodes[brand]) brandCodes[brand]={name:brand,ds_active:true};
   });
@@ -5427,7 +5426,7 @@ function exportResearchView(){
     ZIP:d.zip||'',
     Lat:(d.lat===undefined||d.lat===null||Number.isNaN(d.lat))?'':d.lat,
     Lng:(d.lng===undefined||d.lng===null||Number.isNaN(d.lng))?'':d.lng,
-    Tier:d.tier||'',
+    Grade:d.tier||'',
     'Check 1':normalizeBoolean(d.iss),
     'Check 2':normalizeBoolean(d.three_c),
     Retired:d.retired?'Yes':''
@@ -5497,7 +5496,7 @@ function _exportFullDataNow(){
     ZIP: d.zip||'',
     Lat: d.lat==null?'':d.lat,
     Lng: d.lng==null?'':d.lng,
-    Tier: d.tier||'',
+    Grade: d.tier||'',
     'Store Rep': d.storeRep||'',
     'Visit Cadence': cadenceLabel(d.visitCadence),
     'Check 1': normalizeBoolean(d.iss),
