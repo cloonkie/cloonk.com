@@ -1974,8 +1974,8 @@ function renderStore(items, visR) {
         return;
     }
     const fields = [
-        { key: 'name', w: 'minmax(160px,1.4fr)', type: 'text', ph: 'Store / mall name' },
-        { key: 'doorNumber', w: '90px', type: 'text', ph: '#' },
+        { key: 'doorNumber', label: 'Door Number', w: '110px', type: 'text', ph: '#' },
+        { key: 'name', label: 'Door Name', w: 'minmax(160px,1.4fr)', type: 'text', ph: 'Store / mall name' },
         { key: 'address', w: 'minmax(160px,1.4fr)', type: 'text', ph: 'Street' },
         { key: 'city', w: '120px', type: 'text', ph: 'City' },
         { key: 'state', w: '70px', type: 'text', ph: 'State' },
@@ -2052,6 +2052,14 @@ function updateStoreDoorField(ret, doorNumber, field, el) {
             return;
         }
         next = normalizeDoorNumberValue(value);
+        const duplicate = doorLocations.find(x => x !== d &&
+            normalizeRetailer(x.retailer) === norm &&
+            String(x.doorNumber) === String(next));
+        if (duplicate) {
+            el.value = oldVal;
+            toast('That door number already exists for this retailer.');
+            return;
+        }
     }
     else if (field === 'state' || field === 'tier') {
         next = String(value || '').trim().toUpperCase();
@@ -2073,21 +2081,28 @@ function updateStoreDoorField(ret, doorNumber, field, el) {
         if (oldNum !== newNum)
             remapDoorNumberKeys(norm, oldNum, newNum);
     }
+    else if (field === 'name') {
+        syncAssignmentDoorName(norm, String(d.doorNumber), String(next || ''));
+    }
     const user = currentUserName();
     recordHistory(norm, '__door__', { action: 'edit', doorNumber: String(d.doorNumber), scope: 'door', oldVal: String(oldVal), newVal: String(next == null ? '' : next), date: new Date().toISOString(), user, note: `${field} changed` });
     queueAutosave();
+    if (field === 'doorNumber')
+        render();
 }
 /* When a door # is edited in the Store view, follow the change through
    dataKeyState and doorAssignments so existing brand records stay intact. */
 function remapDoorNumberKeys(ret, oldNum, newNum) {
     const norm = normalizeRetailer(ret);
+    const door = getDoorInfo(norm, newNum);
     Object.keys(dataKeyState).forEach(key => {
         const st = dataKeyState[key];
-        if (!st || st.retailer !== norm)
+        if (!st || normalizeRetailer(st.retailer) !== norm)
             return;
         if (String(st.doorNumber) !== String(oldNum))
             return;
         const newKey = buildDataKey(norm, newNum, st.brand);
+        st.retailer = norm;
         st.doorNumber = newNum;
         if (newKey !== key) {
             dataKeyState[newKey] = st;
@@ -2099,8 +2114,24 @@ function remapDoorNumberKeys(ret, oldNum, newNum) {
         if (normalizeRetailer(r) !== norm)
             return;
         (doorAssignments[ak] || []).forEach(a => {
-            if (String(a.doorNumber) === String(oldNum))
+            if (String(a.doorNumber) === String(oldNum)) {
                 a.doorNumber = newNum;
+                if (door)
+                    a.doorName = door.name || `Door ${newNum}`;
+            }
+        });
+    });
+}
+function syncAssignmentDoorName(ret, doorNumber, doorName) {
+    const norm = normalizeRetailer(ret);
+    const nextName = doorName || `Door ${doorNumber}`;
+    Object.entries(doorAssignments || {}).forEach(([ak, assigns]) => {
+        const [r] = ak.split('|');
+        if (normalizeRetailer(r) !== norm)
+            return;
+        (assigns || []).forEach(a => {
+            if (String(a.doorNumber) === String(doorNumber))
+                a.doorName = nextName;
         });
     });
 }
